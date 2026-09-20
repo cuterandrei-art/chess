@@ -2,7 +2,7 @@
    App shell is precached; the chess engine, Stockfish and piece images
    (loaded from CDNs on first use) are cached at runtime, so after one
    online visit the whole app — including Play vs Stockfish — works offline. */
-const CACHE = 'opening-trainer-v43';
+const CACHE = 'opening-trainer-v44';
 const SHELL = [
   './',
   './index.html',

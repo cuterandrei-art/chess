@@ -49,6 +49,23 @@
   .confetti{position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden}
   .confetti i{position:absolute;top:-14px;width:9px;height:14px;border-radius:2px;opacity:.92;animation:conffall linear forwards}
   @keyframes conffall{to{transform:translateY(104vh) rotate(720deg);opacity:.8}}
+  .topnav{display:none;gap:2px;align-items:center}
+  .topnav button{background:transparent;border:0;color:var(--muted);font:inherit;font-weight:700;padding:8px 12px;border-radius:9px;cursor:pointer}
+  .topnav button:hover{background:#16223b;color:var(--text)}
+  .topnav button.active{background:#1d2b49;color:#fff}
+  .navright{display:flex;align-items:center;gap:8px;margin-left:auto}
+  .botnav{position:fixed;left:0;right:0;bottom:0;z-index:70;display:flex;background:rgba(11,17,32,.95);backdrop-filter:blur(10px);border-top:1px solid var(--border);padding:4px 4px calc(4px + env(safe-area-inset-bottom))}
+  .botnav button{flex:1;background:transparent;border:0;color:var(--dim);font:inherit;font-weight:600;font-size:10.5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border-radius:10px;-webkit-tap-highlight-color:transparent}
+  .botnav button .bi{font-size:21px;line-height:1}
+  .botnav button.active{color:var(--brand2)}
+  @media(min-width:821px){.botnav{display:none}.topnav{display:flex}}
+  @media(max-width:820px){.wrap{padding-bottom:calc(78px + env(safe-area-inset-bottom))}}
+  .learngrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(238px,1fr));gap:10px}
+  .learncard{display:flex;gap:12px;align-items:center;text-align:left;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;color:var(--text);font:inherit;transition:.15s}
+  .learncard:hover{border-color:var(--brand);background:var(--panel2)}
+  .learncard .li{font-size:26px;flex:0 0 auto}
+  .learncard .lt{font-weight:800}
+  .learncard .ld{color:var(--muted);font-size:12.5px;margin-top:2px;line-height:1.4}
   .ctabs{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 8px;margin-bottom:10px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   .ctabs::-webkit-scrollbar{display:none}
   .ctab{flex:0 0 auto;position:relative;background:#141f38;border:1px solid var(--border);color:var(--muted);font:inherit;font-weight:700;font-size:13px;padding:9px 13px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:6px}
@@ -4518,21 +4535,50 @@ function viewMasters(){
   return h;
 }
 
+function viewLearn(){
+  const items=[
+    ['train','🎓','Train','Spaced-repetition drills of your opening repertoire'],
+    ['library','📖','Openings','Browse the library &amp; build your repertoire'],
+    ['guess','🎯','Guess the Move','Find the move the master actually played'],
+    ['endgames','♟️','Endgames','Master the essential theoretical endings'],
+    ['classics','📜','Immortal Classics','Replay the greatest games ever played'],
+    ['masters','♞','Master Games','Step through games from the legends'],
+    ['blindfold','🙈','Blindfold','Train board vision &amp; visualization'],
+    ['review','🔬','Game Review','Analyse any game with the engine'],
+    ['studies','📚','Studies','Import &amp; browse Lichess studies'],
+    ['dashboard','📊','Dashboard','Your repertoire progress &amp; stats']
+  ];
+  let h='<div style="max-width:900px;margin:0 auto"><h1>📚 Learn &amp; Train</h1><div class="muted small" style="margin:6px 0 14px">Everything to sharpen your chess — pick a tool.</div>';
+  h+='<div class="learngrid">'+items.map(it=>'<button class="learncard" data-act="nav" data-val="'+it[0]+'"><div class="li">'+it[1]+'</div><div><div class="lt">'+it[2]+'</div><div class="ld">'+it[3]+'</div></div></button>').join('')+'</div>';
+  return h+'</div>';
+}
 function render(){
   document.body.style.setProperty('--bw',(store.settings.boardSize||520)+'px');
   applyAppTheme();
   const repOps=BUILT.filter(o=>inRep(o.id));const agg=aggregate(repOps,store.srs);
-  const nav=['career','dashboard','play','puzzles','train','library','endgames','classics','guess','blindfold','review','studies','masters','settings'];
-  const label=v=>v[0].toUpperCase()+v.slice(1);
+  const nav=['career','dashboard','play','puzzles','learn','train','library','endgames','classics','guess','blindfold','review','studies','masters','settings'];
+  const NAV_META={career:['🏆','Career'],dashboard:['📊','Dashboard'],play:['♟️','Play'],puzzles:['🧩','Puzzles'],learn:['📚','Learn'],train:['🎓','Train'],library:['📖','Openings'],endgames:['♟️','Endgames'],classics:['📜','Classics'],guess:['🎯','Guess the Move'],blindfold:['🙈','Blindfold'],review:['🔬','Game Review'],studies:['📚','Studies'],masters:['♞','Master Games'],settings:['⚙️','Settings']};
+  const label=v=>(NAV_META[v]?NAV_META[v][1]:v[0].toUpperCase()+v.slice(1));
+  const navIcon=v=>(NAV_META[v]?NAV_META[v][0]:'•');
   const cur=nav.indexOf(app.view)>=0?app.view:'dashboard';
+  const LEARN_VIEWS=['learn','train','library','build','explore','course','endgames','classics','guess','blindfold','masters','studies','review','dashboard','reptree'];
+  const primaryOf=v=>(v==='career'?'career':v==='play'?'play':v==='puzzles'?'puzzles':LEARN_VIEWS.indexOf(v)>=0?'learn':'');
+  const PRIMARY=[['career','🏆','Career'],['play','♟️','Play'],['puzzles','🧩','Puzzles'],['learn','📚','Learn']];
+  const curP=primaryOf(cur);
+  const topnav='<div class="topnav">'+PRIMARY.map(p=>'<button data-act="nav" data-val="'+p[0]+'" class="'+(curP===p[0]?'active':'')+'">'+p[1]+' '+p[2]+'</button>').join('')+'</div>';
+  const menuGrid=nav.map(v=>'<button data-act="nav" data-val="'+v+'" class="'+(app.view===v?'active':'')+'">'+navIcon(v)+' '+label(v)+'</button>').join('');
   const head='<header class="top"><div class="topin">'+
-    '<button class="btn ghost sm" data-act="back" title="Back" style="margin-right:6px'+((app.navHist&&app.navHist.length)?'':';visibility:hidden')+'">←</button>'+
+    '<button class="btn ghost sm" data-act="back" title="Back" style="margin-right:2px'+((app.navHist&&app.navHist.length)?'':';visibility:hidden')+'">←</button>'+
     '<div class="brand" data-act="nav" data-val="career"><span class="mark">♞</span>Chess<span style="color:var(--brand2)">Career</span></div>'+
-    '<div class="menu">'+
-      '<button class="menubtn'+(app.menuOpen?' open':'')+'" data-act="menutoggle"><span class="dim" style="font-weight:600">Menu</span><span class="dim">·</span><span class="mlabel">'+label(cur)+'</span><span class="caret">▼</span></button>'+
-      (app.menuOpen?'<div class="menupanel">'+nav.map(v=>'<button data-act="nav" data-val="'+v+'" class="'+(app.view===v?'active':'')+'">'+label(v)+'</button>').join('')+'</div>':'')+
+    '<div class="navright">'+topnav+
+      '<div class="menu">'+
+        '<button class="menubtn'+(app.menuOpen?' open':'')+'" data-act="menutoggle">☰ <span class="mlabel">More</span></button>'+
+        (app.menuOpen?'<div class="menupanel">'+menuGrid+'</div>':'')+
+      '</div>'+
     '</div>'+
-    '</div></header>'+(app.menuOpen?'<div class="menuscrim" data-act="menuclose"></div>':'');
+    '</div></header>'+
+    '<nav class="botnav">'+PRIMARY.map(p=>'<button data-act="nav" data-val="'+p[0]+'" class="'+(curP===p[0]?'active':'')+'"><span class="bi">'+p[1]+'</span>'+p[2]+'</button>').join('')+'<button data-act="menutoggle" class="'+(app.menuOpen?'active':'')+'"><span class="bi">☰</span>More</button></nav>'+
+    (app.menuOpen?'<div class="menuscrim" data-act="menuclose"></div>':'');
   let body='';
   if(app.view==='dashboard')body=viewDashboard(repOps,agg);
   else if(app.view==='library')body=viewLibrary();
@@ -4542,6 +4588,7 @@ function render(){
   else if(app.view==='train')body=viewTrain();
   else if(app.view==='play')body=viewPlay();
   else if(app.view==='puzzles')body=viewPuzzles();
+  else if(app.view==='learn')body=viewLearn();
   else if(app.view==='review')body=viewReview();
   else if(app.view==='studies')body=viewStudies();
   else if(app.view==='masters')body=viewMasters();
