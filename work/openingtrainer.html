@@ -4998,6 +4998,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='guessnewgame'){guessStart();render();}
   else if(act==='guessexit'){app.guess=null;go('dashboard');}
   else if(act==='questclaim'){var qq=questsEnsure();var qit=qq.items.find(function(x){return x.id===val;});if(qit&&qit.prog>=qit.goal&&!qit.claimed){qit.claimed=true;var qc=store.career;lifeInit(qc);qc.money=(qc.money||0)+qit.cash;addXp(qc,qit.xp);app.careerToast='🗓️ Quest complete: '+qit.text+' — +💰'+qit.cash+', +'+qit.xp+' XP.';save();render();}}
+  else if(act==='botstart'){var bt=botById(val);if(bt){var bs=Math.random()<0.5?'w':'b';startPlay(new Chess().fen(),bs,null,'🤖 '+bt.emoji+' '+bt.name+' ('+bt.elo+') · '+styleById(bt.style).emoji+' '+styleById(bt.style).name,{bot:bt,tcId:store.settings.tcId||'unlimited'});}}
   else if(act==='cfirst'){app.classicPly=0;render();}
   else if(act==='cback'){app.classicPly=Math.max(0,(app.classicPly||0)-1);render();}
   else if(act==='cfwd'){const g=CLASSICS.find(x=>x.id===app.classicId);if(g)app.classicPly=Math.min(g.m.split(' ').length,(app.classicPly||0)+1);render();}
@@ -5379,7 +5380,7 @@ function fallbackCopy(text,done){try{const ta=document.createElement('textarea')
 function startPlay(fen,side,openingId,title,opts){opts=opts||{};
   app.view='play';app.playFen=fen;app._playStartFen=fen;app.playSide=side;app.playOpening=openingId||null;
   app.playTitle=title||'Free game';app.playFlip=false;app.playStack=[fen];app.playMoves=[];app.playView=0;app.playLast=null;app.playSel=null;app.careerBanter=null;app.careerReaction=null;
-  app.playHint=null;app.playEval=null;app.playResult=null;app.engineErr=false;app.drawMsg=null;app.pgnCopied=false;app.playPremoves=[];app.blindfold=!!opts.blindfold;app.peek=false;app.careerOpp=opts.careerOpp||null;app.careerElo=opts.careerElo||null;app.careerScored=false;app.careerDelta=0;app.careerTour=!!opts.careerTour;app.careerRoundOpp=opts.roundOpp||null;app.careerOneoff=opts.oneoff||null;app.c960=opts.c960||null;app.endgame=opts.endgame||null;app.tiltEval=false;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=!!(opts.league);app.careerHintsLeft=opts.careerOpp?careerHintAllowance():0;
+  app.playHint=null;app.playEval=null;app.playResult=null;app.engineErr=false;app.drawMsg=null;app.pgnCopied=false;app.playPremoves=[];app.blindfold=!!opts.blindfold;app.peek=false;app.careerOpp=opts.careerOpp||null;app.careerElo=opts.careerElo||null;app.careerScored=false;app.careerDelta=0;app.careerTour=!!opts.careerTour;app.careerRoundOpp=opts.roundOpp||null;app.careerOneoff=opts.oneoff||null;app.c960=opts.c960||null;app.endgame=opts.endgame||null;app.playBot=opts.bot||null;app.tiltEval=false;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=!!(opts.league);app.careerHintsLeft=opts.careerOpp?careerHintAllowance():0;
   app.playBook=opts.bookId?byId.get(opts.bookId):(opts.book||null);
   app.playBookNode=opts.bookNode||(app.playBook?app.playBook.root:null);
   const tc=opts.tc||tcById((opts.tcId)||'unlimited');app.tc=tc;
@@ -5423,7 +5424,8 @@ async function engineMove(){app.playStatus='engine';render();
   // Career opponents play ~120 Elo below their displayed rating so a human of the
   // same nominal strength can genuinely compete and climb (their published number
   // is chess.com-ish, i.e. above FIDE).
-  let lvl;if(app.careerElo){
+  let lvl;if(app.playBot){lvl={elo:app.playBot.elo,mt:700,style:app.playBot.style};}
+  else if(app.careerElo){
     const ply=app.playMoves.length;
     const sharp=Math.min(45,Math.max(0,(((store.puzzle&&store.puzzle.rating)||1200)-1200)/16)); // tactical sharpness from puzzles
     const studyE=app.careerStudyEdge?Math.round(app.careerStudyEdge*(ply<16?70:25)):0; // you studied the very line they're playing
@@ -6850,6 +6852,24 @@ const STYLES=[
 ];
 function pickStyle(){return STYLES[Math.floor(Math.random()*STYLES.length)].id;}
 function styleById(id){return STYLES.find(s=>s.id===id)||STYLES[5];}
+/* Named characters for casual play — each maps to a real engine Elo + style bias. */
+const BOTS=[
+  {id:'robin',emoji:'🐣',name:'Rookie Robin',elo:700,style:'solid',banter:'Go easy on me!'},
+  {id:'casey',emoji:'☕',name:'Casual Casey',elo:1100,style:'universal',banter:'Just here for fun.'},
+  {id:'gary',emoji:'🔥',name:'Gambit Gary',elo:1400,style:'gambiteer',banter:'Sac first, ask questions later.'},
+  {id:'bella',emoji:'⚡',name:'Blitz Bella',elo:1600,style:'aggressive',banter:'Tick tock — try to keep up.'},
+  {id:'sam',emoji:'🛡️',name:'Solid Sam',elo:1750,style:'solid',banter:'You will earn every pawn.'},
+  {id:'petra',emoji:'🧠',name:'Positional Petra',elo:1950,style:'positional',banter:'I squeeze, slowly.'},
+  {id:'ade',emoji:'⚔️',name:'Attacker Ade',elo:2100,style:'aggressive',banter:'Your king looks lonely.'},
+  {id:'grace',emoji:'⚙️',name:'Grinder Grace',elo:2250,style:'grinder',banter:'I never let a draw slip.'},
+  {id:'max',emoji:'🎯',name:'Maestro Max',elo:2450,style:'universal',banter:'Show me something new.'},
+  {id:'machine',emoji:'🤖',name:'The Machine',elo:2750,style:'universal',banter:'Resistance is instructive.'}
+];
+function botById(id){return BOTS.find(function(b){return b.id===id;});}
+function botGallery(){
+  return '<div class="card" style="margin-top:12px"><div style="font-weight:700;margin-bottom:2px">🤖 Play a character</div><div class="dim small" style="margin-bottom:8px">Named opponents with their own strength &amp; style — a quick, characterful game. Uses your selected time control.</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'+BOTS.map(function(b){var st=styleById(b.style);return '<button class="btn sec" data-act="botstart" data-val="'+b.id+'" style="text-align:left;display:block;padding:8px 10px;white-space:normal"><div style="font-weight:800">'+b.emoji+' '+esc(b.name)+'</div><div class="dim small">'+b.elo+' · '+st.emoji+' '+st.name+'</div><div class="dim small" style="font-style:italic;margin-top:2px">“'+esc(b.banter)+'”</div></button>';}).join('')+'</div></div>';
+}
 function scoutTip(id){return ({aggressive:'plays sharp attacks — a solid, well-booked line blunts them',positional:'grinds small edges — a forcing prepared line throws them off',gambiteer:'sacrifices for the initiative — prepare to accept and consolidate',solid:'is rock-solid — bring a sharp prepared weapon to make winning chances',grinder:'squeezes endgames — get your edge early from preparation',universal:'is well-rounded — your home prep is the difference-maker'})[id]||'your home prep is the difference-maker';}
 function styleBonus(fen,uci,style){
   if(!style||!fen)return 0;
@@ -7428,6 +7448,7 @@ function viewPlay(){
         rowSet('🎲 Chess960','Fischer Random — a shuffled back rank. Castle by tapping your king then your rook. (Disables the opening book.)','<button class="btn '+(app.c960setup?'primary':'ghost')+' sm" data-act="p960">'+(app.c960setup?'On':'Off')+'</button>')+
       '</div>'+
       '<div class="row" style="justify-content:center;gap:8px"><button class="btn primary" data-act="pstart" data-val="w">Play as White ♔</button><button class="btn sec" data-act="pstart" data-val="b">Play as Black ♚</button><button class="btn ghost" data-act="pstart" data-val="r">🎲 Random</button></div>'+
+      botGallery()+
       '</div></div>';
   }
   const base=app.playSide==='w'?'white':'black';const orient=app.playFlip?(base==='white'?'black':'white'):base;
