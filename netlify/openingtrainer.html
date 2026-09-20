@@ -7585,7 +7585,7 @@ function viewPlay(){
   const evalHtml=(ev&&live&&store.settings.showEval&&!app.tiltEval)?'<div class="row" style="justify-content:space-between;margin-bottom:5px"><span class="dim small">Evaluation</span><span class="small" style="font-weight:800">'+evalStr(ev.t,ev.v,ev.stm)+'</span></div><div class="evalbar"><i style="width:'+evalPct(ev.t,ev.v,ev.stm)+'%"></i></div>':'';
   let status;
   if(!live)status='<div style="font-weight:800;color:var(--amber)">⏪ Reviewing — move '+app.playView+' of '+lastIdx+'</div>';
-  else if(app.playStatus==='over'){var rk=resultKind(app.playResult);var rc=rk==='win'?'var(--green)':rk==='loss'?'#f87171':'var(--muted)';var re=rk==='win'?'🎉':rk==='loss'?'😞':'🤝';status='<div class="card" style="border-color:'+rc+';text-align:center;padding:14px 12px"><div style="font-size:30px;line-height:1">'+re+'</div><div style="font-weight:800;font-size:16px;color:'+rc+';margin-top:4px">'+esc(app.playResult||'Game over')+'</div>'+(!app.careerOpp?'<div class="row" style="justify-content:center;gap:8px;margin-top:11px"><button class="btn primary sm" data-act="prematch">↻ Rematch</button><button class="btn sec sm" data-act="nav" data-val="play">New game</button></div>':'')+'</div>'+((app.careerOpp&&app.careerReaction)?'<div class="note" style="margin-top:8px;border-color:#a855f73d;background:#a855f714;color:#e9d5ff">💬 <b>'+esc(app.careerReaction.who)+':</b> “'+esc(app.careerReaction.line)+'”</div>':'')+(app.careerOpp?careerPlayFooter():'')+(app.endgame?endgameVerdict():'');}
+  else if(app.playStatus==='over'){var rk=resultKind(app.playResult);var rc=rk==='win'?'var(--green)':rk==='loss'?'#f87171':'var(--muted)';var re=rk==='win'?'🎉':rk==='loss'?'😞':'🤝';status='<div class="card" style="border-color:'+rc+';text-align:center;padding:14px 12px"><div style="font-size:30px;line-height:1">'+re+'</div><div style="font-weight:800;font-size:16px;color:'+rc+';margin-top:4px">'+esc(app.playResult||'Game over')+'</div>'+'<div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap;margin-top:11px">'+((app.playMoves&&app.playMoves.length)?'<button class="btn sec sm" data-act="revplay">🔬 Review game</button>':'')+(!app.careerOpp?'<button class="btn primary sm" data-act="prematch">↻ Rematch</button><button class="btn sec sm" data-act="nav" data-val="play">New game</button>':'')+'</div>'+'</div>'+((app.careerOpp&&app.careerReaction)?'<div class="note" style="margin-top:8px;border-color:#a855f73d;background:#a855f714;color:#e9d5ff">💬 <b>'+esc(app.careerReaction.who)+':</b> “'+esc(app.careerReaction.line)+'”</div>':'')+(app.careerOpp?careerPlayFooter():'')+(app.endgame?endgameVerdict():'');}
   else if(app.playStatus==='engine'){var pq=(app.playPremoves||[]).length;status='<div class="muted">Stockfish is thinking… '+(pq?'<span style="color:var(--brand2)">'+pq+' premove'+(pq>1?'s':'')+' queued</span> <span class="dim">· tap an empty square to cancel</span>':'<span class="dim">tap or drag to queue premoves</span>')+'</div>';}
   else{var _chk='';try{var _cc=new Chess(app.playFen);if(_cc.inCheck&&_cc.inCheck())_chk=' <span style="color:#f87171">— check!</span>';}catch(e){}status='<div style="font-weight:800;color:var(--brand2)">Your move ('+(app.playSide==='w'?'White':'Black')+').'+_chk+'</div>';}
   const interactive=live&&app.playStatus==='play'&&turnOf(app.playFen)===app.playSide;
@@ -7788,6 +7788,15 @@ function reviewFinish(){const R=app.review;const n=R.moves.length;const sans=[];
     let a=103.1668*Math.exp(-0.04354*drop)-3.1669;a=Math.max(0,Math.min(100,a));
     if(stm==='w'){accSumW+=a;accCntW++;}else{accSumB+=a;accCntB++;}}
   R.accW=accCntW?Math.round(accSumW/accCntW):100;R.accB=accCntB?Math.round(accSumB/accCntB):100;
+  // key moment: your single worst move (largest win% drop among your mistakes)
+  var mySide=(R.meta&&R.meta.side)||null,worst=-1,worstK=-1;
+  for(let k=0;k<n;k++){const stm=turnOf(R.fens[k]);if(mySide&&stm!==mySide)continue;
+    if(!(R.classes[k]==='inacc'||R.classes[k]==='mistake'||R.classes[k]==='blunder'))continue;
+    const bestCp=cpOf(R.evals[k]),evA=R.evals[k+1];const playedCp=evA?-cpOf(evA):bestCp;const drop=Math.max(0,winPct(bestCp)-winPct(playedCp));
+    if(drop>worst){worst=drop;worstK=k;}}
+  R.key=null;
+  if(worstK>=0){var betterSan='';try{var bc=new Chess(R.fens[worstK]);var bu=(R.best[worstK]||'');if(bu){var mvk=bc.move({from:bu.slice(0,2),to:bu.slice(2,4),promotion:bu[4]||'q'});betterSan=mvk?mvk.san:'';}}catch(e){}
+    R.key={ply:worstK+1,played:R.moves[worstK].san,better:betterSan,cls:R.classes[worstK],drop:Math.round(worst)};}
   R.status='done';R.pos=0;render();}
 function reviewSeek(d){const R=app.review;if(!R||!R.fens)return;R.pos=Math.max(0,Math.min(R.fens.length-1,R.pos+d));render();}
 function viewReview(){
@@ -7822,6 +7831,7 @@ function viewReview(){
   const atEnd=R.pos>=R.fens.length-1,atStart=R.pos<=0;
   let h='<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px"><h1 style="font-size:20px">Game Review</h1><button class="btn ghost sm" data-act="nav" data-val="review">✕</button></div>';
   h+='<div class="row" style="margin-bottom:12px">'+stat('White accuracy',R.accW+'%','#e2e8f0')+stat('Black accuracy',R.accB+'%','#94a3b8')+'</div>';
+  if(R.key)h+='<div class="card" style="margin-bottom:12px;border-color:'+(REV_CLASS[R.key.cls]?REV_CLASS[R.key.cls][1]:'#f87171')+'"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div class="small"><b>🔍 Your biggest mistake:</b> '+esc(R.key.played)+' <span style="color:'+(REV_CLASS[R.key.cls]?REV_CLASS[R.key.cls][1]:'#f87171')+';font-weight:700">('+(REV_CLASS[R.key.cls]?REV_CLASS[R.key.cls][0]:R.key.cls)+')</span>'+(R.key.better?' — better was <b>'+esc(R.key.better)+'</b>':'')+'</div><button class="btn sec sm" style="flex:0 0 auto" data-act="revjump" data-val="'+R.key.ply+'">See it →</button></div></div>';
   h+='<div class="layout"><div class="boardwrap">'+renderBoard(fen,orient,{last,hint:bestArrow,interactive:false})+
     '<div class="row" style="justify-content:center;align-items:center;gap:5px;margin-top:10px">'+
     '<button class="btn sec sm" data-act="revjump" data-val="0" '+(atStart?'disabled':'')+'>⏮</button>'+
