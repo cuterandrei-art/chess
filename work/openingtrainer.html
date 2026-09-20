@@ -4767,7 +4767,34 @@ function viewTrain(){
 function msgCard(t,s,btns){return '<div class="center"><div class="card" style="max-width:440px"><h1>'+t+'</h1><p class="muted">'+s+'</p><div class="row" style="justify-content:center;margin-top:8px">'+btns+'</div></div></div>';}
 function miniStat(v,l,c){return '<div class="card stat" style="text-align:center"><div class="v" style="color:'+c+'">'+v+'</div><div class="l">'+l+'</div></div>';}
 
-function selOpt(setting,obj){return '<select data-setting="'+setting+'">'+Object.keys(obj).map(k=>'<option value="'+k+'"'+(store.settings[setting]===k?' selected':'')+'>'+obj[k].label+'</option>').join('')+'</select>';}
+/* Cosmetic unlocks — prestige piece sets / themes earned through a career. */
+function ulkPeak(c){return Math.max((c&&c.peak)||0,(c&&c.peakRapid)||0,(c&&c.peakBlitz)||0);}
+function ulkTitle(c,t){return !!(c&&c.titles&&c.titles.indexOf(t)>=0);}
+function ulkHonor(c,h){return !!(c&&c.honors&&c.honors.indexOf(h)>=0);}
+function ulkAch(c){return (c&&c.achievements&&c.achievements.length)||0;}
+const UNLOCKS={
+  'pieces:fantasy':{lbl:'Reach 2200 peak (CM)',t:function(c){return ulkPeak(c)>=2200;}},
+  'pieces:dubrovny':{lbl:'Earn the IM title',t:function(c){return ulkTitle(c,'IM');}},
+  'pieces:monarchy':{lbl:'Earn the GM title',t:function(c){return ulkTitle(c,'GM');}},
+  'pieces:horsey':{lbl:'Become World Champion',t:function(c){return ulkHonor(c,'World Champion');}},
+  'pieces:anarcandy':{lbl:'Win 25 games',t:function(c){return (c&&c.won||0)>=25;}},
+  'pieces:spatial':{lbl:'Unlock 12 achievements',t:function(c){return ulkAch(c)>=12;}},
+  'theme:walnut':{lbl:'Reach 2000 peak',t:function(c){return ulkPeak(c)>=2000;}},
+  'theme:ice':{lbl:'Reach 2400 peak',t:function(c){return ulkPeak(c)>=2400;}},
+  'appTheme:royal':{lbl:'Earn the GM title',t:function(c){return ulkTitle(c,'GM');}},
+  'appTheme:ember':{lbl:'Become World Champion',t:function(c){return ulkHonor(c,'World Champion');}},
+  'accent:emerald':{lbl:'Reach 2400 peak',t:function(c){return ulkPeak(c)>=2400;}},
+  'accent:amber':{lbl:'Unlock 10 achievements',t:function(c){return ulkAch(c)>=10;}}
+};
+function isUnlocked(setting,key){var u=UNLOCKS[setting+':'+key];if(!u)return true;var c=store.career;return !!(c&&c.setup&&u.t(c));}
+function careerUnlockPanel(c){
+  var cat={pieces:PIECE_SETS,theme:THEMES,appTheme:APP_THEMES,accent:ACCENTS},catName={pieces:'Piece set',theme:'Board',appTheme:'Background',accent:'Accent'};
+  var keys=Object.keys(UNLOCKS),got=keys.filter(function(k){var p=k.split(':');return isUnlocked(p[0],p[1]);}).length;
+  var h='<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">🎁 Cosmetic unlocks</div><div class="dim small">'+got+'/'+keys.length+' unlocked</div></div><div class="dim small" style="margin:3px 0 6px">Earn prestige piece sets &amp; themes by progressing your career — then equip them in Settings.</div>';
+  h+=keys.map(function(k){var p=k.split(':'),set=p[0],key=p[1];var obj=cat[set]||{};var nm=(obj[key]&&obj[key].label)||key;var u=UNLOCKS[k];var on=isUnlocked(set,key);return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:4px 0;border-top:1px solid var(--border)"><span class="small">'+(on?'✅':'🔒')+' <b>'+esc(nm)+'</b> <span class="dim">'+catName[set]+'</span></span><span class="'+(on?'chip green':'dim small')+'" style="flex:0 0 auto">'+(on?'Unlocked':esc(u.lbl))+'</span></div>';}).join('');
+  return h+'</div>';
+}
+function selOpt(setting,obj){return '<select data-setting="'+setting+'">'+Object.keys(obj).map(function(k){var locked=!isUnlocked(setting,k);var sel=store.settings[setting]===k;return '<option value="'+k+'"'+(sel?' selected':'')+((locked&&!sel)?' disabled':'')+'>'+obj[k].label+(locked?' 🔒':'')+'</option>';}).join('')+'</select>';}
 function rowSet(label,hint,control){return '<div class="row" style="justify-content:space-between;align-items:center;gap:12px;padding:7px 0;border-top:1px solid var(--border)"><div><div style="font-weight:600">'+label+'</div>'+(hint?'<div class="dim small">'+hint+'</div>':'')+'</div>'+control+'</div>';}
 function viewSettings(){
   const lvl='<select data-setting="level">'+LEVELS.map((l,i)=>'<option value="'+i+'"'+(store.settings.level===i?' selected':'')+'>'+l.label+'</option>').join('')+'</select>';
@@ -5160,6 +5187,7 @@ document.getElementById('app').addEventListener('change',e=>{
     else if(ds==='anim')store.settings.anim=e.target.checked;
     else if(ds==='haptics')store.settings.haptics=e.target.checked;
     else if(ds==='boardSize')store.settings.boardSize=+e.target.value;
+    else if((ds==='pieces'||ds==='theme'||ds==='appTheme'||ds==='accent')&&!isUnlocked(ds,e.target.value)){var _u=UNLOCKS[ds+':'+e.target.value];app.careerToast='🔒 Locked — '+((_u&&_u.lbl)||'keep progressing')+' to unlock this.';e.target.value=store.settings[ds];save();render();return;}
     else store.settings[ds]=e.target.value;
     save();render();return;
   }
@@ -6546,6 +6574,7 @@ function careerTabContent(c,tab){
     h+=careerCharacterPanel(c);
     h+=careerPersonaPanel(c);
     h+=careerPerksPanel(c);
+    h+=careerUnlockPanel(c);
     h+=careerAchievementsPanel(c);
     h+=careerTrophyPanel(c);
   } else if(tab==='progress'){
