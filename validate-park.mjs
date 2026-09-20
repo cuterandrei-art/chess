@@ -13,7 +13,7 @@ globalThis.ResizeObserver=class{observe(){}unobserve(){}disconnect(){}}; globalT
 if(!dom.window.matchMedia)dom.window.matchMedia=()=>({matches:false,addEventListener(){},removeEventListener(){},addListener(){},removeListener(){}});
 dom.window.__PUZZLES=[];
 let pass=0; const ok=(c,m)=>{if(!c)throw new Error('FAIL: '+m);pass++;console.log('  ✓ '+m);};
-const X=new Function(script+'\nreturn {store,app,PARK_HUSTLERS,parkById,parkInit,parkKnown,parkShownRating,parkLocked,parkStakeOf,parkResult,careerParkPanel,SIMUL_TIERS,simulById,simulLocked,simulTarget,startSimul,simulStrip,careerSimulPanel,finalizeTournament,lifeInit,checkAchievements};')();
+const X=new Function(script+'\nreturn {store,app,PARK_HUSTLERS,parkById,parkInit,parkKnown,parkShownRating,parkLocked,parkStakeOf,parkResult,careerParkPanel,SIMUL_TIERS,simulById,simulLocked,simulTarget,startSimul,simulStrip,simulPayout,careerSimulPanel,finalizeTournament,lifeInit,checkAchievements};')();
 
 /* ---- the chess park ---- */
 ok(X.PARK_HUSTLERS.length>=6,'the park has a bench of regulars ('+X.PARK_HUSTLERS.length+')');
@@ -75,7 +75,8 @@ ok(/Purse/.test(X.simulStrip(tr))&&/clear-the-room/.test(X.simulStrip(tr)),'the 
 tr.results=tr.field.map(o=>({name:o.name,rating:o.rating,score:1,delta:2})); tr.round=6;
 const before=c.money, fans=c.fans||0;
 X.finalizeTournament(c);
-ok((c.news||[]).some(n=>/💰560/.test(n.t)),'a clean sweep pays every point (6×60) plus the clear-the-room bonus (200)');
+ok(c.lastSimulPay&&c.lastSimulPay.perPt===360&&c.lastSimulPay.bonus===200&&c.lastSimulPay.cleared,'a clean sweep pays every point (6×60) plus the clear-the-room bonus (200)');
+ok(X.simulPayout(tr,4,6).bonus===0,'falling short of the target pays the points but no bonus');
 ok(c.money>before,'the purse lands in your bank, net of what the week cost you');
 ok((c.fans||0)>fans,'a simul wins you new fans');
 ok((c.simuls||0)===1&&(c.simulPerfect||0)===1,'perfect simuls are recorded');

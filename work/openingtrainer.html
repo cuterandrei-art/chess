@@ -4354,7 +4354,7 @@ function checkTitles(c){const got=[];const peak=titlePeak(c);
     c.titles.push(d.t);got.push(d.t);
   }
   return got;}
-const DEF={repertoire:[],srs:{},custom:[],settings:{newPer:8,pieces:'staunty',theme:'green',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'midnight',accent:'blue',scene:'none'},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0}};
+const DEF={repertoire:[],srs:{},custom:[],settings:{newPer:8,pieces:'staunty',theme:'green',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'midnight',accent:'blue',scene:'none'},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null}};
 function freshCareer(){return JSON.parse(JSON.stringify(DEF.career));}
 /* Migrate saved career data: the old ladder (with `beaten`/`results`) is reset
    to the new FIDE structure; new-format saves are merged onto fresh defaults. */
@@ -7576,6 +7576,13 @@ function startSimul(id){
   app.careerToast=s.e+' '+s.n+' — 💰'+s.fee+' fee collected. Clear the room!';
   save();render();
 }
+function simulPayout(tr,scoreTot,games){
+  var per=(tr.simul&&tr.simul.per)||0,fee=(tr.simul&&tr.simul.fee)||0,tgtPct=(tr.simul&&tr.simul.target)||0.8;
+  var tgt=Math.ceil(games*tgtPct*2)/2;
+  var perPt=Math.round(scoreTot*per);
+  var bonus=scoreTot>=tgt?Math.round(fee*0.8):0;
+  return {perPt:perPt,bonus:bonus,total:perPt+bonus,target:tgt,cleared:scoreTot>=tgt};
+}
 function simulStrip(tr){
   var you=tr.results.reduce(function(t,r){return t+r.score;},0);
   var total=tr.rounds,done=tr.round,tgt=(tr.simul&&tr.simul.target)||0.8;
@@ -8009,10 +8016,10 @@ function finalizeTournament(c){
   worldTick();
   if(tr.stake){if(won1st){var pot=tr.stake*2;c.money=(c.money||0)+pot;c.fame=Math.min(100,c.fame+5);pushNews(c,'⚔️','You won the grudge match and took the 💰'+pot+' pot!');unlockAch(c,'hustler');}else{c.fame=Math.min(100,c.fame+1);c.reputation=Math.max(0,c.reputation-4);pushNews(c,'⚔️','You lost the grudge match — and your 💰'+tr.stake+' stake.');}}
   if(tr.simul){
-    const tgt=Math.ceil(games*tr.simul.target*2)/2;
-    const perPt=Math.round(scoreTot*tr.simul.per);
-    const bonus=scoreTot>=tgt?Math.round(tr.simul.fee*0.8):0;
-    c.money=(c.money||0)+perPt+bonus;
+    const sp=simulPayout(tr,scoreTot,games);
+    const perPt=sp.perPt,bonus=sp.bonus;
+    c.lastSimulPay=sp;
+    c.money=(c.money||0)+sp.total;
     const gained=Math.round(games*22*(0.6+scoreTot/Math.max(1,games)));
     c.fans=(c.fans||0)+gained;c.fame=Math.min(100,(c.fame||0)+(bonus?3:1));addXp(c,30*games);
     c.energy=Math.max(0,(c.energy||100)-Math.round(games*1.5));
