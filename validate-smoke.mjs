@@ -15,6 +15,16 @@ let pass = 0; const ok = (c, m) => { if (!c) throw new Error('FAIL: ' + m); pass
 new Function(script); // 1) syntax parse
 ok(true, 'module parses');
 
+// 1b) catch module-scope duplicate top-level declarations (a SyntaxError in a
+// <script type="module"> but NOT inside new Function, so the parse above misses it).
+{
+  const names = {}; const dups = [];
+  for (const m of script.matchAll(/^(?:function|const|let|class)\s+([A-Za-z0-9_$]+)/gm)) {
+    const n = m[1]; names[n] = (names[n] || 0) + 1; if (names[n] === 2) dups.push(n);
+  }
+  ok(dups.length === 0, 'no duplicate top-level declarations' + (dups.length ? ' — ' + dups.join(', ') : ''));
+}
+
 const dom = new JSDOM('<!doctype html><body><div id="app"></div></body>', { url: 'http://localhost/' });
 globalThis.window = dom.window; globalThis.document = dom.window.document; globalThis.localStorage = dom.window.localStorage;
 globalThis.Chess = Chess; globalThis.confirm = () => true; globalThis.alert = () => {};
