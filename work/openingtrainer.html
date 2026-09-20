@@ -6775,11 +6775,30 @@ function careerLeaderboard(c){
   return '<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px"><div style="font-weight:700">🌍 World Ranking</div><div class="row" style="gap:6px">'+fmtBtns+'<button class="btn sec sm" data-act="watchtop">🍿 Watch</button></div></div>'+
     '<div class="dim small" style="margin-bottom:3px">'+sub+(movers?' <span style="margin-left:6px">'+movers+'</span>':'')+'</div>'+rows+'</div>';
 }
+function matchScoreStrip(tr){
+  var you=tr.results.reduce(function(s,r){return s+r.score;},0);
+  var opp=tr.round-you;var total=tr.rounds,need=total/2+0.5;
+  var oppName=(tr.field&&tr.field[0]&&tr.field[0].name)||'Champion';var shortName=(typeof short==='function')?short(oppName):oppName;
+  var maxYou=you+(total-tr.round),youClinched=you>=need,oppClinched=opp>=need;
+  var status;
+  if(youClinched)status='<span style="color:var(--green);font-weight:800">🏆 You win the match — the crown is yours!</span>';
+  else if(oppClinched)status='<span style="color:#f87171;font-weight:800">The champion retains the title.</span>';
+  else if(tr.round<total&&you+0.5>=need)status='<span style="color:var(--amber);font-weight:800">⚡ Match point — a win clinches it!</span>';
+  else if(maxYou<need)status='<span style="color:#f87171">The title is out of reach — playing for pride.</span>';
+  else status='<span class="dim">First to '+need+' wins the crown ('+(total-tr.round)+' games left).</span>';
+  return '<div class="card" style="margin-bottom:12px;border-color:#f59e0b66;background:linear-gradient(90deg,rgba(245,158,11,.10),transparent)">'+
+    '<div class="dim small" style="text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">'+tr.emoji+' '+esc(tr.name)+'</div>'+
+    '<div class="row" style="justify-content:space-between;align-items:center">'+
+      '<div style="text-align:center;flex:1;min-width:0"><div class="dim small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">You</div><div style="font-weight:800;font-size:26px;color:var(--brand2)">'+fmtScore(you)+'</div></div>'+
+      '<div style="text-align:center;flex:0 0 auto;padding:0 10px"><div class="dim small">Game</div><div style="font-weight:800">'+Math.min(tr.round+1,total)+' / '+total+'</div></div>'+
+      '<div style="text-align:center;flex:1;min-width:0"><div class="dim small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(shortName)+'</div><div style="font-weight:800;font-size:26px">'+fmtScore(opp)+'</div></div>'+
+    '</div><div class="small" style="text-align:center;margin-top:7px">'+status+'</div></div>';
+}
 function careerTourView(c){
   const tr=c.tour,done=tr.round,total=tr.rounds;
   const scoreTot=tr.results.reduce((s,r)=>s+r.score,0);
   let liveTpr='—';if(tr.results.length){const a=Math.round(tr.results.reduce((s,r)=>s+r.rating,0)/tr.results.length);liveTpr=String(Math.round(a+dpFromPct(scoreTot/tr.results.length)));}
-  let h='<div class="card" style="margin-bottom:12px">'+
+  let h=(tr.kind==='match'?matchScoreStrip(tr):'')+'<div class="card" style="margin-bottom:12px">'+
     '<div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px"><div style="min-width:0">'+
       '<div style="font-weight:800;font-size:17px">'+tr.emoji+' '+esc(tr.name)+'</div>'+
       '<div class="dim small">'+(done<total?'Round '+(done+1)+' of '+total:'Final round complete')+' · field avg '+tr.avg+(tr.normEligible?' · norm-eligible':'')+'</div></div>'+
