@@ -24,7 +24,7 @@
   }
   *{box-sizing:border-box}
   html{margin:0;overflow-y:scroll;scrollbar-gutter:stable}body{margin:0}
-  body{background:var(--app-bg);background-attachment:fixed;
+  body{background:var(--scene-bg,none),var(--app-bg);background-attachment:fixed;
     color:var(--text);font:14.5px/1.45 Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
   a{color:var(--brand2);text-decoration:none}
   h1{font-size:21px;margin:0}h2{font-size:16px;margin:0}
@@ -61,6 +61,14 @@
   @media(min-width:821px){.botnav{display:none}.topnav{display:flex}}
   @media(max-width:820px){.wrap{padding-bottom:calc(78px + env(safe-area-inset-bottom))}}
   .learngrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(238px,1fr));gap:10px}
+  .actgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:7px}
+  .actcard{display:block;width:100%;text-align:left;padding:9px 10px;border-radius:11px;border:1px solid var(--border);background:var(--panel2);color:var(--text);font:inherit;line-height:1.32;cursor:pointer;transition:.15s}
+  .actcard:hover:not(:disabled){border-color:var(--brand);transform:translateY(-1px)}
+  .actcard:disabled{opacity:.45;cursor:not-allowed}
+  .actcard .an{display:block;font-weight:700;font-size:12.5px}
+  .actcard .ad{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+  .actcard .ac{display:block;font-size:10px;margin-top:3px;color:var(--brand2);font-weight:600}
+  .actcard:disabled .ac{color:#f87171}
   .learncard{display:flex;gap:12px;align-items:center;text-align:left;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;color:var(--text);font:inherit;transition:.15s}
   .learncard:hover{border-color:var(--brand);background:var(--panel2)}
   .learncard .li{font-size:26px;flex:0 0 auto}
@@ -4046,7 +4054,27 @@ const ACCENTS={
   amber:{label:'Amber',brand:'#f59e0b',brand2:'#fbbf24'},
   emerald:{label:'Emerald',brand:'#22c55e',brand2:'#4ade80'},
 };
+const SCENES={
+  none:{label:'None'},
+  park:{label:'🌳 The park',bg:'radial-gradient(520px 320px at 12% 96%, rgba(21,128,61,.30), transparent 70%),radial-gradient(420px 260px at 88% 100%, rgba(22,101,52,.26), transparent 70%),radial-gradient(260px 200px at 50% 4%, rgba(132,204,22,.10), transparent 70%)'},
+  cafe:{label:'☕ Coffee house',bg:'radial-gradient(360px 300px at 18% 14%, rgba(217,119,6,.22), transparent 68%),radial-gradient(300px 240px at 84% 78%, rgba(120,53,15,.28), transparent 70%),radial-gradient(160px 160px at 62% 22%, rgba(251,191,36,.10), transparent 70%)'},
+  hall:{label:'🏛️ Tournament hall',bg:'linear-gradient(180deg, rgba(148,163,184,.13), transparent 28%),radial-gradient(420px 520px at 50% -12%, rgba(226,232,240,.14), transparent 68%),repeating-linear-gradient(90deg, rgba(148,163,184,.05) 0 2px, transparent 2px 120px)'},
+  library:{label:'📚 Library',bg:'repeating-linear-gradient(90deg, rgba(120,53,15,.20) 0 9px, rgba(180,83,9,.13) 9px 15px, rgba(69,26,3,.20) 15px 26px),linear-gradient(180deg, rgba(11,17,32,.72), rgba(11,17,32,.94))'},
+  city:{label:'🌆 Night city',bg:'repeating-linear-gradient(90deg, transparent 0 26px, rgba(96,165,250,.09) 26px 30px),repeating-linear-gradient(0deg, transparent 0 22px, rgba(56,189,248,.07) 22px 25px),radial-gradient(600px 400px at 70% 0%, rgba(30,64,175,.30), transparent 70%)'},
+  board:{label:'♟️ Giant board',bg:'repeating-conic-gradient(rgba(148,163,184,.05) 0% 25%, transparent 0% 50%) 0 0/110px 110px'},
+  snow:{label:'❄️ Winter',bg:'radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,.55), transparent),radial-gradient(2px 2px at 70% 12%, rgba(255,255,255,.45), transparent),radial-gradient(2px 2px at 45% 72%, rgba(255,255,255,.4), transparent),radial-gradient(2px 2px at 85% 55%, rgba(255,255,255,.5), transparent),linear-gradient(180deg, rgba(186,230,253,.12), transparent 60%)'},
+  space:{label:'🌌 Deep space',bg:'radial-gradient(1.6px 1.6px at 12% 22%, #fff, transparent),radial-gradient(1.4px 1.4px at 62% 8%, #cbd5e1, transparent),radial-gradient(1.8px 1.8px at 38% 64%, #fff, transparent),radial-gradient(1.4px 1.4px at 82% 44%, #e2e8f0, transparent),radial-gradient(1.6px 1.6px at 26% 88%, #fff, transparent),radial-gradient(700px 500px at 78% 18%, rgba(124,58,237,.24), transparent 70%)'},
+  beach:{label:'🏝️ Island',bg:'linear-gradient(180deg, rgba(56,189,248,.18), transparent 42%),radial-gradient(520px 260px at 50% 104%, rgba(250,204,21,.20), transparent 72%)'},
+  gold:{label:'👑 Champion’s gold',bg:'radial-gradient(620px 420px at 50% -10%, rgba(245,158,11,.26), transparent 66%),repeating-linear-gradient(45deg, rgba(251,191,36,.045) 0 12px, transparent 12px 24px)'}
+};
+function applySceneBg(){
+  var k=store.settings.scene||'none';
+  if(!isUnlocked('scene',k))k='none';
+  var sc=SCENES[k]||SCENES.none;
+  document.documentElement.style.setProperty('--scene-bg',sc.bg||'none');
+}
 function applyAppTheme(){const t=APP_THEMES[store.settings.appTheme]||APP_THEMES.midnight;const r=document.documentElement.style;
+  applySceneBg();
   r.setProperty('--bg',t.bg);r.setProperty('--panel',t.panel);r.setProperty('--panel2',t.panel2);r.setProperty('--border',t.border);
   r.setProperty('--text',t.text);r.setProperty('--muted',t.muted);r.setProperty('--dim',t.dim);r.setProperty('--app-bg',t.appbg);
   const a=ACCENTS[store.settings.accent]||ACCENTS.blue;r.setProperty('--brand',a.brand);r.setProperty('--brand2',a.brand2);}
@@ -4245,6 +4273,7 @@ function worldTick(){
     s.dd=Math.round(nd-s.d);s.d=nd;
   }
   w._last=Date.now();
+  feedTick(store.career);
 }
 /* The world keeps moving even when you're away: one period per ~16h, capped. */
 function worldMaybeTick(){
@@ -4335,13 +4364,13 @@ function checkTitles(c){const got=[];const peak=titlePeak(c);
     c.titles.push(d.t);got.push(d.t);
   }
   return got;}
-const DEF={repertoire:[],srs:{},custom:[],settings:{newPer:8,pieces:'staunty',theme:'green',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'midnight',accent:'blue'},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[]}};
+const DEF={repertoire:[],srs:{},custom:[],settings:{newPer:8,pieces:'staunty',theme:'green',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'midnight',accent:'blue',scene:'none'},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null}};
 function freshCareer(){return JSON.parse(JSON.stringify(DEF.career));}
 /* Migrate saved career data: the old ladder (with `beaten`/`results`) is reset
    to the new FIDE structure; new-format saves are merged onto fresh defaults. */
 function migrateCareer(d){if(!d||typeof d!=='object'||('beaten'in d)||!('setup'in d))return freshCareer();return Object.assign(freshCareer(),d);}
 let store=DEF;
-try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],career:migrateCareer(d.career)};}catch(e){}
+try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],brilliancies:d.brilliancies||[],career:migrateCareer(d.career)};}catch(e){}
 function rebuildOpenings(){const cust=(store.custom||[]).map(d=>{try{return buildOpening(d);}catch(e){return null;}}).filter(Boolean);BUILT=BASE.concat(cust);byId=new Map(BUILT.map(o=>[o.id,o]));}
 rebuildOpenings();
 function save(){localStorage.setItem(LS,JSON.stringify(store));}
@@ -4361,7 +4390,7 @@ function delRep(id){store.repertoire=store.repertoire.filter(x=>x!==id);save();}
 /* ============================== app state ============================== */
 const app={view:'career',exId:null,exPath:[],exFlip:false,courseId:null,setupOpening:'',
   pz:null,pzSeen:new Set(),pzFilter:{type:'auto'},rush:null,
-  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',
+  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,parkBet:null,parkStake:0,parkDouble:null,
   confirm:null,
   review:null,studyId:null,studyChapter:0,studyPath:[],studyFlip:false,studyMsg:null,
 
@@ -4545,6 +4574,7 @@ function viewLearn(){
     ['masters','♞','Master Games','Step through games from the legends'],
     ['blindfold','🙈','Blindfold','Train board vision &amp; visualization'],
     ['review','🔬','Game Review','Analyse any game with the engine'],
+    ['brilliancy','💎','Brilliancies','Your gallery of sacrifices that worked'],
     ['studies','📚','Studies','Import &amp; browse Lichess studies'],
     ['dashboard','📊','Dashboard','Your repertoire progress &amp; stats']
   ];
@@ -4556,12 +4586,12 @@ function render(){
   document.body.style.setProperty('--bw',(store.settings.boardSize||520)+'px');
   applyAppTheme();
   const repOps=BUILT.filter(o=>inRep(o.id));const agg=aggregate(repOps,store.srs);
-  const nav=['career','dashboard','play','puzzles','learn','train','library','endgames','classics','guess','blindfold','review','studies','masters','settings'];
-  const NAV_META={career:['🏆','Career'],dashboard:['📊','Dashboard'],play:['♟️','Play'],puzzles:['🧩','Puzzles'],learn:['📚','Learn'],train:['🎓','Train'],library:['📖','Openings'],endgames:['♟️','Endgames'],classics:['📜','Classics'],guess:['🎯','Guess the Move'],blindfold:['🙈','Blindfold'],review:['🔬','Game Review'],studies:['📚','Studies'],masters:['♞','Master Games'],settings:['⚙️','Settings']};
+  const nav=['career','dashboard','play','puzzles','learn','train','library','endgames','classics','guess','blindfold','review','brilliancy','studies','masters','settings'];
+  const NAV_META={career:['🏆','Career'],dashboard:['📊','Dashboard'],play:['♟️','Play'],puzzles:['🧩','Puzzles'],learn:['📚','Learn'],train:['🎓','Train'],library:['📖','Openings'],endgames:['♟️','Endgames'],classics:['📜','Classics'],guess:['🎯','Guess the Move'],blindfold:['🙈','Blindfold'],review:['🔬','Game Review'],brilliancy:['💎','Brilliancies'],studies:['📚','Studies'],masters:['♞','Master Games'],settings:['⚙️','Settings']};
   const label=v=>(NAV_META[v]?NAV_META[v][1]:v[0].toUpperCase()+v.slice(1));
   const navIcon=v=>(NAV_META[v]?NAV_META[v][0]:'•');
   const cur=nav.indexOf(app.view)>=0?app.view:'dashboard';
-  const LEARN_VIEWS=['learn','train','library','build','explore','course','endgames','classics','guess','blindfold','masters','studies','review','dashboard','reptree'];
+  const LEARN_VIEWS=['learn','train','library','build','explore','course','endgames','classics','guess','blindfold','masters','studies','review','brilliancy','dashboard','reptree'];
   const primaryOf=v=>(v==='career'?'career':v==='play'?'play':v==='puzzles'?'puzzles':LEARN_VIEWS.indexOf(v)>=0?'learn':'');
   const PRIMARY=[['career','🏆','Career'],['play','♟️','Play'],['puzzles','🧩','Puzzles'],['learn','📚','Learn']];
   const curP=primaryOf(cur);
@@ -4590,6 +4620,8 @@ function render(){
   else if(app.view==='puzzles')body=viewPuzzles();
   else if(app.view==='learn')body=viewLearn();
   else if(app.view==='review')body=viewReview();
+  else if(app.view==='brilliancy')body=viewBrilliancy();
+  else if(app.view==='player')body=viewPlayer();
   else if(app.view==='studies')body=viewStudies();
   else if(app.view==='masters')body=viewMasters();
   else if(app.view==='career')body=viewCareer();
@@ -4846,11 +4878,17 @@ const UNLOCKS={
   'appTheme:royal':{lbl:'Earn the GM title',t:function(c){return ulkTitle(c,'GM');}},
   'appTheme:ember':{lbl:'Become World Champion',t:function(c){return ulkHonor(c,'World Champion');}},
   'accent:emerald':{lbl:'Reach 2400 peak',t:function(c){return ulkPeak(c)>=2400;}},
-  'accent:amber':{lbl:'Unlock 10 achievements',t:function(c){return ulkAch(c)>=10;}}
+  'accent:amber':{lbl:'Unlock 10 achievements',t:function(c){return ulkAch(c)>=10;}},
+  'scene:library':{lbl:'Study 3 openings to 50%',t:function(c){return (store.repertoire||[]).length>=3;}},
+  'scene:city':{lbl:'Win 10 games in the park',t:function(c){return ((c.park&&c.park.w)||0)>=10;}},
+  'scene:hall':{lbl:'Finish 5 tournaments',t:function(c){return (c.history||[]).filter(function(h){return !h.oneoff;}).length>=5;}},
+  'scene:snow':{lbl:'Reach 2000 peak',t:function(c){return ulkPeak(c)>=2000;}},
+  'scene:space':{lbl:'Earn the IM title',t:function(c){return ulkTitle(c,'IM');}},
+  'scene:gold':{lbl:'Become World Champion',t:function(c){return ulkHonor(c,'World Champion');}}
 };
 function isUnlocked(setting,key){var u=UNLOCKS[setting+':'+key];if(!u)return true;var c=store.career;return !!(c&&c.setup&&u.t(c));}
 function careerUnlockPanel(c){
-  var cat={pieces:PIECE_SETS,theme:THEMES,appTheme:APP_THEMES,accent:ACCENTS},catName={pieces:'Piece set',theme:'Board',appTheme:'Background',accent:'Accent'};
+  var cat={pieces:PIECE_SETS,theme:THEMES,appTheme:APP_THEMES,accent:ACCENTS,scene:SCENES},catName={pieces:'Piece set',theme:'Board',appTheme:'Palette',accent:'Accent',scene:'Backdrop'};
   var keys=Object.keys(UNLOCKS),got=keys.filter(function(k){var p=k.split(':');return isUnlocked(p[0],p[1]);}).length;
   var h='<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">🎁 Cosmetic unlocks</div><div class="dim small">'+got+'/'+keys.length+' unlocked</div></div><div class="dim small" style="margin:3px 0 6px">Earn prestige piece sets &amp; themes by progressing your career — then equip them in Settings.</div>';
   h+=keys.map(function(k){var p=k.split(':'),set=p[0],key=p[1];var obj=cat[set]||{};var nm=(obj[key]&&obj[key].label)||key;var u=UNLOCKS[k];var on=isUnlocked(set,key);return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:4px 0;border-top:1px solid var(--border)"><span class="small">'+(on?'✅':'🔒')+' <b>'+esc(nm)+'</b> <span class="dim">'+catName[set]+'</span></span><span class="'+(on?'chip green':'dim small')+'" style="flex:0 0 auto">'+(on?'Unlocked':esc(u.lbl))+'</span></div>';}).join('');
@@ -4872,7 +4910,8 @@ function viewSettings(){
     rowSet('Vibration (mobile)','Haptic feedback on moves & captures.',(store.settings.haptics?'<input type="checkbox" data-setting="haptics" checked>':'<input type="checkbox" data-setting="haptics">'))+
     rowSet('Board arrows','Right-click or long-press to draw arrows & highlight squares; left-click clears them.','')+'</div>'+
     '<div class="card" style="margin-top:12px"><div style="font-weight:700;margin-bottom:2px">Appearance</div>'+
-    rowSet('App background','Overall colour theme of the app.',selOpt('appTheme',APP_THEMES))+
+    rowSet('Colour palette','Overall colour theme of the app.',selOpt('appTheme',APP_THEMES))+
+    rowSet('Backdrop','A scene behind the app — the park, a café, a tournament hall. Some are earned in your career.',selOpt('scene',SCENES))+
     rowSet('Accent colour','Buttons, links &amp; highlights.',selOpt('accent',ACCENTS))+'</div>'+
     '<div class="card" style="margin-top:12px"><div style="font-weight:700;margin-bottom:2px">Training &amp; engine</div>'+
     rowSet('New cards per session','How many fresh positions “Learn” introduces per opening.','<input type="number" min="1" max="50" value="'+store.settings.newPer+'" data-setting="newPer">')+
@@ -5132,7 +5171,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='specexit'){app.spec=null;go('career');}
   else if(act==='reptree'){app.repTreeId=val;go('reptree');}
   else if(act==='titlefmt'){const c=store.career;c.titleFormat=(c.titleFormat==='any')?'classical':'any';const nt=checkTitles(c);if(nt&&nt.length){app.careerToast='👑 New title'+(nt.length>1?'s':'')+' under the new rules: '+nt.join(', ')+'!';}save();render();}
-  else if(act==='careerreset')uiConfirm('Reset ALL career progress — ratings (classical, rapid & blitz), titles, norms, honours, history and money? This cannot be undone.',function(){store.career=freshCareer();app.spec=null;app.careerFinish=null;app.careerOneoff=null;app.careerTour=false;save();});
+  else if(act==='careerreset')uiConfirm('Reset ALL career progress — ratings (classical, rapid & blitz), titles, norms, honours, history and money? This cannot be undone.',function(){store.career=freshCareer();app.spec=null;app.careerFinish=null;app.careerOneoff=null;app.careerTour=false;app.parkBet=null;app.parkDouble=null;save();});
   else if(act==='confirmyes'){const f=app.confirm&&app.confirm.onYes;app.confirm=null;if(f)f();render();}
   else if(act==='confirmno'){app.confirm=null;render();}
   else if(act==='confirmnoop'){/* swallow clicks inside the dialog */}
@@ -5198,6 +5237,22 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='simtour')simRestOfTour();
   else if(act==='claimdaily')claimDaily();
   else if(act==='careerchal')startChallenge(val);
+  else if(act==='seasondismiss'){store.career.seasonReview=null;save();}
+  else if(act==='profile'){if(val)profileOpen(val);}
+  else if(act==='specvs'){var _sp=buildWorld().filter(function(x){return x.id===val;})[0];if(_sp){var _fmt='classical';var _list=worldRanking(store.career,_fmt).filter(function(x){return !x.you&&x.id!==val;});var _o=_list[Math.floor(Math.random()*Math.min(12,_list.length))]||_list[0];if(_o)startSpectate({name:_sp.name,flag:_sp.flag,rating:wpRating(_sp,_fmt),real:_sp.real},_o);}}
+  else if(act==='doday')doDay(val);
+  else if(act==='movehome'){var _mc=store.career;var _hm=HOMES.filter(function(x){return x.id===val;})[0];if(_hm&&!homeLocked(_mc,_hm)){_mc.home=_hm.id;pushNews(_mc,_hm.e,'You moved into '+_hm.n.toLowerCase()+' — 💰'+_hm.rent+' a week.');toastAdd(_hm.e+' Moved in: '+_hm.n);save();}}
+  else if(act==='avset'){var _av=store.career;var _p=String(val).split(':');if(_p.length===2){if(_p[0]==='acc'&&!avAccUnlocked(_av,_p[1])){app.careerToast='🔒 '+AV_ACC_LOCK[_p[1]].lbl+' to unlock that.';}else{avatarOf(_av)[_p[0]]=_p[1];_av.avatarStyle='char';save();}}}
+  else if(act==='avrandom'){var _ar=store.career;var _na=avatarFromSeed((Math.random()*0xffffffff)>>>0);if(!avAccUnlocked(_ar,_na.acc))_na.acc='none';_ar.avatar=_na;_ar.avatarStyle='char';save();}
+  else if(act==='avstyle'){var _as=store.career;_as.avatarStyle=_as.avatarStyle==='piece'?'char':'piece';save();}
+  else if(act==='parkstake'){app.parkStake=parseInt(val,10)||0;}
+  else if(act==='parkplay')startParkGame(val);
+  else if(act==='parkwalk'){app.parkDouble=null;}
+  else if(act==='parkdouble'){var _pd=app.parkDouble;if(_pd){var _h=parkById(_pd.id);if(_h){var _i=_h.stakes.indexOf(parkStakeOf(_h));app.parkStake=Math.min(_h.stakes.length-1,(_i<0?0:_i)+1);}app.parkDouble=null;startParkGame(_pd.id);}}
+  else if(act==='simulstart')startSimul(val);
+  else if(act==='feedall'){app.feedAll=!app.feedAll;}
+  else if(act==='brildel'){(store.brilliancies||[]).splice(parseInt(val,10),1);save();}
+  else if(act==='arcchoice'){arcChoose(store.career,parseInt(val,10));save();}
   else if(act==='chalfmt'){app.chalFormat=val;render();}
   else if(act==='lbfmt'){app.lbFormat=val;render();}
   else if(act==='careerdismiss'){app.careerFinish=null;render();}
@@ -5564,8 +5619,8 @@ const COACH_TYPES=[
   {spec:'Endgame guru',salary:60,emoji:'♜',desc:'smaller rating losses'},
 ];
 const SPONSOR_NAMES=['ChessGear','NeoBoard','Gambit Wear','Knightly Foods','Zugzwang Energy','OpenFile Tech','BlitzCola','Endgame Apparel','64 Squares','Caïssa Coffee'];
-function lifeInit(c){if(c.age==null)c.age=16;if(c.pace==null)c.pace=1;if(c.weeks==null)c.weeks=0;if(c.energy==null)c.energy=100;if(c.form==null)c.form=0;if(c.tilt==null)c.tilt=0;if(c.fame==null)c.fame=0;if(c.fans==null)c.fans=0;if(c.reputation==null)c.reputation=50;if(!c.coaches)c.coaches=[];if(c.prep==null)c.prep=0;if(!c.h2h)c.h2h={};if(c.sponsor===undefined)c.sponsor=null;if(c.objective===undefined)c.objective=null;if(c.retired==null)c.retired=false;if(c.pressPending===undefined)c.pressPending=null;if(c.rival===undefined)c.rival=null;if(!c.achievements)c.achievements=[];if(!c.news)c.news=[];if(c.preppedOpening===undefined)c.preppedOpening=null;if(c.tacticsTrained==null)c.tacticsTrained=0;if(c.xp==null)c.xp=0;if(!c.perks)c.perks={};if(Array.isArray(c.perks)){var _pm={};c.perks.forEach(function(_k){_pm[_k]=1;});c.perks=_pm;}if(c.season==null)c.season=Math.floor((c.weeks||0)/52)+1;if(!c.prepUsage)c.prepUsage={};if(c.protege===undefined)c.protege=null;if(c.winStreak==null)c.winStreak=0;if(c.bestWinStreak==null)c.bestWinStreak=0;if(c.unbeaten==null)c.unbeaten=0;if(c.weeksAtNo1==null)c.weeksAtNo1=0;if(c.noveltyCharge==null)c.noveltyCharge=1;if(c.noveltyArmed==null)c.noveltyArmed=false;if(c.noveltyCd==null)c.noveltyCd=0;if(!c.theory)c.theory={};if(c.refuted===undefined)c.refuted=null;if(c.trendy===undefined)c.trendy=null;if(c.youngGun===undefined)c.youngGun=null;if(c.scandal===undefined)c.scandal=null;if(c.subs==null)c.subs=0;if(c.collabCd==null)c.collabCd=0;if(!c.assets)c.assets=[];if(c.club===undefined)c.club=null;if(!c.books)c.books=[];if(c.backer===undefined)c.backer=null;if(c.fedCd==null)c.fedCd=0;if(c.broadcasts==null)c.broadcasts=0;if(c.academy===undefined)c.academy=null;if(c.gmsMade==null)c.gmsMade=0;if(!c.legendsBeaten)c.legendsBeaten=[];if(c.injury===undefined)c.injury=null;if(c.burnout==null)c.burnout=0;if(c.calendar===undefined)c.calendar=null;if(!c.calDone)c.calDone=[];if(c.transferred==null)c.transferred=false;if(c.dilemma===undefined)c.dilemma=null;if(c.mercDeeds==null)c.mercDeeds=0;if(c.heroDeeds==null)c.heroDeeds=0;if(c.lastBonusDay===undefined)c.lastBonusDay=null;if(c.skillPts==null)c.skillPts=0;if(c.lvlSeen==null)c.lvlSeen=charLevel(c);if(!c.circuit)c.circuit={pts:0,season:c.season||1};if(!c.social)c.social={followers:0,verified:false,posts:0,cd:0};if(!c.classicsStudied)c.classicsStudied=[];if(!c.roadDone)c.roadDone=[];if(!c._seed){c.money=(c.money||0)+1500;c._seed=true;}}
-function maxEnergy(c){var base=c.age>=38?Math.max(72,100-Math.round((c.age-38)*2.5)):100;var e=base+(hasAsset(c,'gym')?8:0)+(hasAsset(c,'house')?12:0);if(c.injury)e-=(c.injury.sev||1)*10;return Math.max(40,e);}
+function lifeInit(c){if(c.age==null)c.age=16;if(c.pace==null)c.pace=1;if(c.weeks==null)c.weeks=0;if(c.energy==null)c.energy=100;if(c.form==null)c.form=0;if(c.tilt==null)c.tilt=0;if(c.fame==null)c.fame=0;if(c.fans==null)c.fans=0;if(c.reputation==null)c.reputation=50;if(!c.coaches)c.coaches=[];if(c.prep==null)c.prep=0;if(!c.h2h)c.h2h={};if(c.sponsor===undefined)c.sponsor=null;if(c.objective===undefined)c.objective=null;if(c.retired==null)c.retired=false;if(c.pressPending===undefined)c.pressPending=null;if(c.rival===undefined)c.rival=null;if(!c.achievements)c.achievements=[];if(!c.news)c.news=[];if(c.preppedOpening===undefined)c.preppedOpening=null;if(c.tacticsTrained==null)c.tacticsTrained=0;if(c.xp==null)c.xp=0;if(!c.perks)c.perks={};if(Array.isArray(c.perks)){var _pm={};c.perks.forEach(function(_k){_pm[_k]=1;});c.perks=_pm;}if(c.season==null)c.season=Math.floor((c.weeks||0)/52)+1;if(!c.prepUsage)c.prepUsage={};if(c.protege===undefined)c.protege=null;if(c.winStreak==null)c.winStreak=0;if(c.bestWinStreak==null)c.bestWinStreak=0;if(c.unbeaten==null)c.unbeaten=0;if(c.weeksAtNo1==null)c.weeksAtNo1=0;if(c.noveltyCharge==null)c.noveltyCharge=1;if(c.noveltyArmed==null)c.noveltyArmed=false;if(c.noveltyCd==null)c.noveltyCd=0;if(!c.theory)c.theory={};if(c.refuted===undefined)c.refuted=null;if(c.trendy===undefined)c.trendy=null;if(c.youngGun===undefined)c.youngGun=null;if(c.scandal===undefined)c.scandal=null;if(c.subs==null)c.subs=0;if(c.collabCd==null)c.collabCd=0;if(!c.assets)c.assets=[];if(c.club===undefined)c.club=null;if(!c.books)c.books=[];if(c.backer===undefined)c.backer=null;if(c.fedCd==null)c.fedCd=0;if(c.broadcasts==null)c.broadcasts=0;if(c.academy===undefined)c.academy=null;if(c.gmsMade==null)c.gmsMade=0;if(!c.legendsBeaten)c.legendsBeaten=[];if(c.injury===undefined)c.injury=null;if(c.burnout==null)c.burnout=0;if(c.calendar===undefined)c.calendar=null;if(!c.calDone)c.calDone=[];if(c.transferred==null)c.transferred=false;if(c.dilemma===undefined)c.dilemma=null;if(c.mercDeeds==null)c.mercDeeds=0;if(c.heroDeeds==null)c.heroDeeds=0;if(c.lastBonusDay===undefined)c.lastBonusDay=null;if(c.skillPts==null)c.skillPts=0;if(c.lvlSeen==null)c.lvlSeen=charLevel(c);if(!c.circuit)c.circuit={pts:0,season:c.season||1};if(!c.social)c.social={followers:0,verified:false,posts:0,cd:0};if(!c.classicsStudied)c.classicsStudied=[];if(!c.roadDone)c.roadDone=[];if(!c.feed)c.feed=[];if(c.arc===undefined)c.arc=null;if(!c.arcsDone)c.arcsDone=[];if(!c.arcBadges)c.arcBadges=[];if(!c.home)c.home='hostel';if(c.health==null)c.health=100;if(c.mood==null)c.mood=62;if(c.day==null)c.day=0;if(!c.dayLog)c.dayLog=[];if(!c.weekLog)c.weekLog=[];if(c.debt==null)c.debt=0;if(c.lifeWeeks==null)c.lifeWeeks=0;if(!c.seasonStart)c.seasonStart=seasonSnapshot(c);if(c.seasonReview===undefined)c.seasonReview=null;if(!c.avatar)c.avatar=avatarDefaults(c);if(!c.avatarStyle)c.avatarStyle='char';if(c.simuls==null)c.simuls=0;if(c.simulPerfect==null)c.simulPerfect=0;parkInit(c);if(!c._seed){c.money=(c.money||0)+1500;c._seed=true;}}
+function maxEnergy(c){var base=c.age>=38?Math.max(72,100-Math.round((c.age-38)*2.5)):100;var e=base+(hasAsset(c,'gym')?8:0)+(hasAsset(c,'house')?12:0);e+=Math.round(((c.health==null?100:c.health)-75)/6);if(c.injury)e-=(c.injury.sev||1)*10;return Math.max(40,e);}
 function hasCoach(c,spec){return (c.coaches||[]).some(function(x){return x.spec===spec;});}
 function cbar(v,max,color){var p=Math.max(0,Math.min(100,v/max*100));return '<div style="height:7px;background:#1e293b;border-radius:5px;overflow:hidden;margin-top:3px"><i style="display:block;height:100%;width:'+p+'%;background:'+color+'"></i></div>';}
 function lifeAfterGame(score){var c=store.career;lifeInit(c);
@@ -5596,7 +5651,7 @@ function lifeAfterGame(score){var c=store.career;lifeInit(c);
   lifeCheckObjectiveGame(c,score);checkLevelUp(c);}
 function lifeAfterEvent(tr,place,games){var c=store.career;lifeInit(c);
   if(typeof questBump==='function')questBump('event',1);
-  var travel=1+Math.round((tr.tier||0)/4);var wk=games+travel;c.weeks=(c.weeks||0)+wk;c.age=Math.round((c.age+wk/52)*100)/100;
+  var travel=1+Math.round((tr.tier||0)/4);var wk=games+travel;c.weeks=(c.weeks||0)+wk;c.age=Math.round((c.age+wk/52)*100)/100;c.day=0;c.dayLog=[];lifeAdvanceWeeks(c,wk,0.45);c.health=Math.max(0,(c.health||100)-Math.min(12,wk*1.2));
   c.energy=Math.min(maxEnergy(c),c.energy+22+(hasAsset(c,'chef')?8:0)+(hasAsset(c,'house')?6:0)+(hasAsset(c,'biz')?8:0)+(styleClass(c).cls==='Technician'?6:0));
   var salary=0;(c.coaches||[]).forEach(function(co){salary+=co.salary*wk;});if(salary)c.money=Math.max(0,(c.money||0)-salary);
   if(c.sponsor){c.money=(c.money||0)+c.sponsor.perWeek*wk;c.sponsor.weeksLeft-=wk;if(c.sponsor.weeksLeft<=0){app.careerToast='Your deal with '+c.sponsor.name+' has ended.';c.sponsor=null;}}
@@ -5662,7 +5717,7 @@ function lifeCheckObjectiveGame(c,score){var o=c.objective;if(!o)return;var done
   else if(o.kind==='money')done=(c.money||0)>=o.target;
   if(done)completeObjective(c);}
 function sponsorOffer(c){if(c.sponsor)return null;var r=youRating(c,'classical')||1200;if(r<1500&&(c.fame||0)<8)return null;var per=Math.round((r-1100)/4+(c.fame||0)*6+15);if(per<12)per=12;var weeks=12+Math.floor((c.fame||0)/10)*4;return {name:SPONSOR_NAMES[(Math.floor(r/50)+Math.floor(c.fame||0))%SPONSOR_NAMES.length],perWeek:per,weeks:weeks};}
-function careerRest(){var c=store.career;lifeInit(c);c.weeks++;c.age=Math.round((c.age+1/52)*100)/100;c.energy=Math.min(maxEnergy(c),c.energy+(hasCoach(c,'Fitness trainer')?40:30));c.tilt=Math.max(0,c.tilt-25);c.form=Math.round(c.form*0.7);c.burnout=Math.max(0,(c.burnout||0)-10);tickInjury(c,1);if(c.sponsor){c.money+=c.sponsor.perWeek;c.sponsor.weeksLeft--;if(c.sponsor.weeksLeft<=0)c.sponsor=null;}(c.coaches||[]).forEach(function(co){c.money=Math.max(0,c.money-co.salary);});save();render();}
+function careerRest(){var c=store.career;lifeInit(c);c.weeks++;c.age=Math.round((c.age+1/52)*100)/100;c.day=0;c.dayLog=[];lifeAdvanceWeeks(c,1);c.mood=Math.min(100,(c.mood||62)+5);c.health=Math.min(100,(c.health||100)+6);c.energy=Math.min(maxEnergy(c),c.energy+(hasCoach(c,'Fitness trainer')?40:30));c.tilt=Math.max(0,c.tilt-25);c.form=Math.round(c.form*0.7);c.burnout=Math.max(0,(c.burnout||0)-10);tickInjury(c,1);if(c.sponsor){c.money+=c.sponsor.perWeek;c.sponsor.weeksLeft--;if(c.sponsor.weeksLeft<=0)c.sponsor=null;}(c.coaches||[]).forEach(function(co){c.money=Math.max(0,c.money-co.salary);});save();render();}
 function careerCamp(){var c=store.career;lifeInit(c);if((c.money||0)<300||c.energy<20)return;c.money-=300;c.energy=Math.max(0,c.energy-20);c.weeks+=2;c.age=Math.round((c.age+2/52)*100)/100;c.tilt=Math.max(0,c.tilt-40);c.form=Math.min(100,c.form+15);c.prep=(c.prep||0)+3;c.burnout=Math.max(0,(c.burnout||0)-20);tickInjury(c,2);app.careerToast='🏕️ Training camp done — sharper and calmer.';save();render();}
 /* ===== Streaming & content: a channel that grows alongside the chess career ===== */
 const STREAMERS=['BlitzBaron','GambitGwen','RookieRumble','PawnStormPete','GM Giggles','TheChessParrot','EnPassantElla','64SquaresSam','ZugzwangZoe','CheckmateChad','BongcloudBro','TacticsTina','DrawOfferDan','SwindleSue','FlaggedFred','TiltedTed'];
@@ -5820,13 +5875,250 @@ function pressChoose(k){var c=store.career;lifeInit(c);if(!c.pressPending)return
 function retireCareer(){var c=store.career;lifeInit(c);c.retired=true;c.hof={peak:c.peak,rating:c.rating,titles:(c.titles||[]).slice(),honors:(c.honors||[]).slice(),money:c.money,age:c.age,years:Math.round((c.weeks||0)/52),fans:c.fans,best:bestTitle(c),protege:c.protege?{name:c.protege.name,peak:c.protege.peak}:null,gmsMade:c.gmsMade||0,broadcasts:c.broadcasts||0,allTime:allTimeRank(c).rank,verdict:legacyVerdict(c),persona:personaChip(c),style:(playingStyle(c)||{}).key||null};
   store.legacy={peak:Math.max((store.legacy&&store.legacy.peak)||0,c.peak||0,c.protege?(c.protege.peak-300):0),careers:((store.legacy&&store.legacy.careers)||0)+1};save();render();}
 function newCareer(){var leg=store.legacy;store.career=freshCareer();if(leg&&leg.peak>1200){store.career.xp=Math.min(90,Math.round((leg.peak-1200)/14));store.career.money=(store.career.money||0)+Math.min(4000,leg.careers*1200);}app.careerFinish=null;app.careerToast=(leg&&leg.peak>1200)?('🔄 New Game+ — your reputation precedes you (+'+store.career.xp+' XP head start).'):null;app.careerTour=false;app.careerOneoff=null;save();render();}
+/* ================= A LIFE, NOT A BUTTON =================
+   Weeks used to pass in one click. Now a week is seven days and each day is
+   something you actually chose to do — sleep, train, study, take a coaching
+   shift because rent is due on Sunday. Rent and food come out of the same
+   money you win at the board, and how you live shows up in how you play. */
+const HOMES=[
+  {id:'couch',e:'🛋️',n:'A friend’s couch',rent:0,rest:16,mood:-4,need:0,d:'Free. You feel it every morning.'},
+  {id:'hostel',e:'🛏️',n:'Chess hostel bunk',rent:70,rest:22,mood:0,need:0,d:'Cheap, loud, full of people analysing at 2am.'},
+  {id:'shared',e:'🏠',n:'Shared flat',rent:200,rest:29,mood:3,need:0,d:'Your own door. Someone else’s dishes.'},
+  {id:'studio',e:'🏢',n:'Studio apartment',rent:480,rest:35,mood:7,need:1800,d:'Quiet enough to study in. That matters more than it sounds.'},
+  {id:'house',e:'🏡',n:'Townhouse',rent:1200,rest:42,mood:11,need:2200,d:'A study, a spare room for your second, a real bed.'},
+  {id:'penthouse',e:'🌆',n:'City penthouse',rent:3200,rest:50,mood:16,need:2500,d:'The view alone is worth a hundred rating points. Probably.'}
+];
+function homeIdx(c){var id=(c&&c.home)||'hostel';for(var i=0;i<HOMES.length;i++)if(HOMES[i].id===id)return i;return 1;}
+function homeOf(c){return HOMES[homeIdx(c)];}
+function homeLocked(c,h){
+  if(h.need&&(c.peak||0)<h.need&&(c.money||0)<h.rent*12)return 'needs '+h.need+' peak or 💰'+(h.rent*12)+' banked';
+  return null;
+}
+function lifeCosts(c,n){n=n||1;var hm=homeOf(c);
+  var rent=hm.rent*n,food=Math.round((45+(c.fame||0)*0.7)*n);
+  return {rent:rent,food:food,total:rent+food};
+}
+function coachingPay(c){var r=Math.max(c.peak||0,c.rating||0,1000);return Math.round(55+Math.max(0,r-1200)/7)+((c.titles||[]).length?60:0);}
+/* costMult < 1 while you are away at an event — the organiser covers part of
+   your board, which is how the circuit actually works. */
+function lifeAdvanceWeeks(c,n,costMult){
+  n=n||1;lifeInit(c);
+  var cost=lifeCosts(c,n);
+  if(costMult!=null&&costMult!==1){cost={rent:Math.round(cost.rent*costMult),food:Math.round(cost.food*costMult),total:0};cost.total=cost.rent+cost.food;}
+  var pay=Math.min(c.money||0,cost.total);
+  c.money=(c.money||0)-pay;
+  var short=cost.total-pay;
+  if(short>0){
+    c.debt=(c.debt||0)+short;
+    c.mood=Math.max(0,(c.mood||60)-9*n);c.health=Math.max(0,(c.health||100)-3*n);
+    pushNews(c,'💸','Bills came to 💰'+cost.total+' and you were 💰'+short+' short. Debt: 💰'+c.debt+'.');
+    var hi=homeIdx(c);
+    if(c.debt>=Math.max(300,homeOf(c).rent*3)&&hi>0){
+      c.home=HOMES[hi-1].id;c.debt=Math.max(0,c.debt-homeOf(c).rent*2);
+      c.mood=Math.max(0,(c.mood||60)-10);
+      pushNews(c,'📦','You couldn’t keep up the rent and moved into '+HOMES[hi-1].n.toLowerCase()+'.');
+      toastAdd('📦 You had to move somewhere cheaper.');
+    }
+  } else if((c.debt||0)>0&&(c.money||0)>c.debt){
+    c.money-=c.debt;pushNews(c,'✅','You cleared 💰'+c.debt+' of debt.');c.debt=0;
+  }
+  // needs drift: life wears on you unless you look after it
+  var age=c.age||16;
+  c.health=Math.max(0,Math.min(100,(c.health==null?100:c.health)-(0.9+(age>=38?(age-38)*0.09:0))*n));
+  c.mood=Math.max(0,Math.min(100,(c.mood==null?60:c.mood)-1.6*n+((c.fame||0)>50?0.6*n:0)));
+  if(c.health<35&&!c.injury&&Math.random()<0.18*n){
+    c.injury={type:'run-down and ill',weeksLeft:1+Math.floor(Math.random()*2),sev:1};
+    pushNews(c,'🤒','You let your health slide and it caught up with you.');
+  }
+  c.bills={rent:cost.rent,food:cost.food,total:cost.total};
+  seasonMaybeRoll(c);
+}
+const PLACES=[
+  {id:'rest',e:'🛌',n:'Rest at home',d:'Sleep, eat, do nothing much.',cost:0,
+   note:function(c){return '+'+homeOf(c).rest+' energy · −tilt';},
+   fx:function(c){var hm=homeOf(c);c.energy=Math.min(maxEnergy(c),(c.energy||0)+hm.rest);c.health=Math.min(100,(c.health||100)+4);
+     c.mood=Math.max(0,Math.min(100,(c.mood||60)+2+hm.mood*0.4));c.tilt=Math.max(0,(c.tilt||0)-9);
+     c.form=Math.round((c.form||0)*0.94);c.burnout=Math.max(0,(c.burnout||0)-6);}},
+  {id:'gym',e:'🏋️',n:'Train at the gym',d:'Chess is physical at the eighth hour.',cost:25,energy:16,
+   note:function(){return '+health +stamina';},
+   fx:function(c){c.health=Math.min(100,(c.health||100)+9);c.energy=Math.max(0,c.energy-16);
+     c.mood=Math.min(100,(c.mood||60)+3);c.burnout=Math.max(0,(c.burnout||0)-4);}},
+  {id:'study',e:'📚',n:'Study session',d:'Alone with the board and a database.',cost:0,energy:18,
+   note:function(){return '+prep +XP';},
+   fx:function(c){c.prep=(c.prep||0)+1;addXp(c,45);c.energy=Math.max(0,c.energy-18);
+     c.mood=Math.max(0,(c.mood||60)-2);c.form=Math.min(100,(c.form||0)+3);}},
+  {id:'club',e:'♟️',n:'Club night',d:'Casual games, blitz and gossip.',cost:15,energy:15,
+   note:function(){return '+form +mood';},
+   fx:function(c){c.form=Math.min(100,(c.form||0)+8);c.mood=Math.min(100,(c.mood||60)+7);
+     c.energy=Math.max(0,c.energy-15);addXp(c,25);c.fans=(c.fans||0)+8;}},
+  {id:'cafe',e:'☕',n:'Café with friends',d:'People who don’t want to talk about chess.',cost:30,
+   note:function(){return '++mood −tilt';},
+   fx:function(c){c.mood=Math.min(100,(c.mood||60)+13);c.tilt=Math.max(0,(c.tilt||0)-11);
+     c.energy=Math.min(maxEnergy(c),(c.energy||0)+6);}},
+  {id:'work',e:'💼',n:'Take a coaching shift',d:'Somebody’s child, four hours, cash in hand.',cost:0,energy:20,
+   note:function(c){return '+💰'+coachingPay(c);},
+   fx:function(c){c.money=(c.money||0)+coachingPay(c);c.energy=Math.max(0,c.energy-20);
+     c.mood=Math.max(0,(c.mood||60)-4);addXp(c,10);}},
+  {id:'park',e:'🏙️',n:'Go down to the park',d:'The tables are always busy. Bring cash.',cost:0,
+   note:function(){return 'opens the hustlers’ tables';},
+   fx:function(c){c.mood=Math.min(100,(c.mood||60)+5);c.energy=Math.max(0,(c.energy||0)-6);},
+   after:function(){app.careerTab='play';app.careerToast='🏙️ You’re at the park — pick a table below.';}},
+  {id:'therapy',e:'🧘',n:'See the sports psychologist',d:'An hour on why the clock frightens you.',cost:160,
+   note:function(){return '−−tilt +mood';},
+   fx:function(c){c.tilt=Math.max(0,(c.tilt||0)-32);c.mood=Math.min(100,(c.mood||60)+9);
+     c.burnout=Math.max(0,(c.burnout||0)-9);}},
+  {id:'physio',e:'🩺',n:'Physio session',d:'Get the injury looked at properly.',cost:220,gate:function(c){return !!c.injury;},
+   note:function(){return 'heals faster';},
+   fx:function(c){if(c.injury){c.injury.weeksLeft=Math.max(0,c.injury.weeksLeft-1);if(c.injury.weeksLeft<=0){pushNews(c,'💪','The physio signed you off — you’re fit again.');c.injury=null;}}
+     c.health=Math.min(100,(c.health||100)+12);}},
+  {id:'getaway',e:'✈️',n:'Weekend away',d:'No board, no clock, no phone.',cost:750,
+   note:function(){return 'resets everything';},
+   fx:function(c){c.mood=Math.min(100,(c.mood||60)+26);c.energy=maxEnergy(c);c.tilt=0;
+     c.burnout=Math.max(0,(c.burnout||0)-22);c.health=Math.min(100,(c.health||100)+8);c.form=Math.round((c.form||0)*0.8);}}
+];
+function placeById(id){return PLACES.filter(function(p){return p.id===id;})[0]||null;}
+function placeBlocked(c,p){
+  if(p.gate&&!p.gate(c))return 'not needed';
+  if(p.cost&&(c.money||0)<p.cost)return 'costs 💰'+p.cost;
+  if(p.energy&&(c.energy||0)<p.energy)return 'too tired';
+  return null;
+}
+function doDay(id){
+  var c=store.career;lifeInit(c);
+  if(c.tour){app.careerToast='You’re in the middle of an event — finish it first.';render();return;}
+  var p=placeById(id);if(!p||placeBlocked(c,p))return;
+  if(p.cost)c.money=(c.money||0)-p.cost;
+  p.fx(c);
+  c.dayLog=c.dayLog||[];c.dayLog.push({id:p.id,e:p.e});
+  c.day=(c.day||0)+1;
+  if(p.after)p.after();
+  if(c.day>=7)endOfWeek(c);
+  checkAchievements(c);save();render();
+}
+function endOfWeek(c){
+  var spent=(c.dayLog||[]).length;
+  c.day=0;c.weeks=(c.weeks||0)+1;c.age=Math.round((c.age+1/52)*100)/100;
+  lifeAdvanceWeeks(c,1);tickInjury(c,1);
+  var rests=(c.dayLog||[]).filter(function(d){return d.id==='rest';}).length;
+  if(rests>=5)c.form=Math.round((c.form||0)*0.85);
+  if(spent>=7&&rests===0)c.burnout=Math.min(100,(c.burnout||0)+7);
+  c.weekLog=c.dayLog||[];c.dayLog=[];
+  c.lifeWeeks=(c.lifeWeeks||0)+1;
+  arcTick(c);
+  pushNews(c,'📅','Week '+(c.weeks||0)+' done — bills 💰'+((c.bills&&c.bills.total)||0)+' paid.');
+}
+/* ---- Season review: a year of your life, summed up ---- */
+function seasonSnapshot(c){
+  return {week:c.weeks||0,rating:youRating(c,'classical'),peak:c.peak||0,won:c.won||0,lost:c.lost||0,
+    drawn:c.drawn||0,played:c.played||0,money:c.money||0,fame:c.fame||0,
+    titles:(c.titles||[]).length,honors:(c.honors||[]).length,norms:(c.norms||[]).length,
+    events:(c.history||[]).filter(function(h){return !h.oneoff;}).length,
+    bril:(store.brilliancies||[]).length};
+}
+function seasonRollover(c){
+  var s0=c.seasonStart||seasonSnapshot(c),s1=seasonSnapshot(c);
+  var best=null;
+  (c.history||[]).forEach(function(h){
+    if(h.oneoff||!h.date)return;
+    if(h.place!=null&&(best===null||h.place<best.place||(h.place===best.place&&(h.tpr||0)>(best.tpr||0))))best=h;
+  });
+  c.seasonReview={
+    season:c.season||1,
+    games:Math.max(0,s1.played-s0.played),
+    won:Math.max(0,s1.won-s0.won),lost:Math.max(0,s1.lost-s0.lost),drawn:Math.max(0,s1.drawn-s0.drawn),
+    ratingFrom:s0.rating,ratingTo:s1.rating,
+    peakFrom:s0.peak,peakTo:s1.peak,
+    money:s1.money-s0.money,fame:Math.round((s1.fame-s0.fame)*10)/10,
+    titles:Math.max(0,s1.titles-s0.titles),honors:Math.max(0,s1.honors-s0.honors),
+    norms:Math.max(0,s1.norms-s0.norms),events:Math.max(0,s1.events-s0.events),
+    bril:Math.max(0,s1.bril-s0.bril),
+    best:best?{name:best.name,emoji:best.emoji,place:best.place,score:best.score,rounds:best.rounds}:null
+  };
+  c.season=(c.season||1)+1;
+  c.seasonStart=s1;
+  pushNews(c,'🗓️','Season '+c.seasonReview.season+' is over — '+c.seasonReview.games+' games, '+c.seasonReview.won+' wins.');
+  pushFeed(c,'🗓️','Season '+c.seasonReview.season+' ends. '+esc(c.name||'You')+': '+c.seasonReview.won+'W–'+c.seasonReview.lost+'L–'+c.seasonReview.drawn+'D.','you');
+  toastAdd('🗓️ Season '+c.seasonReview.season+' review is ready');
+}
+function seasonMaybeRoll(c){
+  var due=Math.floor((c.weeks||0)/52)+1;
+  if(!c.seasonStart)c.seasonStart=seasonSnapshot(c);
+  if(due>(c.season||1))seasonRollover(c);
+}
+function careerSeasonBanner(c){
+  var r=c.seasonReview;if(!r)return '';
+  var rd=(r.ratingFrom!=null&&r.ratingTo!=null)?(r.ratingTo-r.ratingFrom):null;
+  var line=function(l,v,col){return '<div style="text-align:center;flex:1;min-width:66px"><div class="dim small">'+l+'</div><div style="font-weight:800;font-size:18px'+(col?';color:'+col:'')+'">'+v+'</div></div>';};
+  return '<div class="card" style="margin-bottom:12px;border-color:#f59e0b;background:linear-gradient(120deg,rgba(245,158,11,.14),transparent)">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:800">🗓️ Season '+r.season+' review</div><button class="btn ghost sm" data-act="seasondismiss">✕</button></div>'+
+    '<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:9px">'+
+      line('Games',r.games)+
+      line('W–D–L',r.won+'–'+r.drawn+'–'+r.lost)+
+      line('Rating',rd==null?'—':((rd>0?'+':'')+rd),rd>0?'var(--green)':rd<0?'#f87171':'')+
+      line('Peak',r.peakTo||'—','var(--brand2)')+
+      line('Money',(r.money>=0?'+':'−')+'💰'+Math.abs(Math.round(r.money)),r.money>=0?'#fbbf24':'#f87171')+
+    '</div>'+
+    '<div class="dim small" style="margin-top:8px;line-height:1.6">'+
+      (r.events?'🏟️ '+r.events+' event'+(r.events===1?'':'s')+' played. ':'')+
+      (r.titles?'🎖️ '+r.titles+' new title'+(r.titles===1?'':'s')+'. ':'')+
+      (r.norms?'📜 '+r.norms+' norm'+(r.norms===1?'':'s')+'. ':'')+
+      (r.honors?'🏆 '+r.honors+' honour'+(r.honors===1?'':'s')+'. ':'')+
+      (r.bril?'💎 '+r.bril+' brilliancy'+(r.bril===1?'':'s')+' found. ':'')+
+      (r.best?'Best result: '+(r.best.emoji||'🏟️')+' '+esc(r.best.name)+(r.best.place?' — '+ordinal(r.best.place):'')+'.':'')+
+      (!r.events&&!r.games?'A quiet year. Next one is yours.':'')+
+    '</div></div>';
+}
+function careerDayPanel(c){
+  var day=c.day||0,log=c.dayLog||[],bills=lifeCosts(c,1);
+  var hm=homeOf(c);
+  var strip=[];
+  for(var i=0;i<7;i++){
+    var did=log[i];
+    strip.push('<div style="flex:1;min-width:0;text-align:center;padding:5px 1px;border-radius:7px;background:'+(did?'rgba(96,165,250,.16)':(i===day?'rgba(245,158,11,.18)':'rgba(255,255,255,.03)'))+';border:1px solid '+(i===day&&!did?'var(--amber)':'var(--border)')+'">'+
+      '<div style="font-size:15px;line-height:1.1">'+(did?did.e:(i===day?'▸':'·'))+'</div>'+
+      '<div class="dim" style="font-size:9px">'+['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][i]+'</div></div>');
+  }
+  var h='<div class="card" style="margin-bottom:12px">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<div><div style="font-weight:700">📅 Your week</div><div class="dim small">'+hm.e+' '+esc(hm.n)+' · rent 💰'+bills.rent+' + food 💰'+bills.food+' due Sunday</div></div>'+
+      '<div style="text-align:right"><div style="font-weight:800;color:#fbbf24">💰 '+(c.money||0).toLocaleString()+'</div>'+((c.debt||0)>0?'<div class="small" style="color:#f87171">debt 💰'+c.debt+'</div>':'<div class="dim small">day '+Math.min(day+1,7)+' of 7</div>')+'</div></div>'+
+    '<div class="row" style="gap:4px;margin:9px 0 4px">'+strip.join('')+'</div>';
+  if(c.tour)return h+'<div class="dim small" style="margin-top:6px">You’re playing '+esc(c.tour.name)+' — life goes on hold until the event is over.</div></div>';
+  h+='<div class="dim small" style="margin-bottom:6px">Pick one thing to do today. Seven days make a week, and the bills arrive whether you played well or not.</div>';
+  h+='<div class="actgrid">'+
+    PLACES.map(function(p){
+      if(p.gate&&!p.gate(c))return '';
+      var blocked=placeBlocked(c,p);
+      return '<button class="actcard" data-act="doday" data-val="'+p.id+'"'+(blocked?' disabled':'')+'>'+
+        '<span class="an">'+p.e+' '+esc(p.n)+'</span>'+
+        '<span class="ad">'+esc(p.d)+'</span>'+
+        '<span class="ac">'+(blocked?esc(blocked):(p.cost?'💰'+p.cost+' · ':'')+esc(p.note(c)))+'</span></button>';
+    }).join('')+'</div>';
+  return h+'</div>';
+}
+function careerHomePanel(c){
+  var cur=homeIdx(c);
+  return '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:2px">🏠 Where you live</div>'+
+    '<div class="dim small" style="margin-bottom:6px">Rent comes out every week. A better place recovers more energy a night and lifts your mood — and it is the first thing you lose if the money runs out.</div>'+
+    HOMES.map(function(hm,i){
+      var lock=homeLocked(c,hm),here=i===cur;
+      return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border)'+(lock&&!here?';opacity:.5':'')+'">'+
+        '<span class="small" style="flex:1;min-width:0">'+hm.e+' <b>'+esc(hm.n)+'</b> <span class="dim">— '+esc(hm.d)+'</span><br><span class="dim" style="font-size:10px">💰'+hm.rent+'/week · +'+hm.rest+' energy a night'+(hm.mood?' · '+(hm.mood>0?'+':'')+hm.mood+' mood':'')+'</span></span>'+
+        (here?'<span class="chip green" style="flex:0 0 auto">Home</span>'
+            :(lock?'<span class="dim small" style="flex:0 0 auto;text-align:right;max-width:130px">🔒 '+esc(lock)+'</span>'
+                 :'<button class="btn sec sm" data-act="movehome" data-val="'+hm.id+'" style="flex:0 0 auto">Move in</button>'))+
+        '</div>';
+    }).join('')+'</div>';
+}
 function careerLifePanel(c){var em=maxEnergy(c);
   var h='<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">🧬 Life &amp; condition</div><div class="dim small">Age '+Math.floor(c.age)+' · Season '+(Math.floor((c.weeks||0)/52)+1)+' · 👥 '+(c.fans||0).toLocaleString()+'</div></div>';
   h+='<div class="grid" style="grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:8px">'+
     '<div><div class="dim small">⚡ Energy '+Math.round(c.energy)+'/'+em+'</div>'+cbar(c.energy,em,'#22c55e')+'</div>'+
     '<div><div class="dim small">😖 Tilt '+Math.round(c.tilt)+(c.tilt>=60?' ⚠️':'')+'</div>'+cbar(c.tilt,100,'#f43f5e')+'</div>'+
     '<div><div class="dim small">📈 Form '+(c.form>0?'+':'')+Math.round(c.form)+'</div>'+cbar((c.form+100)/2,100,'#33a2ff')+'</div>'+
-    '<div><div class="dim small">⭐ Fame '+Math.round(c.fame)+'</div>'+cbar(c.fame,100,'#f59e0b')+'</div></div>';
+    '<div><div class="dim small">⭐ Fame '+Math.round(c.fame)+'</div>'+cbar(c.fame,100,'#f59e0b')+'</div>'+
+    '<div><div class="dim small">❤️ Health '+Math.round(c.health==null?100:c.health)+((c.health||100)<40?' ⚠️':'')+'</div>'+cbar(c.health==null?100:c.health,100,'#ef4444')+'</div>'+
+    '<div><div class="dim small">🙂 Mood '+Math.round(c.mood==null?62:c.mood)+((c.mood||62)<30?' ⚠️':'')+'</div>'+cbar(c.mood==null?62:c.mood,100,'#a855f7')+'</div></div>';
   h+='<div class="dim small" style="margin-top:8px">🧭 '+careerPhase(c)+(c.injury?' · <span style="color:#fda4af">🤕 '+esc(c.injury.type)+' ('+c.injury.weeksLeft+' wk'+(c.injury.weeksLeft===1?'':'s')+')</span>':'')+'</div>';
   if((c.burnout||0)>0)h+='<div style="margin-top:6px"><div class="dim small">🔥 Burnout '+Math.round(c.burnout)+(c.burnout>=60?' ⚠️':'')+'</div>'+cbar(c.burnout,100,'#f97316')+'</div>';
   h+='<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:10px">'+
@@ -5896,10 +6188,230 @@ const ACHIEVEMENTS=[
   {k:'goat',e:'🐐',n:'Among the immortals',d:'Beat 5 all-time greats',test:function(c){return (c.legendsBeaten||[]).length>=5;}},
   {k:'comeback',e:'🔥',n:'Late renaissance',d:'Win a title event aged 38+'},
   {k:'ironman',e:'🦾',n:'Ironman',d:'Still competing at age 45',test:function(c){return (c.age||0)>=45;}},
+  {k:'parkrat',e:'🏙️',n:'Park rat',d:'Win 10 games for money in the park',test:function(c){return ((c.park&&c.park.w)||0)>=10;}},
+  {k:'ghostbuster',e:'👻',n:'Ghost story',d:'Beat the Ghost of the Park',test:function(c){return ((c.park&&c.park.beaten)||[]).indexOf('ghost')>=0;}},
+  {k:'simulmaster',e:'🎪',n:'Simul master',d:'Give 5 simultaneous exhibitions',test:function(c){return (c.simuls||0)>=5;}},
+  {k:'cleanroom',e:'🧹',n:'Cleared the room',d:'Win every board of a simul',test:function(c){return (c.simulPerfect||0)>=1;}},
 ];
 const ACH_BY={};ACHIEVEMENTS.forEach(function(a){ACH_BY[a.k]=a;});
 function toastAdd(s){app.careerToast=app.careerToast?(app.careerToast+'  ·  '+s):s;}
 function pushNews(c,e,t){if(!c.news)c.news=[];c.news.unshift({e:e,t:t,w:c.weeks||0});if(c.news.length>8)c.news.length=8;}
+/* ================= LIVING CHESS WORLD =================
+   The circuit keeps playing without you. Every rating period a few of the
+   world's moves become stories — surges, slumps, upsets, books, transfers —
+   and your own results get reported back, so the world feels like it is
+   watching. Items live in c.feed (newest first, capped). */
+function pushFeed(c,e,t,k){if(!c)return;if(!c.feed)c.feed=[];const top=c.feed[0];if(top&&top.t===t)return;c.feed.unshift({e:e,t:t,k:k||'world',w:c.weeks||0,ts:Date.now()});if(c.feed.length>40)c.feed.length=40;}
+const FEED_CITIES=['Reykjavík','Zagreb','Dubai','Gibraltar','Prague','Bucharest','Douglas','Sharjah','Biel','Wijk aan Zee','Saint-Louis','Astana','Chennai','Lisbon','Oslo','Belgrade'];
+const FEED_OPENINGS=['Najdorf','Berlin Wall','Grünfeld','Catalan','King’s Indian','London System','Sveshnikov','Caro-Kann','Nimzo-Indian','Italian Game','Dutch Defence','Slav'];
+function feedPick(a){return a[Math.floor(Math.random()*a.length)];}
+function feedName(p){const t=titleByRating(wpRating(p,'classical'));return (t?t+' ':'')+p.name;}
+function feedStory(c){
+  const w=buildWorld();if(!w.length)return null;
+  const scored=w.map(p=>({p:p,ch:wpChange(p,'classical'),r:wpRating(p,'classical')}));
+  const byCh=scored.slice().sort((a,b)=>b.ch-a.ch);
+  const up=byCh[0],dn=byCh[byCh.length-1];
+  const rnd=()=>scored[Math.floor(Math.random()*scored.length)];
+  const kinds=['surge','slump','upset','event','book','transfer','quote','prodigy','record'];
+  if(!c.provisional&&c.rating!=null)kinds.push('you','you');
+  switch(feedPick(kinds)){
+    case 'surge': if(!up||up.ch<4)return null;
+      return ['📈',feedName(up.p)+' is surging — +'+up.ch+' this period, up to '+up.r+'.','world'];
+    case 'slump': if(!dn||dn.ch>-4)return null;
+      return ['📉',feedName(dn.p)+' drops '+(-dn.ch)+' points after a rough run ('+dn.r+').','world'];
+    case 'upset': {const a=rnd(),b=rnd();if(a.r-b.r<120)return null;
+      return ['😮',feedName(b.p)+' ('+b.r+') stunned '+feedName(a.p)+' in the '+feedPick(FEED_CITIES)+' Open.','world'];}
+    case 'event': {const a=rnd();const rounds=7+Math.floor(Math.random()*3);const sc=(rounds*0.65+Math.random()*rounds*0.2).toFixed(1).replace(/\.0$/,'');
+      return ['🏆',feedName(a.p)+' wins the '+feedPick(FEED_CITIES)+' Masters with '+sc+'/'+rounds+'.','world'];}
+    case 'book': {const a=rnd();
+      return ['📚',feedName(a.p)+' publishes a new repertoire book on the '+feedPick(FEED_OPENINGS)+'.','world'];}
+    case 'transfer': {const a=rnd();const f=FEDS[1+Math.floor(Math.random()*(FEDS.length-1))];if(f.c===a.p.fed)return null;
+      return ['🏳️',feedName(a.p)+' transfers federation from '+a.p.fed+' to '+f.c+'.','world'];}
+    case 'quote': {const a=rnd();const qs=['“I’m playing for the win in every game now.”','“Classical chess is not dying — the players are just faster.”','“I studied twelve hours a day for this event.”','“Preparation is 90% of modern chess. The rest is nerve.”','“I don’t fear anyone at the board.”'];
+      return ['🎙️',feedName(a.p)+': '+feedPick(qs),'world'];}
+    case 'prodigy': {const a=rnd();if(a.r<2000)return null;const age=11+Math.floor(Math.random()*5);
+      return ['👶','Prodigy watch: '+a.p.name+' ('+age+') crosses '+a.r+' — the youngest ever in '+a.p.fed+'.','world'];}
+    case 'record': {const a=rnd();
+      return ['📊',feedName(a.p)+' is unbeaten in '+(14+Math.floor(Math.random()*30))+' classical games.','world'];}
+    case 'you': {const rk=worldRank(c,'classical');if(rk==null)return null;
+      const nm=esc(c.name||'You');
+      if(rk<=1)return ['👑','The chess world has stopped asking who is best. '+nm+' is world number one.','you'];
+      if(rk<=10)return ['🗞️','Pundits ask whether '+nm+' (world #'+rk+') can take the crown this cycle.','you'];
+      if(rk<=60)return ['🔎','Scouts have '+nm+' on the shortlist of players to watch — world #'+rk+'.','you'];
+      return ['📰',nm+' is climbing the world list quietly at #'+rk+'.','you'];}
+  }
+  return null;
+}
+function feedTick(c){if(!c||!c.setup)return;const n=1+Math.floor(Math.random()*2);
+  for(let i=0;i<n;i++){const s=feedStory(c);if(s)pushFeed(c,s[0],s[1],s[2]);}}
+function feedAgo(it,c){const dw=(c.weeks||0)-(it.w||0);return dw<=0?'now':(dw===1?'1 week ago':dw+' weeks ago');}
+function careerFeedPanel(c){
+  var _fg=0;while((c.feed||[]).length<6&&_fg++<12)feedTick(c);
+  const items=(c.feed||[]).slice(0,app.feedAll?40:12);
+  if(!items.length)return '';
+  return '<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:700">🌍 The chess world</div><span class="dim small">live circuit feed</span></div>'+
+    items.map(function(it){return '<div class="row" style="gap:9px;align-items:flex-start;padding:6px 0;border-top:1px solid var(--border)'+(it.k==='you'?';background:rgba(96,165,250,.08);margin:0 -6px;padding-left:6px;padding-right:6px;border-radius:6px':'')+'">'+
+      '<span style="font-size:17px;flex:0 0 auto">'+it.e+'</span>'+
+      '<span style="flex:1;min-width:0"><span class="small">'+esc(it.t)+'</span><span class="dim small" style="display:block;font-size:10px">'+feedAgo(it,c)+'</span></span></div>';}).join('')+
+    '<div style="margin-top:8px"><button class="btn ghost sm" data-act="feedall">'+(app.feedAll?'▴ Show less':'▾ Show more')+'</button></div></div>';
+}
+/* ================= SEASON STORY ARCS =================
+   A career should have chapters, not just numbers. An arc unlocks when you
+   reach its stage, then plays out over several goals with a decision in the
+   middle that leaves a permanent mark on the kind of player you are. */
+const ARC_METRIC={
+  wins:{l:'wins',get:function(c){return c.won||0;}},
+  games:{l:'games played',get:function(c){return c.played||0;}},
+  events:{l:'events finished',get:function(c){return (c.history||[]).filter(function(h){return !h.oneoff;}).length;}},
+  norms:{l:'norms',get:function(c){return (c.norms||[]).length;}},
+  peak:{l:'peak rating',abs:true,get:function(c){return c.peak||0;}},
+  fame:{l:'fame',abs:true,get:function(c){return c.fame||0;}},
+  money:{l:'bankroll',abs:true,get:function(c){return c.money||0;}},
+  rivalgames:{l:'games vs your rival',get:function(c){var r=c.rival&&c.h2h&&c.h2h[c.rival.name];return r?(r.w||0)+(r.l||0)+(r.d||0):0;}},
+  rivalwins:{l:'wins over your rival',get:function(c){var r=c.rival&&c.h2h&&c.h2h[c.rival.name];return r?(r.w||0):0;}}
+};
+const STORY_ARCS=[
+  {id:'local',e:'🌱',t:'The Local Legend',b:'Nobody at the club believes you yet. Change that.',
+   req:function(c){return (c.peak||0)<1900;},
+   ch:[{t:'Prove it at the board',d:'Win 3 rated games — the club is watching the wall chart.',m:'wins',n:3},
+       {t:'A fork in the road',d:'The club president offers you a paid junior-coaching slot on Saturdays — the same hours you set aside to study.',
+        choice:[{l:'Take the money',d:'+900 · steadier, but your study hours go',fx:function(c){c.money=(c.money||0)+900;c.prep=Math.max(0,(c.prep||0)-1);}},
+                {l:'Keep studying',d:'+prep +XP · lean months, sharper play',fx:function(c){c.prep=(c.prep||0)+2;addXp(c,70);c.form=Math.min(100,(c.form||0)+8);}}]},
+       {t:'Make them take notice',d:'Finish 2 tournaments and put a result on the board.',m:'events',n:2},
+       {t:'Break through',d:'Reach a peak rating of 1800.',m:'peak',v:1800}],
+   reward:{money:1500,xp:120,fame:5,badge:'Local Legend'}},
+  {id:'sponsor',e:'💼',t:'The Sponsor’s Gamble',b:'Money has found you. It always comes with a price tag.',
+   req:function(c){return (c.fame||0)>=12;},
+   ch:[{t:'Get noticed',d:'Push your fame to 25 — agents read results before they read names.',m:'fame',v:25},
+       {t:'The offer',d:'A crypto exchange wants its logo on your jacket for the whole season. Your federation is… uneasy.',
+        choice:[{l:'Sign the deal',d:'+6000 · reputation takes a hit',fx:function(c){c.money=(c.money||0)+6000;c.reputation=Math.max(0,(c.reputation==null?50:c.reputation)-14);c.fame=Math.min(100,(c.fame||0)+6);}},
+                {l:'Turn it down',d:'+reputation +respect',fx:function(c){c.reputation=Math.min(100,(c.reputation==null?50:c.reputation)+12);c.fame=Math.min(100,(c.fame||0)+3);addXp(c,60);}}]},
+       {t:'Earn the jacket',d:'Win 5 more rated games so the deal looks like a bargain.',m:'wins',n:5}],
+   reward:{money:3000,xp:180,fame:8,badge:'Marketable'}},
+  {id:'feud',e:'⚔️',t:'Blood Feud',b:'One name keeps appearing opposite yours on the pairing sheet.',
+   req:function(c){return !!c.rival;},
+   ch:[{t:'Again, and again',d:'Play 2 more games against your rival.',m:'rivalgames',n:2},
+       {t:'The press conference',d:'A journalist asks, on camera, what you really think of them.',
+        choice:[{l:'Fan the flames',d:'+fame · they will be ready for you',fx:function(c){c.fame=Math.min(100,(c.fame||0)+9);c.reputation=Math.max(0,(c.reputation==null?50:c.reputation)-6);if(c.rival)c.rival.intensity=(c.rival.intensity||1)+2;}},
+                {l:'Take the high road',d:'+reputation · the rivalry cools',fx:function(c){c.reputation=Math.min(100,(c.reputation==null?50:c.reputation)+10);if(c.rival)c.rival.intensity=Math.max(1,(c.rival.intensity||1)-1);}}]},
+       {t:'Settle it',d:'Beat your rival twice more.',m:'rivalwins',n:2}],
+   reward:{money:2000,xp:220,fame:10,badge:'Feud Winner'}},
+  {id:'flag',e:'🏳️',t:'Flag Bearer',b:'You are becoming your country’s best player. Someone else noticed first.',
+   req:function(c){return (c.peak||0)>=2100;},
+   ch:[{t:'Be the best at home',d:'Raise your peak rating by 60 points.',m:'peak',rel:true,n:60},
+       {t:'The approach',d:'A wealthy federation offers a signing fee and a salary to play under their flag.',
+        choice:[{l:'Take the flag',d:'+9000 · home fans feel betrayed',fx:function(c){c.money=(c.money||0)+9000;c.reputation=Math.max(0,(c.reputation==null?50:c.reputation)-16);c.transferred=true;}},
+                {l:'Stay home',d:'+reputation +fame · the country adopts you',fx:function(c){c.reputation=Math.min(100,(c.reputation==null?50:c.reputation)+14);c.fame=Math.min(100,(c.fame||0)+7);c.fans=Math.round((c.fans||0)*1.2+400);}}]},
+       {t:'Deliver on the promise',d:'Earn a norm at the board.',m:'norms',n:1}],
+   reward:{money:3500,xp:260,fame:9,badge:'Flag Bearer'}},
+  {id:'prodigy',e:'👶',t:'The Prodigy’s Shadow',b:'A fourteen-year-old is climbing faster than you did.',
+   req:function(c){return (c.peak||0)>=2300;},
+   ch:[{t:'Stay ahead',d:'Win 4 rated games before the kid catches you.',m:'wins',n:4},
+       {t:'The kid asks for help',d:'They send you their games and ask, politely, if you would look at them.',
+        choice:[{l:'Mentor them',d:'+XP +reputation · you are building your own rival',fx:function(c){c.reputation=Math.min(100,(c.reputation==null?50:c.reputation)+12);addXp(c,140);c.fame=Math.min(100,(c.fame||0)+4);}},
+                {l:'Give them nothing',d:'+edge · ruthless, and it works',fx:function(c){c.form=Math.min(100,(c.form||0)+14);c.prep=(c.prep||0)+2;c.reputation=Math.max(0,(c.reputation==null?50:c.reputation)-8);}}]},
+       {t:'Outgrow the shadow',d:'Reach a peak rating of 2400.',m:'peak',v:2400}],
+   reward:{money:4000,xp:320,fame:10,badge:'Elder Statesman'}},
+  {id:'crown',e:'👑',t:'Crown Run',b:'The title is no longer a fantasy. It is a calendar.',
+   req:function(c){return (c.peak||0)>=2550;},
+   ch:[{t:'Earn the seat',d:'Finish 2 more elite events.',m:'events',n:2},
+       {t:'Build the team',d:'Your second wants a year’s salary up front to work on nothing but your match prep.',
+        choice:[{l:'Pay the team',d:'−12000 · the best preparation money can buy',fx:function(c){c.money=(c.money||0)-12000;c.prep=(c.prep||0)+5;addXp(c,200);}},
+                {l:'Go it alone',d:'+money kept · you against the world',fx:function(c){c.form=Math.min(100,(c.form||0)+10);c.fame=Math.min(100,(c.fame||0)+6);addXp(c,90);}}]},
+       {t:'Touch the crown',d:'Reach a peak rating of 2700.',m:'peak',v:2700}],
+   reward:{money:15000,xp:500,fame:15,badge:'Crown Contender'}}
+];
+function arcById(id){return STORY_ARCS.filter(function(a){return a.id===id;})[0]||null;}
+function arcSnapshot(c){var o={};for(var k in ARC_METRIC)o[k]=ARC_METRIC[k].get(c);return o;}
+function arcChapter(c){var a=c.arc&&arcById(c.arc.id);return a?a.ch[c.arc.ch]:null;}
+function arcProgress(c){
+  var ch=arcChapter(c);if(!ch||ch.choice)return null;
+  var m=ARC_METRIC[ch.m];if(!m)return null;
+  var have=m.get(c),base=(c.arc.base&&c.arc.base[ch.m])||0;
+  var need=ch.v!=null?ch.v:(m.abs&&!ch.rel?base+ch.n:base+ch.n);
+  if(ch.v!=null)return {have:have,need:need,pct:Math.max(0,Math.min(1,have/need)),done:have>=need,label:m.l};
+  return {have:Math.max(0,have-base),need:ch.n,pct:Math.max(0,Math.min(1,(have-base)/ch.n)),done:have>=need,label:m.l};
+}
+function arcStart(c){
+  if(c.arc)return false;
+  var done=c.arcsDone||[];
+  var pool=STORY_ARCS.filter(function(a){return done.indexOf(a.id)<0&&a.req(c);});
+  if(!pool.length)return false;
+  var a=pool[0];
+  c.arc={id:a.id,ch:0,base:arcSnapshot(c),choices:[],since:c.weeks||0};
+  pushNews(c,a.e,'A new chapter opens: '+a.t);
+  pushFeed(c,a.e,'Storyline: '+a.t+' — '+a.b,'you');
+  toastAdd(a.e+' New story arc — '+a.t);
+  return true;
+}
+function arcAdvance(c){
+  var a=arcById(c.arc.id);if(!a)return;
+  c.arc.ch++;
+  if(c.arc.ch>=a.ch.length){arcFinish(c);return;}
+  c.arc.base=arcSnapshot(c);
+  c.money=(c.money||0)+400;addXp(c,60);
+  var nx=a.ch[c.arc.ch];
+  pushNews(c,a.e,a.t+' — '+nx.t);
+  toastAdd('📖 '+a.t+': '+nx.t);
+}
+function arcFinish(c){
+  var a=arcById(c.arc.id);c.arc=null;if(!a)return;
+  c.arcsDone=c.arcsDone||[];if(c.arcsDone.indexOf(a.id)<0)c.arcsDone.push(a.id);
+  c.arcBadges=c.arcBadges||[];if(a.reward.badge&&c.arcBadges.indexOf(a.reward.badge)<0)c.arcBadges.push(a.reward.badge);
+  c.money=(c.money||0)+(a.reward.money||0);addXp(c,a.reward.xp||0);c.fame=Math.min(100,(c.fame||0)+(a.reward.fame||0));
+  pushNews(c,'🎬','Story complete — '+a.t+'. You are now known as “'+a.reward.badge+'”.');
+  pushFeed(c,'🎬',esc(c.name||'You')+' closes a chapter: '+a.t+'.','you');
+  toastAdd('🎬 '+a.t+' complete — 💰'+(a.reward.money||0)+' · “'+a.reward.badge+'”');
+  confetti(60);
+}
+function arcTick(c){
+  if(!c||!c.setup||c.retired)return;
+  if(!c.arc){arcStart(c);return;}
+  if(!arcById(c.arc.id)){c.arc=null;return;}
+  var guard=0;
+  while(c.arc&&guard++<8){
+    var p=arcProgress(c);
+    if(!p||!p.done)break;
+    arcAdvance(c);
+  }
+}
+function arcChoose(c,idx){
+  var ch=arcChapter(c);if(!ch||!ch.choice)return;
+  var opt=ch.choice[idx];if(!opt)return;
+  opt.fx(c);
+  c.arc.choices.push(opt.l);
+  pushNews(c,'🧭','You chose: '+opt.l);
+  pushFeed(c,'🧭',esc(c.name||'You')+' — '+opt.l+'.','you');
+  arcAdvance(c);
+  arcTick(c);
+}
+function careerArcPanel(c){
+  if(!c.arc){
+    var done=(c.arcsDone||[]).length;
+    if(!done)return '';
+    return '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:4px">📖 Story</div><div class="dim small">No chapter running right now — keep climbing and the next one will find you.'+(done?' ('+done+' completed)':'')+'</div></div>';
+  }
+  var a=arcById(c.arc.id);if(!a)return '';
+  var ch=a.ch[c.arc.ch],n=a.ch.length;
+  var head='<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:700">'+a.e+' '+esc(a.t)+'</div><span class="chip brand" style="font-size:10px">Chapter '+(c.arc.ch+1)+'/'+n+'</span></div>'+
+    '<div class="dim small" style="margin-bottom:8px">'+esc(a.b)+'</div>';
+  var body;
+  if(ch.choice){
+    body='<div style="font-weight:700;margin-bottom:3px">'+esc(ch.t)+'</div><div class="small" style="margin-bottom:9px">'+esc(ch.d)+'</div>'+
+      '<div class="row" style="gap:7px;flex-wrap:wrap">'+ch.choice.map(function(o,i){return '<button class="btn sec sm" data-act="arcchoice" data-val="'+i+'" style="text-align:left"><b>'+esc(o.l)+'</b><br><span class="dim" style="font-size:10px">'+esc(o.d)+'</span></button>';}).join('')+'</div>';
+  } else {
+    var p=arcProgress(c)||{have:0,need:1,pct:0,label:''};
+    body='<div style="font-weight:700;margin-bottom:3px">'+esc(ch.t)+'</div><div class="small" style="margin-bottom:7px">'+esc(ch.d)+'</div>'+
+      '<div class="dim small">'+p.label+' <b style="color:var(--text);float:right">'+p.have+' / '+p.need+'</b></div>'+cbar(p.pct*100,100,'var(--brand2)');
+  }
+  return '<div class="card" style="margin-bottom:12px;border-color:var(--brand2)">'+head+body+'</div>';
+}
+function careerArcHistory(c){
+  var done=(c.arcsDone||[]).map(arcById).filter(Boolean);
+  if(!done.length)return '';
+  return '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:6px">📚 Chapters of your career</div>'+
+    done.map(function(a){return '<div class="row" style="gap:8px;align-items:center;padding:4px 0;border-top:1px solid var(--border)"><span style="font-size:17px">'+a.e+'</span><span style="flex:1"><b>'+esc(a.t)+'</b><span class="dim small" style="display:block">'+esc(a.b)+'</span></span><span class="chip green" style="font-size:10px">'+esc(a.reward.badge)+'</span></div>';}).join('')+'</div>';
+}
 function unlockAch(c,k){if(!c.achievements)c.achievements=[];if(c.achievements.includes(k))return false;c.achievements.push(k);var a=ACH_BY[k];if(a){pushNews(c,a.e,'Achievement unlocked — '+a.n);toastAdd('🏆 '+a.n);}return true;}
 function checkAchievements(c){ACHIEVEMENTS.forEach(function(a){if(a.test&&!(c.achievements||[]).includes(a.k)&&a.test(c))unlockAch(c,a.k);});}
 /* random between-event life events */
@@ -5989,7 +6501,7 @@ function scoutCard(c,opp,label){
     var tag=!r.has?'<span class="chip" style="opacity:.6">not studied</span>':(r.m>=50?'<span class="chip green">prepared '+r.m+'%</span>':'<span class="chip amber">learning '+r.m+'%</span>');
     var tt=(c.theory&&c.theory[o.id]&&c.theory[o.id].named)?' <span class="chip brand">📜 your line</span>':(c.trendy===o.id?' <span class="chip">🔥 trendy</span>':(c.refuted===o.id?' <span class="chip" style="background:#7f1d1d44;border-color:#7f1d1d">⚠️ busted this season</span>':''));
     return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--border);flex-wrap:wrap"><span class="small">'+sideDisc(o.side)+' <b>'+esc(o.name)+'</b> <span class="dim">'+esc(o.eco)+'</span> '+tag+tt+'</span><span class="row" style="gap:5px">'+(r.has?'':'<button class="btn ghost sm" data-act="addrep" data-val="'+o.id+'">+ Add</button>')+'<button class="btn sec sm" data-act="explore" data-val="'+o.id+'">📖 Study</button></span></div>';}
-  return '<div class="card" style="margin-bottom:12px;border-color:#7c5cff55"><div style="font-weight:700">🔍 Scouting — '+esc(label)+': '+esc(opp.name)+' <span class="dim small">('+opp.rating+')</span></div><div class="dim small" style="margin:3px 0 2px">They favour these lines. Study them in the Library and you’ll start the game with a real edge when they appear.</div>'+line(ow)+line(ob)+'</div>';}
+  return '<div class="card" style="margin-bottom:12px;border-color:#7c5cff55"><div class="row" style="gap:10px;align-items:center">'+oppAvatar(opp,40)+'<div style="font-weight:700;flex:1;min-width:0">🔍 Scouting — '+esc(label)+': '+esc(opp.name)+' <span class="dim small">('+opp.rating+')</span></div></div><div class="dim small" style="margin:3px 0 2px">They favour these lines. Study them in the Library and you’ll start the game with a real edge when they appear.</div>'+line(ow)+line(ob)+'</div>';}
 function careerScoutPanel(c){if(!c.tour||c.tour.round>=c.tour.rounds)return '';var opp=c.tour.field[c.tour.round];return opp?scoutCard(c,opp,'Round '+(c.tour.round+1)):'';}
 function careerPrepPanel(c){
   var ids=store.repertoire||[],ps=prepStrength(),pr=(store.puzzle&&store.puzzle.rating)||1200,hints=careerHintAllowance();
@@ -6247,7 +6759,7 @@ function maybeInjury(c){if(c.injury)return;var risk=0.025+(c.age>=38?(c.age-38)*
 function treatInjury(){var c=store.career;lifeInit(c);if(!c.injury)return;var cost=200*(c.injury.sev||1);if((c.money||0)<cost)return;c.money-=cost;c.injury.weeksLeft=Math.max(0,c.injury.weeksLeft-3);
   if(c.injury.weeksLeft<=0){var t=c.injury.type;c.injury=null;pushNews(c,'💪','Physiotherapy cleared up your '+t+'.');app.careerToast='💪 Physio sorted out your '+t+' (−💰'+cost+').';}
   else app.careerToast='🩹 Treatment is helping — '+c.injury.weeksLeft+' wks to go (−💰'+cost+').';save();render();}
-function careerSabbatical(){var c=store.career;lifeInit(c);var wk=8;c.weeks=(c.weeks||0)+wk;c.age=Math.round((c.age+wk/52)*100)/100;c.energy=maxEnergy(c);c.tilt=0;c.burnout=0;c.form=Math.round((c.form||0)*0.4);tickInjury(c,wk);pushNews(c,'🌴','You took an 8-week sabbatical to recharge.');app.careerToast='🌴 Sabbatical over — fully rested and recharged.';save();render();}
+function careerSabbatical(){var c=store.career;lifeInit(c);var wk=8;c.weeks=(c.weeks||0)+wk;c.age=Math.round((c.age+wk/52)*100)/100;c.day=0;c.dayLog=[];lifeAdvanceWeeks(c,wk,0.8);c.health=Math.min(100,(c.health||100)+25);c.mood=Math.min(100,(c.mood||62)+25);c.energy=maxEnergy(c);c.tilt=0;c.burnout=0;c.form=Math.round((c.form||0)*0.4);tickInjury(c,wk);pushNews(c,'🌴','You took an 8-week sabbatical to recharge.');app.careerToast='🌴 Sabbatical over — fully rested and recharged.';save();render();}
 /* ===== Season calendar & planner (a non-invasive overlay that frames your year) ===== */
 function genCalendar(c){var yr=youRating(c,'classical')||c.rating||1400;
   var elig=TOURNAMENTS.filter(function(t){return (!t.kind||t.kind!=='match')&&!t.requires&&t.minRating<=yr+150&&t.avg<=yr+360;});
@@ -6454,6 +6966,8 @@ function careerTrophyPanel(c){
 /* ===== Condition-aware simulation + opponents that react to your persona ===== */
 function conditionMod(c){var d=0;
   d+=Math.round((c.form||0)*0.35);
+  d+=Math.round(((c.mood==null?62:c.mood)-55)*0.22);
+  if((c.health==null?100:c.health)<60)d-=Math.round((60-c.health)*0.35);
   if(c.energy<35)d-=Math.round((35-c.energy)*1.1);
   if((c.tilt||0)>=60)d-=18;
   if((c.burnout||0)>=60)d-=12;
@@ -6539,12 +7053,138 @@ function avatarSVG(piece,col,ring,badge,size){size=size||64;var gid='av_'+col.re
     (badge!=null?'<circle cx="50" cy="50" r="11" fill="#0b1120" stroke="'+ring+'" stroke-width="2"/><text x="50" y="54" text-anchor="middle" font-size="12" font-weight="800" fill="#f8fafc">'+badge+'</text>':'')+
     '</svg>';
 }
-function playerAvatar(c,size){var sc=styleClass(c);return avatarSVG(sc.piece,sc.col,titleRing(c),charLevel(c),size);}
-function oppAvatar(opp,size){var r=opp.rating||1500;
-  var piece=r>=2500?'♛':r>=2300?'♜':r>=2100?'♝':r>=1800?'♞':'♟';
-  var col=r>=2500?'#fbbf24':r>=2300?'#a855f7':r>=2100?'#3b82f6':r>=1800?'#10b981':'#64748b';
-  var ring=opp.title==='GM'?'#fbbf24':opp.title==='IM'?'#e2e8f0':opp.title==='FM'?'#d97706':opp.title==='CM'?'#22d3ee':'#475569';
-  return avatarSVG(piece,col,ring,null,size);
+/* ================= CHARACTER AVATARS =================
+   Everybody in the chess world gets a face. Yours is built from the parts you
+   choose; everyone else's is derived from the hash of their name, so the same
+   opponent always looks the same wherever they turn up. All of it is inline
+   SVG — no images, nothing to download. */
+const AV_SKIN={light:{l:'Fair',v:'#f3cba4'},tan:{l:'Tan',v:'#dda472'},warm:{l:'Warm',v:'#bd7d4f'},deep:{l:'Deep',v:'#8c5433'},dark:{l:'Dark',v:'#5d3823'},pale:{l:'Pale',v:'#f7ded0'}};
+const AV_HAIRCOL={black:{l:'Black',v:'#1f2937'},brown:{l:'Brown',v:'#6b4423'},blond:{l:'Blond',v:'#d9b166'},auburn:{l:'Auburn',v:'#a8432a'},grey:{l:'Grey',v:'#9ca3af'},white:{l:'White',v:'#e5e7eb'},blue:{l:'Blue',v:'#3b82f6'},pink:{l:'Pink',v:'#ec4899'}};
+const AV_SHIRT={navy:{l:'Navy',v:'#1e3a8a'},charcoal:{l:'Charcoal',v:'#374151'},crimson:{l:'Crimson',v:'#991b1b'},forest:{l:'Forest',v:'#166534'},violet:{l:'Violet',v:'#5b21b6'},cream:{l:'Cream',v:'#e7e5e4'},teal:{l:'Teal',v:'#0f766e'},gold:{l:'Gold',v:'#b45309'}};
+const AV_BACKDROP={dusk:{l:'Dusk',a:'#334155',b:'#0b1120'},sky:{l:'Sky',a:'#0ea5e9',b:'#082f49'},moss:{l:'Moss',a:'#15803d',b:'#052e16'},rose:{l:'Rose',a:'#be185d',b:'#3b0764'},ember:{l:'Ember',a:'#ea580c',b:'#431407'},royal:{l:'Royal',a:'#7c3aed',b:'#1e1b4b'},steel:{l:'Steel',a:'#64748b',b:'#0f172a'},gold:{l:'Gold',a:'#f59e0b',b:'#451a03'}};
+const AV_HAIR={
+  bald:{l:'Bald',f:function(){return '';}},
+  buzz:{l:'Buzz',f:function(k){return '<path d="M17 30c0-11 6.5-17 15-17s15 6 15 17c0-6-4-9-15-9s-15 3-15 9z" fill="'+k+'"/>';}},
+  short:{l:'Short',f:function(k){return '<path d="M16 31c0-12 7-19 16-19s16 7 16 19c0-8-5-11-11-11-4 0-6 2-11 2-5 0-8 2-10 9z" fill="'+k+'"/>';}},
+  long:{l:'Long',f:function(k){return '<path d="M16 31c0-12 7-19 16-19s16 7 16 19c0-8-5-11-16-11s-16 3-16 11z" fill="'+k+'"/><path d="M16 29c-1.5 13-.5 19 1.5 22l4.5-2c-2-4-3-11-2-20zM48 29c1.5 13 .5 19-1.5 22l-4.5-2c2-4 3-11 2-20z" fill="'+k+'"/>';}},
+  bun:{l:'Bun',f:function(k){return '<circle cx="32" cy="10" r="6" fill="'+k+'"/><path d="M16 31c0-12 7-19 16-19s16 7 16 19c0-8-5-11-16-11s-16 3-16 11z" fill="'+k+'"/>';}},
+  curly:{l:'Curly',f:function(k){return '<g fill="'+k+'"><circle cx="19" cy="22" r="5.5"/><circle cx="25" cy="15" r="6.5"/><circle cx="39" cy="15" r="6.5"/><circle cx="45" cy="22" r="5.5"/><circle cx="32" cy="12" r="6.5"/></g>';}},
+  afro:{l:'Afro',f:function(k){return '<circle cx="32" cy="24" r="19" fill="'+k+'"/>';}},
+  mohawk:{l:'Mohawk',f:function(k){return '<path d="M28.5 8h7v14h-7z" fill="'+k+'"/><path d="M17 31c0-7 3-12 8-15v8c-3 2-4 4-4 7z" fill="'+k+'" opacity=".55"/><path d="M47 31c0-7-3-12-8-15v8c3 2 4 4 4 7z" fill="'+k+'" opacity=".55"/>';}},
+  ponytail:{l:'Ponytail',f:function(k){return '<path d="M16 31c0-12 7-19 16-19s16 7 16 19c0-8-5-11-16-11s-16 3-16 11z" fill="'+k+'"/><path d="M47 26c6 2 8 8 6 15l-5-1c2-6 1-10-3-12z" fill="'+k+'"/>';}}
+};
+const AV_EYES={
+  calm:{l:'Calm',f:'<circle cx="26" cy="31" r="2.2" fill="#0f172a"/><circle cx="38" cy="31" r="2.2" fill="#0f172a"/>'},
+  sharp:{l:'Sharp',f:'<path d="M23 31h6M35 31h6" stroke="#0f172a" stroke-width="2.4" stroke-linecap="round"/>'},
+  wide:{l:'Wide',f:'<circle cx="26" cy="31" r="2.9" fill="#fff"/><circle cx="38" cy="31" r="2.9" fill="#fff"/><circle cx="26.4" cy="31" r="1.6" fill="#0f172a"/><circle cx="38.4" cy="31" r="1.6" fill="#0f172a"/>'},
+  happy:{l:'Happy',f:'<path d="M23 32c1.5-3 4.5-3 6 0M35 32c1.5-3 4.5-3 6 0" stroke="#0f172a" stroke-width="2.2" fill="none" stroke-linecap="round"/>'},
+  tired:{l:'Tired',f:'<circle cx="26" cy="31" r="2.2" fill="#0f172a"/><circle cx="38" cy="31" r="2.2" fill="#0f172a"/><path d="M22 27l7 2M42 27l-7 2" stroke="#0f172a" stroke-width="1.6" stroke-linecap="round"/>'},
+  fierce:{l:'Fierce',f:'<circle cx="26" cy="32" r="2.2" fill="#0f172a"/><circle cx="38" cy="32" r="2.2" fill="#0f172a"/><path d="M21 27l8 2M43 27l-8 2" stroke="#0f172a" stroke-width="2.2" stroke-linecap="round"/>'}
+};
+const AV_MOUTH={
+  calm:{l:'Neutral',f:'<path d="M28 41h8" stroke="#7f1d1d" stroke-width="2" stroke-linecap="round"/>'},
+  smile:{l:'Smile',f:'<path d="M27 40c2 3.5 8 3.5 10 0" stroke="#7f1d1d" stroke-width="2.2" fill="none" stroke-linecap="round"/>'},
+  smirk:{l:'Smirk',f:'<path d="M27 41c3 2.5 7 1.5 9-1.5" stroke="#7f1d1d" stroke-width="2.2" fill="none" stroke-linecap="round"/>'},
+  grim:{l:'Grim',f:'<path d="M27 42c3-3 7-3 10 0" stroke="#7f1d1d" stroke-width="2.2" fill="none" stroke-linecap="round"/>'},
+  open:{l:'Talking',f:'<ellipse cx="32" cy="41" rx="4" ry="3" fill="#7f1d1d"/>'},
+  beard:{l:'Beard',f:'<path d="M18 30c0 14 6 22 14 22s14-8 14-22c1 20-5 26-14 26s-15-6-14-26z" fill="#00000055"/><path d="M27 40c2 3 8 3 10 0" stroke="#7f1d1d" stroke-width="2" fill="none" stroke-linecap="round"/>'}
+};
+const AV_ACC={
+  none:{l:'None',f:''},
+  glasses:{l:'Glasses',f:'<g fill="none" stroke="#111827" stroke-width="2"><circle cx="26" cy="31" r="5.6"/><circle cx="38" cy="31" r="5.6"/><path d="M31.6 31h.8M20.4 30l-3.4-1M43.6 30l3.4-1"/></g>'},
+  shades:{l:'Shades',f:'<g><rect x="19.5" y="26.5" width="12" height="8" rx="2.5" fill="#111827"/><rect x="32.5" y="26.5" width="12" height="8" rx="2.5" fill="#111827"/><path d="M31.5 29h1M19.5 28l-3-1M44.5 28l3-1" stroke="#111827" stroke-width="2"/></g>'},
+  cap:{l:'Cap',f:'<path d="M16 27a16 16 0 0132 0v2H16z" fill="#1d4ed8"/><path d="M47 27h9a3 3 0 010 5h-9z" fill="#1e40af"/>'},
+  beret:{l:'Beret',f:'<path d="M15 25c0-9 8-14 17-14s17 5 17 13c0 3-34 4-34 1z" fill="#7f1d1d"/><circle cx="45" cy="11" r="3" fill="#7f1d1d"/>'},
+  phones:{l:'Headphones',f:'<path d="M16 33v-4a16 16 0 0132 0v4" fill="none" stroke="#111827" stroke-width="3"/><rect x="11" y="30" width="7" height="13" rx="3.5" fill="#111827"/><rect x="46" y="30" width="7" height="13" rx="3.5" fill="#111827"/>'},
+  monocle:{l:'Monocle',f:'<g fill="none" stroke="#fbbf24" stroke-width="2"><circle cx="38" cy="31" r="6"/><path d="M38 37v9"/></g>'},
+  scarf:{l:'Scarf',f:'<path d="M19 49h26v5H19z" fill="#b91c1c"/><path d="M40 53h5l1 9h-6z" fill="#dc2626"/>'},
+  crown:{l:'Crown',f:'<path d="M19 15l3.5 7h19L45 15l-7 4.5-6-8-6 8z" fill="#fbbf24" stroke="#b45309"/>'},
+  laurel:{l:'Laurel',f:'<g fill="none" stroke="#65a30d" stroke-width="2.4"><path d="M14 34c-2 8 2 15 8 18"/><path d="M50 34c2 8-2 15-8 18"/></g>'}
+};
+const AV_ACC_LOCK={crown:{lbl:'Become World Champion',t:function(c){return (c.honors||[]).indexOf('World Champion')>=0;}},
+  laurel:{lbl:'Earn the GM title',t:function(c){return (c.titles||[]).indexOf('GM')>=0;}},
+  shades:{lbl:'Win 10 games in the park',t:function(c){return ((c.park&&c.park.w)||0)>=10;}},
+  phones:{lbl:'Reach 1000 subscribers',t:function(c){return (c.subs||0)>=1000;}},
+  monocle:{lbl:'Bank 50,000',t:function(c){return (c.money||0)>=50000;}}};
+function avAccUnlocked(c,k){var u=AV_ACC_LOCK[k];if(!u)return true;return !!(c&&c.setup&&u.t(c));}
+const AV_PARTS=[['skin',AV_SKIN,'Skin'],['hair',AV_HAIR,'Hair'],['hairCol',AV_HAIRCOL,'Hair colour'],['eyes',AV_EYES,'Eyes'],['mouth',AV_MOUTH,'Mouth'],['acc',AV_ACC,'Accessory'],['shirt',AV_SHIRT,'Outfit'],['bg',AV_BACKDROP,'Backdrop']];
+function avatarFromSeed(seed){
+  var a={},sh=0;
+  AV_PARTS.forEach(function(p){var ks=Object.keys(p[1]);a[p[0]]=ks[(seed>>>sh)%ks.length];sh=(sh+3)%24;});
+  return a;
+}
+function avatarDefaults(c){
+  var seed=hashStr(((c&&c.name)||'You')+'|'+((c&&c.fed)||''));
+  var a=avatarFromSeed(seed);a.acc='none';a.mouth='calm';return a;
+}
+function avatarOf(c){
+  if(!c)return avatarDefaults(null);
+  if(!c.avatar)c.avatar=avatarDefaults(c);
+  return c.avatar;
+}
+function avatarChar(a,size,ring,badge){
+  size=size||64;a=a||{};
+  var skin=(AV_SKIN[a.skin]||AV_SKIN.light).v;
+  var hairC=(AV_HAIRCOL[a.hairCol]||AV_HAIRCOL.black).v;
+  var shirt=(AV_SHIRT[a.shirt]||AV_SHIRT.navy).v;
+  var bd=AV_BACKDROP[a.bg]||AV_BACKDROP.dusk;
+  var hair=AV_HAIR[a.hair]||AV_HAIR.short;
+  var eyes=(AV_EYES[a.eyes]||AV_EYES.calm).f;
+  var mouth=(AV_MOUTH[a.mouth]||AV_MOUTH.calm).f;
+  var acc=(AV_ACC[a.acc]||AV_ACC.none).f;
+  var gid='avc'+hashStr([a.skin,a.hair,a.hairCol,a.eyes,a.mouth,a.acc,a.shirt,a.bg,ring,badge].join('|'));
+  var behind=a.hair==='afro'?hair.f(hairC):'';
+  var front=a.hair==='afro'?'':hair.f(hairC);
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 64 64" style="flex:0 0 auto;display:block">'+
+    '<defs><radialGradient id="'+gid+'" cx="38%" cy="28%" r="82%"><stop offset="0%" stop-color="'+bd.a+'"/><stop offset="100%" stop-color="'+bd.b+'"/></radialGradient>'+
+    '<clipPath id="'+gid+'c"><circle cx="32" cy="32" r="30"/></clipPath></defs>'+
+    '<circle cx="32" cy="32" r="30" fill="url(#'+gid+')"/>'+
+    '<g clip-path="url(#'+gid+'c)">'+
+      behind+
+      '<path d="M32 45c11 0 18 7 19 19H13c1-12 8-19 19-19z" fill="'+shirt+'"/>'+
+      '<path d="M29 41h6v7h-6z" fill="'+skin+'"/>'+
+      '<ellipse cx="17.5" cy="31" rx="2.6" ry="3.4" fill="'+skin+'"/><ellipse cx="46.5" cy="31" rx="2.6" ry="3.4" fill="'+skin+'"/>'+
+      '<ellipse cx="32" cy="30" rx="15" ry="17" fill="'+skin+'" stroke="rgba(0,0,0,.20)" stroke-width="1"/>'+
+      front+eyes+mouth+acc+
+    '</g>'+
+    '<circle cx="32" cy="32" r="30" fill="none" stroke="'+(ring||'#475569')+'" stroke-width="3"/>'+
+    (badge!=null?'<circle cx="50" cy="50" r="11" fill="#0b1120" stroke="'+(ring||'#475569')+'" stroke-width="2"/><text x="50" y="54" text-anchor="middle" font-size="12" font-weight="800" fill="#f8fafc">'+badge+'</text>':'')+
+    '</svg>';
+}
+function playerAvatar(c,size){
+  if(c&&c.avatarStyle==='piece'){var sc=styleClass(c);return avatarSVG(sc.piece,sc.col,titleRing(c),charLevel(c),size);}
+  return avatarChar(avatarOf(c),size,titleRing(c),charLevel(c));
+}
+function oppRing(opp){var t=opp&&opp.title;return t==='GM'?'#fbbf24':t==='IM'?'#e2e8f0':t==='FM'?'#d97706':t==='CM'?'#22d3ee':'#475569';}
+function oppAvatar(opp,size){
+  opp=opp||{};
+  var key=opp.id||opp.name||('r'+(opp.rating||1500));
+  var a=avatarFromSeed(hashStr(String(key)));
+  var r=opp.rating||1500;
+  // the strongest players in the world get the look to match
+  if(r>=2600&&!AV_ACC_LOCK[a.acc])a.acc=(hashStr(String(key))%2)?'laurel':a.acc;
+  return avatarChar(a,size,oppRing(opp),null);
+}
+function careerAvatarPanel(c){
+  var a=avatarOf(c);
+  var rows=AV_PARTS.map(function(p){
+    var key=p[0],obj=p[1],label=p[2];
+    var chips=Object.keys(obj).map(function(k){
+      var locked=key==='acc'&&!avAccUnlocked(c,k);
+      var on=a[key]===k;
+      var nm=(obj[k]&&obj[k].l)||k;
+      var swatch=(key==='skin'||key==='hairCol'||key==='shirt')?'<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:'+obj[k].v+';margin-right:4px;vertical-align:-1px"></span>':(key==='bg'?'<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:'+obj[k].a+';margin-right:4px;vertical-align:-1px"></span>':'');
+      return '<button class="btn '+(on?'primary':'ghost')+' sm" style="font-size:11px;padding:4px 8px'+(locked?';opacity:.45':'')+'" data-act="avset" data-val="'+key+':'+k+'"'+(locked?' title="Locked — '+esc(AV_ACC_LOCK[k].lbl)+'"':'')+'>'+swatch+esc(nm)+(locked?' 🔒':'')+'</button>';
+    }).join(' ');
+    return '<div style="padding:7px 0;border-top:1px solid var(--border)"><div class="dim small" style="margin-bottom:4px">'+label+'</div><div class="row" style="gap:5px;flex-wrap:wrap">'+chips+'</div></div>';
+  }).join('');
+  return '<div class="card" style="margin-bottom:12px">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div style="font-weight:700">🧑‍🎨 Your avatar</div>'+
+      '<div class="row" style="gap:6px"><button class="btn ghost sm" data-act="avrandom">🎲 Randomise</button><button class="btn ghost sm" data-act="avstyle">'+(c.avatarStyle==='piece'?'🧑 Character look':'♟ Classic piece look')+'</button></div></div>'+
+    '<div class="row" style="gap:14px;align-items:center;margin-top:9px"><div>'+playerAvatar(c,84)+'</div>'+
+      '<div class="dim small" style="flex:1;min-width:0">This is you — on the pairing sheet, in the matchup strip before every game, and on the leaderboard. The ring colour is your highest title, the number is your level, and some accessories have to be earned.</div></div>'+
+    (c.avatarStyle==='piece'?'<div class="dim small" style="margin-top:9px;padding-top:8px;border-top:1px solid var(--border)">You’re using the classic piece avatar, which follows your playing style. Switch to the character look to customise it.</div>':rows)+
+    '</div>';
 }
 function careerMatchupStrip(){var c=store.career,opp=app.careerRoundOpp;if(!opp)return '';
   var fmt=(c.tour&&c.tour.format)||app.careerOneoff||'classical',yr=youRating(c,fmt)||c.rating||'—';
@@ -6646,9 +7286,11 @@ function viewCareer(){
   if(c.retired)return careerHoF(c);
   if(!c.objective)lifeNewObjective(c);
   worldMaybeTick();
+  arcTick(c);
   let h='<div style="max-width:920px;margin:0 auto">';
   if(app.careerToast){h+='<div class="card" style="margin-bottom:10px;border-color:var(--brand);background:linear-gradient(90deg,var(--brand)18,transparent)"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><span style="font-weight:600">'+esc(app.careerToast)+'</span><button class="btn ghost sm" data-act="toastdismiss">✕</button></div></div>';}
   if(app.careerFinish)h+=careerFinishBanner(app.careerFinish);
+  h+=careerSeasonBanner(c);
   h+=careerHeader(c);
   h+=careerScandalPanel(c);
   h+=careerDilemmaPanel(c);
@@ -6663,6 +7305,7 @@ const CAREER_TABS=[
   {k:'you',e:'🧑',l:'You'},
   {k:'progress',e:'📈',l:'Progress'},
   {k:'life',e:'🧬',l:'Life'},
+  {k:'world',e:'🌍',l:'World'},
   {k:'media',e:'📰',l:'Media'},
   {k:'legacy',e:'📜',l:'Legacy'},
 ];
@@ -6680,13 +7323,15 @@ function careerTabBar(c){
 function careerTabContent(c,tab){
   let h='';
   if(tab==='play'){
+    h+=careerArcPanel(c);
     h+=careerRoadmapPanel(c);
     h+=careerManagerPanel(c);
     h+=careerDailyPanel(c);
     h+=careerQuestPanel(c);
     if(c.tour){h+=careerTourView(c);h+=careerScoutPanel(c);h+=careerPrepPanel(c);}
-    else{h+=careerLobby(c);h+=careerChallenges(c);h+=careerCalendarPanel(c);h+=careerPrepPanel(c);}
+    else{h+=careerLobby(c);h+=careerSimulPanel(c);h+=careerChallenges(c);h+=careerParkPanel(c);h+=careerCalendarPanel(c);h+=careerPrepPanel(c);}
   } else if(tab==='you'){
+    h+=careerAvatarPanel(c);
     h+=careerCharacterPanel(c);
     h+=careerPersonaPanel(c);
     h+=careerPerksPanel(c);
@@ -6698,12 +7343,12 @@ function careerTabContent(c,tab){
     h+=careerRatingGraph(c);
     h+=careerNorms(c);
     h+=careerRecordsPanel(c);
-    h+=careerLeaderboard(c);
     h+=careerCircuitPanel(c);
     if(!c.tour){h+=careerRivalryPanel(c);if(c.rival)h+=scoutCard(c,{name:c.rival.name,rating:rivalRating(c)},'Your rival');}
-    h+=careerLegendsPanel(c);
   } else if(tab==='life'){
+    h+=careerDayPanel(c);
     h+=careerLifePanel(c);
+    h+=careerHomePanel(c);
     h+=careerTeamPanel(c);
     h+=careerLifestylePanel(c);
     h+=careerBackerPanel(c);
@@ -6711,6 +7356,10 @@ function careerTabContent(c,tab){
     h+=careerAcademyPanel(c);
     h+=careerProtegePanel(c);
     h+=careerClubPanel(c);
+  } else if(tab==='world'){
+    h+=careerFeedPanel(c);
+    h+=careerLeaderboard(c);
+    h+=careerLegendsPanel(c);
   } else if(tab==='media'){
     h+=careerEconomy(c);
     h+=careerMediaPanel(c);
@@ -6719,6 +7368,7 @@ function careerTabContent(c,tab){
     h+=careerPublishPanel(c);
   } else if(tab==='legacy'){
     h+=careerNewsPanel(c);
+    h+=careerArcHistory(c);
     h+=careerLegacyPanel(c);
     h+=careerProfilePanel(c);
     h+=careerGames(c);
@@ -6768,7 +7418,7 @@ function careerHeader(c){
   const honors=(c.honors||[]).length?('<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><span class="dim small" style="margin-right:6px">Honours:</span>'+c.honors.map(hn=>'<span class="chip green" style="font-weight:700;margin-right:4px">'+honorEmoji(hn)+' '+esc(hn)+'</span>').join('')+'</div>'):'';
   let h='<div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:10px"><div class="row" style="gap:11px;align-items:center"><div style="flex:0 0 auto">'+playerAvatar(c,52)+'</div><div>'+
     '<h1 style="margin-bottom:2px">'+(bt?'<span style="color:var(--brand2)">'+bt+'</span> ':'')+esc(c.name)+' <span style="font-size:18px">'+(c.flag||'♟')+'</span></h1>'+
-    '<div class="muted small">'+esc(c.fed)+' · '+(c.gender==='women'?'Women’s':'Open')+' track · '+rec+' record · '+(c.played||0)+' games'+paceTag(c)+'</div>'+(personaChip(c)?'<div class="small" style="margin-top:4px;color:var(--brand2)">'+personaChip(c)+'</div>':'')+'</div></div></div>';
+    '<div class="muted small">'+esc(c.fed)+' · '+(c.gender==='women'?'Women’s':'Open')+' track · '+rec+' record · '+(c.played||0)+' games'+paceTag(c)+' · <span title="Days used this week">⏳ day '+Math.min((c.day||0)+1,7)+'/7</span></div>'+(personaChip(c)?'<div class="small" style="margin-top:4px;color:var(--brand2)">'+personaChip(c)+'</div>':'')+'</div></div></div>';
   h+='<div class="row" style="margin-bottom:12px">'+
     stat('Classical',fmtRating(c.provisional?null:c.rating),'var(--brand2)',subC)+
     stat('Rapid',fmtRating(c.ratingRapid),'var(--text)',subR)+
@@ -6846,8 +7496,8 @@ function careerChallenges(c){
   const star=stars[Math.floor(Math.random()*Math.min(8,stars.length))]||stars[0];
   const fmtBtns=['classical','rapid','blitz'].map(f=>'<button class="btn '+(f===fmt?'primary':'ghost')+' sm" data-act="chalfmt" data-val="'+f+'">'+fmtLabel(f)+'</button>').join(' ');
   const row=(tag,sub,x)=>'<div style="display:flex;align-items:center;gap:11px;padding:10px 13px;border-top:1px solid var(--border)">'+
-    '<div style="font-size:21px;width:28px;text-align:center">'+(x.p.real?'⭐':'🧑')+'</div>'+
-    '<div style="flex:1;min-width:0"><div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(x.p.name)+' <span class="dim">'+(x.p.flag||'')+'</span> '+(titleByRating(x.rating)?'<span class="dim small" style="color:var(--brand2)">'+titleByRating(x.rating)+'</span>':'')+'</div><div class="dim small">'+tag+' · '+sub+'</div></div>'+
+    '<div style="flex:0 0 auto;position:relative">'+oppAvatar({id:x.p.id,name:x.p.name,rating:x.rating,title:titleByRating(x.rating)},36)+(x.p.real?'<span style="position:absolute;right:-2px;bottom:-2px;font-size:11px">⭐</span>':'')+'</div>'+
+    '<div style="flex:1;min-width:0;cursor:pointer" data-act="profile" data-val="'+x.p.id+'"><div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(x.p.name)+' <span class="dim">'+(x.p.flag||'')+'</span> '+(titleByRating(x.rating)?'<span class="dim small" style="color:var(--brand2)">'+titleByRating(x.rating)+'</span>':'')+'</div><div class="dim small">'+tag+' · '+sub+' · <span style="color:var(--brand2)">view profile ›</span></div></div>'+
     '<div style="text-align:right;font-weight:800;width:48px">'+x.rating+'</div>'+
     '<button class="btn sec sm" data-act="careerchal" data-val="'+x.p.id+'">Play</button></div>';
   return '<div class="card" style="padding:0;margin-bottom:12px">'+
@@ -6858,12 +7508,279 @@ function careerChallenges(c){
     row('World star','huge underdog — beat a legend',star)+
     '</div>';
 }
+/* ===================== THE CHESS PARK =====================
+   Concrete tables, a clock with a cracked face, and someone who will happily
+   take your money. Park games are not rated — they are played for cash. The
+   posted rating is what the hustler claims; the real one is higher until you
+   have beaten them once and learned better. */
+const PARK_HUSTLERS=[
+  {id:'sal',n:'Sal',sur:'“Two-Move” Salvatore',e:'🎩',claim:1250,real:1450,style:'aggressive',cred:0,stakes:[10,25,50],
+   talk:['Ten bucks. I’ll even give you White.','Sit down, kid. I only bite on the clock.','Books don’t help you here.']},
+  {id:'winnie',n:'Winnie',sur:'Winnie the Rook',e:'🧣',claim:1400,real:1640,style:'grinder',cred:3,stakes:[25,50,100],
+   talk:['I’ve been on this table since before you were born.','Endgames, son. Everything is endgames.','Double or nothing? Thought not.']},
+  {id:'doc',n:'Doc',sur:'Doc Ferreira',e:'🕶️',claim:1600,real:1880,style:'positional',cred:8,stakes:[50,100,250],
+   talk:['I used to have a rating. Then I found this bench.','Slow chess is for people with chairs.','Your money is safe. For now.']},
+  {id:'zee',n:'Zee',sur:'Zee the Gambiteer',e:'🔥',claim:1800,real:2050,style:'gambiteer',cred:16,stakes:[100,250,500],
+   talk:['I sacrifice everything except the stake.','If you take it, you lose. If you don’t, you lose slower.','Pawns are a suggestion.']},
+  {id:'mama',n:'Mama Oko',sur:'Mama Oko',e:'👑',claim:2000,real:2250,style:'solid',cred:28,stakes:[250,500,1000],
+   talk:['Nobody beats me twice in a day.','You play fast. That is your whole plan, isn’t it?','Money first, moves after.']},
+  {id:'ghost',n:'The Ghost',sur:'The Ghost of the Park',e:'👻',claim:2200,real:2520,style:'universal',cred:45,stakes:[500,1000,2500],
+   talk:['They say I was a grandmaster once.','I don’t play for money. I play to be remembered.','Set the clock. Five minutes.']}
+];
+function parkById(id){return PARK_HUSTLERS.filter(function(h){return h.id===id;})[0]||null;}
+function parkInit(c){if(!c.park)c.park={cred:0,w:0,l:0,d:0,net:0,beaten:[],barred:[],streak:0,best:0};if(!c.park.beaten)c.park.beaten=[];if(!c.park.barred)c.park.barred=[];return c.park;}
+function parkKnown(c,h){return parkInit(c).beaten.indexOf(h.id)>=0;}
+function parkShownRating(c,h){return parkKnown(c,h)?h.real:h.claim;}
+function parkLocked(c,h){
+  var p=parkInit(c);
+  if(p.barred.indexOf(h.id)>=0)return 'they won’t play you any more';
+  if(p.cred<h.cred)return 'needs '+h.cred+' street cred';
+  return null;
+}
+function parkStakeOf(h){var i=app.parkStake==null?0:app.parkStake;return h.stakes[Math.max(0,Math.min(h.stakes.length-1,i))];}
+function startParkGame(id){
+  var c=store.career;parkInit(c);
+  var h=parkById(id);if(!h||c.tour||parkLocked(c,h))return;
+  var stake=parkStakeOf(h);
+  if((c.money||0)<stake){app.careerToast='💸 You can’t cover a 💰'+stake+' stake.';render();return;}
+  var opp={name:h.sur,rating:h.real,title:'',flag:'🏙️',fed:'Park',id:'park_'+h.id,style:h.style};
+  app.careerFinish=null;app.parkBet={id:h.id,stake:stake,double:false};
+  var side=Math.random()<0.5?'w':'b';
+  startPlay(new Chess().fen(),side,null,'🏙️ Park blitz vs '+h.sur+' — 💰'+stake+' on the table',
+    {tc:tcById('5+0'),careerOpp:'park',careerElo:h.real,roundOpp:opp});
+  app.careerBanter=h.talk[Math.floor(Math.random()*h.talk.length)];
+  applyCareerCondition();
+}
+function parkResult(score){
+  var c=store.career,p=parkInit(c),bet=app.parkBet;if(!bet)return;
+  var h=parkById(bet.id)||{sur:'a hustler',id:bet.id,real:1500};
+  var stake=bet.stake;
+  if(score===1){
+    c.money=(c.money||0)+stake;p.w++;p.net+=stake;p.streak++;p.best=Math.max(p.best||0,p.streak);
+    p.cred=(p.cred||0)+Math.max(1,Math.round(stake/60)+Math.round((h.real-1200)/220));
+    if(p.beaten.indexOf(h.id)<0)p.beaten.push(h.id);
+    c.fame=Math.min(100,(c.fame||0)+1);addXp(c,35);
+    app.parkDouble={id:h.id,stake:Math.min(stake*2,(c.money||0))};
+    pushNews(c,'🏙️','You took 💰'+stake+' off '+h.sur+' in the park.');
+    pushFeed(c,'🏙️',esc(c.name||'You')+' is beating the park regulars for cash again.','you');
+    toastAdd('💰 +'+stake+' from '+h.sur);
+  } else if(score===0){
+    c.money=Math.max(0,(c.money||0)-stake);p.l++;p.net-=stake;p.streak=0;
+    c.tilt=Math.min(100,(c.tilt||0)+6);addXp(c,10);
+    app.parkDouble=null;
+    pushNews(c,'🏙️',h.sur+' took 💰'+stake+' off you. They counted it slowly.');
+    toastAdd('💸 −'+stake+' to '+h.sur);
+  } else {
+    p.d++;addXp(c,15);app.parkDouble=null;
+    pushNews(c,'🏙️','You split the point with '+h.sur+' — stakes returned.');
+    toastAdd('🤝 Stake returned');
+  }
+  // beat someone often enough and they stop sitting down with you
+  if(score===1&&p.beaten.indexOf(h.id)>=0){
+    var wins=(p.wins=p.wins||{});wins[h.id]=(wins[h.id]||0)+1;
+    if(wins[h.id]>=4&&p.barred.indexOf(h.id)<0){p.barred.push(h.id);pushNews(c,'🚫',h.sur+' won’t sit down with you any more. Word travels.');}
+  }
+  app.parkBet=null;
+  c.played=(c.played||0)+1;
+  checkAchievements(c);markActiveDay();
+}
+function careerParkPanel(c){
+  var p=parkInit(c);
+  var si=app.parkStake==null?0:app.parkStake;
+  var stakeBtns=['Low','Mid','High'].map(function(l,i){return '<button class="btn '+(i===si?'primary':'ghost')+' sm" data-act="parkstake" data-val="'+i+'">'+l+'</button>';}).join(' ');
+  var h='<div class="card" style="padding:0;margin-bottom:12px">'+
+    '<div style="padding:11px 13px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<div><div style="font-weight:700">🏙️ The chess park</div><div class="dim small">Blitz for cash. Not rated — just your money and your nerve.</div></div>'+
+      '<div class="row" style="gap:6px">'+stakeBtns+'</div></div>'+
+    '<div class="row" style="padding:8px 13px;gap:10px;flex-wrap:wrap"><span class="chip amber" style="font-size:11px">🧢 Street cred '+(p.cred||0)+'</span><span class="chip" style="font-size:11px">'+p.w+'W–'+p.l+'L–'+p.d+'D</span><span class="chip '+((p.net||0)>=0?'green':'')+'" style="font-size:11px">Net '+((p.net||0)>=0?'+':'−')+'💰'+Math.abs(p.net||0)+'</span>'+(p.streak>1?'<span class="chip brand" style="font-size:11px">🔥 '+p.streak+' in a row</span>':'')+'</div>';
+  if(app.parkDouble&&(c.money||0)>=app.parkDouble.stake){
+    var dh=parkById(app.parkDouble.id);
+    h+='<div style="padding:10px 13px;border-top:1px solid var(--border);background:rgba(245,158,11,.10)"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><div class="small"><b>“Double or nothing.”</b> <span class="dim">'+esc(dh?dh.sur:'They')+' wants a rematch for 💰'+app.parkDouble.stake+'.</span></div><div class="row" style="gap:6px"><button class="btn primary sm" data-act="parkdouble">Take the bet</button><button class="btn ghost sm" data-act="parkwalk">Walk away</button></div></div></div>';
+  }
+  PARK_HUSTLERS.forEach(function(hu){
+    var lock=parkLocked(c,hu),stake=parkStakeOf(hu),known=parkKnown(c,hu);
+    var rt=parkShownRating(c,hu);
+    h+='<div style="display:flex;align-items:center;gap:11px;padding:10px 13px;border-top:1px solid var(--border)'+(lock?';opacity:.5':'')+'">'+
+      '<div style="flex:0 0 auto">'+oppAvatar({rating:rt,title:''},38)+'</div>'+
+      '<div style="flex:1;min-width:0"><div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+hu.e+' '+esc(hu.sur)+'</div>'+
+        '<div class="dim small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(hu.talk[0])+'</div>'+
+        '<div class="dim small" style="margin-top:2px">'+(known?'Real strength '+rt:'Claims '+rt+' · <span style="color:var(--amber)">probably sandbagging</span>')+' · stake 💰'+stake+'</div></div>'+
+      (lock?'<span class="dim small" style="width:104px;text-align:right">🔒 '+esc(lock)+'</span>'
+          :'<button class="btn '+((c.money||0)>=stake?'sec':'ghost')+' sm" data-act="parkplay" data-val="'+hu.id+'"'+((c.money||0)<stake?' disabled':'')+'>Play 💰'+stake+'</button>')+
+      '</div>';
+  });
+  return h+'</div>';
+}
+/* ===================== SIMULTANEOUS EXHIBITIONS =====================
+   An organiser pays you to take on a room. You play every board in turn; the
+   games are rated, the fee is guaranteed, and clearing the room pays a bonus
+   plus a lot of new fans. */
+const SIMUL_TIERS=[
+  {id:'club',n:'Club night simul',e:'🏫',boards:6,gap:420,spread:110,fee:250,per:60,need:0,blurb:'Six members of your local club, one wobbly table each.'},
+  {id:'school',n:'School tour simul',e:'🎒',boards:8,gap:520,spread:130,fee:600,per:90,need:1700,blurb:'A gymnasium, eight juniors, and a lot of photographs.'},
+  {id:'corp',n:'Corporate simul',e:'🏢',boards:10,gap:380,spread:120,fee:1600,per:150,need:2000,blurb:'A sponsor’s away-day. They are better than they look.'},
+  {id:'charity',n:'Charity gala simul',e:'🎗️',boards:12,gap:330,spread:130,fee:3200,per:240,need:2200,blurb:'Black tie, twelve boards, and a cheque for the cause.'},
+  {id:'expo',n:'World expo simul',e:'🌐',boards:15,gap:270,spread:140,fee:7000,per:420,need:2400,blurb:'Fifteen boards under the lights, streamed worldwide.'}
+];
+function simulById(id){return SIMUL_TIERS.filter(function(s){return s.id===id;})[0]||null;}
+function simulLocked(s,c){
+  var yr=youRating(c,'rapid')!=null?youRating(c,'rapid'):(c.rating!=null?c.rating:null);
+  if(yr==null||c.provisional)return 'publish a rating first';
+  if(yr<s.need)return 'needs '+s.need;
+  if((c.energy||0)<25)return 'too tired';
+  return null;
+}
+function simulTarget(){return 0.8;}
+function startSimul(id){
+  var c=store.career,s=simulById(id);if(!s||!c||c.tour)return;
+  lifeInit(c);if(simulLocked(s,c))return;
+  var yr=youRating(c,'rapid')||c.rating||1600;
+  var field=[];
+  for(var i=0;i<s.boards;i++){
+    var r=Math.max(800,Math.min(2600,Math.round(yr-s.gap+gauss()*s.spread)));
+    var fed=randFed();
+    field.push({name:randName(),rating:r,title:titleByRating(r),fed:fed.c,flag:fed.f,style:pickStyle()});
+  }
+  field.sort(function(a,b){return a.rating-b.rating;});
+  app.careerFinish=null;
+  c.tour={id:'simul_'+s.id,name:s.n,emoji:s.e,rounds:s.boards,round:0,field:field,results:[],normEligible:false,
+    avg:Math.round(field.reduce(function(t,o){return t+o.rating;},0)/field.length),tier:2,format:'rapid',champion:false,honor:null,
+    kind:'simul',var960:false,started:Date.now(),simul:{fee:s.fee,per:s.per,target:simulTarget(),tier:s.id}};
+  c.money=(c.money||0)+s.fee;
+  c.energy=Math.max(0,(c.energy||100)-18);
+  pushNews(c,s.e,'You agreed to give a '+s.boards+'-board simul — 💰'+s.fee+' appearance fee up front.');
+  pushFeed(c,s.e,esc(c.name||'You')+' takes on '+s.boards+' boards at the '+esc(s.n)+'.','you');
+  app.careerToast=s.e+' '+s.n+' — 💰'+s.fee+' fee collected. Clear the room!';
+  save();render();
+}
+function simulPayout(tr,scoreTot,games){
+  var per=(tr.simul&&tr.simul.per)||0,fee=(tr.simul&&tr.simul.fee)||0,tgtPct=(tr.simul&&tr.simul.target)||0.8;
+  var tgt=Math.ceil(games*tgtPct*2)/2;
+  var perPt=Math.round(scoreTot*per);
+  var bonus=scoreTot>=tgt?Math.round(fee*0.8):0;
+  return {perPt:perPt,bonus:bonus,total:perPt+bonus,target:tgt,cleared:scoreTot>=tgt};
+}
+function simulStrip(tr){
+  var you=tr.results.reduce(function(t,r){return t+r.score;},0);
+  var total=tr.rounds,done=tr.round,tgt=(tr.simul&&tr.simul.target)||0.8;
+  var pct=done?(you/done):0,needPts=Math.ceil(total*tgt*2)/2;
+  var maxYou=you+(total-done);
+  var purse=(tr.simul?tr.simul.fee:0)+Math.round(you*(tr.simul?tr.simul.per:0));
+  var status;
+  if(you>=needPts)status='<span style="color:var(--green);font-weight:800">✓ Bonus secured — the room is yours.</span>';
+  else if(maxYou<needPts)status='<span style="color:#f87171">The bonus is gone — play it out for the fans.</span>';
+  else status='<span class="dim">Score '+fmtScore(needPts)+'/'+total+' for the clear-the-room bonus ('+(total-done)+' boards left).</span>';
+  return '<div class="card" style="margin-bottom:12px;border-color:#22d3ee66;background:linear-gradient(90deg,rgba(34,211,238,.10),transparent)">'+
+    '<div class="dim small" style="text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">'+tr.emoji+' '+esc(tr.name)+' · rated exhibition</div>'+
+    '<div class="row" style="justify-content:space-between;align-items:center">'+
+      '<div style="text-align:center;flex:1"><div class="dim small">Score</div><div style="font-weight:800;font-size:24px;color:var(--brand2)">'+fmtScore(you)+'</div></div>'+
+      '<div style="text-align:center;flex:1"><div class="dim small">Board</div><div style="font-weight:800;font-size:24px">'+Math.min(done+1,total)+'/'+total+'</div></div>'+
+      '<div style="text-align:center;flex:1"><div class="dim small">Purse</div><div style="font-weight:800;font-size:24px;color:#fbbf24">'+purse+'</div></div>'+
+    '</div><div class="small" style="text-align:center;margin-top:7px">'+status+'</div>'+
+    '<div style="margin-top:8px;display:flex;gap:3px;flex-wrap:wrap">'+tr.field.map(function(o,i){
+      var r=tr.results[i];var bg=r?(r.score===1?'#22c55e':r.score===0?'#f43f5e':'#64748b'):(i===done?'var(--brand)':'#1e293b');
+      return '<span title="Board '+(i+1)+' · '+esc(o.name)+' ('+o.rating+')" style="flex:1;min-width:14px;height:9px;border-radius:3px;background:'+bg+'"></span>';}).join('')+'</div></div>';
+}
+function careerSimulPanel(c){
+  var h='<div class="card" style="padding:0;margin-bottom:12px">'+
+    '<div style="padding:11px 13px;border-bottom:1px solid var(--border)"><div style="font-weight:700">🎪 Simultaneous exhibitions</div>'+
+    '<div class="dim small">Take on a whole room, board by board. Every game is rated, the fee is paid up front, and clearing the room pays a bonus.</div></div>';
+  SIMUL_TIERS.forEach(function(s){
+    var lock=simulLocked(s,c);
+    var need=Math.ceil(s.boards*simulTarget()*2)/2;
+    h+='<div style="display:flex;align-items:center;gap:11px;padding:10px 13px;border-top:1px solid var(--border)'+(lock?';opacity:.55':'')+'">'+
+      '<div style="font-size:23px;width:30px;text-align:center">'+(lock?'🔒':s.e)+'</div>'+
+      '<div style="flex:1;min-width:0"><div style="font-weight:700">'+esc(s.n)+' <span class="chip brand" style="font-size:10px">'+s.boards+' boards</span></div>'+
+        '<div class="dim small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(s.blurb)+'</div>'+
+        '<div class="dim small" style="margin-top:2px">💰'+s.fee+' fee · 💰'+s.per+' per point · bonus at '+fmtScore(need)+'/'+s.boards+' · rated rapid</div></div>'+
+      (lock?'<span class="dim small" style="width:96px;text-align:right">Locked · '+esc(lock)+'</span>'
+          :'<button class="btn primary sm" data-act="simulstart" data-val="'+s.id+'">Give it</button>')+
+      '</div>';
+  });
+  return h+'</div>';
+}
+/* ===================== PLAYER PROFILES =====================
+   Every name on the world list is a person you can look up: their face, their
+   ratings in all three formats, their form, the openings they trust, and what
+   the two of you have done to each other so far. */
+function profileOpen(id){app.playerId=id;go('player');}
+function profileOf(id){
+  var p=buildWorld().filter(function(x){return x.id===id;})[0];
+  if(!p)return null;
+  return p;
+}
+function wpForm(p){
+  var s=wpState(p);if(!s)return 0;
+  return Math.max(-4,Math.min(4,s.f||0));
+}
+function viewPlayer(){
+  const c=store.career,p=profileOf(app.playerId);
+  if(!p)return msgCard('Player not found','That player is no longer on the world list.','<button class="btn sec" data-act="nav" data-val="career">Back to career</button>');
+  lifeInit(c);
+  const rc=wpRating(p,'classical'),rr=wpRating(p,'rapid'),rb=wpRating(p,'blitz');
+  const title=titleByRating(rc);
+  const opp={id:p.id,name:p.name,rating:rc,title:title,flag:p.flag,fed:p.fed};
+  const rank=worldRanking(c,'classical').findIndex(function(x){return x.id===p.id;})+1;
+  const ch=wpChange(p,'classical'),frm=wpForm(p);
+  const h2h=(c.h2h&&c.h2h[p.name])||null;
+  const isRival=!!(c.rival&&c.rival.name===p.name);
+  const isNemesis=!!(c.nemesis&&c.nemesis.name===p.name);
+  const yr=youRating(c,'classical');
+  const gap=(yr!=null)?rc-yr:null;
+  const formWord=frm>=1.5?'climbing fast':frm>=0.4?'trending up':frm<=-1.5?'falling away':frm<=-0.4?'drifting down':'steady';
+  const reps=oppOpenings(p.name),ow=reps.w?byId.get(reps.w):null,ob=reps.b?byId.get(reps.b):null;
+  let h='<div style="max-width:720px;margin:0 auto">'+
+    '<div class="row" style="align-items:center;gap:6px;margin-bottom:10px"><button class="btn ghost sm" data-act="back">←</button><h1 style="font-size:19px;margin:0">Player profile</h1></div>';
+  h+='<div class="card" style="margin-bottom:12px"><div class="row" style="gap:14px;align-items:center">'+
+    oppAvatar(opp,76)+
+    '<div style="flex:1;min-width:0">'+
+      '<div style="font-weight:800;font-size:18px;overflow:hidden;text-overflow:ellipsis">'+(title?'<span style="color:var(--brand2)">'+title+'</span> ':'')+esc(p.name)+' <span style="font-size:15px">'+(p.flag||'')+'</span></div>'+
+      '<div class="dim small">'+esc(p.fed)+(p.real?' · ★ real-world player':'')+(rank>0?' · world #'+rank:'')+'</div>'+
+      '<div class="row" style="gap:5px;flex-wrap:wrap;margin-top:6px">'+
+        (isRival?'<span class="chip" style="background:#7f1d1d44;border-color:#7f1d1d;font-size:10px">⚔️ Your rival</span>':'')+
+        (isNemesis?'<span class="chip" style="background:#7c2d1244;border-color:#7c2d12;font-size:10px">😠 Nemesis</span>':'')+
+        '<span class="chip '+(ch>0?'green':ch<0?'':'')+'" style="font-size:10px">'+(ch>0?'▲ +'+ch:ch<0?'▼ '+ch:'· level')+' this period</span>'+
+        '<span class="chip" style="font-size:10px">'+esc(formWord)+'</span>'+
+      '</div></div></div>'+
+    '<div class="row" style="margin-top:11px">'+
+      stat('Classical',String(rc),'var(--brand2)',gap==null?'—':(gap>0?gap+' above you':gap<0?(-gap)+' below you':'level with you'))+
+      stat('Rapid',String(rr),'var(--text)','')+
+      stat('Blitz',String(rb),'var(--text)','')+'</div>'+
+    '<div class="row" style="gap:7px;flex-wrap:wrap;margin-top:11px">'+
+      '<button class="btn primary sm" data-act="careerchal" data-val="'+p.id+'"'+(c.tour?' disabled title="Finish your event first"':'')+'>⚔️ Challenge them</button>'+
+      '<button class="btn sec sm" data-act="specvs" data-val="'+p.id+'">🍿 Watch them play</button>'+
+    '</div></div>';
+  // head to head
+  h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:6px">🤝 Head to head</div>';
+  if(h2h&&((h2h.w||0)+(h2h.l||0)+(h2h.d||0))>0){
+    const tot=(h2h.w||0)+(h2h.l||0)+(h2h.d||0),pct=((h2h.w||0)+(h2h.d||0)*0.5)/tot;
+    h+='<div class="row" style="justify-content:space-between;align-items:center">'+
+      '<div style="text-align:center;flex:1"><div class="dim small">You</div><div style="font-weight:800;font-size:24px;color:var(--green)">'+(h2h.w||0)+'</div></div>'+
+      '<div style="text-align:center;flex:1"><div class="dim small">Drawn</div><div style="font-weight:800;font-size:24px" class="dim">'+(h2h.d||0)+'</div></div>'+
+      '<div style="text-align:center;flex:1"><div class="dim small">Them</div><div style="font-weight:800;font-size:24px;color:#f87171">'+(h2h.l||0)+'</div></div></div>'+
+      '<div class="dim small" style="text-align:center;margin-top:6px">'+tot+' game'+(tot===1?'':'s')+' · you score '+Math.round(pct*100)+'%</div>';
+  } else h+='<div class="dim small">You have never played. Challenge them and start the file.</div>';
+  h+='</div>';
+  // what they play
+  h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:2px">🔎 What they play</div>'+
+    '<div class="dim small" style="margin-bottom:5px">Scouted from their games. Study these lines and you start with a real edge when you meet.</div>';
+  [[ow,'as White'],[ob,'as Black']].forEach(function(pair){
+    var o=pair[0];if(!o)return;
+    var r=studyReadiness(o);
+    h+='<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--border);flex-wrap:wrap">'+
+      '<span class="small"><b>'+esc(o.name)+'</b> <span class="dim">'+esc(o.eco)+' · '+pair[1]+'</span></span>'+
+      '<span class="row" style="gap:5px">'+(r.has?'<span class="chip '+(r.m>=50?'green':'amber')+'" style="font-size:10px">'+(r.m>=50?'prepared':'learning')+' '+r.m+'%</span>':'<button class="btn ghost sm" data-act="addrep" data-val="'+o.id+'">+ Add</button>')+
+      '<button class="btn sec sm" data-act="explore" data-val="'+o.id+'">📖 Study</button></span></div>';
+  });
+  h+='</div>';
+  return h+'</div>';
+}
 function careerLeaderboard(c){
   const fmt=app.lbFormat||'classical';
   const list=worldRanking(c,fmt);
   const yi=list.findIndex(p=>p.you);
   const chHtml=ch=>ch>0?'<span style="color:#86efac">▲'+ch+'</span>':ch<0?'<span style="color:#f87171">▼'+(-ch)+'</span>':'<span class="dim">·</span>';
-  const rowHtml=(p,rank)=>'<div style="display:flex;align-items:center;gap:9px;padding:7px 2px;border-top:1px solid var(--border)'+(p.you?';background:rgba(96,165,250,.12);margin:0 -6px;padding-left:8px;padding-right:8px;border-radius:6px':'')+'">'+
+  const rowHtml=(p,rank)=>'<div style="display:flex;align-items:center;gap:9px;padding:7px 2px;border-top:1px solid var(--border);'+(p.you?'background:rgba(96,165,250,.12);margin:0 -6px;padding-left:8px;padding-right:8px;border-radius:6px':'cursor:pointer')+'"'+(p.you?'':' data-act="profile" data-val="'+p.id+'"')+'>'+
     '<div class="dim small" style="width:36px;font-weight:700">#'+rank+'</div>'+
     '<div style="width:22px;text-align:center">'+(p.flag||'')+'</div>'+
     '<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:'+(p.you?'800':'600')+'">'+esc(p.name)+(p.you?' <span class="chip brand" style="font-size:9px">YOU</span>':(p.real?' <span class="dim" style="font-size:10px">★</span>':''))+'</div>'+
@@ -6904,7 +7821,7 @@ function careerTourView(c){
   const tr=c.tour,done=tr.round,total=tr.rounds;
   const scoreTot=tr.results.reduce((s,r)=>s+r.score,0);
   let liveTpr='—';if(tr.results.length){const a=Math.round(tr.results.reduce((s,r)=>s+r.rating,0)/tr.results.length);liveTpr=String(Math.round(a+dpFromPct(scoreTot/tr.results.length)));}
-  let h=(tr.kind==='match'?matchScoreStrip(tr):'')+'<div class="card" style="margin-bottom:12px">'+
+  let h=(tr.kind==='match'?matchScoreStrip(tr):tr.kind==='simul'?simulStrip(tr):'')+'<div class="card" style="margin-bottom:12px">'+
     '<div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px"><div style="min-width:0">'+
       '<div style="font-weight:800;font-size:17px">'+tr.emoji+' '+esc(tr.name)+'</div>'+
       '<div class="dim small">'+(done<total?'Round '+(done+1)+' of '+total:'Final round complete')+' · field avg '+tr.avg+(tr.normEligible?' · norm-eligible':'')+'</div></div>'+
@@ -6918,6 +7835,7 @@ function careerTourView(c){
     else if(cur)res='<button class="btn primary sm" data-act="careerplay">Play ▸</button>';
     h+='<div style="display:flex;align-items:center;gap:9px;padding:8px 2px;border-top:1px solid var(--border)'+(cur?';background:rgba(96,165,250,.07);margin:0 -6px;padding-left:8px;padding-right:8px;border-radius:6px':'')+(played||cur?'':';opacity:.7')+'">'+
       '<div class="dim small" style="width:26px">R'+(i+1)+'</div>'+
+      '<div style="flex:0 0 auto">'+oppAvatar(o,28)+'</div>'+
       '<div style="width:30px;font-weight:800;color:var(--brand2);font-size:12px">'+(o.title||'')+'</div>'+
       '<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(o.name)+' <span class="dim">'+(o.flag||'')+'</span>'+(o.style?' <span class="dim small" title="'+styleById(o.style).name+'">'+styleById(o.style).emoji+'</span>':'')+'</div>'+
       '<div style="width:46px;text-align:right;font-weight:600">'+o.rating+'</div>'+
@@ -7188,6 +8106,7 @@ function careerResult(score){
   const c=store.career;
   lifeAfterGame(score);
   if(app.careerRoundOpp)app.careerReaction=oppReaction(c,app.careerRoundOpp,score);
+  if(app.parkBet){parkResult(score);save();return;}
   if(app.careerOneoff){
     const fmt=app.careerOneoff,opp=app.careerRoundOpp||{name:'Opponent',rating:1500};
     const delta=applyByFormat(c,fmt,opp.rating,score);app.careerDelta=delta;
@@ -7231,6 +8150,7 @@ function finalizeTournament(c){
   let gainedNorms=[];
   if(tr.normEligible&&(fmt==='classical'||c.titleFormat==='any')){for(const k of eventNorms(c,avgOpp,scoreTot,games)){c.norms.push({type:k,tpr:tpr,event:tr.name,date:Date.now(),games:games,avg:avgOpp,format:fmt});gainedNorms.push(k);}}
   const newTitles=checkTitles(c);
+  newTitles.forEach(function(t){pushFeed(c,'🎖️','Title confirmed: '+esc(c.name||'You')+' is now '+t+'.','you');});
   // finishing place — from the real crosstable standings if available
   const place=tr.kind==='match'?(scoreTot>games/2?1:2):(tr.standings?standingsRank(tr):simulatePlace(tr.field,scoreTot,games));
   const won1st=tr.kind==='match'?(scoreTot>games/2):(place===1);
@@ -7248,11 +8168,25 @@ function finalizeTournament(c){
   if(def.creator){var csg=240+(place===1?320:place<=3?140:0)+Math.round(scoreTot*30);c.subs=(c.subs||0)+csg;c.fans=(c.fans||0)+Math.round(csg*0.6);c.fame=Math.min(100,c.fame+2);unlockAch(c,'creator');pushNews(c,'🎬','The Creator Cup put you in front of a huge audience — +'+csg+' subscribers!');}
   worldTick();
   if(tr.stake){if(won1st){var pot=tr.stake*2;c.money=(c.money||0)+pot;c.fame=Math.min(100,c.fame+5);pushNews(c,'⚔️','You won the grudge match and took the 💰'+pot+' pot!');unlockAch(c,'hustler');}else{c.fame=Math.min(100,c.fame+1);c.reputation=Math.max(0,c.reputation-4);pushNews(c,'⚔️','You lost the grudge match — and your 💰'+tr.stake+' stake.');}}
-  const prize=tr.stake?0:tourPrize(tr,place);if(prize)c.money=(c.money||0)+prize;
+  if(tr.simul){
+    const sp=simulPayout(tr,scoreTot,games);
+    const perPt=sp.perPt,bonus=sp.bonus;
+    c.lastSimulPay=sp;
+    c.money=(c.money||0)+sp.total;
+    const gained=Math.round(games*22*(0.6+scoreTot/Math.max(1,games)));
+    c.fans=(c.fans||0)+gained;c.fame=Math.min(100,(c.fame||0)+(bonus?3:1));addXp(c,30*games);
+    c.energy=Math.max(0,(c.energy||100)-Math.round(games*1.5));
+    c.simuls=(c.simuls||0)+1;if(scoreTot>=games)c.simulPerfect=(c.simulPerfect||0)+1;
+    pushNews(c,tr.emoji,'You scored '+fmtScore(scoreTot)+'/'+games+' in the '+esc(tr.name)+' — 💰'+(perPt+bonus)+' and '+gained+' new fans.');
+    pushFeed(c,tr.emoji,esc(c.name||'You')+' scores '+fmtScore(scoreTot)+'/'+games+' giving a simul at the '+esc(tr.name)+'.','you');
+  }
+  const prize=(tr.stake||tr.simul)?0:tourPrize(tr,place);if(prize)c.money=(c.money||0)+prize;
   if(prize&&c.backer&&c.backer.cut){var bcut=Math.round(prize*c.backer.cut);if(bcut>0){c.money=Math.max(0,(c.money||0)-bcut);c.backer.paid=(c.backer.paid||0)+bcut;pushNews(c,'💸','Your backer took 💰'+bcut+' ('+Math.round(c.backer.cut*100)+'%) of your '+esc(tr.name)+' prize.');}}
   if(tr.champion&&!won1st){const L=tr.results.filter(r=>r.score===0).sort((a,b)=>b.rating-a.rating);if(L.length)c.nemesis={name:L[0].name,rating:L[0].rating,flag:L[0].flag,since:tr.name};}
   c.history=c.history||[];
   c.history.unshift({name:tr.name,emoji:tr.emoji,score:scoreTot,rounds:games,avg:avgOpp,tpr:tpr,norms:gainedNorms,honors:gainedHonors,place:place,date:Date.now(),format:fmt});
+  pushFeed(c,won1st?'🏆':'📋',esc(c.name||'You')+(won1st?' WINS ':' finishes '+ordinal(place)+' at ')+esc(tr.name)+' with '+fmtScore(scoreTot)+'/'+games+' (TPR '+tpr+').','you');
+  gainedNorms.forEach(function(k){pushFeed(c,'📜',esc(c.name||'You')+' scores a '+k+' norm at '+esc(tr.name)+'.','you');});
   app.careerFinish={name:tr.name,emoji:tr.emoji,score:scoreTot,rounds:games,avg:avgOpp,tpr:tpr,norms:gainedNorms,newTitles:newTitles,honors:gainedHonors,published:published,rating:youRating(c,fmt),place:place,format:fmt};
   lifeAfterEvent(tr,place,games);
   c.calDone=c.calDone||[];if(c.calDone.indexOf(tr.id)<0)c.calDone.push(tr.id);
@@ -7759,7 +8693,75 @@ function splitPGNGames(pgn){pgn=(pgn||'').replace(/\r/g,'');const lines=pgn.spli
 /* =========================================================================
    GAME REVIEW — Stockfish analysis, move classification, accuracy, graph
    ========================================================================= */
-const REV_CLASS={best:['Best','#22c55e'],good:['Good','#86efac'],book:['Book','#93c5fd'],inacc:['Inaccuracy','#fcd34d'],mistake:['Mistake','#f59e0b'],blunder:['Blunder','#f43f5e']};
+const REV_CLASS={brilliant:['Brilliant','#22d3ee'],best:['Best','#22c55e'],good:['Good','#86efac'],book:['Book','#93c5fd'],inacc:['Inaccuracy','#fcd34d'],mistake:['Mistake','#f59e0b'],blunder:['Blunder','#f43f5e']};
+/* ---- Brilliancy detection ----
+   A brilliancy is a move that hands the opponent material they can take with
+   something cheaper, and is still the right move. We check three things: the
+   engine agrees with it, you keep the advantage afterwards, and the piece you
+   just put on that square can be snapped off for less than it is worth. */
+const BRIL_VAL={p:1,n:3,b:3,r:5,q:9,k:0};
+function brilliancyAt(R,k){
+  if(k+1>=R.fens.length||!R.moves[k])return null;
+  const cls=R.classes[k];
+  if(cls!=='best'&&cls!=='good')return null;
+  const evBefore=cpOf(R.evals[k]);                                   // your POV before the move
+  const evAfterRaw=R.evals[k+1];
+  const evAfter=evAfterRaw?-cpOf(evAfterRaw):evBefore;               // your POV after the move
+  const mateFor=evAfterRaw&&evAfterRaw.t==='mate'&&evAfterRaw.v<0;   // mate for you
+  if(!mateFor&&evAfter<25)return null;                               // the sac has to work
+  if(evBefore>650)return null;                                       // already trivially winning
+  let g,m;
+  try{g=new Chess(R.fens[k]);m=g.move({from:R.moves[k].from,to:R.moves[k].to,promotion:R.moves[k].promotion||'q'});}catch(e){return null;}
+  if(!m)return null;
+  const prev=k>0?R.moves[k-1]:null;
+  if(m.captured&&prev&&prev.to===m.to)return null;                   // a recapture is not a sacrifice
+  const moved=BRIL_VAL[m.piece]||0,got=m.captured?(BRIL_VAL[m.captured]||0):0;
+  const invest=moved-got;
+  if(invest<2)return null;                                           // at least a piece for a pawn
+  let caps=[];
+  try{caps=g.moves({verbose:true}).filter(x=>x.to===m.to&&String(x.flags).indexOf('c')>=0);}catch(e){return null;}
+  if(!caps.length)return null;                                       // nothing is actually being offered
+  const cheapest=Math.min.apply(null,caps.map(x=>BRIL_VAL[x.piece]||0));
+  if(cheapest>=moved)return null;                                    // an even trade, not a gift
+  return {ply:k+1,k:k,san:m.san,fen:R.fens[k],after:g.fen(),from:m.from,to:m.to,invest:invest,cp:evAfter,mate:!!mateFor,piece:m.piece};
+}
+function brilliancyScan(R){
+  const mySide=(R.meta&&R.meta.side)||null,out=[];
+  for(let k=0;k<R.moves.length;k++){
+    if(mySide&&turnOf(R.fens[k])!==mySide)continue;
+    const b=brilliancyAt(R,k);
+    if(b){out.push(b);R.classes[k]='brilliant';}
+  }
+  return out;
+}
+function brilLabel(b){return (b.mate?'Mating sacrifice':(BRIL_VAL[b.piece]>=9?'Queen sacrifice':BRIL_VAL[b.piece]>=5?'Exchange sacrifice':'Piece sacrifice'));}
+function brilSave(list,meta){
+  if(!list||!list.length)return 0;
+  store.brilliancies=store.brilliancies||[];
+  let added=0;
+  list.forEach(function(b){
+    if(store.brilliancies.some(x=>x.fen===b.fen&&x.san===b.san))return;
+    store.brilliancies.unshift({fen:b.fen,san:b.san,from:b.from,to:b.to,ply:b.ply,invest:b.invest,cp:b.cp,mate:b.mate,piece:b.piece,
+      opp:(meta&&meta.opp)||'',event:(meta&&meta.event)||'',side:(meta&&meta.side)||'w',date:Date.now()});
+    added++;
+  });
+  if(store.brilliancies.length>36)store.brilliancies.length=36;
+  return added;
+}
+function viewBrilliancy(){
+  const list=store.brilliancies||[];
+  let h='<div style="max-width:900px;margin:0 auto"><h1>💎 Brilliancies</h1>'+
+    '<div class="muted small" style="margin:6px 0 14px">Every sacrifice you found that actually worked. Review a game and the engine adds them here automatically.</div>';
+  if(!list.length)return h+'<div class="card"><b>Nothing here yet.</b><div class="dim small" style="margin-top:4px">Play a game, hit 🔬 Review game, and any move where you gave up material and stayed better will be saved as a brilliancy.</div><div class="row" style="margin-top:10px"><button class="btn primary sm" data-act="nav" data-val="review">Open Game Review</button></div></div></div>';
+  h+='<div class="learngrid">'+list.map(function(b,i){
+    return '<div class="card" style="padding:11px"><div style="width:100%;max-width:210px;margin:0 auto 8px">'+renderBoard(b.fen,b.side==='b'?'black':'white',{interactive:false,last:null})+'</div>'+
+      '<div class="row" style="justify-content:space-between;align-items:center;gap:6px"><b style="color:#22d3ee">💎 '+esc(b.san)+'</b><span class="chip" style="font-size:10px;color:#22d3ee">'+esc(brilLabel(b))+'</span></div>'+
+      '<div class="dim small" style="margin-top:3px">'+(b.opp?'vs '+esc(b.opp):'Your game')+(b.event?' · '+esc(b.event):'')+'</div>'+
+      '<div class="dim small">Gave up '+b.invest+' points of material · '+(b.mate?'forced mate':'still '+(b.cp>0?'+':'')+(b.cp/100).toFixed(1))+'</div>'+
+      '<div class="row" style="margin-top:8px"><button class="btn ghost sm" data-act="brildel" data-val="'+i+'">🗑 Remove</button></div></div>';
+  }).join('')+'</div>';
+  return h+'</div>';
+}
 function winPct(cp){return 50+50*(2/(1+Math.exp(-0.00368208*cp))-1);}
 function cpOf(ev){if(!ev)return 0;if(ev.t==='mate')return ev.v>0?2000:-2000;return Math.max(-2000,Math.min(2000,ev.v));}
 function reviewStart(moves,startFen,meta){if(!moves||!moves.length){app.view='review';app.review={status:'empty'};render();return;}
@@ -7807,6 +8809,16 @@ function reviewFinish(){const R=app.review;const n=R.moves.length;const sans=[];
   R.key=null;
   if(worstK>=0){var betterSan='';try{var bc=new Chess(R.fens[worstK]);var bu=(R.best[worstK]||'');if(bu){var mvk=bc.move({from:bu.slice(0,2),to:bu.slice(2,4),promotion:bu[4]||'q'});betterSan=mvk?mvk.san:'';}}catch(e){}
     R.key={ply:worstK+1,played:R.moves[worstK].san,better:betterSan,cls:R.classes[worstK],drop:Math.round(worst)};}
+  R.bril=brilliancyScan(R);
+  if(R.bril.length){
+    const bm=(R.meta&&R.meta.oppName)?{opp:R.meta.oppName,event:R.meta.event||'',side:R.meta.side||'w'}:{opp:'',event:(R.meta&&R.meta.event)||'',side:(R.meta&&R.meta.side)||'w'};
+    const added=brilSave(R.bril,bm);
+    if(added){const c=store.career;
+      if(c&&c.setup){pushNews(c,'💎','The engine flagged '+(added===1?'a brilliancy':added+' brilliancies')+' in your game — '+R.bril.map(b=>b.san).join(', ')+'.');
+        pushFeed(c,'💎',esc(c.name||'You')+' plays '+R.bril[0].san+' — '+brilLabel(R.bril[0]).toLowerCase()+', and it works.','you');
+        c.fame=Math.min(100,(c.fame||0)+2*added);addXp(c,40*added);}
+      save();}
+  }
   R.status='done';R.pos=0;render();}
 function reviewSeek(d){const R=app.review;if(!R||!R.fens)return;R.pos=Math.max(0,Math.min(R.fens.length-1,R.pos+d));render();}
 function viewReview(){
@@ -7841,6 +8853,7 @@ function viewReview(){
   const atEnd=R.pos>=R.fens.length-1,atStart=R.pos<=0;
   let h='<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px"><h1 style="font-size:20px">Game Review</h1><button class="btn ghost sm" data-act="nav" data-val="review">✕</button></div>';
   h+='<div class="row" style="margin-bottom:12px">'+stat('White accuracy',R.accW+'%','#e2e8f0')+stat('Black accuracy',R.accB+'%','#94a3b8')+'</div>';
+  if(R.bril&&R.bril.length)h+='<div class="card" style="margin-bottom:12px;border-color:#22d3ee;background:linear-gradient(90deg,rgba(34,211,238,.12),transparent)"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div class="small"><b style="color:#22d3ee">💎 Brilliancy'+(R.bril.length>1?' ×'+R.bril.length:'')+':</b> '+R.bril.map(b=>esc(b.san)).join(', ')+' <span class="dim">— '+esc(brilLabel(R.bril[0]))+', saved to your gallery</span></div><button class="btn sec sm" style="flex:0 0 auto" data-act="revjump" data-val="'+R.bril[0].ply+'">See it →</button></div></div>';
   if(R.key)h+='<div class="card" style="margin-bottom:12px;border-color:'+(REV_CLASS[R.key.cls]?REV_CLASS[R.key.cls][1]:'#f87171')+'"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div class="small"><b>🔍 Your biggest mistake:</b> '+esc(R.key.played)+' <span style="color:'+(REV_CLASS[R.key.cls]?REV_CLASS[R.key.cls][1]:'#f87171')+';font-weight:700">('+(REV_CLASS[R.key.cls]?REV_CLASS[R.key.cls][0]:R.key.cls)+')</span>'+(R.key.better?' — better was <b>'+esc(R.key.better)+'</b>':'')+'</div><button class="btn sec sm" style="flex:0 0 auto" data-act="revjump" data-val="'+R.key.ply+'">See it →</button></div></div>';
   h+='<div class="layout"><div class="boardwrap">'+renderBoard(fen,orient,{last,hint:bestArrow,interactive:false})+
     '<div class="row" style="justify-content:center;align-items:center;gap:5px;margin-top:10px">'+
