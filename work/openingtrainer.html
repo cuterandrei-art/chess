@@ -4354,13 +4354,13 @@ function checkTitles(c){const got=[];const peak=titlePeak(c);
     c.titles.push(d.t);got.push(d.t);
   }
   return got;}
-const DEF={repertoire:[],srs:{},custom:[],settings:{newPer:8,pieces:'staunty',theme:'green',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'midnight',accent:'blue',scene:'none'},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null}};
+const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},settings:{newPer:8,pieces:'staunty',theme:'green',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'midnight',accent:'blue',scene:'none'},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null}};
 function freshCareer(){return JSON.parse(JSON.stringify(DEF.career));}
 /* Migrate saved career data: the old ladder (with `beaten`/`results`) is reset
    to the new FIDE structure; new-format saves are merged onto fresh defaults. */
 function migrateCareer(d){if(!d||typeof d!=='object'||('beaten'in d)||!('setup'in d))return freshCareer();return Object.assign(freshCareer(),d);}
 let store=DEF;
-try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],brilliancies:d.brilliancies||[],career:migrateCareer(d.career)};}catch(e){}
+try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],courseProgress:d.courseProgress||{},settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],brilliancies:d.brilliancies||[],career:migrateCareer(d.career)};}catch(e){}
 function rebuildOpenings(){const cust=(store.custom||[]).map(d=>{try{return buildOpening(d);}catch(e){return null;}}).filter(Boolean);BUILT=BASE.concat(cust);byId=new Map(BUILT.map(o=>[o.id,o]));}
 rebuildOpenings();
 function save(){localStorage.setItem(LS,JSON.stringify(store));}
@@ -4556,6 +4556,7 @@ function viewMasters(){
 
 function viewLearn(){
   const items=[
+    ['courses','📘','Guided Courses','Learn the top openings move-by-move, with exercises in the lines'],
     ['train','🎓','Train','Spaced-repetition drills of your opening repertoire'],
     ['library','📖','Openings','Browse the library &amp; build your repertoire'],
     ['guess','🎯','Guess the Move','Find the move the master actually played'],
@@ -4576,12 +4577,12 @@ function render(){
   document.body.style.setProperty('--bw',(store.settings.boardSize||520)+'px');
   applyAppTheme();
   const repOps=BUILT.filter(o=>inRep(o.id));const agg=aggregate(repOps,store.srs);
-  const nav=['career','dashboard','play','puzzles','learn','train','library','endgames','classics','guess','blindfold','review','brilliancy','studies','masters','settings'];
-  const NAV_META={career:['🏆','Career'],dashboard:['📊','Dashboard'],play:['♟️','Play'],puzzles:['🧩','Puzzles'],learn:['📚','Learn'],train:['🎓','Train'],library:['📖','Openings'],endgames:['♟️','Endgames'],classics:['📜','Classics'],guess:['🎯','Guess the Move'],blindfold:['🙈','Blindfold'],review:['🔬','Game Review'],brilliancy:['💎','Brilliancies'],studies:['📚','Studies'],masters:['♞','Master Games'],settings:['⚙️','Settings']};
+  const nav=['career','dashboard','play','puzzles','learn','courses','train','library','endgames','classics','guess','blindfold','review','brilliancy','studies','masters','settings'];
+  const NAV_META={career:['🏆','Career'],dashboard:['📊','Dashboard'],play:['♟️','Play'],puzzles:['🧩','Puzzles'],learn:['📚','Learn'],courses:['📘','Courses'],train:['🎓','Train'],library:['📖','Openings'],endgames:['♟️','Endgames'],classics:['📜','Classics'],guess:['🎯','Guess the Move'],blindfold:['🙈','Blindfold'],review:['🔬','Game Review'],brilliancy:['💎','Brilliancies'],studies:['📚','Studies'],masters:['♞','Master Games'],settings:['⚙️','Settings']};
   const label=v=>(NAV_META[v]?NAV_META[v][1]:v[0].toUpperCase()+v.slice(1));
   const navIcon=v=>(NAV_META[v]?NAV_META[v][0]:'•');
   const cur=nav.indexOf(app.view)>=0?app.view:'dashboard';
-  const LEARN_VIEWS=['learn','train','library','build','explore','course','endgames','classics','guess','blindfold','masters','studies','review','brilliancy','dashboard','reptree'];
+  const LEARN_VIEWS=['learn','courses','clearn','train','library','build','explore','course','endgames','eglesson','classics','guess','blindfold','masters','studies','review','brilliancy','dashboard','reptree'];
   const primaryOf=v=>(v==='career'?'career':v==='play'?'play':v==='puzzles'?'puzzles':LEARN_VIEWS.indexOf(v)>=0?'learn':'');
   const PRIMARY=[['career','🏆','Career'],['play','♟️','Play'],['puzzles','🧩','Puzzles'],['learn','📚','Learn']];
   const curP=primaryOf(cur);
@@ -4620,12 +4621,15 @@ function render(){
   else if(app.view==='blindfold')body=viewBlindfold();
   else if(app.view==='endgames')body=viewEndgames();
   else if(app.view==='eglesson')body=viewEndgameLesson();
+  else if(app.view==='courses')body=viewCourses();
+  else if(app.view==='clearn')body=viewCourseLearn();
   else if(app.view==='classics')body=viewClassics();
   else if(app.view==='guess')body=guessView();
   else if(app.view==='settings')body=viewSettings();
   document.getElementById('app').innerHTML=head+'<div class="wrap">'+body+'</div>'+confirmOverlay()+promoOverlay();
   if(app.view==='play'&&app.playStatus==='over'&&resultKind(app.playResult)==='win'&&app._fxKey!==app.playResult){app._fxKey=app.playResult;confetti();}
   var _cf=app.careerFinish;if(_cf&&((_cf.newTitles&&_cf.newTitles.length)||(_cf.honors&&_cf.honors.length)||(_cf.norms&&_cf.norms.length)||_cf.published)&&app._fxCareer!==_cf){app._fxCareer=_cf;confetti(130);}
+  if(app.view==='clearn'&&app.cl&&app.cl.done&&app._fxCl!==app.cl){app._fxCl=app.cl;confetti(90);}
   animateLast();
 }
 
@@ -4695,6 +4699,7 @@ function viewLibrary(){
         '<p class="muted small" style="margin:10px 0">'+esc(o.description)+'</p>'+
         (has?'<div style="margin-bottom:10px">'+progBar(p)+'<div class="dim small" style="margin-top:5px">'+p.learned+'/'+p.total+' learned'+(p.due?' · '+p.due+' due':'')+'</div></div>':'')+
         '<div class="row">'+(has?'<button class="btn ghost sm" data-act="delrep" data-val="'+o.id+'">Remove</button>':'<button class="btn primary sm" data-act="addrep" data-val="'+o.id+'">+ Add</button>')+
+        (OPENING_COURSES[o.id]?'<button class="btn primary sm" data-act="clstart" data-val="'+o.id+'" data-idx="0" title="Interactive guided course with exercises">📘 Guided</button>':'')+
         '<button class="btn sec sm" data-act="explore" data-val="'+o.id+'">Study</button>'+
         '<button class="btn sec sm" data-act="course" data-val="'+o.id+'">📋 Course</button>'+
         (has?'<button class="btn sec sm" data-act="reptree" data-val="'+o.id+'">🌳 Tree</button>':'')+
@@ -4795,7 +4800,7 @@ function viewCourse(){
   const cs=courseStats(o);const pct=cs.total?Math.round(cs.learned/cs.total*100):0;
   let h='<div class="row" style="align-items:center;justify-content:space-between;margin-bottom:14px;gap:8px;flex-wrap:wrap"><div class="row" style="align-items:center">'+
     '<button class="btn ghost sm" data-act="nav" data-val="dashboard">←</button><h1 style="font-size:20px">'+esc(o.name)+'</h1><span class="chip brand">Course</span>'+sideDisc(o.side)+'</div>'+
-    '<div class="row">'+(inRep(o.id)?'':'<button class="btn sec sm" data-act="addrep" data-val="'+o.id+'">+ Add</button>')+'<button class="btn sec sm" data-act="explore" data-val="'+o.id+'">Study lines</button><button class="btn primary sm" data-act="train" data-val="'+o.id+'">Train all</button></div></div>';
+    '<div class="row">'+(inRep(o.id)?'':'<button class="btn sec sm" data-act="addrep" data-val="'+o.id+'">+ Add</button>')+(OPENING_COURSES[o.id]?'<button class="btn primary sm" data-act="clstart" data-val="'+o.id+'" data-idx="0">📘 Guided course</button>':'')+'<button class="btn sec sm" data-act="explore" data-val="'+o.id+'">Study lines</button><button class="btn primary sm" data-act="train" data-val="'+o.id+'">Train all</button></div></div>';
   h+='<div class="card" style="margin-bottom:14px"><div class="row" style="justify-content:space-between;align-items:flex-end"><div><div style="font-weight:700;font-size:17px">'+cs.learned+' / '+cs.total+' lines learned</div><div class="dim small" style="margin-top:3px">'+cs.prog+' in progress · '+cs.fresh+' not started</div></div><div style="font-weight:800;font-size:26px;color:var(--green)">'+pct+'%</div></div>'+
     '<div class="bar" style="margin-top:10px"><i class="ln" style="width:'+(cs.total?cs.learned/cs.total*100:0)+'%"></i><i class="du" style="width:'+(cs.total?cs.prog/cs.total*100:0)+'%"></i><i class="fr" style="width:'+(cs.total?cs.fresh/cs.total*100:0)+'%"></i></div>'+
     '<div class="dim small" style="margin-top:8px">A line is checked off once you’ve correctly played every one of <b>your</b> moves in it at least once. Tap <b>Drill</b> to learn or test a single line.</div></div>';
@@ -4813,6 +4818,204 @@ function viewCourse(){
 }
 function startLineDrill(openingId,idx){const o=byId.get(openingId);if(!o)return;const nodes=enumerate(o)[idx];if(!nodes)return;
   app.target=o.id;app.view='train';app.mode='learn';app.correct=0;app.wrong=0;app.sIdx=0;app.session=[{o,nodes}];app.status='play';loadLine();}
+/* =========================================================================
+   GUIDED OPENING COURSES — Chessable/Lotus-style move-by-move learning with
+   embedded "find the move" exercises. Content is authored & verified legal by
+   validate-course.mjs (every move legal from its position; every exercise is a
+   hero-side move). Each course key is an existing opening id in OPENINGS, so a
+   completed chapter feeds straight into the repertoire + spaced-repetition SRS.
+   ========================================================================= */
+const OPENING_COURSES=(function(){
+  const m=(san,idea,ex)=>({san:san,idea:idea||null,ex:ex||null});
+  return {
+  italian:{name:'Italian Game',tagline:'Fast, natural development and a bishop aimed at f7.',chapters:[
+    {name:'Giuoco Pianissimo — the quiet Italian',goal:'The slow, positional main line and its plans.',line:[
+      m('e4','Stake a claim in the centre and free the bishop and queen.'),m('e5'),
+      m('Nf3','Develop with tempo — the knight attacks e5, so every move does a job.'),m('Nc6','Black defends the e5-pawn.'),
+      m('Bc4','The Italian bishop points straight at f7, the weakest square in Black’s camp.'),m('Bc5','A principled, symmetrical reply — the bishop eyes f2 in return.'),
+      m('c3','Preparing the d4 break and giving the bishop a retreat square on c2.'),m('Nf6','Black develops and eyes e4.'),
+      m('d3','The “pianissimo” (very quiet) plan: a modest centre, no early tension.'),m('d6'),
+      m('O-O','King safety first — always a priority in open games.'),m('O-O'),
+      m('Re1','Overprotect e4 and clear f1 for the knight’s journey.'),m('a6'),
+      m('Nbd2',null,{prompt:'White has finished the basics. Start the signature knight re-route toward the kingside.',why:'Nbd2 begins the manoeuvre Nd2–f1–g3, eyeing f5 and adding to a slow kingside build-up — the heart of the quiet Italian.'}),m('Ba7'),
+      m('a4','Grab queenside space and clamp down on Black’s ...b5 break.')]},
+    {name:'The Fried Liver — punishing 5...Nxd5?',goal:'A famous attacking trap in the Two Knights.',line:[
+      m('e4'),m('e5'),m('Nf3'),m('Nc6'),m('Bc4','Again the bishop hits f7.'),
+      m('Nf6','The Two Knights Defence — Black counterattacks e4 instead of playing ...Bc5.'),
+      m('Ng5','Crude but venomous: the knight attacks f7 a second time.'),m('d5','The correct reply — hit the c4-bishop and open lines.'),
+      m('exd5'),m('Nxd5','A tempting recapture — but a mistake. The right move was 5...Na5, chasing the bishop.'),
+      m('Nxf7',null,{prompt:'Black recaptured with 5...Nxd5? (5...Na5 was needed). White has a famous shot — find it.',why:'6.Nxf7! — the Fried Liver. After 6...Kxf7 7.Qf3+ the king is dragged into the open and the d5-knight is pinned; White gets a raging attack for the sacrificed piece.'}),
+      m('Kxf7','Forced — the king must take.'),
+      m('Qf3+','Check! The queen forks the exposed king and the pinned d5-knight.'),m('Ke6','The only move — the king has to defend the knight on d5.'),
+      m('Nc3',null,{prompt:'The d5-knight is pinned and attacked twice. Pile on a third attacker.',why:'7.Nc3 hits d5 again; Black is tied up and White’s initiative is worth far more than the piece.'})]}]},
+  'ruy-lopez':{name:'Ruy Lopez',tagline:'The most classical opening — pressure on e5 and a perfect centre.',chapters:[
+    {name:'The Closed Ruy — Morphy Defence',goal:'The mainline setup and White’s central plan.',line:[
+      m('e4'),m('e5'),m('Nf3'),m('Nc6'),
+      m('Bb5','The Spanish bishop pressures c6 — the defender of the e5-pawn.'),m('a6','The Morphy Defence — put the question to the bishop.'),
+      m('Ba4','Keep the pin and the diagonal; the bishop can still drop to b3 later.'),m('Nf6','Develop and attack e4.'),
+      m('O-O','Castle. e4 looks loose, but grabbing it with ...Nxe4 is met by d4 and Re1 with a strong initiative.'),m('Be7'),
+      m('Re1','Defend e4 and prepare the c3–d4 centre.'),m('b5','Kick the bishop before it becomes annoying.'),
+      m('Bb3','The bishop retreats but still glares at f7 from b3.'),m('d6','Solidify e5.'),
+      m('c3','Support the coming d4 push and open c2 as a bishop bolt-hole.'),m('O-O'),
+      m('h3',null,{prompt:'Before playing d4, White makes a small but vital prophylactic move. What is it?',why:'h3! stops ...Bg4 pinning the f3-knight — the very piece that guards d4 and e5. This quiet move is a hallmark of correct Ruy Lopez technique.'})]}]},
+  'sicilian-najdorf':{name:'Sicilian Najdorf',tagline:'The most respected way to play for a win with Black.',chapters:[
+    {name:'The Najdorf — ...a6 and the ...e5 plan',goal:'Why ...a6, and the classical ...e5 structure.',line:[
+      m('e4'),m('c5','The Sicilian — fight for the centre asymmetrically and play for the full point.'),
+      m('Nf3'),m('d6','Support ...Nf6 and a flexible dark-square setup.'),
+      m('d4'),m('cxd4'),m('Nxd4'),m('Nf6','Attack e4, forcing White to defend it.'),m('Nc3'),
+      m('a6',null,{prompt:'This one modest pawn move defines the whole Najdorf. Play it.',why:'...a6 takes the b5-square away from White’s pieces (no Nb5 or Bb5) and prepares both ...e5 and ...b5 — a flexible, resilient, ultra-popular setup.'}),
+      m('Be2','A calm, classical choice.'),m('e5','Grab central space and hit the d4-knight at once.'),
+      m('Nb3'),m('Be7','Develop and prepare ...O-O and ...Be6.'),m('O-O'),m('O-O'),
+      m('Be3','White eyes the d4/b6 squares.'),m('Be6','Guard d5 — the key square in this structure — and prepare ...Nbd7.')]}]},
+  french:{name:'French Defence',tagline:'Rock-solid: build a chain, then smash White’s centre.',chapters:[
+    {name:'The Winawer — pin and counterattack',goal:'The sharpest, most principled French.',line:[
+      m('e4'),m('e6','The French: ...d5 is coming. The trade-off is a temporarily passive light-squared bishop.'),
+      m('d4'),m('d5','Strike at the centre immediately.'),m('Nc3'),
+      m('Bb4',null,{prompt:'White defends e4 with the knight. Pin it and pile onto e4.',why:'3...Bb4 — the Winawer. The pin adds a second attacker to e4 and forces White to make a committal decision about the centre.'}),
+      m('e5','White grabs space and closes the centre.'),m('c5','Counterattack the base of the pawn chain — the d4-pawn.'),
+      m('a3','Put the question to the bishop.'),
+      m('Bxc3+',null,{prompt:'White challenges the pinning bishop. Follow the Winawer idea.',why:'...Bxc3+! trades the bishop for the knight, saddling White with doubled c-pawns. Black plays against that structure and the d4/e5 chain — bishop pair vs. better pawns.'}),
+      m('bxc3'),m('Ne7','Route the knight to f5/g6 to hammer d4 and e5, keeping ...f6 breaks in reserve.')]}]},
+  'caro-kann':{name:'Caro-Kann Defence',tagline:'French-solid, but the light-squared bishop stays free.',chapters:[
+    {name:'Classical Caro-Kann',goal:'Develop the “problem” bishop and stay rock-solid.',line:[
+      m('e4'),m('c6','Prepare ...d5 like the French — but keep the c8-bishop’s diagonal open.'),
+      m('d4'),m('d5'),m('Nc3'),m('dxe4','Resolve the centre and gain a developing tempo.'),m('Nxe4'),
+      m('Bf5',null,{prompt:'The whole point of the Caro-Kann over the French: develop THIS piece before ...e6 shuts it in.',why:'...Bf5! develops the light-squared bishop outside the pawn chain — the Caro-Kann’s core structural advantage. Only then does Black play ...e6.'}),
+      m('Ng3','Attack the bishop.'),m('Bg6','Retreat and keep it — White will chase with h4-h5.'),m('h4'),
+      m('h6',null,{prompt:'White’s h-pawn is charging up the board. Make a safe square for your bishop before it’s trapped.',why:'...h6! gives the g6-bishop the h7-square, so a later h5 doesn’t win the piece. A small prophylactic move every Caro-Kann player must know.'}),
+      m('Nf3'),m('Nd7','Prepare ...Ngf6, ...e6 and a solid, harmonious setup.')]}]},
+  'queens-gambit':{name:'Queen’s Gambit',tagline:'The classical fight for the centre with 1.d4 d5 2.c4.',chapters:[
+    {name:'Queen’s Gambit Declined — main line',goal:'The Orthodox setup and the strong-centre plan.',line:[
+      m('d4'),m('d5'),m('c4','The Queen’s Gambit: offer the c-pawn to deflect Black’s d5-pawn and rule the centre. It’s not a true gambit — the pawn is nearly impossible to hold.'),
+      m('e6','Declined — solid, though the c8-bishop is now hemmed in.'),m('Nc3'),m('Nf6'),
+      m('Bg5',null,{prompt:'Increase the pressure on d5 by targeting its main defender.',why:'Bg5 pins the f6-knight — a key defender of d5 — ratcheting up the pressure on Black’s centre.'}),
+      m('Be7'),m('e3','Modest and strong: open the f1-bishop and keep a firm centre.'),m('O-O'),
+      m('Nf3'),m('Nbd7'),m('Rc1','Put the rook on the half-open c-file in advance — a classic QGD idea.'),m('c6'),m('Bd3'),
+      m('dxc4','Black finally releases the tension in the centre.'),
+      m('Bxc4',null,{prompt:'Black grabbed the c4-pawn. Recapture and keep the initiative.',why:'Bxc4! regains the pawn with tempo, and the bishop rakes toward f7. White enjoys more space and the classic minority-attack plan (b4-b5) on the queenside.'})]}]},
+  london:{name:'London System',tagline:'A harmonious setup you can play against almost anything.',chapters:[
+    {name:'The London setup',goal:'Get the bishop out early — the whole point of the London.',line:[
+      m('d4'),m('d5'),
+      m('Bf4',null,{prompt:'Play the move that gives the London its name — and solves the classic queen’s-pawn problem.',why:'Bf4! develops the dark-squared bishop OUTSIDE the pawn chain before e3 locks it in. That “good bishop” is the whole point of the London.'}),
+      m('Nf6'),m('e3','Now support the centre — the bishop is already active.'),m('e6'),m('Nf3'),m('Bd6','Black offers to swap off your prized bishop.'),
+      m('Bg3',null,{prompt:'Black just offered to trade off your best piece with ...Bd6. Keep it!',why:'Bg3 sidesteps the trade; if Black plays ...Bxg3, hxg3 opens the h-file straight at Black’s king. Either way White keeps the initiative.'}),
+      m('O-O'),m('Bd3','Complete the harmonious London: Bf4/g3, e3, Nf3, Bd3, then Nbd2, c3 and often Ne5.')]},
+    {name:'London: meeting ...Qb6',goal:'Don’t fear the queen raid on b2 — set a trap.',line:[
+      m('d4'),m('d5'),m('Bf4'),m('c5','A critical try — hit d4 and eye b2 with the queen.'),m('e3'),m('Qb6','The queen lunges at b2 and d4.'),
+      m('Nc3',null,{prompt:'Black’s queen grabs at b2. Don’t panic — develop and set a trap.',why:'Nc3! calmly develops. It looks like it hangs b2, but taking it is greedy and loses — as the next move shows.'}),
+      m('Qxb2','Black grabs the pawn — the greedy mistake.'),
+      m('Nb5',null,{prompt:'Punish the greed. Which knight leap traps the queen and hits c7?',why:'Nb5! threatens Nc7+ forking king and rook, and the black queen has no safe, useful square — White wins material. The b2-pawn was poisoned.'})]}]},
+  'kings-indian':{name:'King’s Indian Defence',tagline:'Give White the centre — then storm the kingside.',chapters:[
+    {name:'Classical King’s Indian',goal:'The fianchetto setup and the ...e5 break.',line:[
+      m('d4'),m('Nf6','Flexible: control e4 and keep options open.'),m('c4'),m('g6','The King’s Indian: fianchetto, let White build a big centre, then attack it.'),
+      m('Nc3'),m('Bg7','The bishop rakes the long diagonal toward White’s centre.'),m('e4'),m('d6','Restrain e5 and prepare the ...e5 or ...c5 breaks.'),
+      m('Nf3'),m('O-O'),m('Be2'),
+      m('e5',null,{prompt:'White has a huge pawn centre. Strike at it with the classical King’s Indian break.',why:'...e5! challenges d4 head-on. If White closes with d5, the position becomes a race: Black storms the kingside with ...Nd7 and ...f5-f4-g5, while White attacks on the queenside.'}),
+      m('O-O'),m('Nc6','Pressure d4 and provoke d5.'),m('d5'),m('Ne7','The knight re-routes (...Ne7-g6 or ...Ne8) to support the coming ...f5 pawn storm.')]}]}
+  };
+})();
+function clSide(id){const o=byId.get(id);return o?(o.side==='white'?'w':'b'):'w';}
+function courseChapters(id){const C=OPENING_COURSES[id];return C?C.chapters:[];}
+function courseDone(id){return (store.courseProgress&&store.courseProgress[id])||[];}
+function courseChapDone(id,ci){return courseDone(id).indexOf(ci)>=0;}
+function clResolve(id,ci){
+  const C=OPENING_COURSES[id];if(!C||!C.chapters[ci])return null;
+  const hero=clSide(id),ch=C.chapters[ci],c=new Chess(),out=[];
+  for(const st of ch.line){const fenBefore=c.fen(),turn=c.turn();let mv;try{mv=c.move(st.san);}catch(e){mv=null;}if(!mv)break;
+    out.push({san:mv.san,idea:st.idea||null,ex:st.ex||null,from:mv.from,to:mv.to,fenBefore:fenBefore,fenAfter:c.fen(),you:(turn===hero)});}
+  return {id:id,ci:ci,name:ch.name,goal:ch.goal,hero:hero,line:out};
+}
+function clStart(id,ci,test){
+  const r=clResolve(id,ci);if(!r||!r.line.length)return;
+  app.cl={id:id,ci:ci,name:r.name,goal:r.goal,hero:r.hero,line:r.line,i:0,fen:r.line[0].fenBefore,sel:null,wrong:null,oppNote:null,reveal:null,done:false,last:null,test:!!test,solved:0,exTotal:r.line.filter(s=>s.ex).length,_saved:false};
+  clAdvanceOpp(app.cl);
+  go('clearn');
+}
+function clStep(L){return L&&L.i<L.line.length?L.line[L.i]:null;}
+function clHint(L){const s=clStep(L);if(!s||!s.you)return null;if(L.wrong)return {from:s.from,to:s.to};if(L.test||s.ex)return null;return {from:s.from,to:s.to};}
+function clAdvanceOpp(L){
+  while(L.i<L.line.length&&!L.line[L.i].you){const s=L.line[L.i];L.fen=s.fenAfter;L.last={from:s.from,to:s.to};L.oppNote=s.idea||null;L.i++;sfxSan(s.san);}
+  if(L.i>=L.line.length&&!L.done){L.done=true;clComplete(L);}
+}
+function clTry(from,to){
+  const L=app.cl;if(!L||L.done)return false;
+  const s=clStep(L);if(!s||!s.you)return false;
+  if(s.from!==from||s.to!==to){L.wrong={from:from,to:to};L.sel=null;render();return true;}
+  if(s.ex)L.solved=(L.solved||0)+1;
+  L.reveal=s.ex?{ok:true,text:s.ex.why}:(s.idea?{ok:true,text:s.idea}:null);
+  L.fen=s.fenAfter;L.last={from:s.from,to:s.to};L.wrong=null;L.sel=null;L.oppNote=null;L.i++;sfxSan(s.san);render();
+  setTimeout(function(){if(app.view!=='clearn'||app.cl!==L)return;clAdvanceOpp(L);render();},560);
+  return true;
+}
+function clComplete(L){
+  if(L._saved)return;L._saved=true;
+  addRep(L.id);
+  store.courseProgress=store.courseProgress||{};
+  const done=store.courseProgress[L.id]=store.courseProgress[L.id]||[];
+  if(done.indexOf(L.ci)<0)done.push(L.ci);
+  if(!L.test){const now=Date.now();for(const s of L.line){if(s.you){const cid=L.id+'::'+s.fenBefore;store.srs[cid]=review(store.srs[cid]||initSrs(now),'good',now);}}}
+  try{markActiveDay();if(store.career&&store.career.setup&&L.solved){store.career.tacticsTrained=(store.career.tacticsTrained||0)+L.solved;}}catch(e){}
+  save();
+}
+function courseCardProgress(id){const t=courseChapters(id).length,d=courseDone(id).filter(ci=>ci<t).length;return {done:d,total:t};}
+function viewCourses(){
+  const ids=Object.keys(OPENING_COURSES);
+  let totDone=0,totCh=0;for(const id of ids){const p=courseCardProgress(id);totDone+=p.done;totCh+=p.total;}
+  let h='<div style="max-width:900px;margin:0 auto"><div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:6px;gap:8px;flex-wrap:wrap"><div><h1>📘 Guided Opening Courses</h1><div class="muted small" style="margin-top:4px">Learn the most common openings move by move — with the idea behind every move and <b>hands-on exercises</b> built into the lines. Finish a chapter and it’s added to your repertoire and spaced-repetition review.</div></div></div>';
+  h+='<div class="card" style="margin:12px 0 14px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:700">Your progress</div><div class="dim small">'+totDone+' / '+totCh+' chapters complete</div></div><div class="bar" style="margin-top:9px"><i class="ln" style="width:'+(totCh?totDone/totCh*100:0)+'%"></i></div></div>';
+  h+='<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px">';
+  for(const id of ids){const C=OPENING_COURSES[id],o=byId.get(id),p=courseCardProgress(id);
+    const exCount=C.chapters.reduce((a,ch)=>a+ch.line.filter(s=>s.ex).length,0);
+    h+='<div class="card"><div class="row" style="justify-content:space-between;align-items:flex-start;gap:8px"><div style="min-width:0"><div style="font-weight:800;font-size:15px">'+esc(C.name)+'</div><div class="dim small" style="margin-top:2px">'+esc(C.tagline)+'</div></div>'+(o?sideDisc(o.side):'')+'</div>'+
+      '<div class="row" style="margin:9px 0 4px;gap:6px;flex-wrap:wrap"><span class="chip">'+C.chapters.length+' chapter'+(C.chapters.length>1?'s':'')+'</span><span class="chip amber">🎯 '+exCount+' exercise'+(exCount>1?'s':'')+'</span>'+(p.done>=p.total&&p.total?'<span class="chip green">✓ Complete</span>':(p.done?'<span class="chip brand">'+p.done+'/'+p.total+' done</span>':''))+'</div>'+
+      '<div class="grid" style="gap:5px;margin-top:8px">';
+    C.chapters.forEach((ch,ci)=>{const cd=courseChapDone(id,ci);
+      h+='<button class="actcard" data-act="clstart" data-val="'+id+'" data-idx="'+ci+'" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span style="min-width:0"><span class="an">'+(cd?'<span style="color:var(--green)">✓</span> ':'')+esc(ch.name)+'</span><span class="ad">'+esc(ch.goal)+'</span></span><span class="ac" style="flex:none">'+(cd?'Review ▸':'Learn ▸')+'</span></button>';});
+    h+='</div></div>';}
+  h+='</div></div>';
+  return h;
+}
+function viewCourseLearn(){
+  const L=app.cl;if(!L)return viewCourses();
+  const o=byId.get(L.id);const orient=L.hero==='w'?'white':'black';
+  const total=L.line.filter(s=>s.you).length;
+  const doneYou=L.line.slice(0,L.i).filter(s=>s.you).length;
+  const s=clStep(L);
+  const interactive=!!(!L.done&&s&&s.you&&turnOf(L.fen)===L.hero);
+  const chapters=courseChapters(L.id);const hasNext=L.ci+1<chapters.length;
+  const bar='<div class="bar" style="margin-top:8px"><i class="ln" style="width:'+Math.round((L.done?total:doneYou)/total*100)+'%"></i></div>';
+  let panel;
+  if(L.done){
+    panel='<div style="font-weight:800;color:var(--green);font-size:16px">✅ Chapter complete!</div>'+
+      '<div class="dim small" style="margin-top:5px">Added to your repertoire and scheduled for spaced-repetition review'+(L.exTotal?' · 🎯 '+L.solved+'/'+L.exTotal+' exercises solved':'')+'.</div>'+bar+
+      '<div class="row" style="margin-top:11px;flex-wrap:wrap">'+
+        (hasNext?'<button class="btn primary sm" data-act="clstart" data-val="'+L.id+'" data-idx="'+(L.ci+1)+'">Next chapter ▸</button>':'')+
+        '<button class="btn sec sm" data-act="cltest">🧪 Test yourself (no hints)</button>'+
+        '<button class="btn sec sm" data-act="train" data-val="'+L.id+'">🎓 Drill it (SRS)</button>'+
+        '<button class="btn ghost sm" data-act="nav" data-val="courses">← All courses</button></div>';
+  } else if(s&&s.you&&s.ex){
+    panel='<div style="font-weight:800;color:var(--amber)">🎯 Exercise '+(doneYou+1)+' · find the move</div>'+
+      '<div style="margin-top:6px;line-height:1.55">'+esc(s.ex.prompt)+'</div>'+bar+
+      (L.wrong?'<div class="small" style="margin-top:8px;color:#f87171;font-weight:600">✗ Not quite — the key square is now highlighted. Try again.</div>':'<div class="dim small" style="margin-top:8px">'+(L.hero==='w'?'White':'Black')+' to move. No hint — work it out!</div>');
+  } else if(s&&s.you){
+    panel='<div style="font-weight:700;color:var(--brand2)">Move '+(doneYou+1)+' of '+total+'</div>'+
+      '<div style="margin-top:6px;line-height:1.55">'+(s.idea?esc(s.idea):'Play the highlighted move.')+'</div>'+bar+
+      (L.wrong?'<div class="small" style="margin-top:8px;color:#f87171;font-weight:600">✗ That’s not the course move — follow the square outlined in green.</div>':'<div class="dim small" style="margin-top:8px">'+(L.test?'🧪 Test mode — recall the move (no hint).':'💡 Play the move outlined in <span style="color:#4ade80">green</span>.')+'</div>');
+  } else {
+    panel='<div class="muted">…</div>'+bar;
+  }
+  const reveal=(L.reveal&&L.reveal.text&&!L.done)?'<div class="note" style="margin-top:10px;border-color:#14532d55;background:#052e1655;color:#86efac">✓ '+esc(L.reveal.text)+'</div>':'';
+  const oppLine=(L.oppNote&&!L.done)?'<div class="note" style="margin-top:10px;border-color:#a855f73d;background:#a855f714;color:#e9d5ff">↩ '+esc(L.oppNote)+'</div>':'';
+  return '<div style="max-width:920px;margin:0 auto">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap">'+
+      '<div class="row" style="align-items:center"><button class="btn ghost sm" data-act="nav" data-val="courses">←</button><h1 style="font-size:17px">'+esc((o&&o.name)||L.id)+' <span class="dim" style="font-size:12.5px;font-weight:600">· '+esc(L.name)+'</span></h1></div>'+
+      '<span class="chip brand">'+(L.test?'🧪 Test':'📘 Guided')+'</span>'+
+    '</div>'+
+    '<div class="layout"><div class="boardwrap">'+renderBoard(L.fen,orient,{sel:L.sel,last:L.last,wrong:L.wrong,hint:clHint(L),interactive:interactive})+'</div>'+
+    '<div><div class="card">'+panel+'</div>'+reveal+oppLine+
+    '<div class="card" style="margin-top:12px"><div class="dim small" style="line-height:1.5">🎯 <b>'+esc(L.goal)+'</b></div></div>'+
+    '</div></div></div>';
+}
 function curLine(){return app.session?app.session[app.sIdx]:null;}
 function curNode(){const l=curLine();return l?l.nodes[app.nodePos]:null;}
 function heroToMove(){const l=curLine(),n=curNode();return!!(l&&n&&n.fenBefore.split(' ')[1]===heroTurn(l.o));}
@@ -4997,6 +5200,9 @@ function boardClick(sq){
   if(app.view==='eglesson'){const L=app.egLesson;if(!L||L.done)return;const s=egStep(L);if(!s||!s.you||turnOf(L.fen)!==L.side)return;
     if(L.sel&&L.sel!==sq){if(dests(L.fen,L.sel).includes(sq)){if(egTry(L.sel,sq))return;}}
     L.sel=dests(L.fen,sq).length?sq:null;L.wrong=null;render();return;}
+  if(app.view==='clearn'){const L=app.cl;if(!L||L.done)return;const s=clStep(L);if(!s||!s.you||turnOf(L.fen)!==L.hero)return;
+    if(L.sel&&L.sel!==sq){if(dests(L.fen,L.sel).includes(sq)){if(clTry(L.sel,sq))return;}}
+    L.sel=dests(L.fen,sq).length?sq:null;L.wrong=null;render();return;}
 }
 
 /* ---- sound effects (no files; synthesized) ---- */
@@ -5008,8 +5214,8 @@ function resultKind(txt){txt=txt||'';if(/you won|you win/i.test(txt))return 'win
 function confetti(n){try{if(typeof document==='undefined'||!document.body)return;var wrap=document.createElement('div');wrap.className='confetti';var cols=['#f59e0b','#22c55e','#1c84f5','#ec4899','#a855f7','#eab308','#38bdf8'];n=n||90;for(var i=0;i<n;i++){var p=document.createElement('i');p.style.left=(Math.random()*100)+'vw';p.style.background=cols[i%cols.length];p.style.animationDelay=(Math.random()*0.5)+'s';p.style.animationDuration=(1.6+Math.random()*1.5)+'s';p.style.opacity=0.6+Math.random()*0.4;wrap.appendChild(p);}document.body.appendChild(wrap);setTimeout(function(){if(wrap.parentNode)wrap.parentNode.removeChild(wrap);},3400);}catch(e){}}
 
 /* ---- drag-and-drop (pointer based; works with mouse + touch) ---- */
-function curFen(){return app.view==='explore'?exFen():app.view==='train'?app.fen:app.view==='play'?(app.playStack?app.playStack[app.playView]:app.playFen):app.view==='puzzles'?(app.pz?app.pz.fenNow:null):app.view==='eglesson'?(app.egLesson?app.egLesson.fen:null):null;}
-function curInteractive(){if(app.view==='explore')return true;if(app.view==='train')return (app.status==='play'||app.status==='wrong')&&heroToMove();if(app.view==='play')return playIsLive()&&app.playStatus==='play'&&turnOf(app.playFen)===app.playSide;if(app.view==='puzzles')return !!(app.pz&&app.pz.status==='solving'&&turnOf(app.pz.fenNow)===app.pz.side);if(app.view==='eglesson'){const L=app.egLesson;return !!(L&&!L.done&&egStep(L)&&egStep(L).you&&turnOf(L.fen)===L.side);}return false;}
+function curFen(){return app.view==='explore'?exFen():app.view==='train'?app.fen:app.view==='play'?(app.playStack?app.playStack[app.playView]:app.playFen):app.view==='puzzles'?(app.pz?app.pz.fenNow:null):app.view==='eglesson'?(app.egLesson?app.egLesson.fen:null):app.view==='clearn'?(app.cl?app.cl.fen:null):null;}
+function curInteractive(){if(app.view==='explore')return true;if(app.view==='train')return (app.status==='play'||app.status==='wrong')&&heroToMove();if(app.view==='play')return playIsLive()&&app.playStatus==='play'&&turnOf(app.playFen)===app.playSide;if(app.view==='puzzles')return !!(app.pz&&app.pz.status==='solving'&&turnOf(app.pz.fenNow)===app.pz.side);if(app.view==='eglesson'){const L=app.egLesson;return !!(L&&!L.done&&egStep(L)&&egStep(L).you&&turnOf(L.fen)===L.side);}if(app.view==='clearn'){const L=app.cl;return !!(L&&!L.done&&clStep(L)&&clStep(L).you&&turnOf(L.fen)===L.hero);}return false;}
 let _dragC=null,_dragA=null,_suppress=false,_ann=null,_lpTimer=null,_lpActive=false,_downXY=null;
 function toggleAnnotation(fen,from,to){if(!fen||!from)return;app.annot=app.annot||{};var a=app.annot[fen]=app.annot[fen]||{arrows:[],sqs:{}};
   if(!to||to===from){if(a.sqs[from])delete a.sqs[from];else a.sqs[from]=1;}
@@ -5047,6 +5253,7 @@ function dropPiece(from,to){
   else if(app.view==='train')app.sel=from;
   else if(app.view==='puzzles'&&app.pz)app.pz.sel=from;
   else if(app.view==='eglesson'&&app.egLesson)app.egLesson.sel=from;
+  else if(app.view==='clearn'&&app.cl)app.cl.sel=from;
   if(to&&to!==from)boardClick(to);else render();}
 function onPUp(e){if(_lpTimer){clearTimeout(_lpTimer);_lpTimer=null;}
   if(_ann){const ae=document.elementFromPoint(e.clientX,e.clientY);const at=ae&&ae.closest?ae.closest('[data-sq]'):null;toggleAnnotation(_ann.fen,_ann.from,at&&at.dataset.sq);_ann=null;_lpActive=false;_suppress=true;render();return;}
@@ -5145,6 +5352,8 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='p960'){app.c960setup=!app.c960setup;render();}
   else if(act==='egstart'){const e=ENDGAMES.find(x=>x.id===val);if(e)startPlay(e.fen,e.side,null,e.emoji+' '+e.name+' — '+(e.goal==='draw'?'hold the draw':'win'),{tc:tcById('unlimited'),endgame:{id:e.id,goal:e.goal,name:e.name}});}
   else if(act==='eglesson'){egLessonStart(val);}
+  else if(act==='clstart'){clStart(val,+(idx||0),false);}
+  else if(act==='cltest'){if(app.cl)clStart(app.cl.id,app.cl.ci,true);}
   else if(act==='pstart'){const c=val==='r'?(Math.random()<0.5?'w':'b'):val;const tc=tcById(store.settings.tcId||'unlimited');
     if(app.c960setup){const g=c960Start();startPlay(g.fen,c,null,'🎲 Chess960 · vs engine',{tc,c960:g.state});}
     else{const opId=app.setupOpening||null;const o=opId?byId.get(opId):null;startPlay(new Chess().fen(),c,opId,o?o.name+' · vs engine':'Free game',{tc,bookId:opId});}}
