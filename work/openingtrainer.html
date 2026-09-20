@@ -4619,6 +4619,7 @@ function render(){
   else if(app.view==='reptree')body=viewRepTree(app.repTreeId);
   else if(app.view==='blindfold')body=viewBlindfold();
   else if(app.view==='endgames')body=viewEndgames();
+  else if(app.view==='eglesson')body=viewEndgameLesson();
   else if(app.view==='classics')body=viewClassics();
   else if(app.view==='guess')body=guessView();
   else if(app.view==='settings')body=viewSettings();
@@ -4993,6 +4994,9 @@ function boardClick(sq){
   if(app.view==='puzzles'){const P=app.pz;if(!P||P.status!=='solving'||turnOf(P.fenNow)!==P.side)return;
     if(P.sel&&P.sel!==sq){if(dests(P.fenNow,P.sel).includes(sq)&&isPromotion(P.fenNow,P.sel,sq)){app.promo={view:'puzzles',from:P.sel,to:sq};render();return;}if(pzMove(P.sel,sq))return;}
     P.sel=dests(P.fenNow,sq).length?sq:null;render();return;}
+  if(app.view==='eglesson'){const L=app.egLesson;if(!L||L.done)return;const s=egStep(L);if(!s||!s.you||turnOf(L.fen)!==L.side)return;
+    if(L.sel&&L.sel!==sq){if(dests(L.fen,L.sel).includes(sq)){if(egTry(L.sel,sq))return;}}
+    L.sel=dests(L.fen,sq).length?sq:null;L.wrong=null;render();return;}
 }
 
 /* ---- sound effects (no files; synthesized) ---- */
@@ -5004,8 +5008,8 @@ function resultKind(txt){txt=txt||'';if(/you won|you win/i.test(txt))return 'win
 function confetti(n){try{if(typeof document==='undefined'||!document.body)return;var wrap=document.createElement('div');wrap.className='confetti';var cols=['#f59e0b','#22c55e','#1c84f5','#ec4899','#a855f7','#eab308','#38bdf8'];n=n||90;for(var i=0;i<n;i++){var p=document.createElement('i');p.style.left=(Math.random()*100)+'vw';p.style.background=cols[i%cols.length];p.style.animationDelay=(Math.random()*0.5)+'s';p.style.animationDuration=(1.6+Math.random()*1.5)+'s';p.style.opacity=0.6+Math.random()*0.4;wrap.appendChild(p);}document.body.appendChild(wrap);setTimeout(function(){if(wrap.parentNode)wrap.parentNode.removeChild(wrap);},3400);}catch(e){}}
 
 /* ---- drag-and-drop (pointer based; works with mouse + touch) ---- */
-function curFen(){return app.view==='explore'?exFen():app.view==='train'?app.fen:app.view==='play'?(app.playStack?app.playStack[app.playView]:app.playFen):app.view==='puzzles'?(app.pz?app.pz.fenNow:null):null;}
-function curInteractive(){if(app.view==='explore')return true;if(app.view==='train')return (app.status==='play'||app.status==='wrong')&&heroToMove();if(app.view==='play')return playIsLive()&&app.playStatus==='play'&&turnOf(app.playFen)===app.playSide;if(app.view==='puzzles')return !!(app.pz&&app.pz.status==='solving'&&turnOf(app.pz.fenNow)===app.pz.side);return false;}
+function curFen(){return app.view==='explore'?exFen():app.view==='train'?app.fen:app.view==='play'?(app.playStack?app.playStack[app.playView]:app.playFen):app.view==='puzzles'?(app.pz?app.pz.fenNow:null):app.view==='eglesson'?(app.egLesson?app.egLesson.fen:null):null;}
+function curInteractive(){if(app.view==='explore')return true;if(app.view==='train')return (app.status==='play'||app.status==='wrong')&&heroToMove();if(app.view==='play')return playIsLive()&&app.playStatus==='play'&&turnOf(app.playFen)===app.playSide;if(app.view==='puzzles')return !!(app.pz&&app.pz.status==='solving'&&turnOf(app.pz.fenNow)===app.pz.side);if(app.view==='eglesson'){const L=app.egLesson;return !!(L&&!L.done&&egStep(L)&&egStep(L).you&&turnOf(L.fen)===L.side);}return false;}
 let _dragC=null,_dragA=null,_suppress=false,_ann=null,_lpTimer=null,_lpActive=false,_downXY=null;
 function toggleAnnotation(fen,from,to){if(!fen||!from)return;app.annot=app.annot||{};var a=app.annot[fen]=app.annot[fen]||{arrows:[],sqs:{}};
   if(!to||to===from){if(a.sqs[from])delete a.sqs[from];else a.sqs[from]=1;}
@@ -5042,6 +5046,7 @@ function dropPiece(from,to){
   else if(app.view==='explore')app.sel=from;
   else if(app.view==='train')app.sel=from;
   else if(app.view==='puzzles'&&app.pz)app.pz.sel=from;
+  else if(app.view==='eglesson'&&app.egLesson)app.egLesson.sel=from;
   if(to&&to!==from)boardClick(to);else render();}
 function onPUp(e){if(_lpTimer){clearTimeout(_lpTimer);_lpTimer=null;}
   if(_ann){const ae=document.elementFromPoint(e.clientX,e.clientY);const at=ae&&ae.closest?ae.closest('[data-sq]'):null;toggleAnnotation(_ann.fen,_ann.from,at&&at.dataset.sq);_ann=null;_lpActive=false;_suppress=true;render();return;}
@@ -5139,6 +5144,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='pnew'){if(app.c960){const g=c960Start();startPlay(g.fen,app.playSide||'w',null,'🎲 Chess960 · vs engine',{tc:app.tc,c960:g.state});}else startPlay(app._playStartFen||new Chess().fen(),app.playSide||'w',app.playOpening||null,app.playTitle||'Free game',{tc:app.tc,bookId:(app.playBook?app.playBook.id:null)});}
   else if(act==='p960'){app.c960setup=!app.c960setup;render();}
   else if(act==='egstart'){const e=ENDGAMES.find(x=>x.id===val);if(e)startPlay(e.fen,e.side,null,e.emoji+' '+e.name+' — '+(e.goal==='draw'?'hold the draw':'win'),{tc:tcById('unlimited'),endgame:{id:e.id,goal:e.goal,name:e.name}});}
+  else if(act==='eglesson'){egLessonStart(val);}
   else if(act==='pstart'){const c=val==='r'?(Math.random()<0.5?'w':'b'):val;const tc=tcById(store.settings.tcId||'unlimited');
     if(app.c960setup){const g=c960Start();startPlay(g.fen,c,null,'🎲 Chess960 · vs engine',{tc,c960:g.state});}
     else{const opId=app.setupOpening||null;const o=opId?byId.get(opId):null;startPlay(new Chess().fen(),c,opId,o?o.name+' · vs engine':'Free game',{tc,bookId:opId});}}
@@ -8215,15 +8221,118 @@ const ENDGAMES=[
    fen:'7k/8/5K2/8/8/8/8/5BN1 w - - 0 1',
    desc:'The famous test of technique: K+B+N must mate in the corner the <b>same colour as the bishop</b> (here the light squares — a8 or h1). Use the “W‑manoeuvre” with the knight to herd the king along the edge to the right corner. Watch the 50‑move clock!'},
 ];
+/* ===================== Guided endgame technique =====================
+   A short, scripted walkthrough of the key idea BEFORE the live engine drill.
+   The student plays each highlighted "you" move (validated by SAN); the coach
+   explains why, and a scripted opponent replies. Every line is verified legal
+   and consistent by validate-endgame.mjs — do not edit a move without re-running it. */
+const EG_LESSONS={
+  krk:{line:[
+    {you:true, san:'Ra5+', note:'<b>Cut the king off.</b> The rook drops onto the 5th rank with check, shoving the black king back a row. In K+R vs K you <b>confine first</b> — never chase with aimless checks.'},
+    {you:false,san:'Kd6',  note:'The lone king retreats to the 6th rank.'},
+    {you:true, san:'Ke3',  note:'Now bring <b>your own king</b> up. The rook holds the wall; your king does the real work of driving the enemy toward the edge.'},
+    {you:false,san:'Ke6',  note:'Black steps up to face your king.'},
+    {you:true, san:'Ke4',  note:'Take the <b>opposition</b> — kings in line with one square between them. From here you shrink the box rank by rank until it is mate on the edge. Now finish it live!'},
+  ]},
+  kqk:{line:[
+    {you:true, san:'Qd3',  note:'Keep the queen a <b>knight’s-move</b> from the enemy king (d3 is a knight’s leap from e5). That traps it in a shrinking box while <b>never</b> allowing stalemate.'},
+    {you:false,san:'Ke6',  note:'The king steps toward the centre.'},
+    {you:true, san:'Qd4',  note:'Follow with another knight’s-move (d4 from e6). The box gets smaller and the king is herded toward the edge.'},
+    {you:false,san:'Ke7',  note:'The king keeps backing away.'},
+    {you:true, san:'Ke3',  note:'The queen alone can’t mate — <b>march your king up</b>. Walk it over, keep the knight’s-move box, and mate on the edge. Mind stalemate; finish it live!'},
+  ]},
+  kpk:{line:[
+    {you:true, san:'Kc6',  note:'Do <b>not</b> push the pawn yet. Step the king to the <b>side</b> to outflank the defender — this is the opposition at work.'},
+    {you:false,san:'Kc8',  note:'Black shadows your king.'},
+    {you:true, san:'d6',   note:'<b>Now</b> the pawn advances, with your king shielding it from the front.'},
+    {you:false,san:'Kd8',  note:'The king drops straight back.'},
+    {you:true, san:'d7',   note:'Push again — the enemy king is squeezed out of the pawn’s path.'},
+    {you:false,san:'Ke7',  note:'Forced aside; the queening square is clear.'},
+    {you:true, san:'d8=Q+',note:'<b>Promote!</b> A new queen with check — the king escorted the pawn home. That is the whole point of the opposition.'},
+  ]},
+  philidor:{line:[
+    {you:true, san:'Rb6',  note:'The pawn is on the 5th rank, so <b>park your rook on the 6th</b>. This wall denies the white king the 6th rank — it can never get in front of its pawn.'},
+    {you:false,san:'Kc4',  note:'White tries to sneak the king up the side.'},
+    {you:true, san:'Rc6+', note:'Check it away — while <b>staying on the 6th rank</b>. The king makes no progress.'},
+    {you:false,san:'Kd5',  note:'White returns; there is no way through.'},
+    {you:true, san:'Rb6',  note:'Back to the wall. While the pawn stays on the 5th, White is stuck. <b>When it finally reaches the 6th</b>, switch plans: swing your rook far behind and check the king endlessly from the back rank. Now hold the draw live!'},
+  ]},
+  k2b:{line:[
+    {you:true, san:'Bd3',  note:'Two bishops mate by building a wall on <b>adjacent diagonals</b>. Start placing them so together they fence the king in.'},
+    {you:false,san:'Kg8',  note:'The king shuffles along the edge.'},
+    {you:true, san:'Be3',  note:'The second bishop joins the wall — the two diagonals now form a barrier the king can’t cross.'},
+    {you:false,san:'Kh8',  note:'The king is pinned to the corner side.'},
+    {you:true, san:'Kg6',  note:'Bring your king up beside the bishops — they need its help. Walk it in and drive the enemy into a corner. Finish it live!'},
+  ]},
+  kbn:{line:[
+    {you:true, san:'Bd3',  note:'The hardest basic mate. K+B+N can only mate in the corner <b>matching the bishop’s colour</b> — here a <b>light</b> corner (a8 or h1). The king sits in the wrong (dark) corner, so you must drive it across the board. Start cornering with the bishop.'},
+    {you:false,san:'Kg8',  note:'The king slides toward the light corner — exactly where you want it.'},
+    {you:true, san:'Ne2',  note:'Bring the knight in. It travels a long <b>“W”-shaped route</b> to help herd the king along the edge.'},
+    {you:false,san:'Kf8',  note:'The king edges along the back rank.'},
+    {you:true, san:'Ke6',  note:'March your king up and escort the enemy all the way to a8. This takes patience and the 50-move clock is ticking — practise it live!'},
+  ]},
+};
+function egMoveInfo(fen,san){try{const c=new Chess(fen);const m=c.move(san);if(!m)return null;return{from:m.from,to:m.to,promotion:m.promotion,san:m.san,fen:c.fen()};}catch(e){return null;}}
+function egLessonStart(id){
+  const e=ENDGAMES.find(x=>x.id===id),L=EG_LESSONS[id];if(!e||!L)return;
+  const start=L.start||e.fen;
+  app.egLesson={id:e.id,name:e.name,emoji:e.emoji,goal:e.goal,desc:e.desc,side:turnOf(start),start:start,line:L.line,fen:start,i:0,sel:null,wrong:null,oppNote:null,done:false,last:null};
+  go('eglesson');
+}
+function egStep(L){return L&&L.i<L.line.length?L.line[L.i]:null;}
+function egHint(L){const s=egStep(L);if(!s||!s.you)return null;const mi=egMoveInfo(L.fen,s.san);return mi?{from:mi.from,to:mi.to}:null;}
+function egAdvanceOpp(L){
+  while(L.i<L.line.length&&!L.line[L.i].you){const s=L.line[L.i];const mi=egMoveInfo(L.fen,s.san);if(!mi)break;L.fen=mi.fen;L.last={from:mi.from,to:mi.to};L.oppNote=s.note||null;L.i++;sfxSan(mi.san);}
+  if(L.i>=L.line.length)L.done=true;
+}
+function egTry(from,to){
+  const L=app.egLesson;if(!L||L.done)return false;
+  const s=egStep(L);if(!s||!s.you)return false;
+  const mi=egMoveInfo(L.fen,s.san);
+  if(!mi||mi.from!==from||mi.to!==to){L.wrong={from:from,to:to};L.sel=null;render();return true;}
+  L.fen=mi.fen;L.last={from:mi.from,to:mi.to};L.wrong=null;L.sel=null;L.oppNote=null;L.i++;sfxSan(mi.san);render();
+  setTimeout(function(){if(app.view!=='eglesson'||app.egLesson!==L)return;egAdvanceOpp(L);render();},560);
+  return true;
+}
+function viewEndgameLesson(){
+  const L=app.egLesson;if(!L)return viewEndgames();
+  const orient=L.side==='w'?'white':'black';
+  const total=L.line.filter(s=>s.you).length;
+  const doneYou=L.line.slice(0,L.i).filter(s=>s.you).length;
+  const s=egStep(L);
+  const interactive=!!(!L.done&&s&&s.you&&turnOf(L.fen)===L.side);
+  const bar='<div class="bar" style="margin-top:8px"><i class="ln" style="width:'+Math.round((L.done?total:doneYou)/total*100)+'%"></i></div>';
+  let panel;
+  if(L.done){
+    panel='<div style="font-weight:800;color:var(--green);font-size:16px">✅ Technique complete!</div>'+
+      '<div class="dim small" style="margin-top:5px">You’ve walked through the key idea. Now execute it for real against a full-strength engine.</div>'+bar+
+      '<div class="row" style="margin-top:11px;flex-wrap:wrap"><button class="btn primary sm" data-act="egstart" data-val="'+L.id+'">▶ Try it live vs the engine</button><button class="btn sec sm" data-act="eglesson" data-val="'+L.id+'">↺ Replay lesson</button><button class="btn ghost sm" data-act="nav" data-val="endgames">← All endgames</button></div>';
+  } else {
+    panel='<div style="font-weight:700;color:var(--brand2)">Step '+(doneYou+1)+' of '+total+'</div>'+
+      '<div style="margin-top:6px;line-height:1.55">'+((s&&s.note)||'')+'</div>'+bar+
+      (L.wrong?'<div class="small" style="margin-top:8px;color:#f87171;font-weight:600">✗ Not the technique move — play the square outlined in green.</div>':'<div class="dim small" style="margin-top:8px">💡 Play the move outlined in <span style="color:#4ade80">green</span>.</div>');
+  }
+  const oppLine=L.oppNote?'<div class="note" style="margin-top:10px;border-color:#a855f73d;background:#a855f714;color:#e9d5ff">↩ '+L.oppNote+'</div>':'';
+  return '<div style="max-width:920px;margin:0 auto">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap">'+
+      '<div class="row" style="align-items:center"><button class="btn ghost sm" data-act="nav" data-val="endgames">←</button><h1 style="font-size:18px">'+L.emoji+' '+esc(L.name)+' <span class="dim" style="font-size:13px;font-weight:600">· guided technique</span></h1></div>'+
+      '<span class="chip '+(L.goal==='draw'?'brand':'green')+'">'+(L.goal==='draw'?'Hold the draw':'Win')+'</span>'+
+    '</div>'+
+    '<div class="layout"><div class="boardwrap">'+renderBoard(L.fen,orient,{sel:L.sel,last:L.last,wrong:L.wrong,hint:egHint(L),interactive:interactive})+'</div>'+
+    '<div><div class="card">'+panel+'</div>'+oppLine+
+    '<div class="card" style="margin-top:12px"><div class="dim small" style="line-height:1.55">📘 '+(L.desc||'')+'</div></div>'+
+    '</div></div></div>';
+}
 function viewEndgames(){
   let h='<div style="max-width:780px;margin:0 auto"><h1>Endgame Trainer</h1>'+
-    '<div class="muted small" style="margin:6px 0 12px">Master the essential theoretical endgames against a full‑strength engine. Read the technique, press <b>Train</b>, and a result is checked automatically — hold the draw or convert the win.</div>';
+    '<div class="muted small" style="margin:6px 0 12px">Master the essential theoretical endgames against a full‑strength engine. New to one? Press <b>📖 Learn technique</b> for a short guided walkthrough of the key idea, then press <b>Train</b> to prove it against the engine — hold the draw or convert the win.</div>';
   for(const e of ENDGAMES){
+    const hasLesson=!!EG_LESSONS[e.id];
     h+='<div class="card" style="margin-bottom:10px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:800">'+e.emoji+' '+esc(e.name)+'</div>'+
       '<span class="chip '+(e.goal==='draw'?'brand':'green')+'">'+(e.goal==='draw'?'Hold the draw':'Win')+'</span></div>'+
       '<div class="dim small" style="margin:2px 0 7px">'+e.cat+' · you play '+(e.side==='w'?'White':'Black')+'</div>'+
       '<div class="dim small" style="line-height:1.55;margin-bottom:9px">'+e.desc+'</div>'+
-      '<button class="btn primary sm" data-act="egstart" data-val="'+e.id+'">Train ▸</button></div>';
+      '<div class="row">'+(hasLesson?'<button class="btn sec sm" data-act="eglesson" data-val="'+e.id+'">📖 Learn technique</button>':'')+'<button class="btn primary sm" data-act="egstart" data-val="'+e.id+'">Train ▸</button></div></div>';
   }
   return h+'</div>';
 }
