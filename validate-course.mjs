@@ -19,13 +19,23 @@ dom.window.__PUZZLES = [];
 
 let pass = 0; const ok = (c, m) => { if (!c) throw new Error('FAIL: ' + m); pass++; console.log('  ✓ ' + m); };
 
-const X = new Function(script + '\nreturn {app,store,OPENING_COURSES,byId,clSide,clResolve,clStart,clStep,clHint,clTry,clAdvanceOpp,courseChapters,courseChapDone,turnOf};')();
+const X = new Function(script + '\nreturn {app,store,OPENING_COURSES,byId,clSide,clResolve,clStart,clStep,clHint,clTry,clAdvanceOpp,courseChapters,courseChapDone,courseBucket,courseRecommendations,turnOf};')();
 globalThis.setTimeout = () => 0; // freeze the auto-reply timer; the test drives the opponent
 
-const { app, store, OPENING_COURSES, byId, clSide, clResolve, clStart, clStep, clHint, clTry, clAdvanceOpp, courseChapDone, turnOf } = X;
+const { app, store, OPENING_COURSES, byId, clSide, clResolve, clStart, clStep, clHint, clTry, clAdvanceOpp, courseChapDone, courseBucket, courseRecommendations, turnOf } = X;
 
 const ids = Object.keys(OPENING_COURSES);
-ok(ids.length >= 8, 'guided courses defined (' + ids.length + ')');
+ok(ids.length >= 20, 'guided courses defined (' + ids.length + ')');
+
+// recommender: every course is classified into a repertoire bucket, and the
+// gap-coach returns real, incomplete courses.
+for (const id of ids) ok(['white', 'e4', 'd4'].includes(courseBucket(id)), id + ': classified into a repertoire bucket for the recommender');
+{
+  store.repertoire = []; store.courseProgress = {};
+  const recs = courseRecommendations();
+  ok(recs.length >= 1 && recs.length <= 3, 'recommender returns 1-3 gap picks for a fresh player (' + recs.length + ')');
+  ok(recs.every(r => OPENING_COURSES[r.id] && r.reason), 'each recommendation names a real course with a reason');
+}
 
 // 1) content integrity: ids map to real openings, hero side matches, every move
 //    legal from its position, every exercise is a hero move with prompt + why.

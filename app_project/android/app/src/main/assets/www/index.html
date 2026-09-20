@@ -14,6 +14,8 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
 <title>♞ Chess Career — become a chess pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#0b1120; --panel:#0f172a; --panel2:#111c33; --border:#1e293b;
@@ -25,7 +27,7 @@
   *{box-sizing:border-box}
   html{margin:0;overflow-y:scroll;scrollbar-gutter:stable}body{margin:0}
   body{background:var(--scene-bg,none),var(--app-bg);background-attachment:fixed;
-    color:var(--text);font:14.5px/1.45 Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+    color:var(--text);font:14.5px/1.45 'Noto Sans',Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
   a{color:var(--brand2);text-decoration:none}
   h1{font-size:21px;margin:0}h2{font-size:16px;margin:0}
   .wrap{max-width:1040px;margin:0 auto;padding:12px 13px 40px;padding-left:calc(13px + env(safe-area-inset-left));padding-right:calc(13px + env(safe-area-inset-right));padding-bottom:calc(40px + env(safe-area-inset-bottom))}
@@ -156,6 +158,35 @@
   .clock.low{color:#fecaca;background:#3a1420;border-color:#7f1d2e}
   .clock.low.active{background:#4a1626;color:#fff}
   optgroup{color:var(--muted);background:#0b1426}
+  /* ---------- Lichess look: flat chrome, thin borders, small radii ---------- */
+  html[data-ui="lichess"] .card{background:var(--panel);border-radius:4px;box-shadow:none}
+  html[data-ui="lichess"] .btn{border-radius:4px}
+  html[data-ui="lichess"] .btn.sm{border-radius:3px}
+  html[data-ui="lichess"] .btn.primary{background:#629924}
+  html[data-ui="lichess"] .btn.primary:hover:not(:disabled){background:#6aa62b}
+  html[data-ui="lichess"] .btn.sec{background:var(--panel2);color:var(--text)}
+  html[data-ui="lichess"] .btn.sec:hover:not(:disabled){background:rgba(127,127,127,.18)}
+  html[data-ui="lichess"] .btn.ghost:hover:not(:disabled){background:rgba(127,127,127,.14);color:var(--text)}
+  html[data-ui="lichess"] .chip{border-radius:4px;background:var(--panel2)}
+  html[data-ui="lichess"] .actcard,html[data-ui="lichess"] .learncard{border-radius:5px;background:var(--panel)}
+  html[data-ui="lichess"] .actcard:hover:not(:disabled),html[data-ui="lichess"] .learncard:hover{background:var(--panel2)}
+  html[data-ui="lichess"] .ctab{border-radius:4px;background:var(--panel2)}
+  html[data-ui="lichess"] header.top{background:var(--panel);backdrop-filter:none;-webkit-backdrop-filter:none}
+  html[data-ui="lichess"] .botnav{background:var(--panel);backdrop-filter:none;-webkit-backdrop-filter:none}
+  html[data-ui="lichess"] .menubtn{background:var(--panel2)}
+  html[data-ui="lichess"] .menubtn.open{background:var(--panel2);color:var(--text)}
+  html[data-ui="lichess"] .menupanel{border-radius:4px}
+  html[data-ui="lichess"] .menupanel button:hover{background:rgba(127,127,127,.16);color:var(--text)}
+  html[data-ui="lichess"] .menupanel button.active,html[data-ui="lichess"] .topnav button.active{background:rgba(54,146,231,.18);color:var(--brand2)}
+  html[data-ui="lichess"] .topnav button:hover{background:rgba(127,127,127,.14);color:var(--text)}
+  html[data-ui="lichess"] .modalbox{border-radius:5px}
+  html[data-ui="lichess"] .note{border-radius:4px}
+  html[data-ui="lichess"] .clock{background:var(--panel2);border-radius:4px;color:var(--text)}
+  html[data-ui="lichess"] optgroup{background:var(--panel)}
+  html[data-ui="lichess"] .mark{border-radius:5px}
+  html[data-ui="lichess"] input,html[data-ui="lichess"] select,html[data-ui="lichess"] textarea{border-radius:4px}
+  /* lichess-style last-move & board highlights */
+  html[data-ui="lichess"] .square.last::before{content:"";position:absolute;inset:0;background:rgba(155,199,0,.41)}
 </style>
 </head>
 <body>
@@ -4038,6 +4069,8 @@ function buildSession(ops,srs,mode,newPer,now=Date.now()){const out=[];
 const LS='opening-trainer-standalone-v1';
 /* ---- app background themes + accent colours (UI customisation) ---- */
 const APP_THEMES={
+  lichess:{label:'Lichess',ui:'lichess',bg:'#161512',panel:'#262421',panel2:'#302c28',border:'#3a352f',text:'#c7c4be',muted:'#9a958d',dim:'#726d66',appbg:'linear-gradient(180deg,#1b1815 0%,#161512 55%,#131210 100%)'},
+  'lichess-light':{label:'Lichess (light)',ui:'lichess',bg:'#e8e6e1',panel:'#ffffff',panel2:'#f4f2ee',border:'#d6d2c9',text:'#2b2825',muted:'#6d6860',dim:'#948f86',appbg:'linear-gradient(180deg,#efedea 0%,#e8e6e1 60%,#e2dfd9 100%)'},
   midnight:{label:'Midnight',bg:'#0b1120',panel:'#0f172a',panel2:'#111c33',border:'#1e293b',text:'#e2e8f0',muted:'#94a3b8',dim:'#64748b',appbg:'radial-gradient(1100px 720px at 82% -10%,#243d66 0%,rgba(11,17,32,0) 58%),radial-gradient(940px 660px at -6% 108%,#163a4d 0%,rgba(11,17,32,0) 55%),linear-gradient(155deg,#0e1830 0%,#0b1120 55%,#090e1b 100%)'},
   obsidian:{label:'Obsidian',bg:'#0a0a0c',panel:'#141417',panel2:'#1b1b1f',border:'#2a2a30',text:'#e7e7ea',muted:'#9a9aa2',dim:'#6b6b73',appbg:'radial-gradient(900px 600px at 80% -10%,#27272e 0%,rgba(10,10,12,0) 60%),linear-gradient(160deg,#161618 0%,#0a0a0c 60%,#060607 100%)'},
   ocean:{label:'Deep Ocean',bg:'#071a26',panel:'#0c2533',panel2:'#0f2f40',border:'#1b4456',text:'#e0f0f4',muted:'#8fb3bf',dim:'#5d8593',appbg:'radial-gradient(1000px 700px at 85% -10%,#0e4a5e 0%,rgba(7,26,38,0) 58%),linear-gradient(155deg,#0a2330 0%,#071a26 60%,#04121a 100%)'},
@@ -4074,6 +4107,7 @@ function applySceneBg(){
   document.documentElement.style.setProperty('--scene-bg',sc.bg||'none');
 }
 function applyAppTheme(){const t=APP_THEMES[store.settings.appTheme]||APP_THEMES.midnight;const r=document.documentElement.style;
+  try{document.documentElement.setAttribute('data-ui',t.ui||'');}catch(e){}
   applySceneBg();
   r.setProperty('--bg',t.bg);r.setProperty('--panel',t.panel);r.setProperty('--panel2',t.panel2);r.setProperty('--border',t.border);
   r.setProperty('--text',t.text);r.setProperty('--muted',t.muted);r.setProperty('--dim',t.dim);r.setProperty('--app-bg',t.appbg);
@@ -4364,7 +4398,7 @@ function checkTitles(c){const got=[];const peak=titlePeak(c);
     c.titles.push(d.t);got.push(d.t);
   }
   return got;}
-const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},settings:{newPer:8,pieces:'staunty',theme:'green',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'midnight',accent:'blue',scene:'none'},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null}};
+const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none'},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null}};
 function freshCareer(){return JSON.parse(JSON.stringify(DEF.career));}
 /* Migrate saved career data: the old ladder (with `beaten`/`results`) is reset
    to the new FIDE structure; new-format saves are merged onto fresh defaults. */
@@ -4921,7 +4955,91 @@ const OPENING_COURSES=(function(){
       m('Nc3'),m('Bg7','The bishop rakes the long diagonal toward White’s centre.'),m('e4'),m('d6','Restrain e5 and prepare the ...e5 or ...c5 breaks.'),
       m('Nf3'),m('O-O'),m('Be2'),
       m('e5',null,{prompt:'White has a huge pawn centre. Strike at it with the classical King’s Indian break.',why:'...e5! challenges d4 head-on. If White closes with d5, the position becomes a race: Black storms the kingside with ...Nd7 and ...f5-f4-g5, while White attacks on the queenside.'}),
-      m('O-O'),m('Nc6','Pressure d4 and provoke d5.'),m('d5'),m('Ne7','The knight re-routes (...Ne7-g6 or ...Ne8) to support the coming ...f5 pawn storm.')]}]}
+      m('O-O'),m('Nc6','Pressure d4 and provoke d5.'),m('d5'),m('Ne7','The knight re-routes (...Ne7-g6 or ...Ne8) to support the coming ...f5 pawn storm.')]}]},
+  scotch:{name:'Scotch Game',tagline:'Open the centre early and play with a lead in development.',chapters:[
+    {name:'Classical Scotch',goal:'The 4.d4 break and quick, purposeful development.',line:[
+      m('e4'),m('e5'),m('Nf3'),m('Nc6'),
+      m('d4',null,{prompt:'Strike in the centre at once — the move that gives the Scotch its name.',why:'4.d4! rips the centre open while White is ahead in development, instead of the slow manoeuvring of the Italian/Ruy. That tempo is the whole point of the Scotch.'}),
+      m('exd4'),m('Nxd4','Recapture with the knight, centralising it on d4.'),
+      m('Bc5','Black hits the d4-knight.'),m('Be3','Defend d4 and blunt the c5-bishop.'),
+      m('Qf6','Piling onto d4 and eyeing f2/g6 ideas.'),m('c3','Rock-solid — support d4 and give the knight b3.'),
+      m('Nge7'),m('Bc4',null,{prompt:'Complete development with the move that targets Black’s weakest square.',why:'Bc4 develops with pressure on f7 and readies castling. White keeps a healthy centre and a comfortable, purposeful position.'})]}]},
+  vienna:{name:'Vienna Game',tagline:'A King’s-Gambit flavour: develop, then blast e5 with f4.',chapters:[
+    {name:'The Vienna Gambit',goal:'The f4 thrust and how to handle Black’s ...d5.',line:[
+      m('e4'),m('e5'),m('Nc3','Develop the knight, controlling d5 and e4 — and keeping f4 in reserve.'),m('Nf6'),
+      m('f4',null,{prompt:'Now unleash the Vienna’s trademark aggressive pawn thrust.',why:'f4! the Vienna Gambit — hit e5 with the f-pawn while the knight already guards e4, unlike the raw King’s Gambit. It leads to a sharp, open fight.'}),
+      m('d5','The correct reply — counter in the centre (grabbing on e5 is riskier).'),
+      m('fxe5'),m('Nxe4'),m('Nf3','Develop and prepare d4/d3, keeping the extra central space.'),
+      m('Be7'),m('d4','Build the big centre.'),m('O-O'),m('Bd3',null,{prompt:'Develop toward Black’s king and challenge the e4-knight.',why:'Bd3 eyes the e4-knight and the b1-h7 diagonal toward Black’s king — White has easy development and attacking chances for the pawn.'})]}]},
+  english:{name:'English Opening',tagline:'Flank strategy: control d5, fianchetto, a reversed Sicilian.',chapters:[
+    {name:'Reversed Sicilian',goal:'The 1.c4 e5 main line and the g3 fianchetto plan.',line:[
+      m('c4','The English: fight for d5 from the flank with a flexible, strategic setup.'),m('e5','Black grabs the centre — this is a Sicilian with colours reversed and a tempo up for White.'),
+      m('Nc3'),m('Nf6'),m('Nf3','Attack e5 and develop naturally.'),m('Nc6'),
+      m('g3',null,{prompt:'Choose the English’s signature developing plan for the light-squared bishop.',why:'g3! fianchettoes the bishop to g2, where it pressures d5 and the long diagonal — the strategic heart of the English.'}),
+      m('d5','Black strikes back in the centre.'),m('cxd5'),m('Nxd5'),
+      m('Bg2',null,{prompt:'Complete the fianchetto and take aim down the long diagonal.',why:'Bg2 eyes b7 and d5; White will castle and play for the classic English queenside/central pressure.'})]}]},
+  catalan:{name:'Catalan Opening',tagline:'A fianchettoed bishop bearing down the long diagonal.',chapters:[
+    {name:'The Open Catalan',goal:'Long-diagonal pressure and regaining the c4-pawn.',line:[
+      m('d4'),m('Nf6'),m('c4'),m('e6'),
+      m('g3',null,{prompt:'Play the move that defines the Catalan and its famous bishop.',why:'g3! prepares Bg2 — the Catalan bishop pressures d5, c6 and b7 down the long diagonal, the strategic backbone of the whole opening.'}),
+      m('d5'),m('Bg2'),m('Be7'),m('Nf3'),m('O-O'),m('O-O'),
+      m('dxc4','Black snatches the c4-pawn (the Open Catalan).'),
+      m('Qc2',null,{prompt:'Black grabbed c4. Plan to win it back while keeping the bishop’s dominance.',why:'Qc2 (with a4 and Ne5 to follow) regains the c4-pawn while the g2-bishop keeps raking the long diagonal — White gets lasting positional pressure for nothing.'})]}]},
+  scandinavian:{name:'Scandinavian Defence',tagline:'Challenge e4 on move one — direct and easy to learn.',chapters:[
+    {name:'Main line ...Qa5',goal:'The ...d5 challenge and where the queen belongs.',line:[
+      m('e4'),m('d5','The Scandinavian: challenge e4 immediately, before White builds a centre.'),
+      m('exd5'),m('Qxd5','Recapture with the queen — Black’s only way to regain the pawn at once.'),
+      m('Nc3','White develops with tempo, hitting the queen.'),
+      m('Qa5',null,{prompt:'The knight attacks your queen. Send her to a square that stays active and safe.',why:'...Qa5! is the main line — the queen sits actively on the a5-d8 diagonal, out of the way of White’s development. (...Qd6 and ...Qd8 are the other respected retreats.)'}),
+      m('d4'),m('Nf6','Develop and eye e4/d5.'),m('Nf3'),m('c6',null,{prompt:'Make a luft for the queen and a home for your structure.',why:'...c6! gives the queen the c7-square, supports ...d5 ideas, and prepares ...Bf5/...Bg4 and ...e6 — a solid, easy-to-play setup.'})]}]},
+  pirc:{name:'Pirc Defence',tagline:'Hand White the centre, then counterattack it.',chapters:[
+    {name:'Classical Pirc',goal:'The ...g6 fianchetto and hypermodern counterplay.',line:[
+      m('e4'),m('d6','The Pirc: let White build a big centre, then undermine it.'),
+      m('d4'),m('Nf6','Attack e4, forcing White to defend.'),m('Nc3'),
+      m('g6',null,{prompt:'Set up the Pirc’s signature bishop, aimed at White’s centre.',why:'...g6 and ...Bg7 fianchetto the bishop onto the long diagonal, pressuring d4 and e4 — Black attacks the centre with pieces rather than occupying it with pawns.'}),
+      m('Nf3'),m('Bg7'),m('Be2'),m('O-O'),m('O-O'),
+      m('Nc6',null,{prompt:'Increase the pressure on White’s centre and prepare a break.',why:'...Nc6 hits d4 and supports the freeing ...e5 break — a classical way to challenge White’s pawn centre.'})]}]},
+  'nimzo-indian':{name:'Nimzo-Indian Defence',tagline:'Pin the knight, damage the structure, fight for e4.',chapters:[
+    {name:'Nimzo main line',goal:'Why ...Bb4, and the ...d5/...c5 central plan.',line:[
+      m('d4'),m('Nf6'),m('c4'),m('e6'),m('Nc3'),
+      m('Bb4',null,{prompt:'White’s knight controls e4. Pin it and fight for that square.',why:'...Bb4! is the Nimzo-Indian — the pin fights for e4 and threatens ...Bxc3, wrecking White’s pawns. Trading the bishop for structural damage is a classic Nimzo idea.'}),
+      m('e3','The solid Rubinstein System.'),m('O-O'),m('Bd3'),
+      m('d5','Strike at the centre — a Queen’s-Gambit-style structure a tempo up on the bishop.'),
+      m('Nf3'),m('c5',null,{prompt:'Play the thematic break against White’s centre.',why:'...c5! hits d4 and opens lines; Black gets active play, especially if the exchange on c3 later saddles White with doubled pawns.'})]}]},
+  grunfeld:{name:'Grünfeld Defence',tagline:'Let White build a centre — then blow it up.',chapters:[
+    {name:'Grünfeld Exchange',goal:'The ...d5 counterstrike and pressure on the centre.',line:[
+      m('d4'),m('Nf6'),m('c4'),m('g6'),m('Nc3'),
+      m('d5',null,{prompt:'White is about to seize the centre. Strike first in true Grünfeld style.',why:'...d5! challenges c4 and e4 immediately. After cxd5 Nxd5 Black trades a pair of knights, then attacks White’s broad pawn centre with ...Bg7, ...c5 and pressure — hypermodern chess at its purest.'}),
+      m('cxd5'),m('Nxd5'),m('e4'),m('Nxc3'),m('bxc3'),
+      m('Bg7','Fianchetto — the bishop takes aim at the c3/d4 centre.'),m('Nf3'),
+      m('c5',null,{prompt:'Attack the base of White’s big centre.',why:'...c5! hammers d4. Black’s whole plan is to prove White’s imposing centre is actually a target — pressure with ...cxd4, ...Nc6, ...Bg4/...Qa5.'})]}]},
+  slav:{name:'Slav Defence',tagline:'As solid as the QGD, but the bishop breathes.',chapters:[
+    {name:'Slav main line',goal:'Support d5 without burying the bishop, then ...dxc4 and ...Bf5.',line:[
+      m('d4'),m('d5'),m('c4'),
+      m('c6',null,{prompt:'Defend d5 the Slav way — without shutting in your light-squared bishop.',why:'...c6! props up d5 like the QGD, but unlike ...e6 it keeps the c8-bishop’s diagonal open, so Black can develop it actively later.'}),
+      m('Nf3'),m('Nf6'),m('Nc3'),
+      m('dxc4','The main line — grab the pawn, intending to hold it with ...b5 or return it after developing.'),
+      m('a4','White stops ...b5 and prepares to regain the pawn.'),
+      m('Bf5',null,{prompt:'Get the “problem” bishop out to a great square before ...e6.',why:'...Bf5! develops the light-squared bishop outside the pawn chain — exactly what ...c6 (not ...e6) made possible. This is the whole point of the Slav.'})]}]},
+  'sicilian-dragon':{name:'Sicilian Dragon',tagline:'Fianchetto, castle, and race White’s king.',chapters:[
+    {name:'The Yugoslav setup',goal:'The Dragon bishop and opposite-side castling races.',line:[
+      m('e4'),m('c5'),m('Nf3'),m('d6'),m('d4'),m('cxd4'),m('Nxd4'),m('Nf6'),m('Nc3'),
+      m('g6',null,{prompt:'Set up the Dragon — the fianchetto aimed at White’s queenside.',why:'...g6 and ...Bg7 put the bishop on the long diagonal, breathing fire at b2 and White’s king. The Dragon is Black’s sharpest Sicilian: both sides castle opposite and attack.'}),
+      m('Be3'),m('Bg7'),m('f3','The Yugoslav Attack — White shores up e4 and prepares Qd2, O-O-O and a kingside pawn storm.'),
+      m('O-O'),m('Qd2'),m('Nc6',null,{prompt:'Complete development and prepare your own attack.',why:'...Nc6 develops and readies ...Bd7, ...Rc8 and the ...Nxd4 / ...b5 counterattack. Black storms the queenside while White storms the kingside — a thrilling race.'})]}]},
+  'sicilian-sveshnikov':{name:'Sicilian Sveshnikov',tagline:'Bold central play and active pieces for a pawn weakness.',chapters:[
+    {name:'The Sveshnikov',goal:'The ...e5 thrust and its trade-offs.',line:[
+      m('e4'),m('c5'),m('Nf3'),m('Nc6'),m('d4'),m('cxd4'),m('Nxd4'),m('Nf6'),m('Nc3'),
+      m('e5',null,{prompt:'Play the bold central thrust that defines the Sveshnikov.',why:'...e5! kicks the d4-knight and grabs the centre. Black accepts a backward d-pawn and a hole on d5 in return for fast, active piece play — a favourite from club level to the world elite.'}),
+      m('Ndb5','The knight leaps to b5, eyeing the d6-hole.'),m('d6','Cover d6 and stop Nd6+.'),
+      m('Bg5','Pinning and pressuring the knight that guards d5.'),m('a6','Kick the b5-knight.'),
+      m('Na3'),m('b5',null,{prompt:'Grab queenside space and keep the a3-knight offside.',why:'...b5! gains space and keeps White’s a3-knight out of play, preparing ...Be7, ...O-O and active play down the c-file — full compensation for the d5-weakness.'})]}]},
+  'queens-indian':{name:'Queen’s Indian Defence',tagline:'Super-solid: fight for e4 down the long diagonal.',chapters:[
+    {name:'Queen’s Indian main line',goal:'The ...b6/...Bb7 plan and the fight for e4.',line:[
+      m('d4'),m('Nf6'),m('c4'),m('e6'),m('Nf3','White plays Nf3 instead of Nc3, so there’s no Nimzo pin available.'),
+      m('b6',null,{prompt:'White avoided Nc3. Fight for e4 the hypermodern way.',why:'...b6 prepares ...Bb7, contesting the e4-square along the long diagonal — the Queen’s Indian, one of the soundest, most flexible defences to 1.d4.'}),
+      m('g3'),m('Bb7'),m('Bg2'),m('Be7'),m('O-O'),m('O-O'),m('Nc3'),
+      m('Ne4',null,{prompt:'Occupy the square you’ve spent the whole opening fighting for.',why:'...Ne4! plants a knight on the key central square, backed by the b7-bishop, and invites simplification into a rock-solid, equal game.'})]}]}
   };
 })();
 function clSide(id){const o=byId.get(id);return o?(o.side==='white'?'w':'b'):'w';}
@@ -4968,11 +5086,39 @@ function clComplete(L){
   save();
 }
 function courseCardProgress(id){const t=courseChapters(id).length,d=courseDone(id).filter(ci=>ci<t).length;return {done:d,total:t};}
+/* Repertoire-gap coach: recommend courses that fill holes in the player's
+   repertoire (no White opening / no reply to 1.e4 / no reply to 1.d4), plus a
+   career-prep pointer to what a rival plays. */
+const COURSE_WHITE=['italian','ruy-lopez','queens-gambit','london','scotch','vienna','english','catalan'];
+const COURSE_VS_E4=['sicilian-najdorf','french','caro-kann','scandinavian','pirc','sicilian-dragon','sicilian-sveshnikov'];
+const COURSE_VS_D4=['kings-indian','nimzo-indian','grunfeld','slav','queens-indian'];
+function courseBucket(id){return COURSE_WHITE.indexOf(id)>=0?'white':COURSE_VS_E4.indexOf(id)>=0?'e4':COURSE_VS_D4.indexOf(id)>=0?'d4':'other';}
+function bucketCovered(list){return list.some(function(id){if(!OPENING_COURSES[id])return false;if(courseDone(id).length>0)return true;var o=byId.get(id);return !!(o&&inRep(id)&&(progress(o,store.srs).mastery||0)>=0.3);});}
+function courseRecommendations(){
+  var recs=[];
+  var buckets=[['white',COURSE_WHITE,'You have no White opening yet — pick one to play 1.e4 or 1.d4'],
+               ['e4',COURSE_VS_E4,'You need a defence to 1.e4 as Black'],
+               ['d4',COURSE_VS_D4,'You need a defence to 1.d4 as Black']];
+  var defaults={white:['italian','london','queens-gambit'],e4:['caro-kann','french','scandinavian'],d4:['nimzo-indian','kings-indian','slav']};
+  buckets.forEach(function(b){if(bucketCovered(b[1]))return;
+    var pick=(defaults[b[0]]||b[1]).filter(function(id){return OPENING_COURSES[id]&&courseDone(id).length===0;})[0]||b[1][0];
+    if(pick&&OPENING_COURSES[pick])recs.push({id:pick,reason:b[2],tag:'Repertoire gap'});});
+  try{var c=store.career;if(c&&c.setup&&c.rival&&c.rival.name){var opp=oppOpenings(c.rival.name);[opp.w,opp.b].forEach(function(id){if(id&&OPENING_COURSES[id]&&courseDone(id).length===0&&!recs.some(function(r){return r.id===id;}))recs.push({id:id,reason:'Your rival '+esc(c.rival.name)+' plays this — study the lines to prepare',tag:'Career prep'});});}}catch(e){}
+  return recs.slice(0,3);
+}
+function courseRecPanel(){
+  var recs=courseRecommendations();if(!recs.length)return '';
+  var h='<div class="card" style="margin-bottom:14px;border-color:var(--brand)"><div style="font-weight:800;margin-bottom:2px">🧭 Recommended for you</div><div class="dim small" style="margin-bottom:9px">Fill the gaps in your repertoire — every opening you learn also gives you a preparation edge in Career.</div><div class="grid" style="gap:6px">';
+  recs.forEach(function(r){var C=OPENING_COURSES[r.id],o=byId.get(r.id);
+    h+='<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:7px 2px;border-top:1px solid var(--border)"><div style="min-width:0"><div class="row" style="gap:6px;align-items:center"><span class="chip '+(r.tag==='Career prep'?'amber':'brand')+'">'+r.tag+'</span><span style="font-weight:700">'+esc(C.name)+'</span>'+(o?sideDisc(o.side):'')+'</div><div class="dim small" style="margin-top:3px">'+r.reason+'</div></div><button class="btn primary sm" data-act="clstart" data-val="'+r.id+'" data-idx="0" style="flex:none">Start ▸</button></div>';});
+  return h+'</div></div>';
+}
 function viewCourses(){
   const ids=Object.keys(OPENING_COURSES);
   let totDone=0,totCh=0;for(const id of ids){const p=courseCardProgress(id);totDone+=p.done;totCh+=p.total;}
   let h='<div style="max-width:900px;margin:0 auto"><div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:6px;gap:8px;flex-wrap:wrap"><div><h1>📘 Guided Opening Courses</h1><div class="muted small" style="margin-top:4px">Learn the most common openings move by move — with the idea behind every move and <b>hands-on exercises</b> built into the lines. Finish a chapter and it’s added to your repertoire and spaced-repetition review.</div></div></div>';
   h+='<div class="card" style="margin:12px 0 14px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:700">Your progress</div><div class="dim small">'+totDone+' / '+totCh+' chapters complete</div></div><div class="bar" style="margin-top:9px"><i class="ln" style="width:'+(totCh?totDone/totCh*100:0)+'%"></i></div></div>';
+  h+=courseRecPanel();
   h+='<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px">';
   for(const id of ids){const C=OPENING_COURSES[id],o=byId.get(id),p=courseCardProgress(id);
     const exCount=C.chapters.reduce((a,ch)=>a+ch.line.filter(s=>s.ex).length,0);
