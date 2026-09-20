@@ -36,6 +36,11 @@ await tab('world');
 await page.screenshot({path:SP+'/v-career-world.png'});
 await tab('play');
 
+// 2c) Life tab — the weekly planner
+await tab('life');
+await page.screenshot({path:SP+'/v-career-life.png',clip:{x:0,y:0,width:390,height:820}});
+await tab('play');
+
 // 3) Play screen — bots gallery
 await menu('play'); await page.waitForTimeout(120);
 await page.screenshot({path:SP+'/v-play-setup.png',fullPage:true});

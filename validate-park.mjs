@@ -75,7 +75,8 @@ ok(/Purse/.test(X.simulStrip(tr))&&/clear-the-room/.test(X.simulStrip(tr)),'the 
 tr.results=tr.field.map(o=>({name:o.name,rating:o.rating,score:1,delta:2})); tr.round=6;
 const before=c.money, fans=c.fans||0;
 X.finalizeTournament(c);
-ok(c.money>=before+6*60+Math.round(250*0.8),'a clean sweep pays every point plus the clear-the-room bonus');
+ok((c.news||[]).some(n=>/💰560/.test(n.t)),'a clean sweep pays every point (6×60) plus the clear-the-room bonus (200)');
+ok(c.money>before,'the purse lands in your bank, net of what the week cost you');
 ok((c.fans||0)>fans,'a simul wins you new fans');
 ok((c.simuls||0)===1&&(c.simulPerfect||0)===1,'perfect simuls are recorded');
 X.checkAchievements(c);

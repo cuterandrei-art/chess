@@ -51,6 +51,14 @@
   @media(min-width:821px){.botnav{display:none}.topnav{display:flex}}
   @media(max-width:820px){.wrap{padding-bottom:calc(78px + env(safe-area-inset-bottom))}}
   .learngrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(238px,1fr));gap:10px}
+  .actgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:7px}
+  .actcard{display:block;width:100%;text-align:left;padding:9px 10px;border-radius:11px;border:1px solid var(--border);background:var(--panel2);color:var(--text);font:inherit;line-height:1.32;cursor:pointer;transition:.15s}
+  .actcard:hover:not(:disabled){border-color:var(--brand);transform:translateY(-1px)}
+  .actcard:disabled{opacity:.45;cursor:not-allowed}
+  .actcard .an{display:block;font-weight:700;font-size:12.5px}
+  .actcard .ad{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+  .actcard .ac{display:block;font-size:10px;margin-top:3px;color:var(--brand2);font-weight:600}
+  .actcard:disabled .ac{color:#f87171}
   .learncard{display:flex;gap:12px;align-items:center;text-align:left;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;color:var(--text);font:inherit;transition:.15s}
   .learncard:hover{border-color:var(--brand);background:var(--panel2)}
   .learncard .li{font-size:26px;flex:0 0 auto}
@@ -4346,7 +4354,7 @@ function checkTitles(c){const got=[];const peak=titlePeak(c);
     c.titles.push(d.t);got.push(d.t);
   }
   return got;}
-const DEF={repertoire:[],srs:{},custom:[],settings:{newPer:8,pieces:'staunty',theme:'green',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'midnight',accent:'blue',scene:'none'},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char'}};
+const DEF={repertoire:[],srs:{},custom:[],settings:{newPer:8,pieces:'staunty',theme:'green',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'midnight',accent:'blue',scene:'none'},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0}};
 function freshCareer(){return JSON.parse(JSON.stringify(DEF.career));}
 /* Migrate saved career data: the old ladder (with `beaten`/`results`) is reset
    to the new FIDE structure; new-format saves are merged onto fresh defaults. */
@@ -5218,6 +5226,8 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='simtour')simRestOfTour();
   else if(act==='claimdaily')claimDaily();
   else if(act==='careerchal')startChallenge(val);
+  else if(act==='doday')doDay(val);
+  else if(act==='movehome'){var _mc=store.career;var _hm=HOMES.filter(function(x){return x.id===val;})[0];if(_hm&&!homeLocked(_mc,_hm)){_mc.home=_hm.id;pushNews(_mc,_hm.e,'You moved into '+_hm.n.toLowerCase()+' — 💰'+_hm.rent+' a week.');toastAdd(_hm.e+' Moved in: '+_hm.n);save();}}
   else if(act==='avset'){var _av=store.career;var _p=String(val).split(':');if(_p.length===2){if(_p[0]==='acc'&&!avAccUnlocked(_av,_p[1])){app.careerToast='🔒 '+AV_ACC_LOCK[_p[1]].lbl+' to unlock that.';}else{avatarOf(_av)[_p[0]]=_p[1];_av.avatarStyle='char';save();}}}
   else if(act==='avrandom'){var _ar=store.career;var _na=avatarFromSeed((Math.random()*0xffffffff)>>>0);if(!avAccUnlocked(_ar,_na.acc))_na.acc='none';_ar.avatar=_na;_ar.avatarStyle='char';save();}
   else if(act==='avstyle'){var _as=store.career;_as.avatarStyle=_as.avatarStyle==='piece'?'char':'piece';save();}
@@ -5595,8 +5605,8 @@ const COACH_TYPES=[
   {spec:'Endgame guru',salary:60,emoji:'♜',desc:'smaller rating losses'},
 ];
 const SPONSOR_NAMES=['ChessGear','NeoBoard','Gambit Wear','Knightly Foods','Zugzwang Energy','OpenFile Tech','BlitzCola','Endgame Apparel','64 Squares','Caïssa Coffee'];
-function lifeInit(c){if(c.age==null)c.age=16;if(c.pace==null)c.pace=1;if(c.weeks==null)c.weeks=0;if(c.energy==null)c.energy=100;if(c.form==null)c.form=0;if(c.tilt==null)c.tilt=0;if(c.fame==null)c.fame=0;if(c.fans==null)c.fans=0;if(c.reputation==null)c.reputation=50;if(!c.coaches)c.coaches=[];if(c.prep==null)c.prep=0;if(!c.h2h)c.h2h={};if(c.sponsor===undefined)c.sponsor=null;if(c.objective===undefined)c.objective=null;if(c.retired==null)c.retired=false;if(c.pressPending===undefined)c.pressPending=null;if(c.rival===undefined)c.rival=null;if(!c.achievements)c.achievements=[];if(!c.news)c.news=[];if(c.preppedOpening===undefined)c.preppedOpening=null;if(c.tacticsTrained==null)c.tacticsTrained=0;if(c.xp==null)c.xp=0;if(!c.perks)c.perks={};if(Array.isArray(c.perks)){var _pm={};c.perks.forEach(function(_k){_pm[_k]=1;});c.perks=_pm;}if(c.season==null)c.season=Math.floor((c.weeks||0)/52)+1;if(!c.prepUsage)c.prepUsage={};if(c.protege===undefined)c.protege=null;if(c.winStreak==null)c.winStreak=0;if(c.bestWinStreak==null)c.bestWinStreak=0;if(c.unbeaten==null)c.unbeaten=0;if(c.weeksAtNo1==null)c.weeksAtNo1=0;if(c.noveltyCharge==null)c.noveltyCharge=1;if(c.noveltyArmed==null)c.noveltyArmed=false;if(c.noveltyCd==null)c.noveltyCd=0;if(!c.theory)c.theory={};if(c.refuted===undefined)c.refuted=null;if(c.trendy===undefined)c.trendy=null;if(c.youngGun===undefined)c.youngGun=null;if(c.scandal===undefined)c.scandal=null;if(c.subs==null)c.subs=0;if(c.collabCd==null)c.collabCd=0;if(!c.assets)c.assets=[];if(c.club===undefined)c.club=null;if(!c.books)c.books=[];if(c.backer===undefined)c.backer=null;if(c.fedCd==null)c.fedCd=0;if(c.broadcasts==null)c.broadcasts=0;if(c.academy===undefined)c.academy=null;if(c.gmsMade==null)c.gmsMade=0;if(!c.legendsBeaten)c.legendsBeaten=[];if(c.injury===undefined)c.injury=null;if(c.burnout==null)c.burnout=0;if(c.calendar===undefined)c.calendar=null;if(!c.calDone)c.calDone=[];if(c.transferred==null)c.transferred=false;if(c.dilemma===undefined)c.dilemma=null;if(c.mercDeeds==null)c.mercDeeds=0;if(c.heroDeeds==null)c.heroDeeds=0;if(c.lastBonusDay===undefined)c.lastBonusDay=null;if(c.skillPts==null)c.skillPts=0;if(c.lvlSeen==null)c.lvlSeen=charLevel(c);if(!c.circuit)c.circuit={pts:0,season:c.season||1};if(!c.social)c.social={followers:0,verified:false,posts:0,cd:0};if(!c.classicsStudied)c.classicsStudied=[];if(!c.roadDone)c.roadDone=[];if(!c.feed)c.feed=[];if(c.arc===undefined)c.arc=null;if(!c.arcsDone)c.arcsDone=[];if(!c.arcBadges)c.arcBadges=[];if(!c.avatar)c.avatar=avatarDefaults(c);if(!c.avatarStyle)c.avatarStyle='char';if(c.simuls==null)c.simuls=0;if(c.simulPerfect==null)c.simulPerfect=0;parkInit(c);if(!c._seed){c.money=(c.money||0)+1500;c._seed=true;}}
-function maxEnergy(c){var base=c.age>=38?Math.max(72,100-Math.round((c.age-38)*2.5)):100;var e=base+(hasAsset(c,'gym')?8:0)+(hasAsset(c,'house')?12:0);if(c.injury)e-=(c.injury.sev||1)*10;return Math.max(40,e);}
+function lifeInit(c){if(c.age==null)c.age=16;if(c.pace==null)c.pace=1;if(c.weeks==null)c.weeks=0;if(c.energy==null)c.energy=100;if(c.form==null)c.form=0;if(c.tilt==null)c.tilt=0;if(c.fame==null)c.fame=0;if(c.fans==null)c.fans=0;if(c.reputation==null)c.reputation=50;if(!c.coaches)c.coaches=[];if(c.prep==null)c.prep=0;if(!c.h2h)c.h2h={};if(c.sponsor===undefined)c.sponsor=null;if(c.objective===undefined)c.objective=null;if(c.retired==null)c.retired=false;if(c.pressPending===undefined)c.pressPending=null;if(c.rival===undefined)c.rival=null;if(!c.achievements)c.achievements=[];if(!c.news)c.news=[];if(c.preppedOpening===undefined)c.preppedOpening=null;if(c.tacticsTrained==null)c.tacticsTrained=0;if(c.xp==null)c.xp=0;if(!c.perks)c.perks={};if(Array.isArray(c.perks)){var _pm={};c.perks.forEach(function(_k){_pm[_k]=1;});c.perks=_pm;}if(c.season==null)c.season=Math.floor((c.weeks||0)/52)+1;if(!c.prepUsage)c.prepUsage={};if(c.protege===undefined)c.protege=null;if(c.winStreak==null)c.winStreak=0;if(c.bestWinStreak==null)c.bestWinStreak=0;if(c.unbeaten==null)c.unbeaten=0;if(c.weeksAtNo1==null)c.weeksAtNo1=0;if(c.noveltyCharge==null)c.noveltyCharge=1;if(c.noveltyArmed==null)c.noveltyArmed=false;if(c.noveltyCd==null)c.noveltyCd=0;if(!c.theory)c.theory={};if(c.refuted===undefined)c.refuted=null;if(c.trendy===undefined)c.trendy=null;if(c.youngGun===undefined)c.youngGun=null;if(c.scandal===undefined)c.scandal=null;if(c.subs==null)c.subs=0;if(c.collabCd==null)c.collabCd=0;if(!c.assets)c.assets=[];if(c.club===undefined)c.club=null;if(!c.books)c.books=[];if(c.backer===undefined)c.backer=null;if(c.fedCd==null)c.fedCd=0;if(c.broadcasts==null)c.broadcasts=0;if(c.academy===undefined)c.academy=null;if(c.gmsMade==null)c.gmsMade=0;if(!c.legendsBeaten)c.legendsBeaten=[];if(c.injury===undefined)c.injury=null;if(c.burnout==null)c.burnout=0;if(c.calendar===undefined)c.calendar=null;if(!c.calDone)c.calDone=[];if(c.transferred==null)c.transferred=false;if(c.dilemma===undefined)c.dilemma=null;if(c.mercDeeds==null)c.mercDeeds=0;if(c.heroDeeds==null)c.heroDeeds=0;if(c.lastBonusDay===undefined)c.lastBonusDay=null;if(c.skillPts==null)c.skillPts=0;if(c.lvlSeen==null)c.lvlSeen=charLevel(c);if(!c.circuit)c.circuit={pts:0,season:c.season||1};if(!c.social)c.social={followers:0,verified:false,posts:0,cd:0};if(!c.classicsStudied)c.classicsStudied=[];if(!c.roadDone)c.roadDone=[];if(!c.feed)c.feed=[];if(c.arc===undefined)c.arc=null;if(!c.arcsDone)c.arcsDone=[];if(!c.arcBadges)c.arcBadges=[];if(!c.home)c.home='hostel';if(c.health==null)c.health=100;if(c.mood==null)c.mood=62;if(c.day==null)c.day=0;if(!c.dayLog)c.dayLog=[];if(!c.weekLog)c.weekLog=[];if(c.debt==null)c.debt=0;if(c.lifeWeeks==null)c.lifeWeeks=0;if(!c.avatar)c.avatar=avatarDefaults(c);if(!c.avatarStyle)c.avatarStyle='char';if(c.simuls==null)c.simuls=0;if(c.simulPerfect==null)c.simulPerfect=0;parkInit(c);if(!c._seed){c.money=(c.money||0)+1500;c._seed=true;}}
+function maxEnergy(c){var base=c.age>=38?Math.max(72,100-Math.round((c.age-38)*2.5)):100;var e=base+(hasAsset(c,'gym')?8:0)+(hasAsset(c,'house')?12:0);e+=Math.round(((c.health==null?100:c.health)-75)/6);if(c.injury)e-=(c.injury.sev||1)*10;return Math.max(40,e);}
 function hasCoach(c,spec){return (c.coaches||[]).some(function(x){return x.spec===spec;});}
 function cbar(v,max,color){var p=Math.max(0,Math.min(100,v/max*100));return '<div style="height:7px;background:#1e293b;border-radius:5px;overflow:hidden;margin-top:3px"><i style="display:block;height:100%;width:'+p+'%;background:'+color+'"></i></div>';}
 function lifeAfterGame(score){var c=store.career;lifeInit(c);
@@ -5627,7 +5637,7 @@ function lifeAfterGame(score){var c=store.career;lifeInit(c);
   lifeCheckObjectiveGame(c,score);checkLevelUp(c);}
 function lifeAfterEvent(tr,place,games){var c=store.career;lifeInit(c);
   if(typeof questBump==='function')questBump('event',1);
-  var travel=1+Math.round((tr.tier||0)/4);var wk=games+travel;c.weeks=(c.weeks||0)+wk;c.age=Math.round((c.age+wk/52)*100)/100;
+  var travel=1+Math.round((tr.tier||0)/4);var wk=games+travel;c.weeks=(c.weeks||0)+wk;c.age=Math.round((c.age+wk/52)*100)/100;c.day=0;c.dayLog=[];lifeAdvanceWeeks(c,wk,0.45);c.health=Math.max(0,(c.health||100)-Math.min(12,wk*1.2));
   c.energy=Math.min(maxEnergy(c),c.energy+22+(hasAsset(c,'chef')?8:0)+(hasAsset(c,'house')?6:0)+(hasAsset(c,'biz')?8:0)+(styleClass(c).cls==='Technician'?6:0));
   var salary=0;(c.coaches||[]).forEach(function(co){salary+=co.salary*wk;});if(salary)c.money=Math.max(0,(c.money||0)-salary);
   if(c.sponsor){c.money=(c.money||0)+c.sponsor.perWeek*wk;c.sponsor.weeksLeft-=wk;if(c.sponsor.weeksLeft<=0){app.careerToast='Your deal with '+c.sponsor.name+' has ended.';c.sponsor=null;}}
@@ -5693,7 +5703,7 @@ function lifeCheckObjectiveGame(c,score){var o=c.objective;if(!o)return;var done
   else if(o.kind==='money')done=(c.money||0)>=o.target;
   if(done)completeObjective(c);}
 function sponsorOffer(c){if(c.sponsor)return null;var r=youRating(c,'classical')||1200;if(r<1500&&(c.fame||0)<8)return null;var per=Math.round((r-1100)/4+(c.fame||0)*6+15);if(per<12)per=12;var weeks=12+Math.floor((c.fame||0)/10)*4;return {name:SPONSOR_NAMES[(Math.floor(r/50)+Math.floor(c.fame||0))%SPONSOR_NAMES.length],perWeek:per,weeks:weeks};}
-function careerRest(){var c=store.career;lifeInit(c);c.weeks++;c.age=Math.round((c.age+1/52)*100)/100;c.energy=Math.min(maxEnergy(c),c.energy+(hasCoach(c,'Fitness trainer')?40:30));c.tilt=Math.max(0,c.tilt-25);c.form=Math.round(c.form*0.7);c.burnout=Math.max(0,(c.burnout||0)-10);tickInjury(c,1);if(c.sponsor){c.money+=c.sponsor.perWeek;c.sponsor.weeksLeft--;if(c.sponsor.weeksLeft<=0)c.sponsor=null;}(c.coaches||[]).forEach(function(co){c.money=Math.max(0,c.money-co.salary);});save();render();}
+function careerRest(){var c=store.career;lifeInit(c);c.weeks++;c.age=Math.round((c.age+1/52)*100)/100;c.day=0;c.dayLog=[];lifeAdvanceWeeks(c,1);c.mood=Math.min(100,(c.mood||62)+5);c.health=Math.min(100,(c.health||100)+6);c.energy=Math.min(maxEnergy(c),c.energy+(hasCoach(c,'Fitness trainer')?40:30));c.tilt=Math.max(0,c.tilt-25);c.form=Math.round(c.form*0.7);c.burnout=Math.max(0,(c.burnout||0)-10);tickInjury(c,1);if(c.sponsor){c.money+=c.sponsor.perWeek;c.sponsor.weeksLeft--;if(c.sponsor.weeksLeft<=0)c.sponsor=null;}(c.coaches||[]).forEach(function(co){c.money=Math.max(0,c.money-co.salary);});save();render();}
 function careerCamp(){var c=store.career;lifeInit(c);if((c.money||0)<300||c.energy<20)return;c.money-=300;c.energy=Math.max(0,c.energy-20);c.weeks+=2;c.age=Math.round((c.age+2/52)*100)/100;c.tilt=Math.max(0,c.tilt-40);c.form=Math.min(100,c.form+15);c.prep=(c.prep||0)+3;c.burnout=Math.max(0,(c.burnout||0)-20);tickInjury(c,2);app.careerToast='🏕️ Training camp done — sharper and calmer.';save();render();}
 /* ===== Streaming & content: a channel that grows alongside the chess career ===== */
 const STREAMERS=['BlitzBaron','GambitGwen','RookieRumble','PawnStormPete','GM Giggles','TheChessParrot','EnPassantElla','64SquaresSam','ZugzwangZoe','CheckmateChad','BongcloudBro','TacticsTina','DrawOfferDan','SwindleSue','FlaggedFred','TiltedTed'];
@@ -5851,13 +5861,188 @@ function pressChoose(k){var c=store.career;lifeInit(c);if(!c.pressPending)return
 function retireCareer(){var c=store.career;lifeInit(c);c.retired=true;c.hof={peak:c.peak,rating:c.rating,titles:(c.titles||[]).slice(),honors:(c.honors||[]).slice(),money:c.money,age:c.age,years:Math.round((c.weeks||0)/52),fans:c.fans,best:bestTitle(c),protege:c.protege?{name:c.protege.name,peak:c.protege.peak}:null,gmsMade:c.gmsMade||0,broadcasts:c.broadcasts||0,allTime:allTimeRank(c).rank,verdict:legacyVerdict(c),persona:personaChip(c),style:(playingStyle(c)||{}).key||null};
   store.legacy={peak:Math.max((store.legacy&&store.legacy.peak)||0,c.peak||0,c.protege?(c.protege.peak-300):0),careers:((store.legacy&&store.legacy.careers)||0)+1};save();render();}
 function newCareer(){var leg=store.legacy;store.career=freshCareer();if(leg&&leg.peak>1200){store.career.xp=Math.min(90,Math.round((leg.peak-1200)/14));store.career.money=(store.career.money||0)+Math.min(4000,leg.careers*1200);}app.careerFinish=null;app.careerToast=(leg&&leg.peak>1200)?('🔄 New Game+ — your reputation precedes you (+'+store.career.xp+' XP head start).'):null;app.careerTour=false;app.careerOneoff=null;save();render();}
+/* ================= A LIFE, NOT A BUTTON =================
+   Weeks used to pass in one click. Now a week is seven days and each day is
+   something you actually chose to do — sleep, train, study, take a coaching
+   shift because rent is due on Sunday. Rent and food come out of the same
+   money you win at the board, and how you live shows up in how you play. */
+const HOMES=[
+  {id:'couch',e:'🛋️',n:'A friend’s couch',rent:0,rest:16,mood:-4,need:0,d:'Free. You feel it every morning.'},
+  {id:'hostel',e:'🛏️',n:'Chess hostel bunk',rent:70,rest:22,mood:0,need:0,d:'Cheap, loud, full of people analysing at 2am.'},
+  {id:'shared',e:'🏠',n:'Shared flat',rent:200,rest:29,mood:3,need:0,d:'Your own door. Someone else’s dishes.'},
+  {id:'studio',e:'🏢',n:'Studio apartment',rent:480,rest:35,mood:7,need:1800,d:'Quiet enough to study in. That matters more than it sounds.'},
+  {id:'house',e:'🏡',n:'Townhouse',rent:1200,rest:42,mood:11,need:2200,d:'A study, a spare room for your second, a real bed.'},
+  {id:'penthouse',e:'🌆',n:'City penthouse',rent:3200,rest:50,mood:16,need:2500,d:'The view alone is worth a hundred rating points. Probably.'}
+];
+function homeIdx(c){var id=(c&&c.home)||'hostel';for(var i=0;i<HOMES.length;i++)if(HOMES[i].id===id)return i;return 1;}
+function homeOf(c){return HOMES[homeIdx(c)];}
+function homeLocked(c,h){
+  if(h.need&&(c.peak||0)<h.need&&(c.money||0)<h.rent*12)return 'needs '+h.need+' peak or 💰'+(h.rent*12)+' banked';
+  return null;
+}
+function lifeCosts(c,n){n=n||1;var hm=homeOf(c);
+  var rent=hm.rent*n,food=Math.round((45+(c.fame||0)*0.7)*n);
+  return {rent:rent,food:food,total:rent+food};
+}
+function coachingPay(c){var r=Math.max(c.peak||0,c.rating||0,1000);return Math.round(55+Math.max(0,r-1200)/7)+((c.titles||[]).length?60:0);}
+/* costMult < 1 while you are away at an event — the organiser covers part of
+   your board, which is how the circuit actually works. */
+function lifeAdvanceWeeks(c,n,costMult){
+  n=n||1;lifeInit(c);
+  var cost=lifeCosts(c,n);
+  if(costMult!=null&&costMult!==1){cost={rent:Math.round(cost.rent*costMult),food:Math.round(cost.food*costMult),total:0};cost.total=cost.rent+cost.food;}
+  var pay=Math.min(c.money||0,cost.total);
+  c.money=(c.money||0)-pay;
+  var short=cost.total-pay;
+  if(short>0){
+    c.debt=(c.debt||0)+short;
+    c.mood=Math.max(0,(c.mood||60)-9*n);c.health=Math.max(0,(c.health||100)-3*n);
+    pushNews(c,'💸','Bills came to 💰'+cost.total+' and you were 💰'+short+' short. Debt: 💰'+c.debt+'.');
+    var hi=homeIdx(c);
+    if(c.debt>=Math.max(300,homeOf(c).rent*3)&&hi>0){
+      c.home=HOMES[hi-1].id;c.debt=Math.max(0,c.debt-homeOf(c).rent*2);
+      c.mood=Math.max(0,(c.mood||60)-10);
+      pushNews(c,'📦','You couldn’t keep up the rent and moved into '+HOMES[hi-1].n.toLowerCase()+'.');
+      toastAdd('📦 You had to move somewhere cheaper.');
+    }
+  } else if((c.debt||0)>0&&(c.money||0)>c.debt){
+    c.money-=c.debt;pushNews(c,'✅','You cleared 💰'+c.debt+' of debt.');c.debt=0;
+  }
+  // needs drift: life wears on you unless you look after it
+  var age=c.age||16;
+  c.health=Math.max(0,Math.min(100,(c.health==null?100:c.health)-(0.9+(age>=38?(age-38)*0.09:0))*n));
+  c.mood=Math.max(0,Math.min(100,(c.mood==null?60:c.mood)-1.6*n+((c.fame||0)>50?0.6*n:0)));
+  if(c.health<35&&!c.injury&&Math.random()<0.18*n){
+    c.injury={type:'run-down and ill',weeksLeft:1+Math.floor(Math.random()*2),sev:1};
+    pushNews(c,'🤒','You let your health slide and it caught up with you.');
+  }
+  c.bills={rent:cost.rent,food:cost.food,total:cost.total};
+}
+const PLACES=[
+  {id:'rest',e:'🛌',n:'Rest at home',d:'Sleep, eat, do nothing much.',cost:0,
+   note:function(c){return '+'+homeOf(c).rest+' energy · −tilt';},
+   fx:function(c){var hm=homeOf(c);c.energy=Math.min(maxEnergy(c),(c.energy||0)+hm.rest);c.health=Math.min(100,(c.health||100)+4);
+     c.mood=Math.max(0,Math.min(100,(c.mood||60)+2+hm.mood*0.4));c.tilt=Math.max(0,(c.tilt||0)-9);
+     c.form=Math.round((c.form||0)*0.94);c.burnout=Math.max(0,(c.burnout||0)-6);}},
+  {id:'gym',e:'🏋️',n:'Train at the gym',d:'Chess is physical at the eighth hour.',cost:25,energy:16,
+   note:function(){return '+health +stamina';},
+   fx:function(c){c.health=Math.min(100,(c.health||100)+9);c.energy=Math.max(0,c.energy-16);
+     c.mood=Math.min(100,(c.mood||60)+3);c.burnout=Math.max(0,(c.burnout||0)-4);}},
+  {id:'study',e:'📚',n:'Study session',d:'Alone with the board and a database.',cost:0,energy:18,
+   note:function(){return '+prep +XP';},
+   fx:function(c){c.prep=(c.prep||0)+1;addXp(c,45);c.energy=Math.max(0,c.energy-18);
+     c.mood=Math.max(0,(c.mood||60)-2);c.form=Math.min(100,(c.form||0)+3);}},
+  {id:'club',e:'♟️',n:'Club night',d:'Casual games, blitz and gossip.',cost:15,energy:15,
+   note:function(){return '+form +mood';},
+   fx:function(c){c.form=Math.min(100,(c.form||0)+8);c.mood=Math.min(100,(c.mood||60)+7);
+     c.energy=Math.max(0,c.energy-15);addXp(c,25);c.fans=(c.fans||0)+8;}},
+  {id:'cafe',e:'☕',n:'Café with friends',d:'People who don’t want to talk about chess.',cost:30,
+   note:function(){return '++mood −tilt';},
+   fx:function(c){c.mood=Math.min(100,(c.mood||60)+13);c.tilt=Math.max(0,(c.tilt||0)-11);
+     c.energy=Math.min(maxEnergy(c),(c.energy||0)+6);}},
+  {id:'work',e:'💼',n:'Take a coaching shift',d:'Somebody’s child, four hours, cash in hand.',cost:0,energy:20,
+   note:function(c){return '+💰'+coachingPay(c);},
+   fx:function(c){c.money=(c.money||0)+coachingPay(c);c.energy=Math.max(0,c.energy-20);
+     c.mood=Math.max(0,(c.mood||60)-4);addXp(c,10);}},
+  {id:'park',e:'🏙️',n:'Go down to the park',d:'The tables are always busy. Bring cash.',cost:0,
+   note:function(){return 'opens the hustlers’ tables';},
+   fx:function(c){c.mood=Math.min(100,(c.mood||60)+5);c.energy=Math.max(0,(c.energy||0)-6);},
+   after:function(){app.careerTab='play';app.careerToast='🏙️ You’re at the park — pick a table below.';}},
+  {id:'therapy',e:'🧘',n:'See the sports psychologist',d:'An hour on why the clock frightens you.',cost:160,
+   note:function(){return '−−tilt +mood';},
+   fx:function(c){c.tilt=Math.max(0,(c.tilt||0)-32);c.mood=Math.min(100,(c.mood||60)+9);
+     c.burnout=Math.max(0,(c.burnout||0)-9);}},
+  {id:'physio',e:'🩺',n:'Physio session',d:'Get the injury looked at properly.',cost:220,gate:function(c){return !!c.injury;},
+   note:function(){return 'heals faster';},
+   fx:function(c){if(c.injury){c.injury.weeksLeft=Math.max(0,c.injury.weeksLeft-1);if(c.injury.weeksLeft<=0){pushNews(c,'💪','The physio signed you off — you’re fit again.');c.injury=null;}}
+     c.health=Math.min(100,(c.health||100)+12);}},
+  {id:'getaway',e:'✈️',n:'Weekend away',d:'No board, no clock, no phone.',cost:750,
+   note:function(){return 'resets everything';},
+   fx:function(c){c.mood=Math.min(100,(c.mood||60)+26);c.energy=maxEnergy(c);c.tilt=0;
+     c.burnout=Math.max(0,(c.burnout||0)-22);c.health=Math.min(100,(c.health||100)+8);c.form=Math.round((c.form||0)*0.8);}}
+];
+function placeById(id){return PLACES.filter(function(p){return p.id===id;})[0]||null;}
+function placeBlocked(c,p){
+  if(p.gate&&!p.gate(c))return 'not needed';
+  if(p.cost&&(c.money||0)<p.cost)return 'costs 💰'+p.cost;
+  if(p.energy&&(c.energy||0)<p.energy)return 'too tired';
+  return null;
+}
+function doDay(id){
+  var c=store.career;lifeInit(c);
+  if(c.tour){app.careerToast='You’re in the middle of an event — finish it first.';render();return;}
+  var p=placeById(id);if(!p||placeBlocked(c,p))return;
+  if(p.cost)c.money=(c.money||0)-p.cost;
+  p.fx(c);
+  c.dayLog=c.dayLog||[];c.dayLog.push({id:p.id,e:p.e});
+  c.day=(c.day||0)+1;
+  if(p.after)p.after();
+  if(c.day>=7)endOfWeek(c);
+  checkAchievements(c);save();render();
+}
+function endOfWeek(c){
+  var spent=(c.dayLog||[]).length;
+  c.day=0;c.weeks=(c.weeks||0)+1;c.age=Math.round((c.age+1/52)*100)/100;
+  lifeAdvanceWeeks(c,1);tickInjury(c,1);
+  var rests=(c.dayLog||[]).filter(function(d){return d.id==='rest';}).length;
+  if(rests>=5)c.form=Math.round((c.form||0)*0.85);
+  if(spent>=7&&rests===0)c.burnout=Math.min(100,(c.burnout||0)+7);
+  c.weekLog=c.dayLog||[];c.dayLog=[];
+  c.lifeWeeks=(c.lifeWeeks||0)+1;
+  arcTick(c);
+  pushNews(c,'📅','Week '+(c.weeks||0)+' done — bills 💰'+((c.bills&&c.bills.total)||0)+' paid.');
+}
+function careerDayPanel(c){
+  var day=c.day||0,log=c.dayLog||[],bills=lifeCosts(c,1);
+  var hm=homeOf(c);
+  var strip=[];
+  for(var i=0;i<7;i++){
+    var did=log[i];
+    strip.push('<div style="flex:1;min-width:0;text-align:center;padding:5px 1px;border-radius:7px;background:'+(did?'rgba(96,165,250,.16)':(i===day?'rgba(245,158,11,.18)':'rgba(255,255,255,.03)'))+';border:1px solid '+(i===day&&!did?'var(--amber)':'var(--border)')+'">'+
+      '<div style="font-size:15px;line-height:1.1">'+(did?did.e:(i===day?'▸':'·'))+'</div>'+
+      '<div class="dim" style="font-size:9px">'+['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][i]+'</div></div>');
+  }
+  var h='<div class="card" style="margin-bottom:12px">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<div><div style="font-weight:700">📅 Your week</div><div class="dim small">'+hm.e+' '+esc(hm.n)+' · rent 💰'+bills.rent+' + food 💰'+bills.food+' due Sunday</div></div>'+
+      '<div style="text-align:right"><div style="font-weight:800;color:#fbbf24">💰 '+(c.money||0).toLocaleString()+'</div>'+((c.debt||0)>0?'<div class="small" style="color:#f87171">debt 💰'+c.debt+'</div>':'<div class="dim small">day '+Math.min(day+1,7)+' of 7</div>')+'</div></div>'+
+    '<div class="row" style="gap:4px;margin:9px 0 4px">'+strip.join('')+'</div>';
+  if(c.tour)return h+'<div class="dim small" style="margin-top:6px">You’re playing '+esc(c.tour.name)+' — life goes on hold until the event is over.</div></div>';
+  h+='<div class="dim small" style="margin-bottom:6px">Pick one thing to do today. Seven days make a week, and the bills arrive whether you played well or not.</div>';
+  h+='<div class="actgrid">'+
+    PLACES.map(function(p){
+      if(p.gate&&!p.gate(c))return '';
+      var blocked=placeBlocked(c,p);
+      return '<button class="actcard" data-act="doday" data-val="'+p.id+'"'+(blocked?' disabled':'')+'>'+
+        '<span class="an">'+p.e+' '+esc(p.n)+'</span>'+
+        '<span class="ad">'+esc(p.d)+'</span>'+
+        '<span class="ac">'+(blocked?esc(blocked):(p.cost?'💰'+p.cost+' · ':'')+esc(p.note(c)))+'</span></button>';
+    }).join('')+'</div>';
+  return h+'</div>';
+}
+function careerHomePanel(c){
+  var cur=homeIdx(c);
+  return '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:2px">🏠 Where you live</div>'+
+    '<div class="dim small" style="margin-bottom:6px">Rent comes out every week. A better place recovers more energy a night and lifts your mood — and it is the first thing you lose if the money runs out.</div>'+
+    HOMES.map(function(hm,i){
+      var lock=homeLocked(c,hm),here=i===cur;
+      return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border)'+(lock&&!here?';opacity:.5':'')+'">'+
+        '<span class="small" style="flex:1;min-width:0">'+hm.e+' <b>'+esc(hm.n)+'</b> <span class="dim">— '+esc(hm.d)+'</span><br><span class="dim" style="font-size:10px">💰'+hm.rent+'/week · +'+hm.rest+' energy a night'+(hm.mood?' · '+(hm.mood>0?'+':'')+hm.mood+' mood':'')+'</span></span>'+
+        (here?'<span class="chip green" style="flex:0 0 auto">Home</span>'
+            :(lock?'<span class="dim small" style="flex:0 0 auto;text-align:right;max-width:130px">🔒 '+esc(lock)+'</span>'
+                 :'<button class="btn sec sm" data-act="movehome" data-val="'+hm.id+'" style="flex:0 0 auto">Move in</button>'))+
+        '</div>';
+    }).join('')+'</div>';
+}
 function careerLifePanel(c){var em=maxEnergy(c);
   var h='<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">🧬 Life &amp; condition</div><div class="dim small">Age '+Math.floor(c.age)+' · Season '+(Math.floor((c.weeks||0)/52)+1)+' · 👥 '+(c.fans||0).toLocaleString()+'</div></div>';
   h+='<div class="grid" style="grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:8px">'+
     '<div><div class="dim small">⚡ Energy '+Math.round(c.energy)+'/'+em+'</div>'+cbar(c.energy,em,'#22c55e')+'</div>'+
     '<div><div class="dim small">😖 Tilt '+Math.round(c.tilt)+(c.tilt>=60?' ⚠️':'')+'</div>'+cbar(c.tilt,100,'#f43f5e')+'</div>'+
     '<div><div class="dim small">📈 Form '+(c.form>0?'+':'')+Math.round(c.form)+'</div>'+cbar((c.form+100)/2,100,'#33a2ff')+'</div>'+
-    '<div><div class="dim small">⭐ Fame '+Math.round(c.fame)+'</div>'+cbar(c.fame,100,'#f59e0b')+'</div></div>';
+    '<div><div class="dim small">⭐ Fame '+Math.round(c.fame)+'</div>'+cbar(c.fame,100,'#f59e0b')+'</div>'+
+    '<div><div class="dim small">❤️ Health '+Math.round(c.health==null?100:c.health)+((c.health||100)<40?' ⚠️':'')+'</div>'+cbar(c.health==null?100:c.health,100,'#ef4444')+'</div>'+
+    '<div><div class="dim small">🙂 Mood '+Math.round(c.mood==null?62:c.mood)+((c.mood||62)<30?' ⚠️':'')+'</div>'+cbar(c.mood==null?62:c.mood,100,'#a855f7')+'</div></div>';
   h+='<div class="dim small" style="margin-top:8px">🧭 '+careerPhase(c)+(c.injury?' · <span style="color:#fda4af">🤕 '+esc(c.injury.type)+' ('+c.injury.weeksLeft+' wk'+(c.injury.weeksLeft===1?'':'s')+')</span>':'')+'</div>';
   if((c.burnout||0)>0)h+='<div style="margin-top:6px"><div class="dim small">🔥 Burnout '+Math.round(c.burnout)+(c.burnout>=60?' ⚠️':'')+'</div>'+cbar(c.burnout,100,'#f97316')+'</div>';
   h+='<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:10px">'+
@@ -6498,7 +6683,7 @@ function maybeInjury(c){if(c.injury)return;var risk=0.025+(c.age>=38?(c.age-38)*
 function treatInjury(){var c=store.career;lifeInit(c);if(!c.injury)return;var cost=200*(c.injury.sev||1);if((c.money||0)<cost)return;c.money-=cost;c.injury.weeksLeft=Math.max(0,c.injury.weeksLeft-3);
   if(c.injury.weeksLeft<=0){var t=c.injury.type;c.injury=null;pushNews(c,'💪','Physiotherapy cleared up your '+t+'.');app.careerToast='💪 Physio sorted out your '+t+' (−💰'+cost+').';}
   else app.careerToast='🩹 Treatment is helping — '+c.injury.weeksLeft+' wks to go (−💰'+cost+').';save();render();}
-function careerSabbatical(){var c=store.career;lifeInit(c);var wk=8;c.weeks=(c.weeks||0)+wk;c.age=Math.round((c.age+wk/52)*100)/100;c.energy=maxEnergy(c);c.tilt=0;c.burnout=0;c.form=Math.round((c.form||0)*0.4);tickInjury(c,wk);pushNews(c,'🌴','You took an 8-week sabbatical to recharge.');app.careerToast='🌴 Sabbatical over — fully rested and recharged.';save();render();}
+function careerSabbatical(){var c=store.career;lifeInit(c);var wk=8;c.weeks=(c.weeks||0)+wk;c.age=Math.round((c.age+wk/52)*100)/100;c.day=0;c.dayLog=[];lifeAdvanceWeeks(c,wk,0.8);c.health=Math.min(100,(c.health||100)+25);c.mood=Math.min(100,(c.mood||62)+25);c.energy=maxEnergy(c);c.tilt=0;c.burnout=0;c.form=Math.round((c.form||0)*0.4);tickInjury(c,wk);pushNews(c,'🌴','You took an 8-week sabbatical to recharge.');app.careerToast='🌴 Sabbatical over — fully rested and recharged.';save();render();}
 /* ===== Season calendar & planner (a non-invasive overlay that frames your year) ===== */
 function genCalendar(c){var yr=youRating(c,'classical')||c.rating||1400;
   var elig=TOURNAMENTS.filter(function(t){return (!t.kind||t.kind!=='match')&&!t.requires&&t.minRating<=yr+150&&t.avg<=yr+360;});
@@ -6705,6 +6890,8 @@ function careerTrophyPanel(c){
 /* ===== Condition-aware simulation + opponents that react to your persona ===== */
 function conditionMod(c){var d=0;
   d+=Math.round((c.form||0)*0.35);
+  d+=Math.round(((c.mood==null?62:c.mood)-55)*0.22);
+  if((c.health==null?100:c.health)<60)d-=Math.round((60-c.health)*0.35);
   if(c.energy<35)d-=Math.round((35-c.energy)*1.1);
   if((c.tilt||0)>=60)d-=18;
   if((c.burnout||0)>=60)d-=12;
@@ -7082,7 +7269,9 @@ function careerTabContent(c,tab){
     h+=careerCircuitPanel(c);
     if(!c.tour){h+=careerRivalryPanel(c);if(c.rival)h+=scoutCard(c,{name:c.rival.name,rating:rivalRating(c)},'Your rival');}
   } else if(tab==='life'){
+    h+=careerDayPanel(c);
     h+=careerLifePanel(c);
+    h+=careerHomePanel(c);
     h+=careerTeamPanel(c);
     h+=careerLifestylePanel(c);
     h+=careerBackerPanel(c);
@@ -7152,7 +7341,7 @@ function careerHeader(c){
   const honors=(c.honors||[]).length?('<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><span class="dim small" style="margin-right:6px">Honours:</span>'+c.honors.map(hn=>'<span class="chip green" style="font-weight:700;margin-right:4px">'+honorEmoji(hn)+' '+esc(hn)+'</span>').join('')+'</div>'):'';
   let h='<div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:10px"><div class="row" style="gap:11px;align-items:center"><div style="flex:0 0 auto">'+playerAvatar(c,52)+'</div><div>'+
     '<h1 style="margin-bottom:2px">'+(bt?'<span style="color:var(--brand2)">'+bt+'</span> ':'')+esc(c.name)+' <span style="font-size:18px">'+(c.flag||'♟')+'</span></h1>'+
-    '<div class="muted small">'+esc(c.fed)+' · '+(c.gender==='women'?'Women’s':'Open')+' track · '+rec+' record · '+(c.played||0)+' games'+paceTag(c)+'</div>'+(personaChip(c)?'<div class="small" style="margin-top:4px;color:var(--brand2)">'+personaChip(c)+'</div>':'')+'</div></div></div>';
+    '<div class="muted small">'+esc(c.fed)+' · '+(c.gender==='women'?'Women’s':'Open')+' track · '+rec+' record · '+(c.played||0)+' games'+paceTag(c)+' · <span title="Days used this week">⏳ day '+Math.min((c.day||0)+1,7)+'/7</span></div>'+(personaChip(c)?'<div class="small" style="margin-top:4px;color:var(--brand2)">'+personaChip(c)+'</div>':'')+'</div></div></div>';
   h+='<div class="row" style="margin-bottom:12px">'+
     stat('Classical',fmtRating(c.provisional?null:c.rating),'var(--brand2)',subC)+
     stat('Rapid',fmtRating(c.ratingRapid),'var(--text)',subR)+
