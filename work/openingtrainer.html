@@ -4966,10 +4966,11 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='mplay'){const g=MASTERGAMES[app.mGame],c=new Chess(),ms=g.m.split(' ');for(let k=0;k<Math.min(app.mIdx||0,ms.length);k++){try{c.move(ms[k]);}catch(e){break;}}startPlay(c.fen(),turnOf(c.fen()),null,'From master game');}
   else if(act==='classicopen'){app.classicId=val;app.classicPly=0;app.classicFlip=false;render();}
   else if(act==='classicback'){app.classicId=null;render();}
-  else if(act==='guessans'){var Gg=app.guess;if(Gg&&Gg.q&&!Gg.answered){Gg.answered=true;Gg.choice=val;Gg.total++;if(val===Gg.q.correct){Gg.lastPts=10+Math.min(10,Gg.streak*2);Gg.score+=Gg.lastPts;Gg.streak++;if(Gg.score>(store.guessBest||0))store.guessBest=Gg.score;}else{Gg.lastPts=0;Gg.streak=0;}if(typeof markActiveDay==='function')markActiveDay();save();render();}}
+  else if(act==='guessans'){var Gg=app.guess;if(Gg&&Gg.q&&!Gg.answered){Gg.answered=true;Gg.choice=val;Gg.total++;if(val===Gg.q.correct){Gg.lastPts=10+Math.min(10,Gg.streak*2);Gg.score+=Gg.lastPts;Gg.streak++;if(Gg.score>(store.guessBest||0))store.guessBest=Gg.score;if(typeof questBump==='function')questBump('guess',1);}else{Gg.lastPts=0;Gg.streak=0;}if(typeof markActiveDay==='function')markActiveDay();save();render();}}
   else if(act==='guessnext'){var Gn=app.guess;if(Gn){var np=Gn.ply+2;if(np>=Gn.game.moves.length-0||Gn.total>=10){Gn.done=true;}else{Gn.ply=np;Gn.answered=false;Gn.choice=null;guessBuildQ();}render();}}
   else if(act==='guessnewgame'){guessStart();render();}
   else if(act==='guessexit'){app.guess=null;go('dashboard');}
+  else if(act==='questclaim'){var qq=questsEnsure();var qit=qq.items.find(function(x){return x.id===val;});if(qit&&qit.prog>=qit.goal&&!qit.claimed){qit.claimed=true;var qc=store.career;lifeInit(qc);qc.money=(qc.money||0)+qit.cash;addXp(qc,qit.xp);app.careerToast='🗓️ Quest complete: '+qit.text+' — +💰'+qit.cash+', +'+qit.xp+' XP.';save();render();}}
   else if(act==='cfirst'){app.classicPly=0;render();}
   else if(act==='cback'){app.classicPly=Math.max(0,(app.classicPly||0)-1);render();}
   else if(act==='cfwd'){const g=CLASSICS.find(x=>x.id===app.classicId);if(g)app.classicPly=Math.min(g.m.split(' ').length,(app.classicPly||0)+1);render();}
@@ -5470,6 +5471,7 @@ function maxEnergy(c){var base=c.age>=38?Math.max(72,100-Math.round((c.age-38)*2
 function hasCoach(c,spec){return (c.coaches||[]).some(function(x){return x.spec===spec;});}
 function cbar(v,max,color){var p=Math.max(0,Math.min(100,v/max*100));return '<div style="height:7px;background:#1e293b;border-radius:5px;overflow:hidden;margin-top:3px"><i style="display:block;height:100%;width:'+p+'%;background:'+color+'"></i></div>';}
 function lifeAfterGame(score){var c=store.career;lifeInit(c);
+  if(typeof questBump==='function'){questBump('play',1);if(score===1)questBump('win',1);}
   var fmt=(c.tour&&c.tour.format)||app.careerOneoff||'classical';
   var ecost=(fmt==='blitz'?2:fmt==='rapid'?4:7)*(hasCoach(c,'Fitness trainer')?0.7:1)*(1-0.12*perkLevel(c,'stamina'));
   c.energy=Math.max(0,Math.round(c.energy-ecost));
@@ -5494,6 +5496,7 @@ function lifeAfterGame(score){var c=store.career;lifeInit(c);
   addXp(c,(score===1?12:score===0?3:6)+((score===1&&opp>myr)?5:0));
   lifeCheckObjectiveGame(c,score);checkLevelUp(c);}
 function lifeAfterEvent(tr,place,games){var c=store.career;lifeInit(c);
+  if(typeof questBump==='function')questBump('event',1);
   var travel=1+Math.round((tr.tier||0)/4);var wk=games+travel;c.weeks=(c.weeks||0)+wk;c.age=Math.round((c.age+wk/52)*100)/100;
   c.energy=Math.min(maxEnergy(c),c.energy+22+(hasAsset(c,'chef')?8:0)+(hasAsset(c,'house')?6:0)+(hasAsset(c,'biz')?8:0)+(styleClass(c).cls==='Technician'?6:0));
   var salary=0;(c.coaches||[]).forEach(function(co){salary+=co.salary*wk;});if(salary)c.money=Math.max(0,(c.money||0)-salary);
@@ -6247,6 +6250,37 @@ function dilemmaChoose(i){var c=store.career;lifeInit(c);if(!c.dilemma)return;va
   var msg=o.ap(c);c.dilemma=null;app.careerToast=d.e+' '+msg;pushNews(c,d.e,msg);checkAchievements(c);save();render();}
 /* ===== Daily check-in bonus: a claimable, escalating reward for playing on
    consecutive days (claimable so it never fires as a render side-effect) ===== */
+/* ===================== Daily quests ===================== */
+const QUEST_TEMPLATES=[
+  {id:'play2',emoji:'♟️',kind:'play',goal:2,text:'Play %n rated games',xp:8,cash:60},
+  {id:'play3',emoji:'♟️',kind:'play',goal:3,text:'Play %n rated games',xp:12,cash:90},
+  {id:'win1',emoji:'🏆',kind:'win',goal:1,text:'Win a game',xp:10,cash:80},
+  {id:'win2',emoji:'🏆',kind:'win',goal:2,text:'Win %n games',xp:16,cash:130},
+  {id:'puz3',emoji:'🧩',kind:'puzzle',goal:3,text:'Solve %n puzzles',xp:8,cash:50},
+  {id:'puz6',emoji:'🧩',kind:'puzzle',goal:6,text:'Solve %n puzzles',xp:14,cash:90},
+  {id:'guess3',emoji:'🎯',kind:'guess',goal:3,text:'Nail %n Guess-the-Move picks',xp:8,cash:50},
+  {id:'event1',emoji:'🥇',kind:'event',goal:1,text:'Finish a tournament',xp:20,cash:150}
+];
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}
+function hashStr(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function questGen(dk){
+  var rnd=mulberry32(hashStr('q'+dk));var pool=QUEST_TEMPLATES.slice();
+  for(var i=pool.length-1;i>0;i--){var j=Math.floor(rnd()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+  var out=[],kinds={};
+  for(var k=0;k<pool.length&&out.length<3;k++){if(kinds[pool[k].kind])continue;kinds[pool[k].kind]=1;var p=pool[k];out.push({id:p.id,emoji:p.emoji,kind:p.kind,goal:p.goal,text:p.text.replace('%n',p.goal),xp:p.xp,cash:p.cash,prog:0,claimed:false});}
+  return out;
+}
+function questsEnsure(){var dk=dayKey(Date.now());if(!store.quests||store.quests.day!==dk){store.quests={day:dk,items:questGen(dk)};}return store.quests;}
+function questBump(kind,n){if(!(store.career&&store.career.setup))return;var q=questsEnsure();var changed=false;for(var i=0;i<q.items.length;i++){var it=q.items[i];if(it.kind===kind&&it.prog<it.goal){it.prog=Math.min(it.goal,it.prog+(n||1));changed=true;}}if(changed)save();}
+function careerQuestPanel(c){
+  var q=questsEnsure();var done=q.items.filter(function(it){return it.claimed;}).length;
+  var h='<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">🗓️ Daily quests</div><div class="dim small">'+done+'/'+q.items.length+' claimed · resets daily</div></div>';
+  h+=q.items.map(function(it){
+    var pct=Math.round(100*Math.min(it.prog,it.goal)/it.goal);var ready=it.prog>=it.goal&&!it.claimed;
+    return '<div style="padding:7px 0;border-top:1px solid var(--border)"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><span class="small">'+it.emoji+' '+esc(it.text)+' <span class="dim">('+Math.min(it.prog,it.goal)+'/'+it.goal+')</span></span>'+(it.claimed?'<span class="chip green">✓ Claimed</span>':(ready?'<button class="btn primary sm" data-act="questclaim" data-val="'+it.id+'">Claim 💰'+it.cash+' · +'+it.xp+'xp</button>':'<span class="dim small">💰'+it.cash+' · +'+it.xp+'xp</span>'))+'</div><div class="evalbar" style="margin-top:5px"><i style="width:'+pct+'%"></i></div></div>';
+  }).join('');
+  return h+'</div>';
+}
 function dailyAvailable(c){return !!(c&&c.setup&&!c.retired&&c.lastBonusDay!==dayKey(Date.now()));}
 function dailyBonusAmt(streak){var s=streak<1?1:streak;return {amt:50+Math.min(250,(s-1)*25),xp:5+Math.min(25,(s-1)*2),streak:s};}
 function claimDaily(){var c=store.career;lifeInit(c);if(!dailyAvailable(c))return;
@@ -6505,6 +6539,7 @@ function careerTabContent(c,tab){
   if(tab==='play'){
     h+=careerManagerPanel(c);
     h+=careerDailyPanel(c);
+    h+=careerQuestPanel(c);
     if(c.tour){h+=careerTourView(c);h+=careerScoutPanel(c);h+=careerPrepPanel(c);}
     else{h+=careerLobby(c);h+=careerChallenges(c);h+=careerCalendarPanel(c);h+=careerPrepPanel(c);}
   } else if(tab==='you'){
@@ -7442,7 +7477,7 @@ function pzApplyExpected(){const P=app.pz;const u=P.moves[P.step];if(!u)return n
 function pzGrade(success){const P=app.pz,st=store.puzzle;const R=st.rating,Rp=P.rating;
   const E=1/(1+Math.pow(10,(Rp-R)/400));const S=success?1:0;const K=32;
   let nR=Math.round(R+K*(S-E));nR=Math.max(400,Math.min(3000,nR));P.delta=nR-R;st.rating=nR;
-  if(success){st.solved++;st.streak++;st.best=Math.max(st.best,st.streak);}else{st.failed++;st.streak=0;}
+  if(success){st.solved++;st.streak++;st.best=Math.max(st.best,st.streak);if(typeof questBump==='function')questBump('puzzle',1);}else{st.failed++;st.streak=0;}
   // a tactic solved while you have a career keeps you in form (and every 10 sharpens prep)
   var car=store.career;if(success&&car&&car.setup&&!car.retired){lifeInit(car);car.form=Math.min(100,(car.form||0)+1);car.tacticsTrained=(car.tacticsTrained||0)+1;addXp(car,2);if(car.tacticsTrained%10===0){car.prep=(car.prep||0)+1;car.energy=Math.min(maxEnergy(car),car.energy+3);}if(car.objective&&car.objective.kind==='tactics'&&(car.tacticsTrained||0)>=car.objective.target)completeObjective(car);}
   st.last=Date.now();save();}
