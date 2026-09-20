@@ -4326,7 +4326,7 @@ function checkTitles(c){const got=[];const peak=titlePeak(c);
     c.titles.push(d.t);got.push(d.t);
   }
   return got;}
-const DEF={repertoire:[],srs:{},custom:[],settings:{newPer:8,pieces:'staunty',theme:'green',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'midnight',accent:'blue'},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[]}};
+const DEF={repertoire:[],srs:{},custom:[],settings:{newPer:8,pieces:'staunty',theme:'green',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'midnight',accent:'blue'},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0}};
 function freshCareer(){return JSON.parse(JSON.stringify(DEF.career));}
 /* Migrate saved career data: the old ladder (with `beaten`/`results`) is reset
    to the new FIDE structure; new-format saves are merged onto fresh defaults. */
@@ -4352,7 +4352,7 @@ function delRep(id){store.repertoire=store.repertoire.filter(x=>x!==id);save();}
 /* ============================== app state ============================== */
 const app={view:'career',exId:null,exPath:[],exFlip:false,courseId:null,setupOpening:'',
   pz:null,pzSeen:new Set(),pzFilter:{type:'auto'},rush:null,
-  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,
+  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,parkBet:null,parkStake:0,parkDouble:null,
   confirm:null,
   review:null,studyId:null,studyChapter:0,studyPath:[],studyFlip:false,studyMsg:null,
 
@@ -5125,7 +5125,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='specexit'){app.spec=null;go('career');}
   else if(act==='reptree'){app.repTreeId=val;go('reptree');}
   else if(act==='titlefmt'){const c=store.career;c.titleFormat=(c.titleFormat==='any')?'classical':'any';const nt=checkTitles(c);if(nt&&nt.length){app.careerToast='👑 New title'+(nt.length>1?'s':'')+' under the new rules: '+nt.join(', ')+'!';}save();render();}
-  else if(act==='careerreset')uiConfirm('Reset ALL career progress — ratings (classical, rapid & blitz), titles, norms, honours, history and money? This cannot be undone.',function(){store.career=freshCareer();app.spec=null;app.careerFinish=null;app.careerOneoff=null;app.careerTour=false;save();});
+  else if(act==='careerreset')uiConfirm('Reset ALL career progress — ratings (classical, rapid & blitz), titles, norms, honours, history and money? This cannot be undone.',function(){store.career=freshCareer();app.spec=null;app.careerFinish=null;app.careerOneoff=null;app.careerTour=false;app.parkBet=null;app.parkDouble=null;save();});
   else if(act==='confirmyes'){const f=app.confirm&&app.confirm.onYes;app.confirm=null;if(f)f();render();}
   else if(act==='confirmno'){app.confirm=null;render();}
   else if(act==='confirmnoop'){/* swallow clicks inside the dialog */}
@@ -5191,6 +5191,11 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='simtour')simRestOfTour();
   else if(act==='claimdaily')claimDaily();
   else if(act==='careerchal')startChallenge(val);
+  else if(act==='parkstake'){app.parkStake=parseInt(val,10)||0;}
+  else if(act==='parkplay')startParkGame(val);
+  else if(act==='parkwalk'){app.parkDouble=null;}
+  else if(act==='parkdouble'){var _pd=app.parkDouble;if(_pd){var _h=parkById(_pd.id);if(_h){var _i=_h.stakes.indexOf(parkStakeOf(_h));app.parkStake=Math.min(_h.stakes.length-1,(_i<0?0:_i)+1);}app.parkDouble=null;startParkGame(_pd.id);}}
+  else if(act==='simulstart')startSimul(val);
   else if(act==='feedall'){app.feedAll=!app.feedAll;}
   else if(act==='brildel'){(store.brilliancies||[]).splice(parseInt(val,10),1);save();}
   else if(act==='arcchoice'){arcChoose(store.career,parseInt(val,10));save();}
@@ -5560,7 +5565,7 @@ const COACH_TYPES=[
   {spec:'Endgame guru',salary:60,emoji:'♜',desc:'smaller rating losses'},
 ];
 const SPONSOR_NAMES=['ChessGear','NeoBoard','Gambit Wear','Knightly Foods','Zugzwang Energy','OpenFile Tech','BlitzCola','Endgame Apparel','64 Squares','Caïssa Coffee'];
-function lifeInit(c){if(c.age==null)c.age=16;if(c.pace==null)c.pace=1;if(c.weeks==null)c.weeks=0;if(c.energy==null)c.energy=100;if(c.form==null)c.form=0;if(c.tilt==null)c.tilt=0;if(c.fame==null)c.fame=0;if(c.fans==null)c.fans=0;if(c.reputation==null)c.reputation=50;if(!c.coaches)c.coaches=[];if(c.prep==null)c.prep=0;if(!c.h2h)c.h2h={};if(c.sponsor===undefined)c.sponsor=null;if(c.objective===undefined)c.objective=null;if(c.retired==null)c.retired=false;if(c.pressPending===undefined)c.pressPending=null;if(c.rival===undefined)c.rival=null;if(!c.achievements)c.achievements=[];if(!c.news)c.news=[];if(c.preppedOpening===undefined)c.preppedOpening=null;if(c.tacticsTrained==null)c.tacticsTrained=0;if(c.xp==null)c.xp=0;if(!c.perks)c.perks={};if(Array.isArray(c.perks)){var _pm={};c.perks.forEach(function(_k){_pm[_k]=1;});c.perks=_pm;}if(c.season==null)c.season=Math.floor((c.weeks||0)/52)+1;if(!c.prepUsage)c.prepUsage={};if(c.protege===undefined)c.protege=null;if(c.winStreak==null)c.winStreak=0;if(c.bestWinStreak==null)c.bestWinStreak=0;if(c.unbeaten==null)c.unbeaten=0;if(c.weeksAtNo1==null)c.weeksAtNo1=0;if(c.noveltyCharge==null)c.noveltyCharge=1;if(c.noveltyArmed==null)c.noveltyArmed=false;if(c.noveltyCd==null)c.noveltyCd=0;if(!c.theory)c.theory={};if(c.refuted===undefined)c.refuted=null;if(c.trendy===undefined)c.trendy=null;if(c.youngGun===undefined)c.youngGun=null;if(c.scandal===undefined)c.scandal=null;if(c.subs==null)c.subs=0;if(c.collabCd==null)c.collabCd=0;if(!c.assets)c.assets=[];if(c.club===undefined)c.club=null;if(!c.books)c.books=[];if(c.backer===undefined)c.backer=null;if(c.fedCd==null)c.fedCd=0;if(c.broadcasts==null)c.broadcasts=0;if(c.academy===undefined)c.academy=null;if(c.gmsMade==null)c.gmsMade=0;if(!c.legendsBeaten)c.legendsBeaten=[];if(c.injury===undefined)c.injury=null;if(c.burnout==null)c.burnout=0;if(c.calendar===undefined)c.calendar=null;if(!c.calDone)c.calDone=[];if(c.transferred==null)c.transferred=false;if(c.dilemma===undefined)c.dilemma=null;if(c.mercDeeds==null)c.mercDeeds=0;if(c.heroDeeds==null)c.heroDeeds=0;if(c.lastBonusDay===undefined)c.lastBonusDay=null;if(c.skillPts==null)c.skillPts=0;if(c.lvlSeen==null)c.lvlSeen=charLevel(c);if(!c.circuit)c.circuit={pts:0,season:c.season||1};if(!c.social)c.social={followers:0,verified:false,posts:0,cd:0};if(!c.classicsStudied)c.classicsStudied=[];if(!c.roadDone)c.roadDone=[];if(!c.feed)c.feed=[];if(c.arc===undefined)c.arc=null;if(!c.arcsDone)c.arcsDone=[];if(!c.arcBadges)c.arcBadges=[];if(!c._seed){c.money=(c.money||0)+1500;c._seed=true;}}
+function lifeInit(c){if(c.age==null)c.age=16;if(c.pace==null)c.pace=1;if(c.weeks==null)c.weeks=0;if(c.energy==null)c.energy=100;if(c.form==null)c.form=0;if(c.tilt==null)c.tilt=0;if(c.fame==null)c.fame=0;if(c.fans==null)c.fans=0;if(c.reputation==null)c.reputation=50;if(!c.coaches)c.coaches=[];if(c.prep==null)c.prep=0;if(!c.h2h)c.h2h={};if(c.sponsor===undefined)c.sponsor=null;if(c.objective===undefined)c.objective=null;if(c.retired==null)c.retired=false;if(c.pressPending===undefined)c.pressPending=null;if(c.rival===undefined)c.rival=null;if(!c.achievements)c.achievements=[];if(!c.news)c.news=[];if(c.preppedOpening===undefined)c.preppedOpening=null;if(c.tacticsTrained==null)c.tacticsTrained=0;if(c.xp==null)c.xp=0;if(!c.perks)c.perks={};if(Array.isArray(c.perks)){var _pm={};c.perks.forEach(function(_k){_pm[_k]=1;});c.perks=_pm;}if(c.season==null)c.season=Math.floor((c.weeks||0)/52)+1;if(!c.prepUsage)c.prepUsage={};if(c.protege===undefined)c.protege=null;if(c.winStreak==null)c.winStreak=0;if(c.bestWinStreak==null)c.bestWinStreak=0;if(c.unbeaten==null)c.unbeaten=0;if(c.weeksAtNo1==null)c.weeksAtNo1=0;if(c.noveltyCharge==null)c.noveltyCharge=1;if(c.noveltyArmed==null)c.noveltyArmed=false;if(c.noveltyCd==null)c.noveltyCd=0;if(!c.theory)c.theory={};if(c.refuted===undefined)c.refuted=null;if(c.trendy===undefined)c.trendy=null;if(c.youngGun===undefined)c.youngGun=null;if(c.scandal===undefined)c.scandal=null;if(c.subs==null)c.subs=0;if(c.collabCd==null)c.collabCd=0;if(!c.assets)c.assets=[];if(c.club===undefined)c.club=null;if(!c.books)c.books=[];if(c.backer===undefined)c.backer=null;if(c.fedCd==null)c.fedCd=0;if(c.broadcasts==null)c.broadcasts=0;if(c.academy===undefined)c.academy=null;if(c.gmsMade==null)c.gmsMade=0;if(!c.legendsBeaten)c.legendsBeaten=[];if(c.injury===undefined)c.injury=null;if(c.burnout==null)c.burnout=0;if(c.calendar===undefined)c.calendar=null;if(!c.calDone)c.calDone=[];if(c.transferred==null)c.transferred=false;if(c.dilemma===undefined)c.dilemma=null;if(c.mercDeeds==null)c.mercDeeds=0;if(c.heroDeeds==null)c.heroDeeds=0;if(c.lastBonusDay===undefined)c.lastBonusDay=null;if(c.skillPts==null)c.skillPts=0;if(c.lvlSeen==null)c.lvlSeen=charLevel(c);if(!c.circuit)c.circuit={pts:0,season:c.season||1};if(!c.social)c.social={followers:0,verified:false,posts:0,cd:0};if(!c.classicsStudied)c.classicsStudied=[];if(!c.roadDone)c.roadDone=[];if(!c.feed)c.feed=[];if(c.arc===undefined)c.arc=null;if(!c.arcsDone)c.arcsDone=[];if(!c.arcBadges)c.arcBadges=[];if(c.simuls==null)c.simuls=0;if(c.simulPerfect==null)c.simulPerfect=0;parkInit(c);if(!c._seed){c.money=(c.money||0)+1500;c._seed=true;}}
 function maxEnergy(c){var base=c.age>=38?Math.max(72,100-Math.round((c.age-38)*2.5)):100;var e=base+(hasAsset(c,'gym')?8:0)+(hasAsset(c,'house')?12:0);if(c.injury)e-=(c.injury.sev||1)*10;return Math.max(40,e);}
 function hasCoach(c,spec){return (c.coaches||[]).some(function(x){return x.spec===spec;});}
 function cbar(v,max,color){var p=Math.max(0,Math.min(100,v/max*100));return '<div style="height:7px;background:#1e293b;border-radius:5px;overflow:hidden;margin-top:3px"><i style="display:block;height:100%;width:'+p+'%;background:'+color+'"></i></div>';}
@@ -5892,6 +5897,10 @@ const ACHIEVEMENTS=[
   {k:'goat',e:'🐐',n:'Among the immortals',d:'Beat 5 all-time greats',test:function(c){return (c.legendsBeaten||[]).length>=5;}},
   {k:'comeback',e:'🔥',n:'Late renaissance',d:'Win a title event aged 38+'},
   {k:'ironman',e:'🦾',n:'Ironman',d:'Still competing at age 45',test:function(c){return (c.age||0)>=45;}},
+  {k:'parkrat',e:'🏙️',n:'Park rat',d:'Win 10 games for money in the park',test:function(c){return ((c.park&&c.park.w)||0)>=10;}},
+  {k:'ghostbuster',e:'👻',n:'Ghost story',d:'Beat the Ghost of the Park',test:function(c){return ((c.park&&c.park.beaten)||[]).indexOf('ghost')>=0;}},
+  {k:'simulmaster',e:'🎪',n:'Simul master',d:'Give 5 simultaneous exhibitions',test:function(c){return (c.simuls||0)>=5;}},
+  {k:'cleanroom',e:'🧹',n:'Cleared the room',d:'Win every board of a simul',test:function(c){return (c.simulPerfect||0)>=1;}},
 ];
 const ACH_BY={};ACHIEVEMENTS.forEach(function(a){ACH_BY[a.k]=a;});
 function toastAdd(s){app.careerToast=app.careerToast?(app.careerToast+'  ·  '+s):s;}
@@ -6900,7 +6909,7 @@ function careerTabContent(c,tab){
     h+=careerDailyPanel(c);
     h+=careerQuestPanel(c);
     if(c.tour){h+=careerTourView(c);h+=careerScoutPanel(c);h+=careerPrepPanel(c);}
-    else{h+=careerLobby(c);h+=careerChallenges(c);h+=careerCalendarPanel(c);h+=careerPrepPanel(c);}
+    else{h+=careerLobby(c);h+=careerSimulPanel(c);h+=careerChallenges(c);h+=careerParkPanel(c);h+=careerCalendarPanel(c);h+=careerPrepPanel(c);}
   } else if(tab==='you'){
     h+=careerCharacterPanel(c);
     h+=careerPersonaPanel(c);
@@ -7076,6 +7085,190 @@ function careerChallenges(c){
     row('World star','huge underdog — beat a legend',star)+
     '</div>';
 }
+/* ===================== THE CHESS PARK =====================
+   Concrete tables, a clock with a cracked face, and someone who will happily
+   take your money. Park games are not rated — they are played for cash. The
+   posted rating is what the hustler claims; the real one is higher until you
+   have beaten them once and learned better. */
+const PARK_HUSTLERS=[
+  {id:'sal',n:'Sal',sur:'“Two-Move” Salvatore',e:'🎩',claim:1250,real:1450,style:'aggressive',cred:0,stakes:[10,25,50],
+   talk:['Ten bucks. I’ll even give you White.','Sit down, kid. I only bite on the clock.','Books don’t help you here.']},
+  {id:'winnie',n:'Winnie',sur:'Winnie the Rook',e:'🧣',claim:1400,real:1640,style:'grinder',cred:3,stakes:[25,50,100],
+   talk:['I’ve been on this table since before you were born.','Endgames, son. Everything is endgames.','Double or nothing? Thought not.']},
+  {id:'doc',n:'Doc',sur:'Doc Ferreira',e:'🕶️',claim:1600,real:1880,style:'positional',cred:8,stakes:[50,100,250],
+   talk:['I used to have a rating. Then I found this bench.','Slow chess is for people with chairs.','Your money is safe. For now.']},
+  {id:'zee',n:'Zee',sur:'Zee the Gambiteer',e:'🔥',claim:1800,real:2050,style:'gambiteer',cred:16,stakes:[100,250,500],
+   talk:['I sacrifice everything except the stake.','If you take it, you lose. If you don’t, you lose slower.','Pawns are a suggestion.']},
+  {id:'mama',n:'Mama Oko',sur:'Mama Oko',e:'👑',claim:2000,real:2250,style:'solid',cred:28,stakes:[250,500,1000],
+   talk:['Nobody beats me twice in a day.','You play fast. That is your whole plan, isn’t it?','Money first, moves after.']},
+  {id:'ghost',n:'The Ghost',sur:'The Ghost of the Park',e:'👻',claim:2200,real:2520,style:'universal',cred:45,stakes:[500,1000,2500],
+   talk:['They say I was a grandmaster once.','I don’t play for money. I play to be remembered.','Set the clock. Five minutes.']}
+];
+function parkById(id){return PARK_HUSTLERS.filter(function(h){return h.id===id;})[0]||null;}
+function parkInit(c){if(!c.park)c.park={cred:0,w:0,l:0,d:0,net:0,beaten:[],barred:[],streak:0,best:0};if(!c.park.beaten)c.park.beaten=[];if(!c.park.barred)c.park.barred=[];return c.park;}
+function parkKnown(c,h){return parkInit(c).beaten.indexOf(h.id)>=0;}
+function parkShownRating(c,h){return parkKnown(c,h)?h.real:h.claim;}
+function parkLocked(c,h){
+  var p=parkInit(c);
+  if(p.barred.indexOf(h.id)>=0)return 'they won’t play you any more';
+  if(p.cred<h.cred)return 'needs '+h.cred+' street cred';
+  return null;
+}
+function parkStakeOf(h){var i=app.parkStake==null?0:app.parkStake;return h.stakes[Math.max(0,Math.min(h.stakes.length-1,i))];}
+function startParkGame(id){
+  var c=store.career;parkInit(c);
+  var h=parkById(id);if(!h||c.tour||parkLocked(c,h))return;
+  var stake=parkStakeOf(h);
+  if((c.money||0)<stake){app.careerToast='💸 You can’t cover a 💰'+stake+' stake.';render();return;}
+  var opp={name:h.sur,rating:h.real,title:'',flag:'🏙️',fed:'Park',id:'park_'+h.id,style:h.style};
+  app.careerFinish=null;app.parkBet={id:h.id,stake:stake,double:false};
+  var side=Math.random()<0.5?'w':'b';
+  startPlay(new Chess().fen(),side,null,'🏙️ Park blitz vs '+h.sur+' — 💰'+stake+' on the table',
+    {tc:tcById('5+0'),careerOpp:'park',careerElo:h.real,roundOpp:opp});
+  app.careerBanter=h.talk[Math.floor(Math.random()*h.talk.length)];
+  applyCareerCondition();
+}
+function parkResult(score){
+  var c=store.career,p=parkInit(c),bet=app.parkBet;if(!bet)return;
+  var h=parkById(bet.id)||{sur:'a hustler',id:bet.id,real:1500};
+  var stake=bet.stake;
+  if(score===1){
+    c.money=(c.money||0)+stake;p.w++;p.net+=stake;p.streak++;p.best=Math.max(p.best||0,p.streak);
+    p.cred=(p.cred||0)+Math.max(1,Math.round(stake/60)+Math.round((h.real-1200)/220));
+    if(p.beaten.indexOf(h.id)<0)p.beaten.push(h.id);
+    c.fame=Math.min(100,(c.fame||0)+1);addXp(c,35);
+    app.parkDouble={id:h.id,stake:Math.min(stake*2,(c.money||0))};
+    pushNews(c,'🏙️','You took 💰'+stake+' off '+h.sur+' in the park.');
+    pushFeed(c,'🏙️',esc(c.name||'You')+' is beating the park regulars for cash again.','you');
+    toastAdd('💰 +'+stake+' from '+h.sur);
+  } else if(score===0){
+    c.money=Math.max(0,(c.money||0)-stake);p.l++;p.net-=stake;p.streak=0;
+    c.tilt=Math.min(100,(c.tilt||0)+6);addXp(c,10);
+    app.parkDouble=null;
+    pushNews(c,'🏙️',h.sur+' took 💰'+stake+' off you. They counted it slowly.');
+    toastAdd('💸 −'+stake+' to '+h.sur);
+  } else {
+    p.d++;addXp(c,15);app.parkDouble=null;
+    pushNews(c,'🏙️','You split the point with '+h.sur+' — stakes returned.');
+    toastAdd('🤝 Stake returned');
+  }
+  // beat someone often enough and they stop sitting down with you
+  if(score===1&&p.beaten.indexOf(h.id)>=0){
+    var wins=(p.wins=p.wins||{});wins[h.id]=(wins[h.id]||0)+1;
+    if(wins[h.id]>=4&&p.barred.indexOf(h.id)<0){p.barred.push(h.id);pushNews(c,'🚫',h.sur+' won’t sit down with you any more. Word travels.');}
+  }
+  app.parkBet=null;
+  c.played=(c.played||0)+1;
+  checkAchievements(c);markActiveDay();
+}
+function careerParkPanel(c){
+  var p=parkInit(c);
+  var si=app.parkStake==null?0:app.parkStake;
+  var stakeBtns=['Low','Mid','High'].map(function(l,i){return '<button class="btn '+(i===si?'primary':'ghost')+' sm" data-act="parkstake" data-val="'+i+'">'+l+'</button>';}).join(' ');
+  var h='<div class="card" style="padding:0;margin-bottom:12px">'+
+    '<div style="padding:11px 13px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<div><div style="font-weight:700">🏙️ The chess park</div><div class="dim small">Blitz for cash. Not rated — just your money and your nerve.</div></div>'+
+      '<div class="row" style="gap:6px">'+stakeBtns+'</div></div>'+
+    '<div class="row" style="padding:8px 13px;gap:10px;flex-wrap:wrap"><span class="chip amber" style="font-size:11px">🧢 Street cred '+(p.cred||0)+'</span><span class="chip" style="font-size:11px">'+p.w+'W–'+p.l+'L–'+p.d+'D</span><span class="chip '+((p.net||0)>=0?'green':'')+'" style="font-size:11px">Net '+((p.net||0)>=0?'+':'−')+'💰'+Math.abs(p.net||0)+'</span>'+(p.streak>1?'<span class="chip brand" style="font-size:11px">🔥 '+p.streak+' in a row</span>':'')+'</div>';
+  if(app.parkDouble&&(c.money||0)>=app.parkDouble.stake){
+    var dh=parkById(app.parkDouble.id);
+    h+='<div style="padding:10px 13px;border-top:1px solid var(--border);background:rgba(245,158,11,.10)"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><div class="small"><b>“Double or nothing.”</b> <span class="dim">'+esc(dh?dh.sur:'They')+' wants a rematch for 💰'+app.parkDouble.stake+'.</span></div><div class="row" style="gap:6px"><button class="btn primary sm" data-act="parkdouble">Take the bet</button><button class="btn ghost sm" data-act="parkwalk">Walk away</button></div></div></div>';
+  }
+  PARK_HUSTLERS.forEach(function(hu){
+    var lock=parkLocked(c,hu),stake=parkStakeOf(hu),known=parkKnown(c,hu);
+    var rt=parkShownRating(c,hu);
+    h+='<div style="display:flex;align-items:center;gap:11px;padding:10px 13px;border-top:1px solid var(--border)'+(lock?';opacity:.5':'')+'">'+
+      '<div style="flex:0 0 auto">'+oppAvatar({rating:rt,title:''},38)+'</div>'+
+      '<div style="flex:1;min-width:0"><div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+hu.e+' '+esc(hu.sur)+'</div>'+
+        '<div class="dim small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(hu.talk[0])+'</div>'+
+        '<div class="dim small" style="margin-top:2px">'+(known?'Real strength '+rt:'Claims '+rt+' · <span style="color:var(--amber)">probably sandbagging</span>')+' · stake 💰'+stake+'</div></div>'+
+      (lock?'<span class="dim small" style="width:104px;text-align:right">🔒 '+esc(lock)+'</span>'
+          :'<button class="btn '+((c.money||0)>=stake?'sec':'ghost')+' sm" data-act="parkplay" data-val="'+hu.id+'"'+((c.money||0)<stake?' disabled':'')+'>Play 💰'+stake+'</button>')+
+      '</div>';
+  });
+  return h+'</div>';
+}
+/* ===================== SIMULTANEOUS EXHIBITIONS =====================
+   An organiser pays you to take on a room. You play every board in turn; the
+   games are rated, the fee is guaranteed, and clearing the room pays a bonus
+   plus a lot of new fans. */
+const SIMUL_TIERS=[
+  {id:'club',n:'Club night simul',e:'🏫',boards:6,gap:420,spread:110,fee:250,per:60,need:0,blurb:'Six members of your local club, one wobbly table each.'},
+  {id:'school',n:'School tour simul',e:'🎒',boards:8,gap:520,spread:130,fee:600,per:90,need:1700,blurb:'A gymnasium, eight juniors, and a lot of photographs.'},
+  {id:'corp',n:'Corporate simul',e:'🏢',boards:10,gap:380,spread:120,fee:1600,per:150,need:2000,blurb:'A sponsor’s away-day. They are better than they look.'},
+  {id:'charity',n:'Charity gala simul',e:'🎗️',boards:12,gap:330,spread:130,fee:3200,per:240,need:2200,blurb:'Black tie, twelve boards, and a cheque for the cause.'},
+  {id:'expo',n:'World expo simul',e:'🌐',boards:15,gap:270,spread:140,fee:7000,per:420,need:2400,blurb:'Fifteen boards under the lights, streamed worldwide.'}
+];
+function simulById(id){return SIMUL_TIERS.filter(function(s){return s.id===id;})[0]||null;}
+function simulLocked(s,c){
+  var yr=youRating(c,'rapid')!=null?youRating(c,'rapid'):(c.rating!=null?c.rating:null);
+  if(yr==null||c.provisional)return 'publish a rating first';
+  if(yr<s.need)return 'needs '+s.need;
+  if((c.energy||0)<25)return 'too tired';
+  return null;
+}
+function simulTarget(){return 0.8;}
+function startSimul(id){
+  var c=store.career,s=simulById(id);if(!s||!c||c.tour)return;
+  lifeInit(c);if(simulLocked(s,c))return;
+  var yr=youRating(c,'rapid')||c.rating||1600;
+  var field=[];
+  for(var i=0;i<s.boards;i++){
+    var r=Math.max(800,Math.min(2600,Math.round(yr-s.gap+gauss()*s.spread)));
+    var fed=randFed();
+    field.push({name:randName(),rating:r,title:titleByRating(r),fed:fed.c,flag:fed.f,style:pickStyle()});
+  }
+  field.sort(function(a,b){return a.rating-b.rating;});
+  app.careerFinish=null;
+  c.tour={id:'simul_'+s.id,name:s.n,emoji:s.e,rounds:s.boards,round:0,field:field,results:[],normEligible:false,
+    avg:Math.round(field.reduce(function(t,o){return t+o.rating;},0)/field.length),tier:2,format:'rapid',champion:false,honor:null,
+    kind:'simul',var960:false,started:Date.now(),simul:{fee:s.fee,per:s.per,target:simulTarget(),tier:s.id}};
+  c.money=(c.money||0)+s.fee;
+  c.energy=Math.max(0,(c.energy||100)-18);
+  pushNews(c,s.e,'You agreed to give a '+s.boards+'-board simul — 💰'+s.fee+' appearance fee up front.');
+  pushFeed(c,s.e,esc(c.name||'You')+' takes on '+s.boards+' boards at the '+esc(s.n)+'.','you');
+  app.careerToast=s.e+' '+s.n+' — 💰'+s.fee+' fee collected. Clear the room!';
+  save();render();
+}
+function simulStrip(tr){
+  var you=tr.results.reduce(function(t,r){return t+r.score;},0);
+  var total=tr.rounds,done=tr.round,tgt=(tr.simul&&tr.simul.target)||0.8;
+  var pct=done?(you/done):0,needPts=Math.ceil(total*tgt*2)/2;
+  var maxYou=you+(total-done);
+  var purse=(tr.simul?tr.simul.fee:0)+Math.round(you*(tr.simul?tr.simul.per:0));
+  var status;
+  if(you>=needPts)status='<span style="color:var(--green);font-weight:800">✓ Bonus secured — the room is yours.</span>';
+  else if(maxYou<needPts)status='<span style="color:#f87171">The bonus is gone — play it out for the fans.</span>';
+  else status='<span class="dim">Score '+fmtScore(needPts)+'/'+total+' for the clear-the-room bonus ('+(total-done)+' boards left).</span>';
+  return '<div class="card" style="margin-bottom:12px;border-color:#22d3ee66;background:linear-gradient(90deg,rgba(34,211,238,.10),transparent)">'+
+    '<div class="dim small" style="text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">'+tr.emoji+' '+esc(tr.name)+' · rated exhibition</div>'+
+    '<div class="row" style="justify-content:space-between;align-items:center">'+
+      '<div style="text-align:center;flex:1"><div class="dim small">Score</div><div style="font-weight:800;font-size:24px;color:var(--brand2)">'+fmtScore(you)+'</div></div>'+
+      '<div style="text-align:center;flex:1"><div class="dim small">Board</div><div style="font-weight:800;font-size:24px">'+Math.min(done+1,total)+'/'+total+'</div></div>'+
+      '<div style="text-align:center;flex:1"><div class="dim small">Purse</div><div style="font-weight:800;font-size:24px;color:#fbbf24">'+purse+'</div></div>'+
+    '</div><div class="small" style="text-align:center;margin-top:7px">'+status+'</div>'+
+    '<div style="margin-top:8px;display:flex;gap:3px;flex-wrap:wrap">'+tr.field.map(function(o,i){
+      var r=tr.results[i];var bg=r?(r.score===1?'#22c55e':r.score===0?'#f43f5e':'#64748b'):(i===done?'var(--brand)':'#1e293b');
+      return '<span title="Board '+(i+1)+' · '+esc(o.name)+' ('+o.rating+')" style="flex:1;min-width:14px;height:9px;border-radius:3px;background:'+bg+'"></span>';}).join('')+'</div></div>';
+}
+function careerSimulPanel(c){
+  var h='<div class="card" style="padding:0;margin-bottom:12px">'+
+    '<div style="padding:11px 13px;border-bottom:1px solid var(--border)"><div style="font-weight:700">🎪 Simultaneous exhibitions</div>'+
+    '<div class="dim small">Take on a whole room, board by board. Every game is rated, the fee is paid up front, and clearing the room pays a bonus.</div></div>';
+  SIMUL_TIERS.forEach(function(s){
+    var lock=simulLocked(s,c);
+    var need=Math.ceil(s.boards*simulTarget()*2)/2;
+    h+='<div style="display:flex;align-items:center;gap:11px;padding:10px 13px;border-top:1px solid var(--border)'+(lock?';opacity:.55':'')+'">'+
+      '<div style="font-size:23px;width:30px;text-align:center">'+(lock?'🔒':s.e)+'</div>'+
+      '<div style="flex:1;min-width:0"><div style="font-weight:700">'+esc(s.n)+' <span class="chip brand" style="font-size:10px">'+s.boards+' boards</span></div>'+
+        '<div class="dim small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(s.blurb)+'</div>'+
+        '<div class="dim small" style="margin-top:2px">💰'+s.fee+' fee · 💰'+s.per+' per point · bonus at '+fmtScore(need)+'/'+s.boards+' · rated rapid</div></div>'+
+      (lock?'<span class="dim small" style="width:96px;text-align:right">Locked · '+esc(lock)+'</span>'
+          :'<button class="btn primary sm" data-act="simulstart" data-val="'+s.id+'">Give it</button>')+
+      '</div>';
+  });
+  return h+'</div>';
+}
 function careerLeaderboard(c){
   const fmt=app.lbFormat||'classical';
   const list=worldRanking(c,fmt);
@@ -7122,7 +7315,7 @@ function careerTourView(c){
   const tr=c.tour,done=tr.round,total=tr.rounds;
   const scoreTot=tr.results.reduce((s,r)=>s+r.score,0);
   let liveTpr='—';if(tr.results.length){const a=Math.round(tr.results.reduce((s,r)=>s+r.rating,0)/tr.results.length);liveTpr=String(Math.round(a+dpFromPct(scoreTot/tr.results.length)));}
-  let h=(tr.kind==='match'?matchScoreStrip(tr):'')+'<div class="card" style="margin-bottom:12px">'+
+  let h=(tr.kind==='match'?matchScoreStrip(tr):tr.kind==='simul'?simulStrip(tr):'')+'<div class="card" style="margin-bottom:12px">'+
     '<div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px"><div style="min-width:0">'+
       '<div style="font-weight:800;font-size:17px">'+tr.emoji+' '+esc(tr.name)+'</div>'+
       '<div class="dim small">'+(done<total?'Round '+(done+1)+' of '+total:'Final round complete')+' · field avg '+tr.avg+(tr.normEligible?' · norm-eligible':'')+'</div></div>'+
@@ -7406,6 +7599,7 @@ function careerResult(score){
   const c=store.career;
   lifeAfterGame(score);
   if(app.careerRoundOpp)app.careerReaction=oppReaction(c,app.careerRoundOpp,score);
+  if(app.parkBet){parkResult(score);save();return;}
   if(app.careerOneoff){
     const fmt=app.careerOneoff,opp=app.careerRoundOpp||{name:'Opponent',rating:1500};
     const delta=applyByFormat(c,fmt,opp.rating,score);app.careerDelta=delta;
@@ -7467,7 +7661,19 @@ function finalizeTournament(c){
   if(def.creator){var csg=240+(place===1?320:place<=3?140:0)+Math.round(scoreTot*30);c.subs=(c.subs||0)+csg;c.fans=(c.fans||0)+Math.round(csg*0.6);c.fame=Math.min(100,c.fame+2);unlockAch(c,'creator');pushNews(c,'🎬','The Creator Cup put you in front of a huge audience — +'+csg+' subscribers!');}
   worldTick();
   if(tr.stake){if(won1st){var pot=tr.stake*2;c.money=(c.money||0)+pot;c.fame=Math.min(100,c.fame+5);pushNews(c,'⚔️','You won the grudge match and took the 💰'+pot+' pot!');unlockAch(c,'hustler');}else{c.fame=Math.min(100,c.fame+1);c.reputation=Math.max(0,c.reputation-4);pushNews(c,'⚔️','You lost the grudge match — and your 💰'+tr.stake+' stake.');}}
-  const prize=tr.stake?0:tourPrize(tr,place);if(prize)c.money=(c.money||0)+prize;
+  if(tr.simul){
+    const tgt=Math.ceil(games*tr.simul.target*2)/2;
+    const perPt=Math.round(scoreTot*tr.simul.per);
+    const bonus=scoreTot>=tgt?Math.round(tr.simul.fee*0.8):0;
+    c.money=(c.money||0)+perPt+bonus;
+    const gained=Math.round(games*22*(0.6+scoreTot/Math.max(1,games)));
+    c.fans=(c.fans||0)+gained;c.fame=Math.min(100,(c.fame||0)+(bonus?3:1));addXp(c,30*games);
+    c.energy=Math.max(0,(c.energy||100)-Math.round(games*1.5));
+    c.simuls=(c.simuls||0)+1;if(scoreTot>=games)c.simulPerfect=(c.simulPerfect||0)+1;
+    pushNews(c,tr.emoji,'You scored '+fmtScore(scoreTot)+'/'+games+' in the '+esc(tr.name)+' — 💰'+(perPt+bonus)+' and '+gained+' new fans.');
+    pushFeed(c,tr.emoji,esc(c.name||'You')+' scores '+fmtScore(scoreTot)+'/'+games+' giving a simul at the '+esc(tr.name)+'.','you');
+  }
+  const prize=(tr.stake||tr.simul)?0:tourPrize(tr,place);if(prize)c.money=(c.money||0)+prize;
   if(prize&&c.backer&&c.backer.cut){var bcut=Math.round(prize*c.backer.cut);if(bcut>0){c.money=Math.max(0,(c.money||0)-bcut);c.backer.paid=(c.backer.paid||0)+bcut;pushNews(c,'💸','Your backer took 💰'+bcut+' ('+Math.round(c.backer.cut*100)+'%) of your '+esc(tr.name)+' prize.');}}
   if(tr.champion&&!won1st){const L=tr.results.filter(r=>r.score===0).sort((a,b)=>b.rating-a.rating);if(L.length)c.nemesis={name:L[0].name,rating:L[0].rating,flag:L[0].flag,since:tr.name};}
   c.history=c.history||[];
