@@ -4354,7 +4354,7 @@ function checkTitles(c){const got=[];const peak=titlePeak(c);
     c.titles.push(d.t);got.push(d.t);
   }
   return got;}
-const DEF={repertoire:[],srs:{},custom:[],settings:{newPer:8,pieces:'staunty',theme:'green',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'midnight',accent:'blue',scene:'none'},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null}};
+const DEF={repertoire:[],srs:{},custom:[],settings:{newPer:8,pieces:'staunty',theme:'green',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'midnight',accent:'blue',scene:'none'},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null}};
 function freshCareer(){return JSON.parse(JSON.stringify(DEF.career));}
 /* Migrate saved career data: the old ladder (with `beaten`/`results`) is reset
    to the new FIDE structure; new-format saves are merged onto fresh defaults. */
@@ -4380,7 +4380,7 @@ function delRep(id){store.repertoire=store.repertoire.filter(x=>x!==id);save();}
 /* ============================== app state ============================== */
 const app={view:'career',exId:null,exPath:[],exFlip:false,courseId:null,setupOpening:'',
   pz:null,pzSeen:new Set(),pzFilter:{type:'auto'},rush:null,
-  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,parkBet:null,parkStake:0,parkDouble:null,
+  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,parkBet:null,parkStake:0,parkDouble:null,
   confirm:null,
   review:null,studyId:null,studyChapter:0,studyPath:[],studyFlip:false,studyMsg:null,
 
@@ -4611,6 +4611,7 @@ function render(){
   else if(app.view==='learn')body=viewLearn();
   else if(app.view==='review')body=viewReview();
   else if(app.view==='brilliancy')body=viewBrilliancy();
+  else if(app.view==='player')body=viewPlayer();
   else if(app.view==='studies')body=viewStudies();
   else if(app.view==='masters')body=viewMasters();
   else if(app.view==='career')body=viewCareer();
@@ -5226,6 +5227,9 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='simtour')simRestOfTour();
   else if(act==='claimdaily')claimDaily();
   else if(act==='careerchal')startChallenge(val);
+  else if(act==='seasondismiss'){store.career.seasonReview=null;save();}
+  else if(act==='profile'){if(val)profileOpen(val);}
+  else if(act==='specvs'){var _sp=buildWorld().filter(function(x){return x.id===val;})[0];if(_sp){var _fmt='classical';var _list=worldRanking(store.career,_fmt).filter(function(x){return !x.you&&x.id!==val;});var _o=_list[Math.floor(Math.random()*Math.min(12,_list.length))]||_list[0];if(_o)startSpectate({name:_sp.name,flag:_sp.flag,rating:wpRating(_sp,_fmt),real:_sp.real},_o);}}
   else if(act==='doday')doDay(val);
   else if(act==='movehome'){var _mc=store.career;var _hm=HOMES.filter(function(x){return x.id===val;})[0];if(_hm&&!homeLocked(_mc,_hm)){_mc.home=_hm.id;pushNews(_mc,_hm.e,'You moved into '+_hm.n.toLowerCase()+' — 💰'+_hm.rent+' a week.');toastAdd(_hm.e+' Moved in: '+_hm.n);save();}}
   else if(act==='avset'){var _av=store.career;var _p=String(val).split(':');if(_p.length===2){if(_p[0]==='acc'&&!avAccUnlocked(_av,_p[1])){app.careerToast='🔒 '+AV_ACC_LOCK[_p[1]].lbl+' to unlock that.';}else{avatarOf(_av)[_p[0]]=_p[1];_av.avatarStyle='char';save();}}}
@@ -5605,7 +5609,7 @@ const COACH_TYPES=[
   {spec:'Endgame guru',salary:60,emoji:'♜',desc:'smaller rating losses'},
 ];
 const SPONSOR_NAMES=['ChessGear','NeoBoard','Gambit Wear','Knightly Foods','Zugzwang Energy','OpenFile Tech','BlitzCola','Endgame Apparel','64 Squares','Caïssa Coffee'];
-function lifeInit(c){if(c.age==null)c.age=16;if(c.pace==null)c.pace=1;if(c.weeks==null)c.weeks=0;if(c.energy==null)c.energy=100;if(c.form==null)c.form=0;if(c.tilt==null)c.tilt=0;if(c.fame==null)c.fame=0;if(c.fans==null)c.fans=0;if(c.reputation==null)c.reputation=50;if(!c.coaches)c.coaches=[];if(c.prep==null)c.prep=0;if(!c.h2h)c.h2h={};if(c.sponsor===undefined)c.sponsor=null;if(c.objective===undefined)c.objective=null;if(c.retired==null)c.retired=false;if(c.pressPending===undefined)c.pressPending=null;if(c.rival===undefined)c.rival=null;if(!c.achievements)c.achievements=[];if(!c.news)c.news=[];if(c.preppedOpening===undefined)c.preppedOpening=null;if(c.tacticsTrained==null)c.tacticsTrained=0;if(c.xp==null)c.xp=0;if(!c.perks)c.perks={};if(Array.isArray(c.perks)){var _pm={};c.perks.forEach(function(_k){_pm[_k]=1;});c.perks=_pm;}if(c.season==null)c.season=Math.floor((c.weeks||0)/52)+1;if(!c.prepUsage)c.prepUsage={};if(c.protege===undefined)c.protege=null;if(c.winStreak==null)c.winStreak=0;if(c.bestWinStreak==null)c.bestWinStreak=0;if(c.unbeaten==null)c.unbeaten=0;if(c.weeksAtNo1==null)c.weeksAtNo1=0;if(c.noveltyCharge==null)c.noveltyCharge=1;if(c.noveltyArmed==null)c.noveltyArmed=false;if(c.noveltyCd==null)c.noveltyCd=0;if(!c.theory)c.theory={};if(c.refuted===undefined)c.refuted=null;if(c.trendy===undefined)c.trendy=null;if(c.youngGun===undefined)c.youngGun=null;if(c.scandal===undefined)c.scandal=null;if(c.subs==null)c.subs=0;if(c.collabCd==null)c.collabCd=0;if(!c.assets)c.assets=[];if(c.club===undefined)c.club=null;if(!c.books)c.books=[];if(c.backer===undefined)c.backer=null;if(c.fedCd==null)c.fedCd=0;if(c.broadcasts==null)c.broadcasts=0;if(c.academy===undefined)c.academy=null;if(c.gmsMade==null)c.gmsMade=0;if(!c.legendsBeaten)c.legendsBeaten=[];if(c.injury===undefined)c.injury=null;if(c.burnout==null)c.burnout=0;if(c.calendar===undefined)c.calendar=null;if(!c.calDone)c.calDone=[];if(c.transferred==null)c.transferred=false;if(c.dilemma===undefined)c.dilemma=null;if(c.mercDeeds==null)c.mercDeeds=0;if(c.heroDeeds==null)c.heroDeeds=0;if(c.lastBonusDay===undefined)c.lastBonusDay=null;if(c.skillPts==null)c.skillPts=0;if(c.lvlSeen==null)c.lvlSeen=charLevel(c);if(!c.circuit)c.circuit={pts:0,season:c.season||1};if(!c.social)c.social={followers:0,verified:false,posts:0,cd:0};if(!c.classicsStudied)c.classicsStudied=[];if(!c.roadDone)c.roadDone=[];if(!c.feed)c.feed=[];if(c.arc===undefined)c.arc=null;if(!c.arcsDone)c.arcsDone=[];if(!c.arcBadges)c.arcBadges=[];if(!c.home)c.home='hostel';if(c.health==null)c.health=100;if(c.mood==null)c.mood=62;if(c.day==null)c.day=0;if(!c.dayLog)c.dayLog=[];if(!c.weekLog)c.weekLog=[];if(c.debt==null)c.debt=0;if(c.lifeWeeks==null)c.lifeWeeks=0;if(!c.avatar)c.avatar=avatarDefaults(c);if(!c.avatarStyle)c.avatarStyle='char';if(c.simuls==null)c.simuls=0;if(c.simulPerfect==null)c.simulPerfect=0;parkInit(c);if(!c._seed){c.money=(c.money||0)+1500;c._seed=true;}}
+function lifeInit(c){if(c.age==null)c.age=16;if(c.pace==null)c.pace=1;if(c.weeks==null)c.weeks=0;if(c.energy==null)c.energy=100;if(c.form==null)c.form=0;if(c.tilt==null)c.tilt=0;if(c.fame==null)c.fame=0;if(c.fans==null)c.fans=0;if(c.reputation==null)c.reputation=50;if(!c.coaches)c.coaches=[];if(c.prep==null)c.prep=0;if(!c.h2h)c.h2h={};if(c.sponsor===undefined)c.sponsor=null;if(c.objective===undefined)c.objective=null;if(c.retired==null)c.retired=false;if(c.pressPending===undefined)c.pressPending=null;if(c.rival===undefined)c.rival=null;if(!c.achievements)c.achievements=[];if(!c.news)c.news=[];if(c.preppedOpening===undefined)c.preppedOpening=null;if(c.tacticsTrained==null)c.tacticsTrained=0;if(c.xp==null)c.xp=0;if(!c.perks)c.perks={};if(Array.isArray(c.perks)){var _pm={};c.perks.forEach(function(_k){_pm[_k]=1;});c.perks=_pm;}if(c.season==null)c.season=Math.floor((c.weeks||0)/52)+1;if(!c.prepUsage)c.prepUsage={};if(c.protege===undefined)c.protege=null;if(c.winStreak==null)c.winStreak=0;if(c.bestWinStreak==null)c.bestWinStreak=0;if(c.unbeaten==null)c.unbeaten=0;if(c.weeksAtNo1==null)c.weeksAtNo1=0;if(c.noveltyCharge==null)c.noveltyCharge=1;if(c.noveltyArmed==null)c.noveltyArmed=false;if(c.noveltyCd==null)c.noveltyCd=0;if(!c.theory)c.theory={};if(c.refuted===undefined)c.refuted=null;if(c.trendy===undefined)c.trendy=null;if(c.youngGun===undefined)c.youngGun=null;if(c.scandal===undefined)c.scandal=null;if(c.subs==null)c.subs=0;if(c.collabCd==null)c.collabCd=0;if(!c.assets)c.assets=[];if(c.club===undefined)c.club=null;if(!c.books)c.books=[];if(c.backer===undefined)c.backer=null;if(c.fedCd==null)c.fedCd=0;if(c.broadcasts==null)c.broadcasts=0;if(c.academy===undefined)c.academy=null;if(c.gmsMade==null)c.gmsMade=0;if(!c.legendsBeaten)c.legendsBeaten=[];if(c.injury===undefined)c.injury=null;if(c.burnout==null)c.burnout=0;if(c.calendar===undefined)c.calendar=null;if(!c.calDone)c.calDone=[];if(c.transferred==null)c.transferred=false;if(c.dilemma===undefined)c.dilemma=null;if(c.mercDeeds==null)c.mercDeeds=0;if(c.heroDeeds==null)c.heroDeeds=0;if(c.lastBonusDay===undefined)c.lastBonusDay=null;if(c.skillPts==null)c.skillPts=0;if(c.lvlSeen==null)c.lvlSeen=charLevel(c);if(!c.circuit)c.circuit={pts:0,season:c.season||1};if(!c.social)c.social={followers:0,verified:false,posts:0,cd:0};if(!c.classicsStudied)c.classicsStudied=[];if(!c.roadDone)c.roadDone=[];if(!c.feed)c.feed=[];if(c.arc===undefined)c.arc=null;if(!c.arcsDone)c.arcsDone=[];if(!c.arcBadges)c.arcBadges=[];if(!c.home)c.home='hostel';if(c.health==null)c.health=100;if(c.mood==null)c.mood=62;if(c.day==null)c.day=0;if(!c.dayLog)c.dayLog=[];if(!c.weekLog)c.weekLog=[];if(c.debt==null)c.debt=0;if(c.lifeWeeks==null)c.lifeWeeks=0;if(!c.seasonStart)c.seasonStart=seasonSnapshot(c);if(c.seasonReview===undefined)c.seasonReview=null;if(!c.avatar)c.avatar=avatarDefaults(c);if(!c.avatarStyle)c.avatarStyle='char';if(c.simuls==null)c.simuls=0;if(c.simulPerfect==null)c.simulPerfect=0;parkInit(c);if(!c._seed){c.money=(c.money||0)+1500;c._seed=true;}}
 function maxEnergy(c){var base=c.age>=38?Math.max(72,100-Math.round((c.age-38)*2.5)):100;var e=base+(hasAsset(c,'gym')?8:0)+(hasAsset(c,'house')?12:0);e+=Math.round(((c.health==null?100:c.health)-75)/6);if(c.injury)e-=(c.injury.sev||1)*10;return Math.max(40,e);}
 function hasCoach(c,spec){return (c.coaches||[]).some(function(x){return x.spec===spec;});}
 function cbar(v,max,color){var p=Math.max(0,Math.min(100,v/max*100));return '<div style="height:7px;background:#1e293b;border-radius:5px;overflow:hidden;margin-top:3px"><i style="display:block;height:100%;width:'+p+'%;background:'+color+'"></i></div>';}
@@ -5917,6 +5921,7 @@ function lifeAdvanceWeeks(c,n,costMult){
     pushNews(c,'🤒','You let your health slide and it caught up with you.');
   }
   c.bills={rent:cost.rent,food:cost.food,total:cost.total};
+  seasonMaybeRoll(c);
 }
 const PLACES=[
   {id:'rest',e:'🛌',n:'Rest at home',d:'Sleep, eat, do nothing much.',cost:0,
@@ -5991,6 +5996,67 @@ function endOfWeek(c){
   c.lifeWeeks=(c.lifeWeeks||0)+1;
   arcTick(c);
   pushNews(c,'📅','Week '+(c.weeks||0)+' done — bills 💰'+((c.bills&&c.bills.total)||0)+' paid.');
+}
+/* ---- Season review: a year of your life, summed up ---- */
+function seasonSnapshot(c){
+  return {week:c.weeks||0,rating:youRating(c,'classical'),peak:c.peak||0,won:c.won||0,lost:c.lost||0,
+    drawn:c.drawn||0,played:c.played||0,money:c.money||0,fame:c.fame||0,
+    titles:(c.titles||[]).length,honors:(c.honors||[]).length,norms:(c.norms||[]).length,
+    events:(c.history||[]).filter(function(h){return !h.oneoff;}).length,
+    bril:(store.brilliancies||[]).length};
+}
+function seasonRollover(c){
+  var s0=c.seasonStart||seasonSnapshot(c),s1=seasonSnapshot(c);
+  var best=null;
+  (c.history||[]).forEach(function(h){
+    if(h.oneoff||!h.date)return;
+    if(h.place!=null&&(best===null||h.place<best.place||(h.place===best.place&&(h.tpr||0)>(best.tpr||0))))best=h;
+  });
+  c.seasonReview={
+    season:c.season||1,
+    games:Math.max(0,s1.played-s0.played),
+    won:Math.max(0,s1.won-s0.won),lost:Math.max(0,s1.lost-s0.lost),drawn:Math.max(0,s1.drawn-s0.drawn),
+    ratingFrom:s0.rating,ratingTo:s1.rating,
+    peakFrom:s0.peak,peakTo:s1.peak,
+    money:s1.money-s0.money,fame:Math.round((s1.fame-s0.fame)*10)/10,
+    titles:Math.max(0,s1.titles-s0.titles),honors:Math.max(0,s1.honors-s0.honors),
+    norms:Math.max(0,s1.norms-s0.norms),events:Math.max(0,s1.events-s0.events),
+    bril:Math.max(0,s1.bril-s0.bril),
+    best:best?{name:best.name,emoji:best.emoji,place:best.place,score:best.score,rounds:best.rounds}:null
+  };
+  c.season=(c.season||1)+1;
+  c.seasonStart=s1;
+  pushNews(c,'🗓️','Season '+c.seasonReview.season+' is over — '+c.seasonReview.games+' games, '+c.seasonReview.won+' wins.');
+  pushFeed(c,'🗓️','Season '+c.seasonReview.season+' ends. '+esc(c.name||'You')+': '+c.seasonReview.won+'W–'+c.seasonReview.lost+'L–'+c.seasonReview.drawn+'D.','you');
+  toastAdd('🗓️ Season '+c.seasonReview.season+' review is ready');
+}
+function seasonMaybeRoll(c){
+  var due=Math.floor((c.weeks||0)/52)+1;
+  if(!c.seasonStart)c.seasonStart=seasonSnapshot(c);
+  if(due>(c.season||1))seasonRollover(c);
+}
+function careerSeasonBanner(c){
+  var r=c.seasonReview;if(!r)return '';
+  var rd=(r.ratingFrom!=null&&r.ratingTo!=null)?(r.ratingTo-r.ratingFrom):null;
+  var line=function(l,v,col){return '<div style="text-align:center;flex:1;min-width:66px"><div class="dim small">'+l+'</div><div style="font-weight:800;font-size:18px'+(col?';color:'+col:'')+'">'+v+'</div></div>';};
+  return '<div class="card" style="margin-bottom:12px;border-color:#f59e0b;background:linear-gradient(120deg,rgba(245,158,11,.14),transparent)">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:800">🗓️ Season '+r.season+' review</div><button class="btn ghost sm" data-act="seasondismiss">✕</button></div>'+
+    '<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:9px">'+
+      line('Games',r.games)+
+      line('W–D–L',r.won+'–'+r.drawn+'–'+r.lost)+
+      line('Rating',rd==null?'—':((rd>0?'+':'')+rd),rd>0?'var(--green)':rd<0?'#f87171':'')+
+      line('Peak',r.peakTo||'—','var(--brand2)')+
+      line('Money',(r.money>=0?'+':'−')+'💰'+Math.abs(Math.round(r.money)),r.money>=0?'#fbbf24':'#f87171')+
+    '</div>'+
+    '<div class="dim small" style="margin-top:8px;line-height:1.6">'+
+      (r.events?'🏟️ '+r.events+' event'+(r.events===1?'':'s')+' played. ':'')+
+      (r.titles?'🎖️ '+r.titles+' new title'+(r.titles===1?'':'s')+'. ':'')+
+      (r.norms?'📜 '+r.norms+' norm'+(r.norms===1?'':'s')+'. ':'')+
+      (r.honors?'🏆 '+r.honors+' honour'+(r.honors===1?'':'s')+'. ':'')+
+      (r.bril?'💎 '+r.bril+' brilliancy'+(r.bril===1?'':'s')+' found. ':'')+
+      (r.best?'Best result: '+(r.best.emoji||'🏟️')+' '+esc(r.best.name)+(r.best.place?' — '+ordinal(r.best.place):'')+'.':'')+
+      (!r.events&&!r.games?'A quiet year. Next one is yours.':'')+
+    '</div></div>';
 }
 function careerDayPanel(c){
   var day=c.day||0,log=c.dayLog||[],bills=lifeCosts(c,1);
@@ -7214,6 +7280,7 @@ function viewCareer(){
   let h='<div style="max-width:920px;margin:0 auto">';
   if(app.careerToast){h+='<div class="card" style="margin-bottom:10px;border-color:var(--brand);background:linear-gradient(90deg,var(--brand)18,transparent)"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><span style="font-weight:600">'+esc(app.careerToast)+'</span><button class="btn ghost sm" data-act="toastdismiss">✕</button></div></div>';}
   if(app.careerFinish)h+=careerFinishBanner(app.careerFinish);
+  h+=careerSeasonBanner(c);
   h+=careerHeader(c);
   h+=careerScandalPanel(c);
   h+=careerDilemmaPanel(c);
@@ -7420,7 +7487,7 @@ function careerChallenges(c){
   const fmtBtns=['classical','rapid','blitz'].map(f=>'<button class="btn '+(f===fmt?'primary':'ghost')+' sm" data-act="chalfmt" data-val="'+f+'">'+fmtLabel(f)+'</button>').join(' ');
   const row=(tag,sub,x)=>'<div style="display:flex;align-items:center;gap:11px;padding:10px 13px;border-top:1px solid var(--border)">'+
     '<div style="flex:0 0 auto;position:relative">'+oppAvatar({id:x.p.id,name:x.p.name,rating:x.rating,title:titleByRating(x.rating)},36)+(x.p.real?'<span style="position:absolute;right:-2px;bottom:-2px;font-size:11px">⭐</span>':'')+'</div>'+
-    '<div style="flex:1;min-width:0"><div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(x.p.name)+' <span class="dim">'+(x.p.flag||'')+'</span> '+(titleByRating(x.rating)?'<span class="dim small" style="color:var(--brand2)">'+titleByRating(x.rating)+'</span>':'')+'</div><div class="dim small">'+tag+' · '+sub+'</div></div>'+
+    '<div style="flex:1;min-width:0;cursor:pointer" data-act="profile" data-val="'+x.p.id+'"><div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(x.p.name)+' <span class="dim">'+(x.p.flag||'')+'</span> '+(titleByRating(x.rating)?'<span class="dim small" style="color:var(--brand2)">'+titleByRating(x.rating)+'</span>':'')+'</div><div class="dim small">'+tag+' · '+sub+' · <span style="color:var(--brand2)">view profile ›</span></div></div>'+
     '<div style="text-align:right;font-weight:800;width:48px">'+x.rating+'</div>'+
     '<button class="btn sec sm" data-act="careerchal" data-val="'+x.p.id+'">Play</button></div>';
   return '<div class="card" style="padding:0;margin-bottom:12px">'+
@@ -7622,12 +7689,88 @@ function careerSimulPanel(c){
   });
   return h+'</div>';
 }
+/* ===================== PLAYER PROFILES =====================
+   Every name on the world list is a person you can look up: their face, their
+   ratings in all three formats, their form, the openings they trust, and what
+   the two of you have done to each other so far. */
+function profileOpen(id){app.playerId=id;go('player');}
+function profileOf(id){
+  var p=buildWorld().filter(function(x){return x.id===id;})[0];
+  if(!p)return null;
+  return p;
+}
+function wpForm(p){
+  var s=wpState(p);if(!s)return 0;
+  return Math.max(-4,Math.min(4,s.f||0));
+}
+function viewPlayer(){
+  const c=store.career,p=profileOf(app.playerId);
+  if(!p)return msgCard('Player not found','That player is no longer on the world list.','<button class="btn sec" data-act="nav" data-val="career">Back to career</button>');
+  lifeInit(c);
+  const rc=wpRating(p,'classical'),rr=wpRating(p,'rapid'),rb=wpRating(p,'blitz');
+  const title=titleByRating(rc);
+  const opp={id:p.id,name:p.name,rating:rc,title:title,flag:p.flag,fed:p.fed};
+  const rank=worldRanking(c,'classical').findIndex(function(x){return x.id===p.id;})+1;
+  const ch=wpChange(p,'classical'),frm=wpForm(p);
+  const h2h=(c.h2h&&c.h2h[p.name])||null;
+  const isRival=!!(c.rival&&c.rival.name===p.name);
+  const isNemesis=!!(c.nemesis&&c.nemesis.name===p.name);
+  const yr=youRating(c,'classical');
+  const gap=(yr!=null)?rc-yr:null;
+  const formWord=frm>=1.5?'climbing fast':frm>=0.4?'trending up':frm<=-1.5?'falling away':frm<=-0.4?'drifting down':'steady';
+  const reps=oppOpenings(p.name),ow=reps.w?byId.get(reps.w):null,ob=reps.b?byId.get(reps.b):null;
+  let h='<div style="max-width:720px;margin:0 auto">'+
+    '<div class="row" style="align-items:center;gap:6px;margin-bottom:10px"><button class="btn ghost sm" data-act="back">←</button><h1 style="font-size:19px;margin:0">Player profile</h1></div>';
+  h+='<div class="card" style="margin-bottom:12px"><div class="row" style="gap:14px;align-items:center">'+
+    oppAvatar(opp,76)+
+    '<div style="flex:1;min-width:0">'+
+      '<div style="font-weight:800;font-size:18px;overflow:hidden;text-overflow:ellipsis">'+(title?'<span style="color:var(--brand2)">'+title+'</span> ':'')+esc(p.name)+' <span style="font-size:15px">'+(p.flag||'')+'</span></div>'+
+      '<div class="dim small">'+esc(p.fed)+(p.real?' · ★ real-world player':'')+(rank>0?' · world #'+rank:'')+'</div>'+
+      '<div class="row" style="gap:5px;flex-wrap:wrap;margin-top:6px">'+
+        (isRival?'<span class="chip" style="background:#7f1d1d44;border-color:#7f1d1d;font-size:10px">⚔️ Your rival</span>':'')+
+        (isNemesis?'<span class="chip" style="background:#7c2d1244;border-color:#7c2d12;font-size:10px">😠 Nemesis</span>':'')+
+        '<span class="chip '+(ch>0?'green':ch<0?'':'')+'" style="font-size:10px">'+(ch>0?'▲ +'+ch:ch<0?'▼ '+ch:'· level')+' this period</span>'+
+        '<span class="chip" style="font-size:10px">'+esc(formWord)+'</span>'+
+      '</div></div></div>'+
+    '<div class="row" style="margin-top:11px">'+
+      stat('Classical',String(rc),'var(--brand2)',gap==null?'—':(gap>0?gap+' above you':gap<0?(-gap)+' below you':'level with you'))+
+      stat('Rapid',String(rr),'var(--text)','')+
+      stat('Blitz',String(rb),'var(--text)','')+'</div>'+
+    '<div class="row" style="gap:7px;flex-wrap:wrap;margin-top:11px">'+
+      '<button class="btn primary sm" data-act="careerchal" data-val="'+p.id+'"'+(c.tour?' disabled title="Finish your event first"':'')+'>⚔️ Challenge them</button>'+
+      '<button class="btn sec sm" data-act="specvs" data-val="'+p.id+'">🍿 Watch them play</button>'+
+    '</div></div>';
+  // head to head
+  h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:6px">🤝 Head to head</div>';
+  if(h2h&&((h2h.w||0)+(h2h.l||0)+(h2h.d||0))>0){
+    const tot=(h2h.w||0)+(h2h.l||0)+(h2h.d||0),pct=((h2h.w||0)+(h2h.d||0)*0.5)/tot;
+    h+='<div class="row" style="justify-content:space-between;align-items:center">'+
+      '<div style="text-align:center;flex:1"><div class="dim small">You</div><div style="font-weight:800;font-size:24px;color:var(--green)">'+(h2h.w||0)+'</div></div>'+
+      '<div style="text-align:center;flex:1"><div class="dim small">Drawn</div><div style="font-weight:800;font-size:24px" class="dim">'+(h2h.d||0)+'</div></div>'+
+      '<div style="text-align:center;flex:1"><div class="dim small">Them</div><div style="font-weight:800;font-size:24px;color:#f87171">'+(h2h.l||0)+'</div></div></div>'+
+      '<div class="dim small" style="text-align:center;margin-top:6px">'+tot+' game'+(tot===1?'':'s')+' · you score '+Math.round(pct*100)+'%</div>';
+  } else h+='<div class="dim small">You have never played. Challenge them and start the file.</div>';
+  h+='</div>';
+  // what they play
+  h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:2px">🔎 What they play</div>'+
+    '<div class="dim small" style="margin-bottom:5px">Scouted from their games. Study these lines and you start with a real edge when you meet.</div>';
+  [[ow,'as White'],[ob,'as Black']].forEach(function(pair){
+    var o=pair[0];if(!o)return;
+    var r=studyReadiness(o);
+    h+='<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--border);flex-wrap:wrap">'+
+      '<span class="small"><b>'+esc(o.name)+'</b> <span class="dim">'+esc(o.eco)+' · '+pair[1]+'</span></span>'+
+      '<span class="row" style="gap:5px">'+(r.has?'<span class="chip '+(r.m>=50?'green':'amber')+'" style="font-size:10px">'+(r.m>=50?'prepared':'learning')+' '+r.m+'%</span>':'<button class="btn ghost sm" data-act="addrep" data-val="'+o.id+'">+ Add</button>')+
+      '<button class="btn sec sm" data-act="explore" data-val="'+o.id+'">📖 Study</button></span></div>';
+  });
+  h+='</div>';
+  return h+'</div>';
+}
 function careerLeaderboard(c){
   const fmt=app.lbFormat||'classical';
   const list=worldRanking(c,fmt);
   const yi=list.findIndex(p=>p.you);
   const chHtml=ch=>ch>0?'<span style="color:#86efac">▲'+ch+'</span>':ch<0?'<span style="color:#f87171">▼'+(-ch)+'</span>':'<span class="dim">·</span>';
-  const rowHtml=(p,rank)=>'<div style="display:flex;align-items:center;gap:9px;padding:7px 2px;border-top:1px solid var(--border)'+(p.you?';background:rgba(96,165,250,.12);margin:0 -6px;padding-left:8px;padding-right:8px;border-radius:6px':'')+'">'+
+  const rowHtml=(p,rank)=>'<div style="display:flex;align-items:center;gap:9px;padding:7px 2px;border-top:1px solid var(--border);'+(p.you?'background:rgba(96,165,250,.12);margin:0 -6px;padding-left:8px;padding-right:8px;border-radius:6px':'cursor:pointer')+'"'+(p.you?'':' data-act="profile" data-val="'+p.id+'"')+'>'+
     '<div class="dim small" style="width:36px;font-weight:700">#'+rank+'</div>'+
     '<div style="width:22px;text-align:center">'+(p.flag||'')+'</div>'+
     '<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:'+(p.you?'800':'600')+'">'+esc(p.name)+(p.you?' <span class="chip brand" style="font-size:9px">YOU</span>':(p.real?' <span class="dim" style="font-size:10px">★</span>':''))+'</div>'+
