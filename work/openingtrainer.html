@@ -4326,13 +4326,13 @@ function checkTitles(c){const got=[];const peak=titlePeak(c);
     c.titles.push(d.t);got.push(d.t);
   }
   return got;}
-const DEF={repertoire:[],srs:{},custom:[],settings:{newPer:8,pieces:'staunty',theme:'green',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'midnight',accent:'blue'},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[]}};
+const DEF={repertoire:[],srs:{},custom:[],settings:{newPer:8,pieces:'staunty',theme:'green',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'midnight',accent:'blue'},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[]}};
 function freshCareer(){return JSON.parse(JSON.stringify(DEF.career));}
 /* Migrate saved career data: the old ladder (with `beaten`/`results`) is reset
    to the new FIDE structure; new-format saves are merged onto fresh defaults. */
 function migrateCareer(d){if(!d||typeof d!=='object'||('beaten'in d)||!('setup'in d))return freshCareer();return Object.assign(freshCareer(),d);}
 let store=DEF;
-try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],career:migrateCareer(d.career)};}catch(e){}
+try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],brilliancies:d.brilliancies||[],career:migrateCareer(d.career)};}catch(e){}
 function rebuildOpenings(){const cust=(store.custom||[]).map(d=>{try{return buildOpening(d);}catch(e){return null;}}).filter(Boolean);BUILT=BASE.concat(cust);byId=new Map(BUILT.map(o=>[o.id,o]));}
 rebuildOpenings();
 function save(){localStorage.setItem(LS,JSON.stringify(store));}
@@ -4536,6 +4536,7 @@ function viewLearn(){
     ['masters','♞','Master Games','Step through games from the legends'],
     ['blindfold','🙈','Blindfold','Train board vision &amp; visualization'],
     ['review','🔬','Game Review','Analyse any game with the engine'],
+    ['brilliancy','💎','Brilliancies','Your gallery of sacrifices that worked'],
     ['studies','📚','Studies','Import &amp; browse Lichess studies'],
     ['dashboard','📊','Dashboard','Your repertoire progress &amp; stats']
   ];
@@ -4547,12 +4548,12 @@ function render(){
   document.body.style.setProperty('--bw',(store.settings.boardSize||520)+'px');
   applyAppTheme();
   const repOps=BUILT.filter(o=>inRep(o.id));const agg=aggregate(repOps,store.srs);
-  const nav=['career','dashboard','play','puzzles','learn','train','library','endgames','classics','guess','blindfold','review','studies','masters','settings'];
-  const NAV_META={career:['🏆','Career'],dashboard:['📊','Dashboard'],play:['♟️','Play'],puzzles:['🧩','Puzzles'],learn:['📚','Learn'],train:['🎓','Train'],library:['📖','Openings'],endgames:['♟️','Endgames'],classics:['📜','Classics'],guess:['🎯','Guess the Move'],blindfold:['🙈','Blindfold'],review:['🔬','Game Review'],studies:['📚','Studies'],masters:['♞','Master Games'],settings:['⚙️','Settings']};
+  const nav=['career','dashboard','play','puzzles','learn','train','library','endgames','classics','guess','blindfold','review','brilliancy','studies','masters','settings'];
+  const NAV_META={career:['🏆','Career'],dashboard:['📊','Dashboard'],play:['♟️','Play'],puzzles:['🧩','Puzzles'],learn:['📚','Learn'],train:['🎓','Train'],library:['📖','Openings'],endgames:['♟️','Endgames'],classics:['📜','Classics'],guess:['🎯','Guess the Move'],blindfold:['🙈','Blindfold'],review:['🔬','Game Review'],brilliancy:['💎','Brilliancies'],studies:['📚','Studies'],masters:['♞','Master Games'],settings:['⚙️','Settings']};
   const label=v=>(NAV_META[v]?NAV_META[v][1]:v[0].toUpperCase()+v.slice(1));
   const navIcon=v=>(NAV_META[v]?NAV_META[v][0]:'•');
   const cur=nav.indexOf(app.view)>=0?app.view:'dashboard';
-  const LEARN_VIEWS=['learn','train','library','build','explore','course','endgames','classics','guess','blindfold','masters','studies','review','dashboard','reptree'];
+  const LEARN_VIEWS=['learn','train','library','build','explore','course','endgames','classics','guess','blindfold','masters','studies','review','brilliancy','dashboard','reptree'];
   const primaryOf=v=>(v==='career'?'career':v==='play'?'play':v==='puzzles'?'puzzles':LEARN_VIEWS.indexOf(v)>=0?'learn':'');
   const PRIMARY=[['career','🏆','Career'],['play','♟️','Play'],['puzzles','🧩','Puzzles'],['learn','📚','Learn']];
   const curP=primaryOf(cur);
@@ -4581,6 +4582,7 @@ function render(){
   else if(app.view==='puzzles')body=viewPuzzles();
   else if(app.view==='learn')body=viewLearn();
   else if(app.view==='review')body=viewReview();
+  else if(app.view==='brilliancy')body=viewBrilliancy();
   else if(app.view==='studies')body=viewStudies();
   else if(app.view==='masters')body=viewMasters();
   else if(app.view==='career')body=viewCareer();
@@ -5190,6 +5192,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='claimdaily')claimDaily();
   else if(act==='careerchal')startChallenge(val);
   else if(act==='feedall'){app.feedAll=!app.feedAll;}
+  else if(act==='brildel'){(store.brilliancies||[]).splice(parseInt(val,10),1);save();}
   else if(act==='arcchoice'){arcChoose(store.career,parseInt(val,10));save();}
   else if(act==='chalfmt'){app.chalFormat=val;render();}
   else if(act==='lbfmt'){app.lbFormat=val;render();}
@@ -7977,7 +7980,75 @@ function splitPGNGames(pgn){pgn=(pgn||'').replace(/\r/g,'');const lines=pgn.spli
 /* =========================================================================
    GAME REVIEW — Stockfish analysis, move classification, accuracy, graph
    ========================================================================= */
-const REV_CLASS={best:['Best','#22c55e'],good:['Good','#86efac'],book:['Book','#93c5fd'],inacc:['Inaccuracy','#fcd34d'],mistake:['Mistake','#f59e0b'],blunder:['Blunder','#f43f5e']};
+const REV_CLASS={brilliant:['Brilliant','#22d3ee'],best:['Best','#22c55e'],good:['Good','#86efac'],book:['Book','#93c5fd'],inacc:['Inaccuracy','#fcd34d'],mistake:['Mistake','#f59e0b'],blunder:['Blunder','#f43f5e']};
+/* ---- Brilliancy detection ----
+   A brilliancy is a move that hands the opponent material they can take with
+   something cheaper, and is still the right move. We check three things: the
+   engine agrees with it, you keep the advantage afterwards, and the piece you
+   just put on that square can be snapped off for less than it is worth. */
+const BRIL_VAL={p:1,n:3,b:3,r:5,q:9,k:0};
+function brilliancyAt(R,k){
+  if(k+1>=R.fens.length||!R.moves[k])return null;
+  const cls=R.classes[k];
+  if(cls!=='best'&&cls!=='good')return null;
+  const evBefore=cpOf(R.evals[k]);                                   // your POV before the move
+  const evAfterRaw=R.evals[k+1];
+  const evAfter=evAfterRaw?-cpOf(evAfterRaw):evBefore;               // your POV after the move
+  const mateFor=evAfterRaw&&evAfterRaw.t==='mate'&&evAfterRaw.v<0;   // mate for you
+  if(!mateFor&&evAfter<25)return null;                               // the sac has to work
+  if(evBefore>650)return null;                                       // already trivially winning
+  let g,m;
+  try{g=new Chess(R.fens[k]);m=g.move({from:R.moves[k].from,to:R.moves[k].to,promotion:R.moves[k].promotion||'q'});}catch(e){return null;}
+  if(!m)return null;
+  const prev=k>0?R.moves[k-1]:null;
+  if(m.captured&&prev&&prev.to===m.to)return null;                   // a recapture is not a sacrifice
+  const moved=BRIL_VAL[m.piece]||0,got=m.captured?(BRIL_VAL[m.captured]||0):0;
+  const invest=moved-got;
+  if(invest<2)return null;                                           // at least a piece for a pawn
+  let caps=[];
+  try{caps=g.moves({verbose:true}).filter(x=>x.to===m.to&&String(x.flags).indexOf('c')>=0);}catch(e){return null;}
+  if(!caps.length)return null;                                       // nothing is actually being offered
+  const cheapest=Math.min.apply(null,caps.map(x=>BRIL_VAL[x.piece]||0));
+  if(cheapest>=moved)return null;                                    // an even trade, not a gift
+  return {ply:k+1,k:k,san:m.san,fen:R.fens[k],after:g.fen(),from:m.from,to:m.to,invest:invest,cp:evAfter,mate:!!mateFor,piece:m.piece};
+}
+function brilliancyScan(R){
+  const mySide=(R.meta&&R.meta.side)||null,out=[];
+  for(let k=0;k<R.moves.length;k++){
+    if(mySide&&turnOf(R.fens[k])!==mySide)continue;
+    const b=brilliancyAt(R,k);
+    if(b){out.push(b);R.classes[k]='brilliant';}
+  }
+  return out;
+}
+function brilLabel(b){return (b.mate?'Mating sacrifice':(BRIL_VAL[b.piece]>=9?'Queen sacrifice':BRIL_VAL[b.piece]>=5?'Exchange sacrifice':'Piece sacrifice'));}
+function brilSave(list,meta){
+  if(!list||!list.length)return 0;
+  store.brilliancies=store.brilliancies||[];
+  let added=0;
+  list.forEach(function(b){
+    if(store.brilliancies.some(x=>x.fen===b.fen&&x.san===b.san))return;
+    store.brilliancies.unshift({fen:b.fen,san:b.san,from:b.from,to:b.to,ply:b.ply,invest:b.invest,cp:b.cp,mate:b.mate,piece:b.piece,
+      opp:(meta&&meta.opp)||'',event:(meta&&meta.event)||'',side:(meta&&meta.side)||'w',date:Date.now()});
+    added++;
+  });
+  if(store.brilliancies.length>36)store.brilliancies.length=36;
+  return added;
+}
+function viewBrilliancy(){
+  const list=store.brilliancies||[];
+  let h='<div style="max-width:900px;margin:0 auto"><h1>💎 Brilliancies</h1>'+
+    '<div class="muted small" style="margin:6px 0 14px">Every sacrifice you found that actually worked. Review a game and the engine adds them here automatically.</div>';
+  if(!list.length)return h+'<div class="card"><b>Nothing here yet.</b><div class="dim small" style="margin-top:4px">Play a game, hit 🔬 Review game, and any move where you gave up material and stayed better will be saved as a brilliancy.</div><div class="row" style="margin-top:10px"><button class="btn primary sm" data-act="nav" data-val="review">Open Game Review</button></div></div></div>';
+  h+='<div class="learngrid">'+list.map(function(b,i){
+    return '<div class="card" style="padding:11px"><div style="width:100%;max-width:210px;margin:0 auto 8px">'+renderBoard(b.fen,b.side==='b'?'black':'white',{interactive:false,last:null})+'</div>'+
+      '<div class="row" style="justify-content:space-between;align-items:center;gap:6px"><b style="color:#22d3ee">💎 '+esc(b.san)+'</b><span class="chip" style="font-size:10px;color:#22d3ee">'+esc(brilLabel(b))+'</span></div>'+
+      '<div class="dim small" style="margin-top:3px">'+(b.opp?'vs '+esc(b.opp):'Your game')+(b.event?' · '+esc(b.event):'')+'</div>'+
+      '<div class="dim small">Gave up '+b.invest+' points of material · '+(b.mate?'forced mate':'still '+(b.cp>0?'+':'')+(b.cp/100).toFixed(1))+'</div>'+
+      '<div class="row" style="margin-top:8px"><button class="btn ghost sm" data-act="brildel" data-val="'+i+'">🗑 Remove</button></div></div>';
+  }).join('')+'</div>';
+  return h+'</div>';
+}
 function winPct(cp){return 50+50*(2/(1+Math.exp(-0.00368208*cp))-1);}
 function cpOf(ev){if(!ev)return 0;if(ev.t==='mate')return ev.v>0?2000:-2000;return Math.max(-2000,Math.min(2000,ev.v));}
 function reviewStart(moves,startFen,meta){if(!moves||!moves.length){app.view='review';app.review={status:'empty'};render();return;}
@@ -8025,6 +8096,16 @@ function reviewFinish(){const R=app.review;const n=R.moves.length;const sans=[];
   R.key=null;
   if(worstK>=0){var betterSan='';try{var bc=new Chess(R.fens[worstK]);var bu=(R.best[worstK]||'');if(bu){var mvk=bc.move({from:bu.slice(0,2),to:bu.slice(2,4),promotion:bu[4]||'q'});betterSan=mvk?mvk.san:'';}}catch(e){}
     R.key={ply:worstK+1,played:R.moves[worstK].san,better:betterSan,cls:R.classes[worstK],drop:Math.round(worst)};}
+  R.bril=brilliancyScan(R);
+  if(R.bril.length){
+    const bm=(R.meta&&R.meta.oppName)?{opp:R.meta.oppName,event:R.meta.event||'',side:R.meta.side||'w'}:{opp:'',event:(R.meta&&R.meta.event)||'',side:(R.meta&&R.meta.side)||'w'};
+    const added=brilSave(R.bril,bm);
+    if(added){const c=store.career;
+      if(c&&c.setup){pushNews(c,'💎','The engine flagged '+(added===1?'a brilliancy':added+' brilliancies')+' in your game — '+R.bril.map(b=>b.san).join(', ')+'.');
+        pushFeed(c,'💎',esc(c.name||'You')+' plays '+R.bril[0].san+' — '+brilLabel(R.bril[0]).toLowerCase()+', and it works.','you');
+        c.fame=Math.min(100,(c.fame||0)+2*added);addXp(c,40*added);}
+      save();}
+  }
   R.status='done';R.pos=0;render();}
 function reviewSeek(d){const R=app.review;if(!R||!R.fens)return;R.pos=Math.max(0,Math.min(R.fens.length-1,R.pos+d));render();}
 function viewReview(){
@@ -8059,6 +8140,7 @@ function viewReview(){
   const atEnd=R.pos>=R.fens.length-1,atStart=R.pos<=0;
   let h='<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px"><h1 style="font-size:20px">Game Review</h1><button class="btn ghost sm" data-act="nav" data-val="review">✕</button></div>';
   h+='<div class="row" style="margin-bottom:12px">'+stat('White accuracy',R.accW+'%','#e2e8f0')+stat('Black accuracy',R.accB+'%','#94a3b8')+'</div>';
+  if(R.bril&&R.bril.length)h+='<div class="card" style="margin-bottom:12px;border-color:#22d3ee;background:linear-gradient(90deg,rgba(34,211,238,.12),transparent)"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div class="small"><b style="color:#22d3ee">💎 Brilliancy'+(R.bril.length>1?' ×'+R.bril.length:'')+':</b> '+R.bril.map(b=>esc(b.san)).join(', ')+' <span class="dim">— '+esc(brilLabel(R.bril[0]))+', saved to your gallery</span></div><button class="btn sec sm" style="flex:0 0 auto" data-act="revjump" data-val="'+R.bril[0].ply+'">See it →</button></div></div>';
   if(R.key)h+='<div class="card" style="margin-bottom:12px;border-color:'+(REV_CLASS[R.key.cls]?REV_CLASS[R.key.cls][1]:'#f87171')+'"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div class="small"><b>🔍 Your biggest mistake:</b> '+esc(R.key.played)+' <span style="color:'+(REV_CLASS[R.key.cls]?REV_CLASS[R.key.cls][1]:'#f87171')+';font-weight:700">('+(REV_CLASS[R.key.cls]?REV_CLASS[R.key.cls][0]:R.key.cls)+')</span>'+(R.key.better?' — better was <b>'+esc(R.key.better)+'</b>':'')+'</div><button class="btn sec sm" style="flex:0 0 auto" data-act="revjump" data-val="'+R.key.ply+'">See it →</button></div></div>';
   h+='<div class="layout"><div class="boardwrap">'+renderBoard(fen,orient,{last,hint:bestArrow,interactive:false})+
     '<div class="row" style="justify-content:center;align-items:center;gap:5px;margin-top:10px">'+
