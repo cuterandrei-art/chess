@@ -28,6 +28,9 @@ await page.screenshot({path:SP+'/v-career-play.png'}); // shows quests + pace ta
 await page.click('[data-act="careertab"][data-val="you"]'); await page.waitForTimeout(120);
 await page.screenshot({path:SP+'/v-career-you.png'});
 
+// 2a) You tab already captured above; grab the avatar customiser full-page
+await page.screenshot({path:SP+'/v-career-you-full.png',fullPage:true});
+
 // 2b) World tab — living feed
 await tab('world');
 await page.screenshot({path:SP+'/v-career-world.png'});
