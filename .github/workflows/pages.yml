@@ -1,0 +1,72 @@
+name: Deploy the app to GitHub Pages
+
+# Publishes the installable PWA so you can open it on your phone and use
+# "Add to Home Screen". Once this has run, the app is live at:
+#   https://cuterandrei-art.github.io/chess/
+#
+# The service-worker cache is named after the commit, so every deploy pushes a
+# fresh copy to phones that already have it installed instead of serving the
+# old one from cache.
+
+on:
+  push:
+    branches:
+      - main
+      - claude/charming-ramanujan-v52cqu
+    paths:
+      - 'work/openingtrainer.html'
+      - 'build/**'
+      - 'build-netlify.mjs'
+      - 'netlify/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install deps
+        run: npm ci || npm install
+
+      - name: Check the app before publishing it
+        run: node validate-smoke.mjs
+
+      - name: Build the PWA bundle
+        run: node build-netlify.mjs "${GITHUB_SHA::7}"
+
+      - name: Assemble the site
+        run: |
+          rm -rf _site && mkdir -p _site
+          cp -r netlify/. _site/
+          touch _site/.nojekyll
+          ls -la _site
+
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

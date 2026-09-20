@@ -1,0 +1,88 @@
+name: Build the Android APK
+
+# Builds an installable debug APK on GitHub's runners, which have the Android
+# SDK and can reach Google's Maven. Grab it from the run's Artifacts, or — more
+# convenient on a phone — from the auto-updated "latest-android" pre-release:
+#   https://github.com/cuterandrei-art/chess/releases/tag/latest-android
+#
+# The bundled web app is rebuilt from work/openingtrainer.html here, so the APK
+# always matches the source rather than whatever assets were last committed.
+
+on:
+  push:
+    branches:
+      - main
+      - claude/charming-ramanujan-v52cqu
+    paths:
+      - 'work/openingtrainer.html'
+      - 'app_project/android/**'
+      - 'build/**'
+      - 'build-netlify.mjs'
+      - '.github/workflows/android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install deps
+        run: npm ci || npm install
+
+      - name: Check the app before shipping it
+        run: node validate-smoke.mjs
+
+      - name: Rebuild the bundled web app from source
+        run: |
+          node build-netlify.mjs "${GITHUB_SHA::7}"
+          WWW=app_project/android/app/src/main/assets/www
+          cp netlify/index.html netlify/sw.js netlify/manifest.webmanifest "$WWW/"
+          cp netlify/icon-192.png netlify/icon-512.png netlify/icon-512-maskable.png \
+             netlify/apple-touch-icon.png netlify/favicon-32.png "$WWW/"
+          # the WebView loads index.html only — don't ship a second 3MB copy
+          rm -f "$WWW/openingtrainer.html"
+          ls -la "$WWW"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Build the debug APK
+        working-directory: app_project/android
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleDebug
+
+      - name: Name it something recognisable
+        run: cp app_project/android/app/build/outputs/apk/debug/app-debug.apk ChessCareer.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ChessCareer-apk
+          path: ChessCareer.apk
+          if-no-files-found: error
+
+      - name: Publish to the "latest-android" pre-release
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VER=$(grep -o "versionName '[^']*'" app_project/android/app/build.gradle | head -1 | cut -d"'" -f2)
+          gh release delete latest-android --yes --cleanup-tag || true
+          gh release create latest-android ChessCareer.apk \
+            --title "Chess Career $VER (latest Android build)" \
+            --notes "Installable debug APK built from ${{ github.sha }}.
+
+          On your phone: download the APK below, allow your browser or files app to \"install unknown apps\", then open it. Everything works offline once installed." \
+            --prerelease
