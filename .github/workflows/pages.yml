@@ -56,13 +56,25 @@ jobs:
       - name: Assemble the site
         run: |
           rm -rf _site && mkdir -p _site
-          cp -r netlify/. _site/
+          cp netlify/index.html netlify/sw.js netlify/manifest.webmanifest _site/
+          cp netlify/icon-192.png netlify/icon-512.png netlify/icon-512-maskable.png \
+             netlify/apple-touch-icon.png netlify/favicon-32.png _site/
           touch _site/.nojekyll
           ls -la _site
 
+      # The workflow token is not allowed to turn Pages on for the first time,
+      # and the error it produces is cryptic. Say plainly what to click.
+      - name: Check that Pages is switched on
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh api "repos/${GITHUB_REPOSITORY}/pages" >/dev/null 2>&1; then
+            echo "::error title=GitHub Pages is not enabled::Open https://github.com/${GITHUB_REPOSITORY}/settings/pages and set Source to 'GitHub Actions'. It is a one-time switch — this workflow cannot flip it. Then re-run this job and the app will be live at https://$(echo "${GITHUB_REPOSITORY}" | cut -d/ -f1).github.io/$(echo "${GITHUB_REPOSITORY}" | cut -d/ -f2)/"
+            exit 1
+          fi
+          echo "Pages is enabled — deploying."
+
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - uses: actions/upload-pages-artifact@v3
         with:
