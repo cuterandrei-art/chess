@@ -10,3 +10,4 @@ app_project/android/local.properties
 app_project/android/**/build/
 app_project/android/.gradle/
 /tmp/
+.cache/

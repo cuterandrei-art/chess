@@ -4611,7 +4611,7 @@ function viewMasters(){
   h+='<div class="layout"><div class="boardwrap">'+renderBoard(fens[idx],orient,{last:lasts[idx],interactive:false})+
     '<div class="row" style="justify-content:center;gap:6px;margin-top:8px"><button class="btn ghost sm" data-act="mfirst">⏮</button><button class="btn ghost sm" data-act="mprev" '+(idx>0?'':'disabled')+'>◀</button><button class="btn ghost sm" data-act="mnext" '+(idx<fens.length-1?'':'disabled')+'>▶</button><button class="btn ghost sm" data-act="mlast">⏭</button><button class="btn ghost sm" data-act="mflip">⇅ Flip</button></div></div>'+
     '<div><div class="card"><div style="text-transform:uppercase;font-size:11px;letter-spacing:.08em;color:var(--muted)">Moves</div><div style="max-height:260px;overflow:auto;margin-top:6px;line-height:1.9">'+mlist+'</div></div>'+
-    (store.settings.showEval?'<div class="card" style="margin-top:12px">'+(app.mEval?'<div class="row" style="justify-content:space-between;margin-bottom:5px"><span class="dim small">Engine</span><span class="small" style="font-weight:800">'+evalStr(app.mEval.t,app.mEval.v,app.mEval.stm)+'</span></div><div class="evalbar"><i style="width:'+evalPct(app.mEval.t,app.mEval.v,app.mEval.stm)+'%"></i></div>'+linesHtml(app.mLines):'<span class="dim small">Analysing… (deep)</span>')+'<button class="btn ghost sm" data-act="meval" style="margin-top:8px">Hide engine</button></div>':'<div class="row" style="margin-top:12px"><button class="btn sec sm" data-act="meval">🔍 Engine eval</button></div>')+
+    (store.settings.showEval?'<div class="card" style="margin-top:12px">'+(app.mEval?'<div class="row" style="justify-content:space-between;margin-bottom:5px"><span class="dim small">Engine '+esc(evalDepth(app.mEval))+'</span><span class="small" style="font-weight:800">'+esc(evalLabel(app.mEval))+'</span></div><div class="evalbar"><i style="width:'+evalPct(app.mEval.t,app.mEval.v,app.mEval.stm)+'%"></i></div>'+linesHtml(app.mLines):'<span class="dim small">Analysing… (deep)</span>')+'<button class="btn ghost sm" data-act="meval" style="margin-top:8px">Hide engine</button></div>':'<div class="row" style="margin-top:12px"><button class="btn sec sm" data-act="meval">🔍 Engine eval</button></div>')+
     '<div class="card" style="margin-top:12px"><button class="btn primary sm" data-act="mplay">▶ Play from here vs engine</button><div class="dim small" style="margin-top:6px">'+esc(short(g.w))+' vs '+esc(short(g.b))+(g.o?' · ECO '+esc(g.o):'')+'. Use ◀ ▶ or tap a move.</div></div></div></div>';
   return h;
 }
@@ -6814,11 +6814,12 @@ function liveHintsOn(){return store.settings.liveHints!==false;}
 function liveAnalyse(){
   const fen=liveCur();
   if(!fen||(!liveEvalOn()&&!liveHintsOn())){app.liveEv=null;app.liveBest=null;app.liveLines=[];return;}
-  analysePos(fen,function(ev,best,lines){
+  analysePos(fen,function(ev,best,lines,superseded){
     if(liveCur()!==fen)return;                 // the board moved on while we thought
+    if(superseded)return;                      // its answer belongs to another position
     app.liveEngErr=!ev&&!best&&!(lines&&lines.length);
     app.liveEv=ev;app.liveBest=best;app.liveLines=lines;render();
-  },{force:true,depth:18});
+  },{force:true,depth:20,movetime:4000});
 }
 function liveArrows(){
   if(!liveHintsOn())return [];
@@ -6947,10 +6948,11 @@ function viewLiveGame(){
         '<button class="btn '+(liveEvalOn()?'primary':'ghost')+' sm" data-act="liveevaltog">'+(liveEvalOn()?'📊 Eval bar: on':'📊 Eval bar: off')+'</button>'+
         '<button class="btn '+(liveHintsOn()?'primary':'ghost')+' sm" data-act="livehinttog">'+(liveHintsOn()?'💡 Suggestions: on':'💡 Suggestions: off')+'</button>'+
       '</div>'+
-      (ev?'<span class="small" style="font-weight:800">'+evalStr(ev.t,ev.v,ev.stm)+'</span>':'')+
+      (ev?'<span class="small" style="font-weight:800">'+esc(evalLabel(ev))+(evalDepth(ev)?' <span class="dim" style="font-weight:600;font-size:10px">'+esc(evalDepth(ev))+'</span>':'')+'</span>':'')+
     '</div>';
   if(liveEvalOn()){
-    h+=ev?'<div class="evalbar"><i style="width:'+evalPct(ev.t,ev.v,ev.stm)+'%"></i></div>'
+    h+=ev?'<div class="evalbar"><i style="width:'+evalPct(ev.t,ev.v,ev.stm)+'%"></i></div>'+
+          (ev.over?'<div class="dim small" style="margin-top:5px">The game is over in this position — there is nothing for the engine to weigh.</div>':'')
         :'<div class="dim small">'+(app.liveEngErr?'The engine could not load — it needs the internet on first use.':'Engine thinking…')+'</div>';
   }
   if(liveHintsOn()){
@@ -6959,6 +6961,8 @@ function viewLiveGame(){
         '<div class="dim small">Best: <b style="color:var(--text)">'+esc((app.liveBest&&app.liveBest.san)||app.liveLines[0].sans[0]||'—')+'</b>'+
         ' <span style="color:#22c55e">▬</span> best <span style="color:#3b82f6">▬</span> second <span style="color:#a78bfa">▬</span> third</div>'+
         linesHtml(app.liveLines)+'</div>';
+    } else if(ev&&ev.over){
+      h+='<div class="dim small" style="margin-top:7px">No moves to suggest — the game ends here.</div>';
     } else if(!liveEvalOn()){
       h+='<div class="dim small">'+(app.liveEngErr?'The engine could not load — it needs the internet on first use.':'Engine thinking…')+'</div>';
     }
@@ -7082,7 +7086,7 @@ function viewExplorer(){
     '<button class="btn ghost sm" data-act="exflip">⇅ Flip</button></div></div>';
   h+='<div><div class="card"><div class="muted small">'+esc(o.description)+'</div></div>'+
     (free?'<div class="note" style="margin-top:12px">🧭 Off-book — '+app.exFree.length+' move'+(app.exFree.length>1?'s':'')+' beyond the course. <button class="btn ghost sm" data-act="exclearfree">↩ Back to course</button></div>':'')+
-    (store.settings.showEval?'<div class="card" style="margin-top:12px">'+(app.exEval?'<div class="row" style="justify-content:space-between;margin-bottom:5px"><span class="dim small">Engine</span><span class="small" style="font-weight:800">'+evalStr(app.exEval.t,app.exEval.v,app.exEval.stm)+'</span></div><div class="evalbar"><i style="width:'+evalPct(app.exEval.t,app.exEval.v,app.exEval.stm)+'%"></i></div>'+linesHtml(app.exLines):'<span class="dim small">Analysing… (deep)</span>')+'<button class="btn ghost sm" data-act="exeval" style="margin-top:8px">Hide engine</button></div>':'<div class="row" style="margin-top:12px"><button class="btn sec sm" data-act="exeval">🔍 Engine eval — play any move to test it</button></div>')+
+    (store.settings.showEval?'<div class="card" style="margin-top:12px">'+(app.exEval?'<div class="row" style="justify-content:space-between;margin-bottom:5px"><span class="dim small">Engine '+esc(evalDepth(app.exEval))+'</span><span class="small" style="font-weight:800">'+esc(evalLabel(app.exEval))+'</span></div><div class="evalbar"><i style="width:'+evalPct(app.exEval.t,app.exEval.v,app.exEval.stm)+'%"></i></div>'+linesHtml(app.exLines):'<span class="dim small">Analysing… (deep)</span>')+'<button class="btn ghost sm" data-act="exeval" style="margin-top:8px">Hide engine</button></div>':'<div class="row" style="margin-top:12px"><button class="btn sec sm" data-act="exeval">🔍 Engine eval — play any move to test it</button></div>')+
     '<div class="card" style="margin-top:12px"><div class="l" style="text-transform:uppercase;font-size:11px;letter-spacing:.08em;color:var(--muted)">Moves</div>'+
     '<div class="moves" style="margin-top:4px">'+(sans.length?sans.map((m,i)=>'<button data-act="exjump" data-val="'+i+'">'+(i%2===0?(Math.floor(i/2)+1)+'.':'')+esc(m)+'</button>').join(' '):'<span class="dim">Starting position</span>')+'</div></div>';
   // one explanation, one box: the coach card carries the move, the reason and
@@ -7614,7 +7618,37 @@ function linesHtml(arr){if(!arr||!arr.length)return '';return arr.map(function(L
 /* opts.force analyses even when the global eval toggle is off, so a screen with
    its own switch (the live board) is not held hostage by a setting elsewhere.
    Each line carries the squares of its first move too, for board arrows. */
-function analysePos(fen,cb,opts){if(!store.settings.showEval&&!(opts&&opts.force)){cb(null,null,[]);return;}Engine.load().then(function(ok){if(!ok){cb(null,null,[]);return;}Engine.onInfo=function(t,v){app._evTmp={t:t,v:v,stm:turnOf(fen)};};Engine.analyse(fen,(opts&&opts.depth)||99,function(best,lines){var san=null,bfrom=null,bto=null;if(best&&best!=='(none)'){var m=tryFromTo(fen,best.slice(0,2),best.slice(2,4),best[4]||'q');san=m?m.san:null;if(m){bfrom=best.slice(0,2);bto=best.slice(2,4);}}var arr=[];if(lines){var ks=Object.keys(lines).sort(function(a,b){return (+a)-(+b);});for(var i=0;i<ks.length&&arr.length<3;i++){var L=lines[ks[i]];if(!L)continue;var u=String(L.pv||'').split(' ')[0]||'';var ent={t:L.t,v:L.v,stm:turnOf(fen),sans:pvToSans(fen,L.pv,6)};if(/^[a-h][1-8][a-h][1-8]/.test(u)){ent.from=u.slice(0,2);ent.to=u.slice(2,4);}arr.push(ent);}}cb(app._evTmp||null,san?{san:san,from:bfrom,to:bto}:null,arr);});});}
+/* The evaluation comes back attached to the position it belongs to, so a board
+   that moved on mid-search can never be shown the previous position's number.
+   A search that was abandoned calls back with superseded=true and nothing else. */
+function analysePos(fen,cb,opts){
+  if(!store.settings.showEval&&!(opts&&opts.force)){cb(null,null,[]);return;}
+  const done=posOver(fen);
+  if(done){cb(done,null,[],false);return;}
+  Engine.load().then(function(ok){
+    if(!ok){cb(null,null,[]);return;}
+    Engine.analyse(fen,(opts&&opts.depth)||99,function(best,lines,ev,superseded){
+      if(superseded){cb(null,null,[],true);return;}
+      var bestOut=null;
+      if(best&&best!=='(none)'){
+        var m=tryFromTo(fen,best.slice(0,2),best.slice(2,4),best[4]||'q');
+        if(m)bestOut={san:m.san,from:best.slice(0,2),to:best.slice(2,4)};
+      }
+      var arr=[];
+      if(lines){
+        var ks=Object.keys(lines).sort(function(a,b){return (+a)-(+b);});
+        for(var i=0;i<ks.length&&arr.length<3;i++){
+          var L=lines[ks[i]];if(!L)continue;
+          var u=String(L.pv||'').split(' ')[0]||'';
+          var ent={t:L.t,v:L.v,stm:turnOf(fen),sans:pvToSans(fen,L.pv,6)};
+          if(/^[a-h][1-8][a-h][1-8]/.test(u)){ent.from=u.slice(0,2);ent.to=u.slice(2,4);}
+          arr.push(ent);
+        }
+      }
+      cb(ev||null,bestOut,arr,false);
+    },null,opts&&opts.movetime);
+  });
+}
 function exFen(){var o=byId.get(app.exId);if(!o)return null;if(app.exFree&&app.exFree.length)return app.exFree[app.exFree.length-1].fen;return exCurrent().fen;}
 function exAnalyse(){analysePos(exFen(),function(ev,best,lines){app.exEval=ev;app.exBest=best?best.san:null;app.exLines=lines;render();});}
 function exMakeMove(from,to){if(!app.exFree||!app.exFree.length){var cur=exCurrent();var ch=cur.children.find(function(c){return c.from===from&&c.to===to;});if(ch){app.exPath.push(ch);app.sel=null;sfxSan(ch.move);coachSay(cur.fen,ch.move,{note:ch.comment||null});if(store.settings.showEval)exAnalyse();render();return;}}
@@ -8069,7 +8103,29 @@ function botThinkMs(o){
   if(o.remaining<4000)  b=Math.min(b,140);
   return Math.round(Math.max(120,Math.min(b,o.remaining*0.22,7000)));
 }
-const Engine={worker:null,ready:false,loading:null,onBest:null,onInfo:null,
+/* One worker, many callers — so every search carries a ticket.
+
+   There is a single Stockfish worker and six things that want it: the bot in a
+   game, the hint button, the spectator, Game Review, the explorer's eval bar
+   and the live board. The old code kept one `onBest` and one `onInfo` on the
+   object, so whoever asked last owned them both: an eval refresh landing while
+   the bot was thinking took the bot's callback with it (the bot then never
+   moved), and two overlapping analyses returned the first position's numbers
+   to the second position's callback. UCI also forbids sending `position` while
+   a search is running, which is how the real engine crossed its answers too.
+
+   So: exactly one search may be in flight, it owns its own callbacks, and its
+   results are delivered only to it. A newcomer either waits (a bot's move is
+   never thrown away) or stops the running search and takes its place. Stopping
+   is done properly — `stop`, wait for that search's own `bestmove`, then start
+   the next one. A caller whose search was thrown away is told so, rather than
+   being handed somebody else's evaluation. */
+const Engine={worker:null,ready:false,loading:null,
+  _seq:0,_cur:null,_next:null,_stopping:false,_wd:null,
+  /* Searches we gave up waiting for. Their `bestmove` may still turn up, and
+     it must not be credited to whatever is running by then — nor may a new
+     `position` be sent while that abandoned search is still going. */
+  _orphans:0,_orphanT:null,
   load(){
     if(this.ready)return Promise.resolve(true);
     if(this.loading)return this.loading;
@@ -8080,55 +8136,181 @@ const Engine={worker:null,ready:false,loading:null,onBest:null,onInfo:null,
         const blob=new Blob([code],{type:'text/javascript'});
         this.worker=new Worker(URL.createObjectURL(blob));
         this.worker.onmessage=ev=>{const line=typeof ev.data==='string'?ev.data:(ev.data&&ev.data.data)||'';this._msg(line);};
-        this.send('uci');this.send('isready');this.ready=true;return true;
+        // Wait for the handshake. Commands sent before `readyok` can be
+        // dropped on the floor, which used to lose the very first analysis.
+        const ready=new Promise(res=>{this._onReady=res;});
+        this.send('uci');this.send('isready');
+        await Promise.race([ready,new Promise(res=>setTimeout(res,4000))]);
+        this._onReady=null;this.ready=true;return true;
       }catch(e){}}
       return false;
     })();
     return this.loading;
   },
   send(c){this.worker&&this.worker.postMessage(c);},
+  /* ---- the queue ---- */
+  _submit(req){
+    req.id=++this._seq;req.cands={};req.lines={};req.ev=null;
+    if(this._orphans>0){this._enqueue(req);return req.id;}   // wait for the stray answer
+    if(!this._cur){this._start(req);return req.id;}
+    // A move the player is waiting for outranks an eval bar, and is never
+    // thrown away: an analysis arriving mid-think simply waits its turn.
+    if(this._cur.kind==='think'){this._enqueue(req);return req.id;}
+    this._enqueue(req);
+    // The running search was asked a question nobody is waiting for any more,
+    // and stopping it early would answer a shallower one than was asked. So it
+    // is told it was superseded rather than handed back a stale half-answer.
+    if(!this._stopping){this._stopping=true;this._cur.preempted=true;this.send('stop');}
+    return req.id;
+  },
+  _enqueue(req){
+    const q=this._next;
+    if(q&&q.kind==='think'&&req.kind!=='think')  {this._drop(req);return;}   // don't lose a queued move
+    if(q)this._drop(q);
+    this._next=req;
+  },
+  _drop(req){if(!req||req.dead)return;req.dead=true;if(req.cb)req.cb(null,{},null,true);},
+  _start(req){
+    this._cur=req;this._stopping=false;
+    const P=req.kind==='think'?botParams(req.elo):null;
+    this.send('setoption name UCI_LimitStrength value false');
+    this.send('setoption name Skill Level value 20');
+    this.send('setoption name MultiPV value '+(P?P.mpv:(req.mpv||3)));
+    this.send('position fen '+req.fen);
+    this.send('go depth '+(P?P.depth:req.depth)+' movetime '+Math.max(40,Math.round(req.movetime)));
+    // If the worker dies or ignores us, the caller still hears back.
+    if(this._wd)clearTimeout(this._wd);
+    const id=req.id,self=this;
+    this._wd=setTimeout(function(){if(self._cur&&self._cur.id===id)self._abandon();},Math.max(2500,req.movetime*2+4000));
+  },
+  /* The engine has not answered in time. Tell the caller, then wait for the
+     stray `bestmove` before letting anything else start. */
+  _abandon(){
+    if(this._wd){clearTimeout(this._wd);this._wd=null;}
+    const req=this._cur;this._cur=null;this._stopping=false;
+    if(req&&!req.dead){
+      req.dead=true;
+      if(req.cb){if(req.kind==='think')req.cb(null);else req.cb(null,{},null,true);}
+    }
+    this._orphans++;
+    this.send('stop');
+    const self=this;
+    if(this._orphanT)clearTimeout(this._orphanT);
+    this._orphanT=setTimeout(function(){          // presume the worker is wedged
+      self._orphans=0;self._orphanT=null;self._runNext();
+    },2500);
+  },
+  _runNext(){const n=this._next;this._next=null;if(n&&!n.dead)this._start(n);},
+  _finish(best){
+    if(this._wd){clearTimeout(this._wd);this._wd=null;}
+    const req=this._cur;this._cur=null;this._stopping=false;
+    if(req&&!req.dead){
+      req.dead=true;
+      if(req.cb){
+        if(req.preempted)req.cb(null,{},null,true);
+        else if(req.kind==='think')req.cb(this._chooseMove(req,best));
+        else req.cb(best,req.lines||{},req.ev||null,false);
+      }
+    }
+    this._runNext();
+  },
   _msg(line){if(!line)return;
+    if(line.indexOf('readyok')===0||line.indexOf('uciok')===0){if(this._onReady)this._onReady(true);return;}
+    const req=this._cur;
     if(line.indexOf('info')===0&&line.indexOf(' pv ')>0){
+      if(!req)return;                                   // nobody is waiting: not ours to keep
       const sc=line.match(/score (cp|mate) (-?\d+)/);
-      if(this._selecting){
-        const mp=+((line.match(/ multipv (\d+)/)||[])[1]||1);
+      if(!sc)return;
+      const mp=+((line.match(/ multipv (\d+)/)||[])[1]||1);
+      const dp=+((line.match(/ depth (\d+)/)||[])[1]||0);
+      const v=parseInt(sc[2],10);
+      if(req.kind==='think'){
         const pm=line.match(/ pv ([a-h][1-8][a-h][1-8][qrbnQRBN]?)/);
-        if(sc&&pm){const cp=sc[1]==='mate'?(parseInt(sc[2],10)>0?100000-parseInt(sc[2],10)*120:-100000-parseInt(sc[2],10)*120):parseInt(sc[2],10);this._cands[mp]={cp:cp,move:pm[1]};}
-        if(mp===1&&sc&&this.onInfo)this.onInfo(sc[1],parseInt(sc[2],10));
-      } else if(sc){const mp=+((line.match(/ multipv (\d+)/)||[])[1]||1);const sp=line.split(' pv ');const pv=sp.length>1?sp[1].trim():'';this._lines=this._lines||{};this._lines[mp]={t:sc[1],v:parseInt(sc[2],10),pv:pv};if(mp===1&&this.onInfo)this.onInfo(sc[1],parseInt(sc[2],10));}
+        if(pm){const cp=sc[1]==='mate'?(v>0?100000-v*120:-100000-v*120):v;req.cands[mp]={cp:cp,move:pm[1]};}
+      } else {
+        const sp=line.split(' pv ');
+        req.lines[mp]={t:sc[1],v:v,pv:sp.length>1?sp[1].trim():''};
+      }
+      if(mp===1){
+        req.ev={t:sc[1],v:v,stm:turnOf(req.fen),d:dp};
+        if(req.onInfo)req.onInfo(sc[1],v,dp);
+      }
       return;
     }
-    if(line.indexOf('bestmove')===0){const bm=line.split(/\s+/)[1];
-      if(this._selecting){this._selecting=false;const cb=this.onBest;this.onBest=null;if(cb)cb(this._chooseMove(bm));}
-      else{const cb=this.onBest;this.onBest=null;const L=this._lines;this._lines=null;if(cb)cb(bm,L||{});}
+    if(line.indexOf('bestmove')===0){
+      if(this._orphans>0){                        // the answer to a question we stopped asking
+        this._orphans--;
+        if(!this._orphans&&this._orphanT){clearTimeout(this._orphanT);this._orphanT=null;this._runNext();}
+        return;
+      }
+      this._finish(line.split(/\s+/)[1]);
     }
   },
   /* Pick a move at a believable strength: weaker bots accept a larger centipawn
      loss and spread their choice over more candidates, so the same engine plays
      a smooth, wide range from beginner to 2800 instead of always best. */
-  _chooseMove(best){
-    const cs=Object.keys(this._cands).map(k=>this._cands[k]).filter(Boolean);
+  _chooseMove(req,best){
+    const cs=Object.keys(req.cands).map(k=>req.cands[k]).filter(Boolean);
     if(!cs.length)return best;
-    cs.sort((a,b)=>b.cp-a.cp);const top=cs[0].cp;const P=botParams(this._elo||3000);
+    cs.sort((a,b)=>b.cp-a.cp);const top=cs[0].cp;const P=botParams(req.elo||3000);
     const pool=cs.filter(c=>(top-c.cp)<=P.Lcap);if(pool.length<=1)return cs[0].move;
-    const sb=this._style?pool.map(c=>styleBonus(this._styleFen,c.move,this._style)):null;
+    const sb=req.style?pool.map(c=>styleBonus(req.fen,c.move,req.style)):null;
     let sum=0;const w=pool.map((c,i)=>{const x=Math.exp(-((top-c.cp)-(sb?sb[i]:0))/P.T);sum+=x;return x;});
     let r=Math.random()*sum;for(let i=0;i<pool.length;i++){r-=w[i];if(r<=0)return pool[i].move;}
     return pool[0].move;
   },
-  think(fen,lvl,movetime,cb){this.onBest=cb;this._selecting=true;this._cands={};
+  /* cb(uciMove) — the bot's choice at its rated strength. */
+  think(fen,lvl,movetime,cb,onInfo){
     const skill=(typeof lvl==='number')?lvl:((lvl&&lvl.skill!=null)?lvl.skill:20);
     const elo=(lvl&&typeof lvl==='object'&&lvl.elo>0)?lvl.elo:(skill>=20?3000:1300+skill*90);
-    this._elo=elo;const P=botParams(elo);this._style=(lvl&&lvl.style)||null;this._styleFen=fen;
-    this.send('setoption name UCI_LimitStrength value false');
-    this.send('setoption name Skill Level value 20');
-    this.send('setoption name MultiPV value '+P.mpv);
-    this.send('position fen '+fen);
-    this.send('go depth '+P.depth+' movetime '+Math.max(40,Math.round(movetime)));},
-  analyse(fen,depth,cb){this.onBest=cb;this._selecting=false;this._lines={};var mt=depth>=40?6000:1500;this.send('setoption name UCI_LimitStrength value false');this.send('setoption name Skill Level value 20');this.send('setoption name MultiPV value 3');this.send('position fen '+fen);this.send('go depth '+depth+' movetime '+mt);}
+    return this._submit({kind:'think',fen:fen,elo:elo,style:(lvl&&lvl.style)||null,
+      movetime:movetime,cb:cb,onInfo:onInfo||null});
+  },
+  /* cb(bestUci, linesByMultipv, ev, superseded) — ev is this position's own. */
+  analyse(fen,depth,cb,onInfo,movetime,mpv){
+    const d=depth||20;
+    return this._submit({kind:'analyse',fen:fen,depth:d,mpv:mpv||3,
+      movetime:movetime||(d>=40?6000:Math.max(1500,d*160)),cb:cb,onInfo:onInfo||null});
+  }
 };
-function evalStr(t,v,stm){const s=stm==='w'?1:-1;if(t==='mate'){const n=v*s;return (n>0?'+':'')+'M'+Math.abs(v);}const cp=v*s/100;return (cp>=0?'+':'')+cp.toFixed(1);}
-function evalPct(t,v,stm){const s=stm==='w'?1:-1;if(t==='mate')return v*s>0?98:2;const cp=v*s;return Math.max(2,Math.min(98,100/(1+Math.exp(-cp/400))));}
+/* Always from White's point of view, so the number and the bar agree. A mate
+   against the side to move must not read the same as a mate for them, and
+   "mate in 0" means the side to move has already been mated. */
+function evalStr(t,v,stm){
+  const s=stm==='w'?1:-1;
+  if(t==='mate'){
+    if(v===0)return stm==='w'?'\u2212M0':'+M0';
+    const n=v*s;return (n>0?'+':'\u2212')+'M'+Math.abs(v);
+  }
+  const cp=v*s/100;return (cp>=0?'+':'\u2212')+Math.abs(cp).toFixed(1);
+}
+function evalPct(t,v,stm){
+  const s=stm==='w'?1:-1;
+  if(t==='mate'){if(v===0)return stm==='w'?2:98;return v*s>0?98:2;}
+  const cp=v*s;return Math.max(2,Math.min(98,100/(1+Math.exp(-cp/400))));
+}
+/* What to print above the bar. A finished game gets its result, not a score,
+   and a live search says how deep it got so a shallow number is not mistaken
+   for a considered one. */
+function evalLabel(ev){
+  if(!ev)return '';
+  if(ev.over==='mate')return 'Checkmate \u2014 '+(ev.stm==='w'?'Black':'White')+' wins';
+  if(ev.over==='draw')return 'Drawn position';
+  return evalStr(ev.t,ev.v,ev.stm);
+}
+function evalDepth(ev){return (ev&&ev.d&&!ev.over)?('depth '+ev.d):'';}
+/* A position with no legal moves is not a job for the engine: it reports no
+   principal variation at all, which used to leave the eval bar thinking for
+   ever and the live board claiming the engine had failed to load. */
+function posOver(fen){
+  let c;try{c=new Chess(fen);}catch(e){return null;}
+  try{
+    if(c.isCheckmate())return {t:'mate',v:0,stm:turnOf(fen),d:0,over:'mate'};
+    if(c.isStalemate()||c.isInsufficientMaterial()||(c.isDraw&&c.isDraw()))
+      return {t:'cp',v:0,stm:turnOf(fen),d:0,over:'draw'};
+  }catch(e){}
+  return null;
+}
 
 /* ============================ play vs engine ============================ */
 const WPIECE={k:'♔',q:'♕',r:'♖',b:'♗',n:'♘',p:'♙'};
@@ -8283,13 +8465,20 @@ async function engineMove(){app.playStatus='engine';render();
   let mt=app.clock
     ? botThinkMs({remaining:app.clock[eng],inc:app.tc?app.tc.inc:0,ply:app.playMoves.length,cp:cp,onlyMove:onlyMove,recapture:recapture})
     : botThinkMs({base:lvl.mt||800});
-  Engine.onInfo=(t,v)=>{app.playEval={t,v,stm:turnOf(app.playFen)};};
+  const thinkFen=app.playFen;
   Engine.think(app.playFen,lvl,mt,best=>{
+    // If the engine gave nothing (it timed out, or the search was taken from
+    // it) the position is still its move: ask once more rather than handing
+    // the turn back to a player who cannot move.
+    if(!best&&app.view==='play'&&app.playStatus==='engine'&&app.playFen===thinkFen&&(app._engRetry||0)<1){
+      app._engRetry=(app._engRetry||0)+1;setTimeout(engineMove,120);return;
+    }
+    app._engRetry=0;
     if(best&&best!=='(none)'){const m=tryFromTo(app.playFen,best.slice(0,2),best.slice(2,4),best[4]||'q');
       if(m){if(app.c960)c960UpdateRights(eng,best.slice(0,2));app.playStack.push(m.fen);app.playMoves.push({from:best.slice(0,2),to:best.slice(2,4),san:m.san});app.playFen=m.fen;app.playLast={from:best.slice(0,2),to:best.slice(2,4)};app.playSel=null;app.playView=app.playStack.length-1;app.playBookNode=null;addIncrement(eng);sfxSan(m.san);}}
     if(!checkOver()){app.playStatus='play';oppAfterMove();}
     render();tryPremove();
-  });
+  },(t,v)=>{app.playEval={t:t,v:v,stm:turnOf(thinkFen)};});
 }
 function pieceColorAt(fen,sq){try{const c=new Chess(fen);const p=c.get(sq);return p?p.color:null;}catch(e){return null;}}
 function tryPremove(){const q=app.playPremoves;if(!q||!q.length)return;if(app.playStatus!=='play'||turnOf(app.playFen)!==app.playSide)return;
@@ -11349,7 +11538,7 @@ function viewPlay(){
   const lastSq=lastMv?{from:lastMv.from,to:lastMv.to}:null;
   const lvl=LEVELS[store.settings.level]||LEVELS[2];
   const ev=app.playEval;
-  const evalHtml=(ev&&live&&store.settings.showEval&&!app.tiltEval)?'<div class="row" style="justify-content:space-between;margin-bottom:5px"><span class="dim small">Evaluation</span><span class="small" style="font-weight:800">'+evalStr(ev.t,ev.v,ev.stm)+'</span></div><div class="evalbar"><i style="width:'+evalPct(ev.t,ev.v,ev.stm)+'%"></i></div>':'';
+  const evalHtml=(ev&&live&&store.settings.showEval&&!app.tiltEval)?'<div class="row" style="justify-content:space-between;margin-bottom:5px"><span class="dim small">Evaluation</span><span class="small" style="font-weight:800">'+esc(evalLabel(ev))+'</span></div><div class="evalbar"><i style="width:'+evalPct(ev.t,ev.v,ev.stm)+'%"></i></div>':'';
   let status;
   if(!live)status='<div style="font-weight:800;color:var(--amber)">⏪ Reviewing — move '+app.playView+' of '+lastIdx+'</div>';
   else if(app.playStatus==='over'){var rk=resultKind(app.playResult);var rc=rk==='win'?'var(--green)':rk==='loss'?'#f87171':'var(--muted)';var re=rk==='win'?'🎉':rk==='loss'?'😞':'🤝';status='<div class="card" style="border-color:'+rc+';text-align:center;padding:14px 12px"><div style="font-size:30px;line-height:1">'+re+'</div><div style="font-weight:800;font-size:16px;color:'+rc+';margin-top:4px">'+esc(app.playResult||'Game over')+'</div>'+'<div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap;margin-top:11px">'+((app.playMoves&&app.playMoves.length)?'<button class="btn sec sm" data-act="revplay">🔬 Review game</button>':'')+(!app.careerOpp?'<button class="btn primary sm" data-act="prematch">↻ Rematch</button><button class="btn sec sm" data-act="nav" data-val="play">New game</button>':'')+'</div>'+'</div>'+((app.oppSaid)?'<div class="note" style="margin-top:8px;border-color:#f59e0b3d;background:#f59e0b14;color:#fde68a">🤝 <b>'+esc((app.careerRoundOpp&&app.careerRoundOpp.name)||'Your opponent')+':</b> “'+esc(app.oppSaid)+'”</div>':'')+((app.careerOpp&&app.careerReaction)?'<div class="note" style="margin-top:8px;border-color:#a855f73d;background:#a855f714;color:#e9d5ff">💬 <b>'+esc(app.careerReaction.who)+':</b> “'+esc(app.careerReaction.line)+'”</div>':'')+(app.careerOpp?careerPlayFooter():'')+(app.endgame?endgameVerdict():'');}
@@ -11518,6 +11707,10 @@ function splitPGNGames(pgn){pgn=(pgn||'').replace(/\r/g,'');const lines=pgn.spli
 /* =========================================================================
    GAME REVIEW — Stockfish analysis, move classification, accuracy, graph
    ========================================================================= */
+/* A move has to give up at least this much for us to call it an error at all:
+   below it, the difference between two searches is noise. And theory stops
+   excusing a move once it costs more than an inaccuracy. */
+const REV_NOISE_CP=30, REV_BOOK_MAX=10;
 const REV_CLASS={brilliant:['Brilliant','#22d3ee'],best:['Best','#22c55e'],good:['Good','#86efac'],book:['Book','#93c5fd'],inacc:['Inaccuracy','#fcd34d'],mistake:['Mistake','#f59e0b'],blunder:['Blunder','#f43f5e']};
 /* ---- Brilliancy detection ----
    A brilliancy is a move that hands the opponent material they can take with
@@ -11587,6 +11780,19 @@ function viewBrilliancy(){
   }).join('')+'</div>';
   return h+'</div>';
 }
+/* Is this exact sequence the opening of a line the library knows? detectOpening
+   needs two plies before it will name an opening, because one move matches
+   dozens — but for judging a move, ambiguity does not matter, and 1.e4 is
+   theory by any standard. */
+function bookPrefix(sans){
+  if(!sans||!sans.length)return false;
+  for(const o of BUILT){
+    let node=o.root,d=0;
+    for(const s of sans){const c=node.children.find(ch=>ch.move===s);if(!c)break;node=c;d++;}
+    if(d===sans.length)return true;
+  }
+  return false;
+}
 function winPct(cp){return 50+50*(2/(1+Math.exp(-0.00368208*cp))-1);}
 function cpOf(ev){if(!ev)return 0;if(ev.t==='mate')return ev.v>0?2000:-2000;return Math.max(-2000,Math.min(2000,ev.v));}
 function reviewStart(moves,startFen,meta){if(!moves||!moves.length){app.view='review';app.review={status:'empty'};render();return;}
@@ -11602,9 +11808,12 @@ async function reviewStep(){const R=app.review;if(!R||R.status!=='analyzing')ret
   if(tc.isCheckmate()){R.evals[R.i]={t:'mate',v:-1};R.best[R.i]='';R.i++;render();setTimeout(reviewStep,0);return;}
   if(tc.isStalemate()||tc.isInsufficientMaterial()||(tc.isDraw&&tc.isDraw())){R.evals[R.i]={t:'cp',v:0};R.best[R.i]='';R.i++;render();setTimeout(reviewStep,0);return;}
   const ok=await Engine.load();if(!ok){R.status='error';render();return;}
-  let lastInfo=null;
-  Engine.onInfo=(t,v)=>{lastInfo={t,v};};
-  Engine.analyse(fen,16,best=>{R.evals[R.i]=lastInfo?{t:lastInfo.t,v:lastInfo.v}:{t:'cp',v:0};R.best[R.i]=best||'';R.i++;render();setTimeout(reviewStep,5);});}
+  // one line only: at the same time budget a single principal variation is
+  // searched more accurately than three, and Review displays only the best
+  Engine.analyse(fen,16,function(best,lines,ev,superseded){
+    if(superseded){setTimeout(reviewStep,30);return;}   // something took the engine; ask again
+    if(!app.review||app.review!==R||R.status!=='analyzing')return;
+    R.evals[R.i]=ev?{t:ev.t,v:ev.v,d:ev.d}:{t:'cp',v:0};R.best[R.i]=best||'';R.i++;render();setTimeout(reviewStep,5);},null,null,1);}
 function reviewFinish(){const R=app.review;const n=R.moves.length;const sans=[];
   let accSumW=0,accCntW=0,accSumB=0,accCntB=0;
   for(let k=0;k<n;k++){const stm=turnOf(R.fens[k]);// white if 'w'
@@ -11613,11 +11822,14 @@ function reviewFinish(){const R=app.review;const n=R.moves.length;const sans=[];
     const playedCp=evA?-cpOf(evA):bestCp;// after the played move, negate to the mover's POV
     const wpB=winPct(bestCp),wpA=winPct(playedCp);const drop=Math.max(0,wpB-wpA);// win% lost (0..100)
     const bestUci=(R.best[k]||'').slice(0,4);const playedUci=R.moves[k].from+R.moves[k].to;
-    const det=detectOpening(R.moves.slice(0,k+1).map(m=>m.san));
+    const inBook=bookPrefix(R.moves.slice(0,k+1).map(m=>m.san));
+    const lost=Math.max(0,bestCp-playedCp);      // centipawns actually given up
     let cls;// classify by win-probability drop, like chess.com / lichess
-    if(det&&det.depth>=k+1)cls='book';
+    // Two positions searched for the same time reach different depths, so small
+    // swings between consecutive evaluations are search noise, not errors.
+    if(inBook&&drop<=REV_BOOK_MAX)cls='book';        // theory excuses an inaccuracy, never a lost piece
     else if(playedUci===bestUci||drop<=2)cls='best';
-    else if(drop<=5)cls='good';
+    else if(drop<=5||lost<REV_NOISE_CP)cls='good';
     else if(drop<=10)cls='inacc';
     else if(drop<=20)cls='mistake';
     else cls='blunder';

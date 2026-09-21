@@ -109,6 +109,7 @@ next refresh.
 | `app_project/android/` | The Android WebView wrapper that bundles the same files into an APK. |
 | `validate-*.mjs` | The test battery — one suite per system. |
 | `visual-check.mjs` | Boots the real app in headless Chromium, screenshots key screens and reports page errors. |
+| `engine-check.mjs` | Downloads the real Stockfish and checks the evaluation against positions whose answer is known. |
 
 ## Build it yourself
 
@@ -127,9 +128,43 @@ node build-standalone.mjs
 # boot the app in a real browser and screenshot it
 node visual-check.mjs
 
+# check the real engine against known positions (needs a network once)
+node engine-check.mjs
+
 # build the APK
 cd app_project/android && ./gradlew assembleDebug
 ```
+
+## The engine
+
+One Stockfish worker serves six callers: the bot in a game, the hint button,
+the spectator, Game Review, the explorer's eval bar and the live board. Each
+search therefore carries a ticket. Exactly one runs at a time, it owns its own
+callbacks, and its results are delivered only to it — so an evaluation can
+never belong to a position you have already left, and an eval refresh can
+never take a bot's move with it. A newcomer either waits (a move the player is
+waiting for is never thrown away) or stops the running search and takes its
+place; stopping is done properly, with `stop` and a wait for that search's own
+`bestmove` before the next `position` is sent. A caller whose search was
+abandoned is told so rather than handed somebody else's numbers, and a search
+the engine never answers times out instead of hanging.
+
+Evaluations are always shown from White's side, so the number and the bar
+agree, and the search depth is displayed so a shallow evaluation is not
+mistaken for a considered one. A position with no legal moves is not put to
+the engine at all — it reports no principal variation, which is not an error.
+
+Game Review searches one principal variation rather than three (more accurate
+for the same time) and will not call a move an error unless it gave up at
+least `REV_NOISE_CP` centipawns: two positions searched for the same time
+reach different depths, and small swings between them are search noise, not
+mistakes. Being theory excuses an inaccuracy but never a lost piece.
+
+`validate-engine.mjs` covers all of this with a mock worker, so it runs
+anywhere. `engine-check.mjs` downloads the real Stockfish and drives the real
+app in a browser against positions whose answers are known independently
+(mates both ways, a queen up each way, finished games, stepping faster than
+the engine can answer, and a game with one known blunder).
 
 ## Tests
 
