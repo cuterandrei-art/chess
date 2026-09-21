@@ -4062,7 +4062,19 @@ function buildSession(ops,srs,mode,newPer,now=Date.now()){const out=[];
     const target=new Set();
     if(mode==='review'){for(const c of o.cards){const s=srs[c.id];if(s&&s.seen&&isDue(s,now))target.add(c.id);}}
     else{const fresh=o.cards.filter(c=>{const s=srs[c.id];return!s||!s.seen;}).sort((a,b)=>a.ply-b.ply).slice(0,newPer);for(const c of fresh)target.add(c.id);}
-    if(!target.size)continue;for(const nodes of cover(o,lines,target))out.push({o,nodes});}
+    if(!target.size)continue;
+    for(const nodes of cover(o,lines,target)){
+      // Cards are already scheduled per position, but replaying a line from
+      // move one re-drills moves that are not due. In review, start just
+      // before the first move that actually is — the run-up stays visible in
+      // "Line so far" for context.
+      let startAt=0;
+      if(mode==='review'&&store.settings.srsSkip!==false){
+        const first=nodes.findIndex(n=>target.has(o.id+'::'+n.fenBefore));
+        if(first>2)startAt=first-2;                     // keep a ply or two of run-up
+      }
+      out.push({o,nodes,startAt});
+    }}
   return shuffle(out);}
 
 /* ================================ store ================================ */
@@ -4398,7 +4410,7 @@ function checkTitles(c){const got=[];const peak=titlePeak(c);
     c.titles.push(d.t);got.push(d.t);
   }
   return got;}
-const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',voiceOn:false,voiceName:'',voiceRate:1},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null}};
+const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',blunderWarn:true,srsSkip:true,voiceOn:false,voiceName:'',voiceRate:1},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null}};
 function freshCareer(){return JSON.parse(JSON.stringify(DEF.career));}
 /* Migrate saved career data: the old ladder (with `beaten`/`results`) is reset
    to the new FIDE structure; new-format saves are merged onto fresh defaults. */
@@ -4424,7 +4436,7 @@ function delRep(id){store.repertoire=store.repertoire.filter(x=>x!==id);save();}
 /* ============================== app state ============================== */
 const app={view:'career',exId:null,exPath:[],exFlip:false,courseId:null,setupOpening:'',
   pz:null,pzSeen:new Set(),pzFilter:{type:'auto'},rush:null,
-  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,coachNote:null,parkBet:null,parkStake:0,parkDouble:null,
+  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
   confirm:null,
   review:null,studyId:null,studyChapter:0,studyPath:[],studyFlip:false,studyMsg:null,
 
@@ -4610,6 +4622,7 @@ function viewLearn(){
     ['blindfold','🙈','Blindfold','Train board vision &amp; visualization'],
     ['review','🔬','Game Review','Analyse any game with the engine'],
     ['brilliancy','💎','Brilliancies','Your gallery of sacrifices that worked'],
+    ['report','📊','Opening report','Which of your openings actually score in your games'],
     ['studies','📚','Studies','Import &amp; browse Lichess studies'],
     ['dashboard','📊','Dashboard','Your repertoire progress &amp; stats']
   ];
@@ -4621,12 +4634,12 @@ function render(){
   document.body.style.setProperty('--bw',(store.settings.boardSize||520)+'px');
   applyAppTheme();
   const repOps=BUILT.filter(o=>inRep(o.id));const agg=aggregate(repOps,store.srs);
-  const nav=['career','dashboard','play','puzzles','learn','courses','train','library','endgames','classics','guess','blindfold','review','brilliancy','studies','masters','settings'];
-  const NAV_META={career:['🏆','Career'],dashboard:['📊','Dashboard'],play:['♟️','Play'],puzzles:['🧩','Puzzles'],learn:['📚','Learn'],courses:['📘','Courses'],train:['🎓','Train'],library:['📖','Openings'],endgames:['♟️','Endgames'],classics:['📜','Classics'],guess:['🎯','Guess the Move'],blindfold:['🙈','Blindfold'],review:['🔬','Game Review'],brilliancy:['💎','Brilliancies'],studies:['📚','Studies'],masters:['♞','Master Games'],settings:['⚙️','Settings']};
+  const nav=['career','dashboard','play','puzzles','learn','courses','train','library','endgames','classics','guess','blindfold','review','brilliancy','report','studies','masters','settings'];
+  const NAV_META={career:['🏆','Career'],dashboard:['📊','Dashboard'],play:['♟️','Play'],puzzles:['🧩','Puzzles'],learn:['📚','Learn'],courses:['📘','Courses'],train:['🎓','Train'],library:['📖','Openings'],endgames:['♟️','Endgames'],classics:['📜','Classics'],guess:['🎯','Guess the Move'],blindfold:['🙈','Blindfold'],review:['🔬','Game Review'],brilliancy:['💎','Brilliancies'],report:['📊','Opening report'],studies:['📚','Studies'],masters:['♞','Master Games'],settings:['⚙️','Settings']};
   const label=v=>(NAV_META[v]?NAV_META[v][1]:v[0].toUpperCase()+v.slice(1));
   const navIcon=v=>(NAV_META[v]?NAV_META[v][0]:'•');
   const cur=nav.indexOf(app.view)>=0?app.view:'dashboard';
-  const LEARN_VIEWS=['learn','courses','clearn','train','library','build','explore','course','endgames','eglesson','classics','guess','blindfold','masters','studies','review','brilliancy','dashboard','reptree'];
+  const LEARN_VIEWS=['learn','courses','clearn','train','library','build','explore','course','endgames','eglesson','classics','guess','blindfold','masters','studies','review','brilliancy','report','dashboard','reptree'];
   const primaryOf=v=>(v==='career'?'career':v==='play'?'play':v==='puzzles'?'puzzles':LEARN_VIEWS.indexOf(v)>=0?'learn':'');
   const PRIMARY=[['career','🏆','Career'],['play','♟️','Play'],['puzzles','🧩','Puzzles'],['learn','📚','Learn']];
   const curP=primaryOf(cur);
@@ -4656,6 +4669,7 @@ function render(){
   else if(app.view==='learn')body=viewLearn();
   else if(app.view==='review')body=viewReview();
   else if(app.view==='brilliancy')body=viewBrilliancy();
+  else if(app.view==='report')body=viewReport();
   else if(app.view==='player')body=viewPlayer();
   else if(app.view==='studies')body=viewStudies();
   else if(app.view==='masters')body=viewMasters();
@@ -4818,6 +4832,10 @@ function exLastMove(){
   const node=app.exPath[app.exPath.length-1];
   const prev=app.exPath.length>1?app.exPath[app.exPath.length-2]:o.root;
   return {fenBefore:prev.fen,san:node.move,note:node.comment||null};
+}
+function exPlanText(){
+  const o=byId.get(app.exId);if(!o)return null;
+  return explainPlan(exFen(),o.side==='white'?'w':'b');
 }
 function exCoachText(){
   const lm=exLastMove();if(!lm)return null;
@@ -5073,6 +5091,391 @@ function explainMove(fenBefore,san,opts){
   if(caveat)text+=' '+caveat;
   return {san:mv.san,text:text,facts:facts,caveat:caveat};
 }
+/* ---- one-ply static exchange: what is the best capture available here, and
+   is it actually winning material once the recapture is counted? ---- */
+function vxBestCapture(fen){
+  var g;try{g=new Chess(fen);}catch(e){return null;}
+  var best=null,ms;
+  try{ms=g.moves({verbose:true});}catch(e){return null;}
+  for(var i=0;i<ms.length;i++){
+    var m=ms[i];if(!m.captured)continue;
+    var after;try{after=new Chess(fen);after.move(m.san);}catch(e){continue;}
+    var b=vxBoard(after.fen());if(!b)continue;
+    var gain=VX_VAL[m.captured]||0;
+    var them=m.color==='w'?'b':'w';
+    if(vxAttackedBy(b,them)[m.to])gain-=VX_VAL[m.piece]||0;   // they can take back
+    if(!best||gain>best.gain)best={san:m.san,gain:gain,captured:m.captured,to:m.to,piece:m.piece};
+  }
+  return best;
+}
+/* What does this move actually cost, netted against what it won?
+   1.e4 d5 2.exd5 Qxd5 wins a pawn and loses it back — that is an even trade,
+   not a blunder, so the reply's gain is offset by our own capture. */
+function vxCostOf(fenBefore,san){
+  var g,mv;try{g=new Chess(fenBefore);mv=g.move(san);if(!mv)return null;}catch(e){return null;}
+  var reply=vxBestCapture(g.fen());
+  if(!reply||reply.gain<=0)return null;
+  var won=mv.captured?(VX_VAL[mv.captured]||0):0;
+  var net=reply.gain-won;
+  if(net<=0)return null;
+  return {san:reply.san,captured:reply.captured,to:reply.to,piece:reply.piece,gain:reply.gain,net:net};
+}
+/* ---- "why not that move?" ----
+   Turns a wrong answer into a lesson: what it drops, what it allows, or simply
+   which opening it would have been instead. */
+function whyNot(fenBefore,playedSan,bookSan,opts){
+  opts=opts||{};
+  var g;try{g=new Chess(fenBefore);}catch(e){return null;}
+  var legal=false;try{legal=g.moves().indexOf(playedSan)>=0;}catch(e){}
+  if(!legal)return null;
+  var bookText=null;
+  if(bookSan){var bx=explainMove(fenBefore,bookSan);bookText=bx?bx.text:null;}
+  var bits=[];
+
+  // the worst thing first: does it allow mate in one?
+  var mateIn1=null;
+  try{
+    var af=new Chess(fenBefore);af.move(playedSan);
+    var rs=af.moves();
+    for(var k=0;k<rs.length;k++){
+      var probe=new Chess(af.fen());probe.move(rs[k]);
+      if(probe.isCheckmate()){mateIn1=rs[k];break;}
+    }
+  }catch(e){}
+  if(mateIn1)bits.push(playedSan+' allows '+mateIn1+', which is checkmate.');
+
+  // does it simply lose material?
+  var cost=mateIn1?null:vxCostOf(fenBefore,playedSan);
+  if(cost&&cost.net>=2)
+    bits.push(playedSan+' drops material — '+cost.san+' wins the '+VX_NAME[cost.captured]+'.');
+  else if(cost&&cost.net>=1)
+    bits.push(playedSan+' loses a pawn to '+cost.san+'.');
+
+  // does it walk into a fork?
+  if(!bits.length){
+    var after;try{after=new Chess(fenBefore);after.move(playedSan);}catch(e){after=null;}
+    if(after){
+      var them=after.turn(),tm;
+      try{tm=after.moves({verbose:true});}catch(e){tm=[];}
+      var forked=null;
+      for(var i=0;i<tm.length&&!forked;i++){
+        var t=tm[i],nx;
+        try{nx=new Chess(after.fen());nx.move(t.san);}catch(e){continue;}
+        var nb=vxBoard(nx.fen());if(!nb)continue;
+        var hits=vxAttacks(nb,t.to).filter(function(s){
+          var q=nb[s];
+          return q&&q.color!==them&&q.type!=='k'&&(VX_VAL[q.type]||0)>=3&&!vxAttackedBy(nb,q.color)[s];
+        });
+        if(hits.length>=2)forked={san:t.san,n:hits.length};
+      }
+      if(forked)bits.push(playedSan+' allows '+forked.san+', which forks two pieces.');
+    }
+  }
+
+  // otherwise: it may be perfectly playable, just not this course's line
+  if(!bits.length){
+    var alt=null;
+    if(opts.sans){
+      try{var d=detectOpening(opts.sans.concat([playedSan]));if(d&&d.name&&d.name!==opts.openingName)alt=d.name;}catch(e){}
+    }
+    if(alt)bits.push(playedSan+' is playable — that is the '+alt+', a different opening from the one you are drilling.');
+    else bits.push(playedSan+' is not losing, it is just not this line.');
+  }
+
+  if(bookSan)bits.push('The course plays '+bookSan+(bookText?': '+bookText.replace(/^\S+\s/,''):'.'));
+  return bits.join(' ');
+}
+
+/* ---- the plan ----
+   A move explanation says why one move; a plan says what you are actually
+   trying to do. Derived from the pawn structure, which is what decides it:
+   where each side has the majority, whether the centre is locked or open,
+   which files are half-open, where the kings went, and which pawns are weak. */
+function vxPawns(b,color){var out=[];for(var s in b)if(b[s].type==='p'&&b[s].color===color)out.push(s);return out;}
+function vxWing(sq){var f=vxFile(sq);return f<=2?'q':f>=5?'k':'c';}
+function vxCentreLocked(b){
+  // a locked centre: pawns of both colours blocked head to head on d/e
+  var locked=0;
+  ['d','e'].forEach(function(fl){
+    for(var r=2;r<=5;r++){
+      var a=fl+r,c2=fl+(r+1);
+      if(b[a]&&b[a].type==='p'&&b[c2]&&b[c2].type==='p'&&b[a].color!==b[c2].color)locked++;
+    }
+  });
+  return locked>=2;
+}
+function vxCentreOpen(b){
+  var n=0;['d','e'].forEach(function(fl){for(var r=1;r<=8;r++){var s=fl+r;if(b[s]&&b[s].type==='p')n++;}});
+  return n<=1;
+}
+function vxHalfOpen(b,color){
+  var out=[],them=color==='w'?'b':'w';
+  'abcdefgh'.split('').forEach(function(fl){
+    var mine=0,theirs=0;
+    for(var r=1;r<=8;r++){var s=fl+r,p=b[s];if(p&&p.type==='p'){if(p.color===color)mine++;else theirs++;}}
+    if(!mine&&theirs)out.push(fl);
+  });
+  return out;
+}
+function vxIsolated(b,color){
+  var files={},out=[];
+  vxPawns(b,color).forEach(function(s){files[s[0]]=(files[s[0]]||0)+1;});
+  Object.keys(files).forEach(function(fl){
+    var i='abcdefgh'.indexOf(fl);
+    var left=i>0?files['abcdefgh'[i-1]]:0,right=i<7?files['abcdefgh'[i+1]]:0;
+    if(!left&&!right)out.push(fl);
+  });
+  return out;
+}
+function vxDoubled(b,color){
+  var files={},out=[];
+  vxPawns(b,color).forEach(function(s){files[s[0]]=(files[s[0]]||0)+1;});
+  Object.keys(files).forEach(function(fl){if(files[fl]>1)out.push(fl);});
+  return out;
+}
+function vxKingSide(b,color){
+  var k=vxKingSq(b,color);if(!k)return null;
+  var f=vxFile(k);return f<=2?'q':f>=5?'k':'c';
+}
+function explainPlan(fen,hero){
+  var b=vxBoard(fen);if(!b)return null;
+  hero=hero||turnOf(fen);
+  var them=hero==='w'?'b':'w';
+  var us=hero==='w'?'White':'Black',theirs=hero==='w'?'Black':'White';
+  var mine=vxPawns(b,hero),yours=vxPawns(b,them);
+  var bits=[];
+
+  // where is the pawn majority?
+  var cnt=function(list,w){return list.filter(function(s){return vxWing(s)===w;}).length;};
+  var qd=cnt(mine,'q')-cnt(yours,'q'),kd=cnt(mine,'k')-cnt(yours,'k');
+  var locked=vxCentreLocked(b),open=vxCentreOpen(b);
+  var myK=vxKingSide(b,hero),theirK=vxKingSide(b,them);
+
+  if(locked)
+    bits.push('The centre is locked, so the game will be decided on a wing — push pawns where you have the majority and keep the centre closed');
+  else if(open)
+    bits.push('The centre is open, so king safety and active pieces matter more than pawn pushes — get castled and seize the open files');
+
+  if(qd>=1&&kd<=0)bits.push('you have the extra pawn on the queenside, so that is where to advance');
+  else if(kd>=1&&qd<=0)bits.push('you have the extra pawn on the kingside, so build the attack there');
+  else if(!locked&&!open)bits.push('the pawns are balanced, so play in the centre and improve your worst piece');
+
+  if(myK&&theirK&&myK!==theirK&&myK!=='c'&&theirK!=='c')
+    bits.push('you have castled on opposite wings — this is a race, so throw your pawns at their king and do not waste a move');
+
+  var half=vxHalfOpen(b,hero);
+  if(half.length)bits.push('the '+half.slice(0,2).join('- and ')+'-file'+(half.length>1?'s are':' is')+' half-open for your rooks');
+
+  var theirIso=vxIsolated(b,them),theirDbl=vxDoubled(b,them);
+  if(theirIso.length)bits.push('their '+theirIso[0]+'-pawn is isolated — pile onto it and trade pieces, not pawns');
+  else if(theirDbl.length)bits.push('their doubled pawns on the '+theirDbl[0]+'-file are a long-term target');
+
+  var myIso=vxIsolated(b,hero);
+  if(myIso.length)bits.push('your own '+myIso[0]+'-pawn is isolated, so keep the pieces active and avoid a pure endgame');
+
+  if(!bits.length)return null;
+  var text=bits[0].charAt(0).toUpperCase()+bits[0].slice(1);
+  for(var i=1;i<Math.min(bits.length,3);i++)text+='; '+bits[i];
+  return text+'.';
+}
+
+/* ===================== OPENING REPORT CARD =====================
+   Your repertoire says what you meant to play; your games say what actually
+   happens. This reads the archive back, names the opening in each game, and
+   scores it — so the line that keeps losing is the one it tells you to fix. */
+function openingReport(){
+  const games=(store.career&&store.career.games)||[];
+  const by={};
+  for(const g of games){
+    if(!g||!g.moves||g.moves.length<4)continue;
+    let det=null;
+    try{det=detectOpening(g.moves.map(m=>m.san));}catch(e){}
+    const key=det?(det.id||det.name):'Other / off-book';
+    const b=by[key]||(by[key]={id:det&&det.id||null,name:det?det.name:'Other / off-book',eco:det?det.eco:'',
+      w:0,d:0,l:0,n:0,asW:0,asB:0,last:0});
+    b.n++;
+    if(g.result===1)b.w++;else if(g.result===0)b.l++;else b.d++;
+    if(g.color==='w')b.asW++;else b.asB++;
+    if((g.date||0)>b.last)b.last=g.date||0;
+  }
+  const rows=Object.keys(by).map(k=>{
+    const b=by[k];
+    b.score=(b.w+b.d*0.5)/b.n;
+    b.pct=Math.round(b.score*100);
+    b.inRep=!!(b.id&&inRep(b.id));
+    if(b.id){try{const o=byId.get(b.id);b.mastery=o?Math.round((progress(o,store.srs).mastery||0)*100):null;}catch(e){b.mastery=null;}}
+    return b;
+  }).sort((a,b)=>b.n-a.n||b.score-a.score);
+  // the line worth fixing: enough games to mean something, and scoring badly
+  const weak=rows.filter(r=>r.n>=3&&r.score<0.45).sort((a,b)=>a.score-b.score)[0]||null;
+  const best=rows.filter(r=>r.n>=3&&r.score>=0.6).sort((a,b)=>b.score-a.score)[0]||null;
+  // studied but never actually played
+  const unplayed=(store.repertoire||[]).map(id=>byId.get(id)).filter(Boolean)
+    .filter(o=>!rows.some(r=>r.id===o.id)).map(o=>({id:o.id,name:o.name}));
+  return {rows:rows,weak:weak,best:best,unplayed:unplayed,games:games.length};
+}
+function viewReport(){
+  const R=openingReport();
+  let h='<div style="max-width:860px;margin:0 auto"><h1>📊 Opening report card</h1>'+
+    '<div class="muted small" style="margin:6px 0 14px">What your openings actually score in your own games — not what you meant to play.</div>';
+  if(!R.rows.length)
+    return h+'<div class="card"><b>No games on file yet.</b><div class="dim small" style="margin-top:4px">Play some career games and this will tell you which of your lines are earning their keep and which are quietly losing you rating.</div><div class="row" style="margin-top:10px"><button class="btn primary sm" data-act="nav" data-val="career">Go and play</button></div></div></div>';
+  if(R.weak)
+    h+='<div class="card" style="margin-bottom:12px;border-color:#f87171"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<div class="small"><b style="color:#f87171">⚠️ Fix this first:</b> '+esc(R.weak.name)+' — you score '+R.weak.pct+'% over '+R.weak.n+' games'+(R.weak.mastery!=null?', and you have only learned '+R.weak.mastery+'% of it':'')+'.</div>'+
+      (R.weak.id?'<div class="row" style="gap:6px;flex:0 0 auto"><button class="btn sec sm" data-act="explore" data-val="'+R.weak.id+'">📖 Study</button><button class="btn primary sm" data-act="train" data-val="'+R.weak.id+'">🎓 Drill it</button></div>':'')+
+      '</div></div>';
+  if(R.best)
+    h+='<div class="card" style="margin-bottom:12px;border-color:var(--green)"><div class="small"><b style="color:var(--green)">✅ Keep playing:</b> '+esc(R.best.name)+' — '+R.best.pct+'% over '+R.best.n+' games.</div></div>';
+  h+='<div class="card" style="padding:0;margin-bottom:12px"><div style="padding:11px 13px;border-bottom:1px solid var(--border);font-weight:700">Every opening you have played</div>';
+  for(const r of R.rows){
+    const col=r.score>=0.6?'var(--green)':r.score<0.45?'#f87171':'var(--amber)';
+    h+='<div style="display:flex;align-items:center;gap:10px;padding:9px 13px;border-top:1px solid var(--border);flex-wrap:wrap">'+
+      '<div style="flex:1;min-width:0"><div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(r.name)+(r.eco?' <span class="dim small">'+esc(r.eco)+'</span>':'')+(r.inRep?' <span class="chip green" style="font-size:9px">in repertoire</span>':(r.id?' <span class="chip" style="font-size:9px">not studied</span>':''))+'</div>'+
+        '<div class="dim small">'+r.n+' game'+(r.n===1?'':'s')+' · '+r.w+'W–'+r.d+'D–'+r.l+'L'+(r.asW&&r.asB?' · as White '+r.asW+', as Black '+r.asB:'')+(r.mastery!=null?' · learned '+r.mastery+'%':'')+'</div></div>'+
+      '<div style="width:56px;text-align:right;font-weight:800;color:'+col+'">'+r.pct+'%</div>'+
+      (r.id?'<button class="btn ghost sm" data-act="train" data-val="'+r.id+'">Drill</button>':'')+
+      '</div>';
+  }
+  h+='</div>';
+  if(R.unplayed.length)
+    h+='<div class="card"><div style="font-weight:700;margin-bottom:4px">📚 Studied but never played ('+R.unplayed.length+')</div>'+
+      '<div class="dim small" style="margin-bottom:6px">These are in your repertoire but have not appeared in a game yet — either your opponents avoid them, or you are not steering for them.</div>'+
+      '<div class="row" style="gap:6px;flex-wrap:wrap">'+R.unplayed.slice(0,12).map(o=>'<button class="btn ghost sm" data-act="explore" data-val="'+o.id+'">'+esc(o.name)+'</button>').join('')+'</div></div>';
+  return h+'</div>';
+}
+
+/* ===================== OPPONENTS WHO BEHAVE LIKE PEOPLE =====================
+   Career opponents used to play on to bare kings and never say a word. Now
+   they have a temperament derived from their name, so the same player always
+   behaves the same way: some will shake hands in a dead position, some grind
+   on forever, and all of them get worse when their clock runs low. */
+function oppTraits(opp){
+  if(!opp)return {drawish:0.5,stubborn:0.5,nerve:0.5,name:'Your opponent'};
+  const h=hashStr(String(opp.id||opp.name||'x'));
+  const st=opp.style||'universal';
+  let drawish=0.25+((h>>>3)%50)/100;                        // 0.25 – 0.75
+  let stubborn=0.25+((h>>>9)%55)/100;
+  let nerve=0.3+((h>>>15)%55)/100;
+  if(st==='solid'||st==='grinder')drawish+=0.15;
+  if(st==='aggressive'||st==='gambiteer')drawish-=0.15;
+  if(st==='grinder')stubborn+=0.2;
+  return {drawish:Math.max(0,Math.min(1,drawish)),stubborn:Math.max(0,Math.min(1,stubborn)),
+    nerve:Math.max(0,Math.min(1,nerve)),name:opp.name||'Your opponent'};
+}
+/* Material balance in centipawns from `side`'s point of view — a local fallback
+   so draw offers and resignations work with no engine loaded. */
+function playMaterialCp(fen,side){
+  const b=vxBoard(fen);if(!b)return 0;
+  let me=0,them=0;
+  for(const s in b){const p=b[s];if(p.type==='k')continue;
+    if(p.color===side)me+=VX_VAL[p.type]||0;else them+=VX_VAL[p.type]||0;}
+  return (me-them)*100;
+}
+/* Best available read of the position, from `side`'s point of view. */
+function playCp(side){
+  const fen=app.playFen;if(!fen)return 0;
+  const ev=app.playEval;
+  if(ev&&ev.stm){
+    const raw=ev.t==='mate'?(ev.v>0?4000:-4000):ev.v;      // from ev.stm's POV
+    const cp=ev.stm===side?raw:-raw;
+    return cp;
+  }
+  return playMaterialCp(fen,side);
+}
+function oppLowOnTime(){
+  if(!app.clock||!app.tc)return 0;
+  const eng=app.playSide==='w'?'b':'w';
+  const base=Math.max(1,(app.tc.base||300)*1000);
+  const left=app.clock[eng];
+  if(left==null)return 0;
+  const frac=left/base;
+  return frac<0.12?Math.max(0,Math.min(1,(0.12-frac)/0.12)):0;
+}
+/* Called after the opponent has moved: do they offer a draw, or give up? */
+function oppAfterMove(){
+  if(!app.careerOpp||!app.careerRoundOpp)return;
+  if(app.playStatus==='over')return;
+  const opp=app.careerRoundOpp,tr=oppTraits(opp);
+  const them=app.playSide==='w'?'b':'w';
+  const cp=playCp(them);                                    // from their side
+  const ply=(app.playMoves||[]).length;
+
+  // Resignation: clearly lost, and not the stubborn type. Real players do not
+  // make you mate them from three pieces down.
+  const hopeless=cp<=-900||(cp<=-600&&ply>=60);
+  if(hopeless&&ply>=24){
+    app._oppLost=(app._oppLost||0)+1;
+    const patience=2+Math.round(tr.stubborn*6);
+    if(app._oppLost>=patience){
+      stopClockTick();app.playStatus='over';
+      app.playResult=(opp.name||'Your opponent')+' resigns — you won! 🎉';
+      app.oppSaid=pick(['That is enough. Well played.','I have seen how this ends. Good game.','You played that cleanly. I resign.']);
+      app.oppDraw=null;careerResult(1);render();return;
+    }
+  } else app._oppLost=0;
+
+  // Draw offers: a level position, some moves played, and a personality that
+  // wants the half point. Low on time makes them keener.
+  if(app.oppDraw||app._drawCd>ply)return;
+  const level=Math.abs(cp)<=40;
+  const endgamey=playMaterialCp(app.playFen,them)===0&&ply>=50;
+  if(!level||ply<30)return;
+  const keen=tr.drawish+oppLowOnTime()*0.4+(endgamey?0.2:0);
+  if(Math.random()<keen*0.28){
+    app.oppDraw={name:opp.name||'Your opponent',
+      line:pick(['Shall we call it a draw?','I offer a draw.','Nothing left in this one — draw?'])};
+    render();
+  }
+}
+function oppDrawAccept(){
+  if(!app.oppDraw||app.playStatus==='over')return;
+  stopClockTick();app.playStatus='over';app.playResult='Draw agreed. 🤝';
+  app.oppDraw=null;careerResult(0.5);render();
+}
+function oppDrawDecline(){
+  if(!app.oppDraw)return;
+  app.oppDraw=null;
+  app._drawCd=((app.playMoves||[]).length)+24;              // they will not pester you
+  app.drawMsg='You played on.';
+  render();setTimeout(function(){app.drawMsg=null;if(app.view==='play')render();},1600);
+}
+/* Your own draw offer, answered in character rather than by a fixed threshold. */
+function offerDrawHuman(){
+  if(app.playStatus!=='play')return false;
+  if(!app.careerOpp||!app.careerRoundOpp)return false;
+  const opp=app.careerRoundOpp,tr=oppTraits(opp);
+  const them=app.playSide==='w'?'b':'w';
+  const cp=playCp(them),ply=(app.playMoves||[]).length;
+  const myRating=(store.career&&youRating(store.career,(store.career.tour&&store.career.tour.format)||app.careerOneoff||'classical'))||opp.rating;
+  const gap=(opp.rating||myRating)-myRating;                // positive: they are stronger
+  // they accept when they are not better, and are readier if lower rated,
+  // short of time, or simply the peaceable sort
+  let want=tr.drawish*0.5+oppLowOnTime()*0.5+(gap<-80?0.25:0)+(ply>60?0.15:0);
+  if(cp>60)want-=0.6;                                       // they are winning: no thanks
+  if(cp<-200)want+=0.35;                                    // they are losing: gladly
+  if(ply<24)want-=0.5;                                      // not this early
+  if(want>0.45){
+    stopClockTick();app.playStatus='over';app.playResult='Draw agreed. 🤝';
+    app.oppSaid=pick(['Agreed. Good game.','A fair result.','Draw it is.']);
+    careerResult(0.5);render();return true;
+  }
+  app.drawMsg=(opp.name||'Your opponent')+': “'+pick(cp>60?['No — I am playing this one out.','I like my position. Let us continue.']
+    :['Not yet.','Let us play a few more moves.','I would rather keep going.'])+'”';
+  render();setTimeout(function(){app.drawMsg=null;if(app.view==='play')render();},2400);
+  return true;
+}
+function oppDrawPanel(){
+  if(!app.oppDraw||app.playStatus==='over')return '';
+  return '<div class="card" style="margin-top:10px;border-color:var(--amber);background:rgba(245,158,11,.10)">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<div class="small"><b>🤝 '+esc(app.oppDraw.name)+':</b> “'+esc(app.oppDraw.line)+'”</div>'+
+      '<div class="row" style="gap:6px;flex:0 0 auto">'+
+        '<button class="btn primary sm" data-act="oppdrawyes">Accept the draw</button>'+
+        '<button class="btn ghost sm" data-act="oppdrawno">Play on</button>'+
+      '</div></div></div>';
+}
+
 /* ---- the voice itself ---- */
 const Voice={
   ok:function(){try{return typeof window!=='undefined'&&!!window.speechSynthesis&&typeof window.SpeechSynthesisUtterance==='function';}catch(e){return false;}},
@@ -5109,13 +5512,14 @@ function coachSay(fenBefore,san,opts){
   Voice.say(text,opts.force);
   return text;
 }
-function coachCard(text,label){
+function coachCard(text,label,act){
   if(!text)return '';
+  act=act||'coachsay';
   return '<div class="card" style="margin-top:12px;border-color:var(--brand2)">'+
     '<div class="row" style="justify-content:space-between;align-items:flex-start;gap:8px">'+
       '<div class="small" style="line-height:1.55;flex:1;min-width:0"><b style="color:var(--brand2)">'+(label||'🎓 Coach')+'</b> '+esc(text)+'</div>'+
       '<div class="row" style="gap:5px;flex:0 0 auto">'+
-        '<button class="btn ghost sm" data-act="coachsay" title="Read it aloud">🔊</button>'+
+        '<button class="btn ghost sm" data-act="'+act+'" title="Read it aloud">🔊</button>'+
         '<button class="btn ghost sm" data-act="coachtoggle" title="'+(store.settings.voiceOn?'Voice is on':'Voice is off')+'">'+(store.settings.voiceOn?'🔈 On':'🔇 Off')+'</button>'+
       '</div></div></div>';
 }
@@ -5144,8 +5548,13 @@ function viewExplorer(){
   // the speaker, so an author's comment is never printed twice
   if(cur.move)h+=coachCard(exCoachText(),'🎓 '+esc(fmtMoves([cur.move],cur.ply-1))+' —');
   else if(cur.comment)h+='<div class="note" style="margin-top:12px">'+esc(cur.comment)+'</div>';
+  h+=coachCard(exPlanText(),'📋 The plan','plansay');
   h+='<div class="card" style="margin-top:12px"><div class="muted small" style="margin-bottom:8px">'+(cur.children.length?stm+' to move — choose a move:':'End of line')+'</div>';
-  if(cur.children.length)h+='<div class="row">'+cur.children.map((c,i)=>'<button class="movebtn" data-act="exgo" data-val="'+i+'">'+esc(c.move)+'</button>').join('')+'</div>';
+  if(cur.children.length)h+='<div class="row">'+cur.children.map(function(c,i){
+    var risk=store.settings.blunderWarn===false?null:vxCostOf(bfen,c.move);
+    var warn=risk&&risk.net>=2?' title="Drops material — '+esc(risk.san)+' wins the '+esc(VX_NAME[risk.captured])+'"':(risk&&risk.net>=1?' title="Loses a pawn to '+esc(risk.san)+'"':'');
+    return '<button class="movebtn" data-act="exgo" data-val="'+i+'"'+warn+'>'+esc(c.move)+(risk&&risk.net>=2?' <span style="color:#f87171">⚠️</span>':'')+'</button>';
+  }).join('')+'</div>';
   else h+='<div class="dim small">Use Back, or click a move above to explore another branch.</div>';
   h+='</div></div></div>';
   return h;
@@ -5385,18 +5794,25 @@ function clAdvanceOpp(L){
 function clTry(from,to){
   const L=app.cl;if(!L||L.done)return false;
   const s=clStep(L);if(!s||!s.you)return false;
-  if(s.from!==from||s.to!==to){L.wrong={from:from,to:to};L.sel=null;render();return true;}
+  if(s.from!==from||s.to!==to){
+    L.wrong={from:from,to:to};L.sel=null;
+    var _pm=null;try{var _pg=new Chess(s.fenBefore);_pm=_pg.move({from:from,to:to,promotion:'q'});}catch(e){}
+    L.whyNot=_pm?whyNot(s.fenBefore,_pm.san,s.san,{sans:L.line.slice(0,L.i).map(function(x){return x.san;})}):null;
+    if(L.whyNot)Voice.say(L.whyNot);
+    render();return true;}
   if(s.ex)L.solved=(L.solved||0)+1;
   var _clWhy=s.ex?s.ex.why:(s.idea||null);
   if(!_clWhy){var _clEx=explainMove(s.fenBefore,s.san);_clWhy=_clEx?_clEx.text:null;}
   L.reveal=_clWhy?{ok:true,text:_clWhy}:null;
   Voice.say(_clWhy);
-  L.fen=s.fenAfter;L.last={from:s.from,to:s.to};L.wrong=null;L.sel=null;L.oppNote=null;L.i++;sfxSan(s.san);render();
+  L.fen=s.fenAfter;L.last={from:s.from,to:s.to};L.wrong=null;L.whyNot=null;L.sel=null;L.oppNote=null;L.i++;sfxSan(s.san);render();
   setTimeout(function(){if(app.view!=='clearn'||app.cl!==L)return;clAdvanceOpp(L);render();},560);
   return true;
 }
 function clComplete(L){
   if(L._saved)return;L._saved=true;
+  var _pl=explainPlan(L.fen,L.hero);
+  if(_pl)Voice.say('Chapter complete. '+_pl);
   addRep(L.id);
   store.courseProgress=store.courseProgress||{};
   const done=store.courseProgress[L.id]=store.courseProgress[L.id]||[];
@@ -5490,6 +5906,8 @@ function viewCourseLearn(){
     '<div class="layout"><div class="boardwrap">'+renderBoard(L.fen,orient,{sel:L.sel,last:L.last,wrong:L.wrong,hint:clHint(L),interactive:interactive})+'</div>'+
     '<div><div class="card">'+panel+'</div>'+reveal+oppLine+
     '<div class="card" style="margin-top:12px"><div class="dim small" style="line-height:1.5">🎯 <b>'+esc(L.goal)+'</b></div></div>'+
+    coachCard(L.whyNot,'🚫 Why not')+
+    coachCard(explainPlan(L.fen,L.hero),'📋 The plan','plansay')+
     coachCard((L.reveal&&L.reveal.text)||L.oppNote||null,'🎓 Why this move')+
     '</div></div></div>';
 }
@@ -5524,6 +5942,7 @@ function viewTrain(){
   h+='<div class="layout"><div class="boardwrap">'+renderBoard(app.fen,o.side,{sel:app.sel,last:app.last,wrong:app.wrongSq,hint:showMove?{from:node.from,to:node.to}:null,interactive:heroToMove()})+'</div>'+
     '<div><div class="card">'+panel+'</div>'+
     (lastPlayed&&lastPlayed.comment?'<div class="note" style="margin-top:12px">'+esc(lastPlayed.comment)+'</div>':'')+
+    coachCard(app.whyNot,'🚫 Why not')+
     coachCard(app.coachNote,'🎓 Why that move')+
     '<div class="card" style="margin-top:12px"><div class="l" style="text-transform:uppercase;font-size:11px;letter-spacing:.08em;color:var(--muted)">Line so far</div><div style="margin-top:4px">'+(sans.length?esc(fmtMoves(sans)):'Starting position')+'</div></div>'+
     '<div class="row" style="margin-top:12px"><button class="btn '+(app.guided?'primary':'ghost')+' sm" data-act="toggleguided" title="Show every move and its explanation">📖 Guided</button><button class="btn sec" style="flex:1" data-act="hint" '+(heroToMove()?'':'disabled')+'>💡 Hint</button><button class="btn ghost" style="flex:1" data-act="skip">Skip line →</button></div>'+
@@ -5587,12 +6006,14 @@ function viewSettings(){
     rowSet('Accent colour','Buttons, links &amp; highlights.',selOpt('accent',ACCENTS))+'</div>'+
     '<div class="card" style="margin-top:12px"><div style="font-weight:700;margin-bottom:2px">🎓 Coach &amp; voice</div>'+
     '<div class="dim small" style="margin-bottom:2px">The coach works out why each move is played and can read it aloud while you step through a line. It uses your device\u2019s own speech, so it costs nothing and works offline.'+(Voice.ok()?'':' <b style="color:#fcd34d">This browser has no speech support, so the text still shows but nothing is spoken.</b>')+'</div>'+
+    rowSet('Blunder warnings','Mark moves that drop material in the opening explorer, and tell you when one of your own moves does. Worked out from the position, so it needs no engine and works offline.',(store.settings.blunderWarn!==false?'<input type="checkbox" data-setting="blunderWarn" checked>':'<input type="checkbox" data-setting="blunderWarn">'))+
     rowSet('Read moves aloud','Speak the explanation as you play through openings, courses and drills.',(store.settings.voiceOn?'<input type="checkbox" data-setting="voiceOn" checked>':'<input type="checkbox" data-setting="voiceOn">'))+
     rowSet('Voice','Which of your device\u2019s voices to use.','<select data-setting="voiceName"><option value=""'+(store.settings.voiceName?'':' selected')+'>Automatic</option>'+Voice.list().map(function(v){return '<option value="'+esc(v.name)+'"'+(store.settings.voiceName===v.name?' selected':'')+'>'+esc(v.name)+(v.lang?' ('+esc(v.lang)+')':'')+'</option>';}).join('')+'</select>')+
     rowSet('Speaking speed','0.5 is slow, 1.6 is brisk.','<input type="number" min="0.5" max="1.6" step="0.1" value="'+(+store.settings.voiceRate||1)+'" data-setting="voiceRate">')+
     '<div class="row" style="margin-top:8px"><button class="btn sec sm" data-act="voicetest">🔊 Test the voice</button></div></div>'+
     '<div class="card" style="margin-top:12px"><div style="font-weight:700;margin-bottom:2px">Training &amp; engine</div>'+
     rowSet('New cards per session','How many fresh positions “Learn” introduces per opening.','<input type="number" min="1" max="50" value="'+store.settings.newPer+'" data-setting="newPer">')+
+    rowSet('Skip moves you know','In review, start each line just before the first move that is actually due instead of replaying it from move one.',(store.settings.srsSkip!==false?'<input type="checkbox" data-setting="srsSkip" checked>':'<input type="checkbox" data-setting="srsSkip">'))+
     rowSet('Opponent strength','Approximate Elo of the Stockfish opponent in “Play vs engine”.',lvl)+'</div>'+
     '<div class="card" style="margin-top:12px"><div style="font-weight:700;margin-bottom:6px">Backup &amp; data</div><div class="muted small" style="margin-bottom:10px">'+BUILT.length+' openings available. Export your progress to move it between devices.</div>'+
     '<div class="row"><button class="btn sec sm" data-act="export">Export progress</button><button class="btn sec sm" data-act="import">Import progress</button><input id="importfile" type="file" accept="application/json" style="display:none"></div></div>'+
@@ -5610,8 +6031,11 @@ function startTraining(target,mode){
   if(!app.session.length){app.status='empty';render();return;}
   loadLine();
 }
-function loadLine(){const l=curLine();app.nodePos=0;app.fen=l.nodes[0].fenBefore;app.last=null;app.wrongSq=null;app.sel=null;app.mistakes=false;app.status='play';advance();}
-function nextLine(){app.coachNote=null;if(app.timer){clearTimeout(app.timer);app.timer=null;}if(app.sIdx+1<app.session.length){app.sIdx++;loadLine();}else{app.status='done';render();}}
+function loadLine(){const l=curLine();
+  const at=Math.max(0,Math.min((l.startAt||0),l.nodes.length-1));
+  app.nodePos=at;app.fen=l.nodes[at].fenBefore;app.skippedTo=at;
+  app.last=null;app.wrongSq=null;app.sel=null;app.mistakes=false;app.status='play';advance();}
+function nextLine(){app.coachNote=null;app.whyNot=null;if(app.timer){clearTimeout(app.timer);app.timer=null;}if(app.sIdx+1<app.session.length){app.sIdx++;loadLine();}else{app.status='done';render();}}
 function advance(){if(app.timer){clearTimeout(app.timer);app.timer=null;}
   const l=curLine();if(!l){app.status='done';render();return;}
   const node=l.nodes[app.nodePos];
@@ -5630,11 +6054,14 @@ function heroMove(from,to){const line=curLine();const node=curNode();if(!node)re
   if(match){
     if(app.status!=='wrong'&&!app.mistakes){grade(id,'good');app.correct++;}
     if(match!==node){line.nodes=line.nodes.slice(0,app.nodePos).concat(pathToLeaf(match));}
-    app.fen=m.fen;app.last={from:from,to:to};app.sel=null;app.wrongSq=null;app.mistakes=false;app.status='play';app.nodePos++;sfxSan(m.san);
+    app.fen=m.fen;app.last={from:from,to:to};app.sel=null;app.wrongSq=null;app.whyNot=null;app.mistakes=false;app.status='play';app.nodePos++;sfxSan(m.san);
     app.coachNote=coachSay(node.fenBefore,m.san,{note:match.comment||null})||(explainMove(node.fenBefore,m.san)||{}).text||null;
     render();advance();return true;}
   if(!app.mistakes){app.mistakes=true;grade(id,'again');app.wrong++;}
-  app.status='wrong';app.wrongSq={from:node.from,to:node.to};app.sel=null;render();return false;
+  app.status='wrong';app.wrongSq={from:node.from,to:node.to};app.sel=null;
+  app.whyNot=whyNot(node.fenBefore,m.san,node.move,{sans:line.nodes.slice(0,app.nodePos).map(function(n){return n.move;})});
+  if(app.whyNot)Voice.say(app.whyNot);
+  render();return false;
 }
 function hint(){if(!heroToMove())return;const node=curNode();const id=curLine().o.id+'::'+node.fenBefore;
   if(!app.mistakes){app.mistakes=true;grade(id,'again');app.wrong++;}app.status='wrong';app.wrongSq={from:node.from,to:node.to};render();}
@@ -5846,6 +6273,8 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='psetup'){stopClockTick();app.playFen=null;render();}
   else if(act==='presign')resignGame();
   else if(act==='pdraw')offerDraw();
+  else if(act==='oppdrawyes')oppDrawAccept();
+  else if(act==='oppdrawno')oppDrawDecline();
   else if(act==='ppgn')copyPGN();
   else if(act==='pflip'){app.playFlip=!app.playFlip;render();}
   else if(act==='toggleeval'){store.settings.showEval=!store.settings.showEval;save();render();}
@@ -5928,9 +6357,10 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='simtour')simRestOfTour();
   else if(act==='claimdaily')claimDaily();
   else if(act==='careerchal')startChallenge(val);
+  else if(act==='plansay'){var _pt=(app.view==='explore')?exPlanText():(app.cl?explainPlan(app.cl.fen,app.cl.hero):null);if(_pt)Voice.say(_pt,true);}
   else if(act==='voicetest'){Voice.say('Knight f3 develops the knight and takes aim at the centre, covering e5 and d4.',true);}
   else if(act==='coachtoggle'){store.settings.voiceOn=!store.settings.voiceOn;if(!store.settings.voiceOn)Voice.stop();save();}
-  else if(act==='coachsay'){var _ct=(app.view==='explore')?exCoachText():(app.view==='clearn'?((app.cl&&app.cl.reveal&&app.cl.reveal.text)||(app.cl&&app.cl.oppNote)):app.coachNote);if(_ct)Voice.say(_ct,true);}
+  else if(act==='coachsay'){var _ct=(app.view==='explore')?exCoachText():(app.view==='clearn'?((app.cl&&app.cl.whyNot)||(app.cl&&app.cl.reveal&&app.cl.reveal.text)||(app.cl&&app.cl.oppNote)):(app.whyNot||app.coachNote));if(_ct)Voice.say(_ct,true);}
   else if(act==='seasondismiss'){store.career.seasonReview=null;save();}
   else if(act==='profile'){if(val)profileOpen(val);}
   else if(act==='specvs'){var _sp=buildWorld().filter(function(x){return x.id===val;})[0];if(_sp){var _fmt='classical';var _list=worldRanking(store.career,_fmt).filter(function(x){return !x.you&&x.id!==val;});var _o=_list[Math.floor(Math.random()*Math.min(12,_list.length))]||_list[0];if(_o)startSpectate({name:_sp.name,flag:_sp.flag,rating:wpRating(_sp,_fmt),real:_sp.real},_o);}}
@@ -6005,6 +6435,8 @@ document.getElementById('app').addEventListener('change',e=>{
     else if(ds==='anim')store.settings.anim=e.target.checked;
     else if(ds==='haptics')store.settings.haptics=e.target.checked;
     else if(ds==='boardSize')store.settings.boardSize=+e.target.value;
+    else if(ds==='blunderWarn')store.settings.blunderWarn=e.target.checked;
+    else if(ds==='srsSkip')store.settings.srsSkip=e.target.checked;
     else if(ds==='voiceOn'){store.settings.voiceOn=e.target.checked;if(!store.settings.voiceOn)Voice.stop();else Voice.say('Voice coaching is on.',true);}
     else if(ds==='voiceRate')store.settings.voiceRate=Math.max(0.5,Math.min(1.6,+e.target.value||1));
     else if((ds==='pieces'||ds==='theme'||ds==='appTheme'||ds==='accent'||ds==='scene')&&!isUnlocked(ds,e.target.value)){var _u=UNLOCKS[ds+':'+e.target.value];app.careerToast='🔒 Locked — '+((_u&&_u.lbl)||'keep progressing')+' to unlock this.';e.target.value=store.settings[ds];save();render();return;}
@@ -6164,7 +6596,7 @@ function playerStrip(color,fen,lvl){
 function detectOpening(sans){let best=null;
   for(const o of BUILT){let node=o.root,depth=0,comment=null;
     for(const s of sans){const c=node.children.find(ch=>ch.move===s);if(!c)break;node=c;depth++;if(c.comment)comment=c.comment;}
-    if(depth>=2&&(!best||depth>best.depth))best={depth,name:o.name,eco:o.eco,comment};}
+    if(depth>=2&&(!best||depth>best.depth))best={depth,name:o.name,eco:o.eco,comment,id:o.id};}
   return best;}
 /* ---- opening "book" opponent ---- */
 function advanceBook(from,to){if(app.playBookNode){const c=app.playBookNode.children.find(ch=>ch.from===from&&ch.to===to);app.playBookNode=c||null;}}
@@ -6172,7 +6604,9 @@ function recomputeBook(){if(!app.playBook){app.playBookNode=null;return;}let nod
   for(const mv of app.playMoves){const c=node.children.find(ch=>ch.from===mv.from&&ch.to===mv.to);if(!c){node=null;break;}node=c;}app.playBookNode=node;}
 /* ---- resign / draw offer ---- */
 function resignGame(){if(app.playStatus!=='play'&&app.playStatus!=='engine')return;stopClockTick();app.playStatus='over';app.playResult='You resigned — Stockfish wins.';app.playSel=null;careerResult(0);render();}
-function offerDraw(){if(app.playStatus!=='play')return;const ev=app.playEval;let cp=0;
+function offerDraw(){if(app.playStatus!=='play')return;
+  if(offerDrawHuman())return;
+  const ev=app.playEval;let cp=0;
   if(ev){const s=ev.stm==='w'?1:-1;cp=ev.t==='mate'?(ev.v*s>0?9999:-9999):ev.v*s;}
   if(Math.abs(cp)<=60){stopClockTick();app.playStatus='over';app.playResult='Draw agreed. 🤝';careerResult(0.5);render();}
   else{app.drawMsg='Stockfish declined the draw.';render();setTimeout(()=>{app.drawMsg=null;if(app.view==='play')render();},2200);}}
@@ -6199,7 +6633,7 @@ function fallbackCopy(text,done){try{const ta=document.createElement('textarea')
 function startPlay(fen,side,openingId,title,opts){opts=opts||{};
   app.view='play';app.playFen=fen;app._playStartFen=fen;app.playSide=side;app.playOpening=openingId||null;
   app.playTitle=title||'Free game';app.playFlip=false;app.playStack=[fen];app.playMoves=[];app.playView=0;app.playLast=null;app.playSel=null;app.careerBanter=null;app.careerReaction=null;
-  app.playHint=null;app.playEval=null;app.playResult=null;app.engineErr=false;app.drawMsg=null;app.pgnCopied=false;app.playPremoves=[];app.blindfold=!!opts.blindfold;app.peek=false;app.careerOpp=opts.careerOpp||null;app.careerElo=opts.careerElo||null;app.careerScored=false;app.careerDelta=0;app.careerTour=!!opts.careerTour;app.careerRoundOpp=opts.roundOpp||null;app.careerOneoff=opts.oneoff||null;app.c960=opts.c960||null;app.endgame=opts.endgame||null;app.playBot=opts.bot||null;app.tiltEval=false;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=!!(opts.league);app.careerHintsLeft=opts.careerOpp?careerHintAllowance():0;app._fxKey=null;
+  app.playHint=null;app.playEval=null;app.playResult=null;app.engineErr=false;app.drawMsg=null;app.blunderNote=null;app.coachNote=null;app.whyNot=null;app.oppDraw=null;app.oppSaid=null;app._oppLost=0;app._drawCd=0;app.pgnCopied=false;app.playPremoves=[];app.blindfold=!!opts.blindfold;app.peek=false;app.careerOpp=opts.careerOpp||null;app.careerElo=opts.careerElo||null;app.careerScored=false;app.careerDelta=0;app.careerTour=!!opts.careerTour;app.careerRoundOpp=opts.roundOpp||null;app.careerOneoff=opts.oneoff||null;app.c960=opts.c960||null;app.endgame=opts.endgame||null;app.playBot=opts.bot||null;app.tiltEval=false;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=!!(opts.league);app.careerHintsLeft=opts.careerOpp?careerHintAllowance():0;app._fxKey=null;
   app.playBook=opts.bookId?byId.get(opts.bookId):(opts.book||null);
   app.playBookNode=opts.bookNode||(app.playBook?app.playBook.root:null);
   const tc=opts.tc||tcById((opts.tcId)||'unlimited');app.tc=tc;
@@ -6251,6 +6685,9 @@ async function engineMove(){app.playStatus='engine';render();
     const prepE=(app.careerPrepUsed?((ply<16?80:30)+(perkLevel(store.career,'prepmaster')?((ply<16?40:20)+(perkLevel(store.career,'prepmaster')-1)*(ply<16?20:10)):0)+(app.careerNovelty?(ply<20?70:30):0))*(styleClass(store.career).cls==='Gambiteer'?1.25:1):0)+studyE; // home prep edge (Deep-prep perk per level + Gambiteer class + a sprung novelty)
     lvl={elo:Math.max(600,Math.round(app.careerElo-120-sharp-prepE)),mt:700};
     if(app.careerRoundOpp&&app.careerRoundOpp.style)lvl.style=app.careerRoundOpp.style;
+    // short of time, a human plays worse — the steadier their nerve, the less so
+    var _lt=oppLowOnTime();
+    if(_lt>0){var _nv=oppTraits(app.careerRoundOpp).nerve;lvl.elo=Math.max(600,Math.round(lvl.elo-_lt*260*(1-_nv*0.6)));}
   }
   else if(app.endgame)lvl=LEVELS[LEVELS.length-1]; // endgame drills: a tough, full-strength defender
   else lvl=(LEVELS[store.settings.level]||LEVELS[2]);const eng=app.playSide==='w'?'b':'w';
@@ -6269,7 +6706,8 @@ async function engineMove(){app.playStatus='engine';render();
   Engine.think(app.playFen,lvl,mt,best=>{
     if(best&&best!=='(none)'){const m=tryFromTo(app.playFen,best.slice(0,2),best.slice(2,4),best[4]||'q');
       if(m){if(app.c960)c960UpdateRights(eng,best.slice(0,2));app.playStack.push(m.fen);app.playMoves.push({from:best.slice(0,2),to:best.slice(2,4),san:m.san});app.playFen=m.fen;app.playLast={from:best.slice(0,2),to:best.slice(2,4)};app.playSel=null;app.playView=app.playStack.length-1;app.playBookNode=null;addIncrement(eng);sfxSan(m.san);}}
-    if(!checkOver())app.playStatus='play';render();tryPremove();
+    if(!checkOver()){app.playStatus='play';oppAfterMove();}
+    render();tryPremove();
   });
 }
 function pieceColorAt(fen,sq){try{const c=new Chess(fen);const p=c.get(sq);return p?p.color:null;}catch(e){return null;}}
@@ -6285,6 +6723,11 @@ function playMove(from,to){
   if(app.c960)c960UpdateRights(app.playSide,from);
   app.playStack.push(m.fen);app.playMoves.push({from,to,san:m.san});app.playFen=m.fen;app.playLast={from,to};app.playSel=null;app.playHint=null;app.playView=app.playStack.length-1;
   advanceBook(from,to);addIncrement(app.playSide);sfxSan(m.san);
+  if(store.settings.blunderWarn!==false){
+    var _bl=vxCostOf(app.playStack[app.playStack.length-2]||app._playStartFen,m.san);
+    app.blunderNote=(_bl&&_bl.net>=2)?('⚠️ That drops material — '+_bl.san+' wins the '+VX_NAME[_bl.captured]+'.'):null;
+    if(app.blunderNote)Voice.say(app.blunderNote);
+  } else app.blunderNote=null;
   if(checkOver()){render();return true;}app.playStatus='engine';render();setTimeout(engineMove,260);return true;}
 function playUndo(){const st=app.playStack;if(!st||st.length<=1)return;
   do{st.pop();app.playMoves.pop();}while(st.length>1&&turnOf(st[st.length-1])!==app.playSide);
@@ -9328,7 +9771,7 @@ function viewPlay(){
   const evalHtml=(ev&&live&&store.settings.showEval&&!app.tiltEval)?'<div class="row" style="justify-content:space-between;margin-bottom:5px"><span class="dim small">Evaluation</span><span class="small" style="font-weight:800">'+evalStr(ev.t,ev.v,ev.stm)+'</span></div><div class="evalbar"><i style="width:'+evalPct(ev.t,ev.v,ev.stm)+'%"></i></div>':'';
   let status;
   if(!live)status='<div style="font-weight:800;color:var(--amber)">⏪ Reviewing — move '+app.playView+' of '+lastIdx+'</div>';
-  else if(app.playStatus==='over'){var rk=resultKind(app.playResult);var rc=rk==='win'?'var(--green)':rk==='loss'?'#f87171':'var(--muted)';var re=rk==='win'?'🎉':rk==='loss'?'😞':'🤝';status='<div class="card" style="border-color:'+rc+';text-align:center;padding:14px 12px"><div style="font-size:30px;line-height:1">'+re+'</div><div style="font-weight:800;font-size:16px;color:'+rc+';margin-top:4px">'+esc(app.playResult||'Game over')+'</div>'+'<div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap;margin-top:11px">'+((app.playMoves&&app.playMoves.length)?'<button class="btn sec sm" data-act="revplay">🔬 Review game</button>':'')+(!app.careerOpp?'<button class="btn primary sm" data-act="prematch">↻ Rematch</button><button class="btn sec sm" data-act="nav" data-val="play">New game</button>':'')+'</div>'+'</div>'+((app.careerOpp&&app.careerReaction)?'<div class="note" style="margin-top:8px;border-color:#a855f73d;background:#a855f714;color:#e9d5ff">💬 <b>'+esc(app.careerReaction.who)+':</b> “'+esc(app.careerReaction.line)+'”</div>':'')+(app.careerOpp?careerPlayFooter():'')+(app.endgame?endgameVerdict():'');}
+  else if(app.playStatus==='over'){var rk=resultKind(app.playResult);var rc=rk==='win'?'var(--green)':rk==='loss'?'#f87171':'var(--muted)';var re=rk==='win'?'🎉':rk==='loss'?'😞':'🤝';status='<div class="card" style="border-color:'+rc+';text-align:center;padding:14px 12px"><div style="font-size:30px;line-height:1">'+re+'</div><div style="font-weight:800;font-size:16px;color:'+rc+';margin-top:4px">'+esc(app.playResult||'Game over')+'</div>'+'<div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap;margin-top:11px">'+((app.playMoves&&app.playMoves.length)?'<button class="btn sec sm" data-act="revplay">🔬 Review game</button>':'')+(!app.careerOpp?'<button class="btn primary sm" data-act="prematch">↻ Rematch</button><button class="btn sec sm" data-act="nav" data-val="play">New game</button>':'')+'</div>'+'</div>'+((app.oppSaid)?'<div class="note" style="margin-top:8px;border-color:#f59e0b3d;background:#f59e0b14;color:#fde68a">🤝 <b>'+esc((app.careerRoundOpp&&app.careerRoundOpp.name)||'Your opponent')+':</b> “'+esc(app.oppSaid)+'”</div>':'')+((app.careerOpp&&app.careerReaction)?'<div class="note" style="margin-top:8px;border-color:#a855f73d;background:#a855f714;color:#e9d5ff">💬 <b>'+esc(app.careerReaction.who)+':</b> “'+esc(app.careerReaction.line)+'”</div>':'')+(app.careerOpp?careerPlayFooter():'')+(app.endgame?endgameVerdict():'');}
   else if(app.playStatus==='engine'){var pq=(app.playPremoves||[]).length;status='<div class="muted">Stockfish is thinking… '+(pq?'<span style="color:var(--brand2)">'+pq+' premove'+(pq>1?'s':'')+' queued</span> <span class="dim">· tap an empty square to cancel</span>':'<span class="dim">tap or drag to queue premoves</span>')+'</div>';}
   else{var _chk='';try{var _cc=new Chess(app.playFen);if(_cc.inCheck&&_cc.inCheck())_chk=' <span style="color:#f87171">— check!</span>';}catch(e){}status='<div style="font-weight:800;color:var(--brand2)">Your move ('+(app.playSide==='w'?'White':'Black')+').'+_chk+'</div>';}
   const interactive=live&&app.playStatus==='play'&&turnOf(app.playFen)===app.playSide;
@@ -9341,6 +9784,8 @@ function viewPlay(){
   let h='<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap"><div class="row" style="align-items:center"><button class="btn ghost sm" data-act="nav" data-val="library">←</button><h1 style="font-size:18px">Play vs Stockfish</h1><span class="chip brand">'+esc(app.playTitle)+'</span></div>'+
     '<div class="row"><span class="chip">'+(app.tc&&app.tc.base?app.tc.cat+' '+app.tc.label:'No clock')+'</span><span class="chip">'+(app.careerElo?'Opponent '+app.careerElo:'Lvl: '+lvl.label)+'</span></div></div>';
   if(app.careerOpp&&app.careerRoundOpp&&app.playStatus!=='over')h+=careerMatchupStrip();
+  if(app.blunderNote&&app.playStatus!=='over')h+=coachCard(app.blunderNote,'🚫 Careful');
+  h+=oppDrawPanel();
   if(app.careerBanter&&app.careerOpp&&app.playStatus!=='over')h+='<div class="note" style="margin-bottom:10px;border-color:#a855f73d;background:#a855f714;color:#e9d5ff">💬 <b>'+esc(app.careerBanter.who)+':</b> “'+esc(app.careerBanter.line)+'”</div>';
   if(app.c960)h+='<div class="note" style="margin-bottom:10px;border-color:#1e4e8c66;background:#0c294b44;color:#bae0ff">🎲 <b>Chess960</b> — shuffled start, no opening theory. To <b>castle</b>, tap your king then your rook.</div>';
   if(app.engineErr)h+='<div class="note" style="margin-bottom:10px;border-color:#7f1d1d66;background:#7f1d1d22;color:#fecaca">Couldn’t load Stockfish (it needs internet on first use). Opening training still works without it.</div>';
