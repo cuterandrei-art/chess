@@ -37,7 +37,7 @@ ok(X.trkPct(5,2,10)===60,'score percentage counts a draw as a half');
 ok(X.trkReasonLabel('timeout')==='lost on time'&&X.trkReasonLabel('checkmated')==='checkmated','result codes are put into English');
 X.store.myGames=[];
 ok(X.trackerStats().n===0,'no games means no statistics');
-ok(/No games loaded yet/.test(X.viewTracker()),'and the view says so instead of breaking');
+ok(/No games of your own loaded yet/.test(X.viewTracker()),'and the view says so instead of breaking');
 
 // a controlled set: 20 games, known properties
 const HOUR=3600000, DAY=86400000;

@@ -4405,7 +4405,7 @@ function checkTitles(c){const got=[];const peak=titlePeak(c);
     c.titles.push(d.t);got.push(d.t);
   }
   return got;}
-const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',blunderWarn:true,srsSkip:true,voiceOn:false,voiceName:'',voiceRate:1},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},myGames:[],myGamesMeta:null,ccProfile:null,ccAccount:null,daily:null,brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null}};
+const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',blunderWarn:true,srsSkip:true,voiceOn:false,voiceName:'',voiceRate:1,liveEval:true,liveHints:true},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},myGames:[],myGamesMeta:null,ccProfile:null,ccAccount:null,daily:null,brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null}};
 function freshCareer(){return JSON.parse(JSON.stringify(DEF.career));}
 /* Migrate saved career data: the old ladder (with `beaten`/`results`) is reset
    to the new FIDE structure; new-format saves are merged onto fresh defaults. */
@@ -4431,7 +4431,7 @@ function delRep(id){store.repertoire=store.repertoire.filter(x=>x!==id);save();}
 /* ============================== app state ============================== */
 const app={view:'career',exId:null,exPath:[],exFlip:false,courseId:null,setupOpening:'',
   pz:null,pzSeen:new Set(),pzFilter:{type:'auto'},rush:null,
-  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,ccSyncing:false,ccSyncMsg:null,ccSyncErr:null,_ccAutoTried:false,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
+  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,ccSyncing:false,ccSyncMsg:null,ccSyncErr:null,_ccAutoTried:false,live:null,liveUser:null,liveList:null,liveLoading:false,liveErr:null,liveListAt:0,liveEv:null,liveBest:null,liveLines:[],liveEngErr:false,_liveKey:null,_livePollT:null,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
   confirm:null,
   review:null,studyId:null,studyChapter:0,studyPath:[],studyFlip:false,studyMsg:null,
 
@@ -4446,7 +4446,7 @@ function confirmOverlay(){if(!app.confirm)return '';
     '<div class="dim small" style="margin-bottom:15px;line-height:1.55">'+esc(app.confirm.msg)+'</div>'+
     '<div class="row" style="justify-content:flex-end;gap:8px"><button class="btn ghost sm" data-act="confirmno">Cancel</button><button class="btn danger sm" data-act="confirmyes">Confirm</button></div>'+
     '</div></div>';}
-function go(view){if(app.view&&app.view!==view){app.navHist=app.navHist||[];app.navHist.push(app.view);if(app.navHist.length>30)app.navHist.shift();}app.view=view;app.sel=null;stopClockTick();if(view!=='puzzles')stopRushTick();render();}
+function go(view){if(app.view&&app.view!==view){app.navHist=app.navHist||[];app.navHist.push(app.view);if(app.navHist.length>30)app.navHist.shift();}app.view=view;app.sel=null;stopClockTick();if(view!=='puzzles')stopRushTick();if(view!=='livegame'&&view!=='tracker')livePollStop();render();}
 
 /* ============================== helpers =============================== */
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
@@ -4477,6 +4477,17 @@ function renderBoard(fen,orient,o={}){const{sel=null,last=null,wrong=null,hint=n
   if(an&&an.arrows&&an.arrows.length){let sv='<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6"><defs><marker id="ah" markerWidth="3.2" markerHeight="3.2" refX="2.1" refY="1.6" orient="auto"><path d="M0,0 L3.2,1.6 L0,3.2 z" fill="#15a34a"/></marker></defs>';
     an.arrows.forEach(function(a){var p1=sqCenterPct(files,ranks,a.from),p2=sqCenterPct(files,ranks,a.to);if(p1&&p2)sv+='<line x1="'+p1.x+'" y1="'+p1.y+'" x2="'+p2.x+'" y2="'+p2.y+'" stroke="#15a34a" stroke-width="2.1" stroke-linecap="round" opacity="0.82" marker-end="url(#ah)"/>';});
     h+=sv+'</svg>';}
+  // engine suggestions: their own layer, so drawing your own arrows never fights them
+  if(o.arrows&&o.arrows.length){
+    var defs='',body='';
+    o.arrows.forEach(function(a,i){
+      var col=a.col||'#22c55e',p1=sqCenterPct(files,ranks,a.from),p2=sqCenterPct(files,ranks,a.to);
+      if(!p1||!p2)return;
+      defs+='<marker id="eah'+i+'" markerWidth="3.2" markerHeight="3.2" refX="2.1" refY="1.6" orient="auto"><path d="M0,0 L3.2,1.6 L0,3.2 z" fill="'+col+'"/></marker>';
+      body+='<line x1="'+p1.x+'" y1="'+p1.y+'" x2="'+p2.x+'" y2="'+p2.y+'" stroke="'+col+'" stroke-width="'+(a.w||2.1)+'" stroke-linecap="round" opacity="'+(a.op||0.85)+'" marker-end="url(#eah'+i+')"/>';
+    });
+    if(body)h+='<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5"><defs>'+defs+'</defs>'+body+'</svg>';
+  }
   return h+'</div>';
 }
 
@@ -4671,6 +4682,7 @@ function render(){
   else if(app.view==='import')body=viewImport();
   else if(app.view==='daily')body=viewDaily();
   else if(app.view==='tracker')body=viewTracker();
+  else if(app.view==='livegame')body=viewLiveGame();
   else if(app.view==='player')body=viewPlayer();
   else if(app.view==='studies')body=viewStudies();
   else if(app.view==='masters')body=viewMasters();
@@ -6260,7 +6272,7 @@ function trackerInsights(S){
   return out.sort((a,b)=>b.w-a.w);
 }
 
-const TRK_TABS=[['overview','📋','Overview'],['results','📈','Results'],['openings','♟️','Openings'],['clock','⏱️','Clock &amp; time'],['insights','💡','Insights']];
+const TRK_TABS=[['overview','📋','Overview'],['results','📈','Results'],['openings','♟️','Openings'],['clock','⏱️','Clock &amp; time'],['insights','💡','Insights'],['live','📺','Live']];
 function trkTab(){const k=app.trkTab;return TRK_TABS.some(t=>t[0]===k)?k:'overview';}
 function trkStat(label,value,sub,col){
   return '<div style="flex:1;min-width:88px;text-align:center;padding:8px 4px">'+
@@ -6342,10 +6354,12 @@ function viewTracker(){
       '<button class="btn sec sm" data-act="nav" data-val="import">📥 Import / refresh</button></div>';
   h+=ccConnectCard();
   h+=trkProfileCard();
+  // Following another player needs none of your own games, so the tabs stay
+  // reachable from a cold start; only the statistics wait for an import.
+  const cur=S.n?trkTab():'live';
+  h+='<div class="ctabs">'+TRK_TABS.filter(t=>S.n||t[0]==='live').map(t=>'<button class="ctab'+(t[0]===cur?' active':'')+'" data-act="trktab" data-val="'+t[0]+'">'+t[1]+' '+t[2]+'</button>').join('')+'</div>';
   if(!S.n)
-    return h+'<div class="card"><b>No games loaded yet.</b><div class="dim small" style="margin-top:4px">Import your games and this fills with a full breakdown: how you win and lose, accuracy, opponents, streaks, the hours you play worst, session fatigue, tilt and your clock.</div><div class="row" style="margin-top:10px"><button class="btn primary sm" data-act="nav" data-val="import">Import my games</button></div></div></div>';
-  const cur=trkTab();
-  h+='<div class="ctabs">'+TRK_TABS.map(t=>'<button class="ctab'+(t[0]===cur?' active':'')+'" data-act="trktab" data-val="'+t[0]+'">'+t[1]+' '+t[2]+'</button>').join('')+'</div>';
+    return h+trkLivePanel()+'<div class="card"><b>No games of your own loaded yet.</b><div class="dim small" style="margin-top:4px">Import them and this fills with a full breakdown: how you win and lose, accuracy, opponents, streaks, the hours you play worst, session fatigue, tilt and your clock.</div><div class="row" style="margin-top:10px"><button class="btn primary sm" data-act="nav" data-val="import">Import my games</button></div></div></div>';
 
   if(cur==='overview'){
     h+='<div class="card" style="margin-bottom:12px"><div class="row" style="flex-wrap:wrap">'+
@@ -6400,6 +6414,8 @@ function viewTracker(){
         (S.acc.opp!=null?trkStat('Opponents',S.acc.opp+'%',''):'')+
         '</div>'+(S.acc.best?'<div class="small" style="margin-top:6px">✨ Best game: '+S.acc.best.acc+'% vs '+esc(S.acc.best.opp||'?')+(S.acc.best.url?' · <a target="_blank" rel="noopener" href="'+esc(S.acc.best.url)+'">see it ↗</a>':'')+'</div>':'')+'</div>';
   }
+
+  if(cur==='live')h+=trkLivePanel();
 
   if(cur==='openings'){
     if(S.firstMoves.length)
@@ -6633,6 +6649,372 @@ function ccConnectCard(){
     (app.ccSyncErr?'<div class="note" style="margin-top:9px;border-color:#7f1d1d;background:#7f1d1d22;color:#fca5a5">⚠️ '+esc(app.ccSyncErr)+'</div>':'')+
     (!online?'<div class="dim small" style="margin-top:8px">Offline — the numbers below are from the last sync.</div>':'')+
     '</div>';
+}
+
+/* ================== LIVE ANALYSIS BOARD ==================
+   Follow any Chess.com player and analyse what they are playing, with the
+   engine on a switch.
+
+   What "live" can honestly mean here. Chess.com's public API publishes a
+   player's *daily* (correspondence) games while they are in progress — board
+   position, whose turn it is and the deadline — and it does not publish live
+   blitz or rapid games until they have finished. So this follows daily games
+   move by move as they happen, and picks up everything else the moment it
+   lands in the archive. No key, no login, same public data as the tracker. */
+const LIVE_POLL_MS=30000;
+function lgUser(u){return String(u||'').split('/').filter(Boolean).pop()||'';}
+/* Turn a game the API describes into something the board can show. */
+function liveNormalise(raw,follow){
+  if(!raw)return null;
+  const white=lgUser(raw.white),black=lgUser(raw.black);
+  const sans=sansValidate(pgnToSans(raw.pgn||''));
+  const h=pgnHeaders(raw.pgn||'');
+  const variant=(raw.rules&&raw.rules!=='chess')||(h.Variant&&!/^standard$/i.test(h.Variant));
+  const f=lgUser(follow);
+  return {url:raw.url||'',white:white,black:black,who:f,
+    side:f&&black.toLowerCase()===f.toLowerCase()?'b':'w',
+    turn:raw.turn==='black'?'b':'w',fen:raw.fen||'',sans:sans,
+    moveBy:(raw.move_by||0)*1000,lastActivity:(raw.last_activity||0)*1000,
+    rules:raw.rules||'chess',variant:!!variant,tc:raw.time_control||'',
+    rated:raw.rated!==false,event:h.Event||''};
+}
+function tcLabel(tc){
+  const s=String(tc||'');
+  const d=/^1\/(\d+)$/.exec(s);
+  if(d){const h=Math.round(+d[1]/3600);return h>=24?(h/24)+' day'+(h/24>1?'s':'')+'/move':h+'h/move';}
+  const p=s.split('+');
+  const base=Math.round((+p[0]||0)/60);
+  return base+' min'+(p[1]?'+'+p[1]:'');
+}
+/* How long the player still has to move. */
+function liveDeadline(ms,now){
+  const left=(ms||0)-(now==null?Date.now():now);
+  if(!ms)return '';
+  if(left<=0)return 'time is up';
+  const h=Math.floor(left/3600000),m=Math.floor(left/60000)%60;
+  if(h>=48)return Math.floor(h/24)+' days left';
+  if(h>=1)return h+'h '+m+'m left';
+  return m+'m left';
+}
+function liveAgo(ms){
+  if(!ms)return '';
+  const m=Math.floor((Date.now()-ms)/60000);
+  if(m<1)return 'just moved';
+  if(m<60)return 'moved '+m+'m ago';
+  const h=Math.floor(m/60);
+  if(h<24)return 'moved '+h+'h ago';
+  return 'moved '+Math.floor(h/24)+'d ago';
+}
+/* The games a player has on the go right now. */
+async function liveFetch(user){
+  const u=String(user||'').trim().toLowerCase();
+  if(!u)throw new Error('Type a Chess.com username first.');
+  if(!ccIsOnline())throw new Error('You are offline — following a game needs the internet.');
+  const r=await fetch('https://api.chess.com/pub/player/'+encodeURIComponent(u)+'/games');
+  if(r.status===404)throw new Error('Chess.com has no player called “'+user+'”.');
+  if(!r.ok)throw new Error('Chess.com replied '+r.status+'.');
+  const list=((await r.json())||{}).games||[];
+  return list.map(g=>liveNormalise(g,u)).filter(Boolean);
+}
+/* ---- the board's own state ---- */
+function lgFens(sans,startFen){
+  const c=new Chess(startFen||undefined),fens=[c.fen()],ok=[];
+  for(const s of (sans||[])){
+    try{const m=c.move(s);if(!m)break;ok.push({san:m.san,from:m.from,to:m.to});fens.push(c.fen());}catch(e){break;}
+  }
+  return {fens:fens,moves:ok};
+}
+function liveOpen(g){
+  const b=lgFens(g.sans);
+  app.view='livegame';
+  app.live={kind:'live',user:g.who||(g.side==='w'?g.white:g.black),url:g.url,
+    white:g.white,black:g.black,side:g.side,flip:false,
+    fens:b.fens,moves:b.moves,pos:b.fens.length-1,follow:true,
+    turn:g.turn,moveBy:g.moveBy,lastActivity:g.lastActivity,tc:g.tc,event:g.event,
+    rated:g.rated,result:null,err:null,polling:true,lastPoll:Date.now()};
+  app._liveKey=null;
+  render();
+  livePollSoon();
+}
+/* Any finished game already stored opens on the same board. */
+function liveOpenStored(i){
+  const g=(store.myGames||[])[i];
+  if(!g)return;
+  const b=lgFens(g.moves);
+  app.view='livegame';
+  app.live={kind:'game',idx:i,url:g.url||'',
+    white:g.color==='w'?((store.ccAccount&&store.ccAccount.user)||'You'):(g.opp||'Opponent'),
+    black:g.color==='w'?(g.opp||'Opponent'):((store.ccAccount&&store.ccAccount.user)||'You'),
+    side:g.color,flip:false,
+    fens:b.fens,moves:b.moves,pos:0,follow:false,
+    turn:turnOf(b.fens[0]),moveBy:0,lastActivity:g.date||0,tc:g.tcStr||'',
+    event:g.ecoName||'',rated:g.rated!==false,
+    result:g.result===1?'won':g.result===0?'lost':'drew',
+    reason:g.reason||'',myRating:g.myRating||0,oppRating:g.oppRating||0,
+    acc:g.acc||null,oppAcc:g.oppAcc||null,date:g.date||0,
+    err:null,polling:false};
+  app._liveKey=null;
+  render();
+}
+function liveCur(){const L=app.live;if(!L||!L.fens)return null;return L.fens[Math.max(0,Math.min(L.fens.length-1,L.pos))];}
+function liveSeek(d){
+  const L=app.live;if(!L||!L.fens)return;
+  L.pos=Math.max(0,Math.min(L.fens.length-1,L.pos+d));
+  L.follow=(L.kind==='live')&&L.pos===L.fens.length-1;
+}
+function liveJump(n){
+  const L=app.live;if(!L||!L.fens)return;
+  L.pos=Math.max(0,Math.min(L.fens.length-1,n));
+  L.follow=(L.kind==='live')&&L.pos===L.fens.length-1;
+}
+/* ---- polling: only while a live game is on screen ---- */
+function liveWatching(){
+  return (app.view==='livegame'&&app.live&&app.live.kind==='live')||
+         (app.view==='tracker'&&trkTab()==='live');
+}
+function livePollSoon(){
+  if(app._livePollT)clearTimeout(app._livePollT);
+  if(!liveWatching())return;
+  app._livePollT=setTimeout(livePollTick,LIVE_POLL_MS);
+}
+function livePollStop(){if(app._livePollT){clearTimeout(app._livePollT);app._livePollT=null;}}
+/* Safe to call from a render: an already-pending poll is left alone, so
+   redrawing the screen cannot push the next refresh further away. */
+function livePollEnsure(){if(!app._livePollT)livePollSoon();}
+async function livePollTick(){
+  app._livePollT=null;
+  if(!liveWatching()||!ccIsOnline()){livePollSoon();return;}
+  try{
+    if(app.view==='livegame'){
+      const L=app.live;
+      const games=await liveFetch(L.user||app.liveUser);
+      const g=games.filter(x=>x.url===L.url)[0];
+      if(!g){
+        // it is no longer in progress, so it has finished
+        L.polling=false;L.finished=true;render();livePollStop();return;
+      }
+      if(g.sans.length!==L.moves.length){
+        const b=lgFens(g.sans);
+        const atEnd=L.follow;
+        L.fens=b.fens;L.moves=b.moves;
+        if(atEnd)L.pos=b.fens.length-1;
+        L.turn=g.turn;L.moveBy=g.moveBy;L.lastActivity=g.lastActivity;
+        render();
+      } else {L.turn=g.turn;L.moveBy=g.moveBy;render();}
+      L.lastPoll=Date.now();
+    } else {
+      await liveLoadList(app.liveUser,true);
+    }
+  }catch(e){ /* a failed poll is not worth shouting about; the next one may work */ }
+  livePollSoon();
+}
+/* ---- the engine, on a switch ---- */
+function liveEvalOn(){return store.settings.liveEval!==false;}
+function liveHintsOn(){return store.settings.liveHints!==false;}
+function liveAnalyse(){
+  const fen=liveCur();
+  if(!fen||(!liveEvalOn()&&!liveHintsOn())){app.liveEv=null;app.liveBest=null;app.liveLines=[];return;}
+  analysePos(fen,function(ev,best,lines){
+    if(liveCur()!==fen)return;                 // the board moved on while we thought
+    app.liveEngErr=!ev&&!best&&!(lines&&lines.length);
+    app.liveEv=ev;app.liveBest=best;app.liveLines=lines;render();
+  },{force:true,depth:18});
+}
+function liveArrows(){
+  if(!liveHintsOn())return [];
+  const cols=['#22c55e','#3b82f6','#a78bfa'],out=[];
+  (app.liveLines||[]).forEach(function(L,i){
+    if(i>2||!L.from||!L.to)return;
+    out.push({from:L.from,to:L.to,col:cols[i],w:i===0?2.3:1.5,op:i===0?0.9:0.5});
+  });
+  if(!out.length&&app.liveBest&&app.liveBest.from)
+    out.push({from:app.liveBest.from,to:app.liveBest.to,col:cols[0],w:2.3,op:0.9});
+  return out;
+}
+/* ---- the tracker's Live tab ---- */
+async function liveLoadList(user,quiet){
+  const u=String(user||'').trim();
+  if(!quiet){app.liveLoading=true;app.liveErr=null;render();}
+  try{
+    app.liveList=await liveFetch(u);
+    app.liveUser=u;app.liveErr=null;app.liveListAt=Date.now();
+  }catch(e){
+    if(!quiet){app.liveErr=(e&&e.message)||'Could not read that player’s games.';app.liveList=null;}
+  }
+  app.liveLoading=false;
+  if(!quiet)render();
+  else if(app.view==='tracker')render();
+}
+function liveRow(g,i){
+  const mine=g.side, me=mine==='w'?g.white:g.black, them=mine==='w'?g.black:g.white;
+  const theirTurn=g.turn!==mine;
+  return '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-top:1px solid var(--border)">'+
+    '<div style="flex:1;min-width:0">'+
+      '<div class="small" style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+
+        esc(me)+' <span class="dim">vs</span> '+esc(them)+
+        (g.variant?' <span class="chip" style="font-size:10px;color:var(--amber)">'+esc(g.rules)+'</span>':'')+'</div>'+
+      '<div class="dim small">'+esc(tcLabel(g.tc))+' · move '+(Math.floor(g.sans.length/2)+1)+' · '+
+        (theirTurn?esc(them)+' to move':'<span style="color:var(--green)">'+esc(me)+' to move</span>')+
+        (g.moveBy?' · '+esc(liveDeadline(g.moveBy)):'')+'</div>'+
+    '</div>'+
+    (g.variant
+      ? '<span class="dim small" style="flex:0 0 auto">variant</span>'
+      : '<button class="btn primary sm" data-act="liveopen" data-val="'+i+'" style="flex:0 0 auto">Analyse ▸</button>')+
+    '</div>';
+}
+function trkLivePanel(){
+  livePollEnsure();
+  const connected=(store.ccAccount&&store.ccAccount.user)||'';
+  const u=app.liveUser!=null?app.liveUser:connected;
+  let h='<div class="card" style="margin-bottom:12px">'+
+    '<div style="font-weight:700;margin-bottom:3px">📺 Follow a player</div>'+
+    '<div class="dim small" style="margin-bottom:8px">Chess.com publishes <b>daily</b> games while they are being played — the position, whose move it is and the deadline. Live blitz and rapid are not published until they finish. So this follows daily games as they happen, and everything else the moment it lands in the archive.</div>'+
+    '<div class="row" style="gap:8px;flex-wrap:wrap;align-items:flex-end">'+
+      '<div style="flex:1;min-width:150px"><div class="dim small" style="margin-bottom:3px">Any Chess.com username</div>'+
+      '<input id="live-user" type="text" autocapitalize="off" spellcheck="false" placeholder="'+(connected?esc(connected):'username')+'" value="'+esc(u||'')+'" style="width:100%"></div>'+
+      '<button class="btn primary" data-act="livego"'+(app.liveLoading||!ccIsOnline()?' disabled':'')+'>'+(app.liveLoading?'Looking…':'Follow')+'</button>'+
+    '</div>';
+  if(!ccIsOnline())h+='<div class="note" style="margin-top:9px">📴 Offline — following a game needs the internet. Your stored games still analyse without it.</div>';
+  if(app.liveErr)h+='<div class="note" style="margin-top:9px;border-color:#7f1d1d;background:#7f1d1d22;color:#fca5a5">⚠️ '+esc(app.liveErr)+'</div>';
+  h+='</div>';
+  if(app.liveList){
+    const playable=app.liveList.filter(g=>!g.variant);
+    if(!app.liveList.length)
+      h+='<div class="card" style="margin-bottom:12px"><b>'+esc(app.liveUser||'That player')+' has no daily game running.</b>'+
+        '<div class="dim small" style="margin-top:4px">Nothing to follow move by move right now. Their finished games are below — those analyse the same way, with the same engine.</div></div>';
+    else
+      h+='<div class="card" style="padding:0;margin-bottom:12px">'+
+        '<div style="padding:11px 13px;font-weight:700">'+app.liveList.length+' game'+(app.liveList.length===1?'':'s')+' in progress'+
+        (playable.length<app.liveList.length?' <span class="dim small" style="font-weight:600">· '+((app.liveList.length-playable.length)===1?'one is a variant':(app.liveList.length-playable.length)+' are variants')+' the engine cannot read</span>':'')+
+        '<div class="dim small" style="font-weight:600">Refreshes itself every '+(LIVE_POLL_MS/1000)+' seconds while this tab is open</div></div>'+
+        app.liveList.map(liveRow).join('')+'</div>';
+  }
+  return h+trkGamesList(10);
+}
+/* ---- a list of the games already stored, each openable on the board ---- */
+function trkGamesList(limit){
+  const gs=(store.myGames||[]).slice(0,limit||20);
+  if(!gs.length)return '';
+  const res=g=>g.result===1?['Won','var(--green)']:g.result===0?['Lost','#f87171']:['Drew','var(--muted)'];
+  return '<div class="card" style="padding:0;margin-bottom:12px">'+
+    '<div style="padding:11px 13px;font-weight:700">Your recent games <span class="dim small" style="font-weight:600">· tap one to analyse it</span></div>'+
+    gs.map(function(g,i){const r=res(g);
+      return '<div style="display:flex;align-items:center;gap:10px;padding:9px 13px;border-top:1px solid var(--border)">'+
+        '<div style="width:38px;flex:0 0 auto;font-weight:800;font-size:11px;color:'+r[1]+'">'+r[0]+'</div>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div class="small" style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+
+            (g.color==='w'?'⬦ ':'⬥ ')+esc(g.opp||'?')+(g.oppRating?' <span class="dim">('+g.oppRating+')</span>':'')+'</div>'+
+          '<div class="dim small">'+esc(g.tc||'')+' · '+(g.nmoves||Math.ceil((g.moves||[]).length/2))+' moves'+
+            (g.ecoName?' · '+esc(g.ecoName):'')+(g.date?' · '+esc(trkAgo(g.date)):'')+'</div>'+
+        '</div>'+
+        '<button class="btn sec sm" data-act="liveopenmine" data-val="'+i+'" style="flex:0 0 auto">🔬</button>'+
+        '</div>';
+    }).join('')+'</div>';
+}
+/* ---- the board ---- */
+function viewLiveGame(){
+  const L=app.live;
+  if(!L||!L.fens)return msgCard('Nothing to analyse','Pick a game from the tracker’s Live tab.','<button class="btn sec" data-act="nav" data-val="tracker">Open the tracker</button>');
+  if(L.kind==='live'&&!L.finished)livePollEnsure();
+  const fen=liveCur(),orient=(L.side==='b')!==!!L.flip?'black':'white';
+  const ev=app.liveEv,atEnd=L.pos===L.fens.length-1;
+  // analyse whenever the shown position changes
+  if((liveEvalOn()||liveHintsOn())&&app._liveKey!==fen){
+    app._liveKey=fen;app.liveEv=null;app.liveBest=null;app.liveLines=[];
+    setTimeout(liveAnalyse,30);
+  }
+  const top=orient==='white'?L.black:L.white, bot=orient==='white'?L.white:L.black;
+  const nameRow=(who,isTurn)=>'<div class="row" style="justify-content:space-between;align-items:center;gap:8px">'+
+    '<div class="small" style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(who)+'</div>'+
+    (L.kind==='live'&&isTurn?'<span class="chip green" style="font-size:10px">to move'+(L.moveBy?' · '+esc(liveDeadline(L.moveBy)):'')+'</span>':'')+'</div>';
+  let h='<div style="max-width:560px;margin:0 auto">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">'+
+      '<button class="btn ghost sm" data-act="nav" data-val="tracker">← Tracker</button>'+
+      '<div class="row" style="gap:6px;flex-wrap:wrap">'+
+        (L.kind==='live'?'<span class="chip'+(L.finished?'':' green')+'" style="font-size:10px">'+(L.finished?'game over':'● live')+'</span>':'')+
+        '<button class="btn ghost sm" data-act="liveflip">⇅ Flip</button>'+
+      '</div></div>';
+  h+='<div class="card" style="margin-bottom:10px">'+
+    nameRow(top,L.kind==='live'&&L.turn!==(orient==='white'?'w':'b'))+
+    '<div style="margin:7px 0">'+renderBoard(fen,orient,{interactive:false,
+      last:L.pos>0?L.moves[L.pos-1]:null,arrows:liveArrows()})+'</div>'+
+    nameRow(bot,L.kind==='live'&&L.turn===(orient==='white'?'w':'b'))+'</div>';
+
+  // the eval bar
+  h+='<div class="card" style="margin-bottom:10px">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">'+
+      '<div class="row" style="gap:6px;flex-wrap:wrap">'+
+        '<button class="btn '+(liveEvalOn()?'primary':'ghost')+' sm" data-act="liveevaltog">'+(liveEvalOn()?'📊 Eval bar: on':'📊 Eval bar: off')+'</button>'+
+        '<button class="btn '+(liveHintsOn()?'primary':'ghost')+' sm" data-act="livehinttog">'+(liveHintsOn()?'💡 Suggestions: on':'💡 Suggestions: off')+'</button>'+
+      '</div>'+
+      (ev?'<span class="small" style="font-weight:800">'+evalStr(ev.t,ev.v,ev.stm)+'</span>':'')+
+    '</div>';
+  if(liveEvalOn()){
+    h+=ev?'<div class="evalbar"><i style="width:'+evalPct(ev.t,ev.v,ev.stm)+'%"></i></div>'
+        :'<div class="dim small">'+(app.liveEngErr?'The engine could not load — it needs the internet on first use.':'Engine thinking…')+'</div>';
+  }
+  if(liveHintsOn()){
+    if(app.liveLines&&app.liveLines.length){
+      h+='<div style="margin-top:7px">'+
+        '<div class="dim small">Best: <b style="color:var(--text)">'+esc((app.liveBest&&app.liveBest.san)||app.liveLines[0].sans[0]||'—')+'</b>'+
+        ' <span style="color:#22c55e">▬</span> best <span style="color:#3b82f6">▬</span> second <span style="color:#a78bfa">▬</span> third</div>'+
+        linesHtml(app.liveLines)+'</div>';
+    } else if(!liveEvalOn()){
+      h+='<div class="dim small">'+(app.liveEngErr?'The engine could not load — it needs the internet on first use.':'Engine thinking…')+'</div>';
+    }
+  }
+  if(!liveEvalOn()&&!liveHintsOn())
+    h+='<div class="dim small">The engine is off. Turn either switch on and it analyses whatever position is on the board.</div>';
+  h+='</div>';
+
+  // where we are in the game
+  h+='<div class="card" style="margin-bottom:10px">'+
+    '<div class="row" style="gap:6px;justify-content:center;flex-wrap:wrap">'+
+      '<button class="btn ghost sm" data-act="liveto" data-val="0" '+(L.pos===0?'disabled':'')+'>⏮</button>'+
+      '<button class="btn ghost sm" data-act="liveseek" data-val="-1" '+(L.pos===0?'disabled':'')+'>◀</button>'+
+      '<span class="small dim" style="min-width:104px;text-align:center;align-self:center">'+
+        (L.pos===0?'start':Math.ceil(L.pos/2)+(L.pos%2?'.':'…')+' '+esc(L.moves[L.pos-1]?L.moves[L.pos-1].san:''))+'</span>'+
+      '<button class="btn ghost sm" data-act="liveseek" data-val="1" '+(atEnd?'disabled':'')+'>▶</button>'+
+      '<button class="btn ghost sm" data-act="liveto" data-val="'+(L.fens.length-1)+'" '+(atEnd?'disabled':'')+'>⏭</button>'+
+    '</div>'+
+    (L.kind==='live'&&!L.finished?'<div class="dim small" style="text-align:center;margin-top:6px">'+
+      (L.follow?'Following the game — the board jumps to each new move.':'<button class="btn ghost sm" data-act="liveto" data-val="'+(L.fens.length-1)+'">↪ Follow the live position</button>')+'</div>':'')+
+    '</div>';
+
+  // the moves themselves
+  if(L.moves.length){
+    let mv='';
+    for(let i=0;i<L.moves.length;i+=2){
+      mv+='<span class="dim small" style="display:inline-block;min-width:24px">'+(i/2+1)+'.</span>';
+      for(let j=i;j<Math.min(i+2,L.moves.length);j++)
+        mv+='<button class="btn '+(L.pos===j+1?'primary':'ghost')+' sm" data-act="liveto" data-val="'+(j+1)+'" style="padding:1px 6px;margin:1px 2px;font-size:12px">'+esc(L.moves[j].san)+'</button>';
+    }
+    h+='<div class="card" style="margin-bottom:10px"><div style="max-height:150px;overflow:auto;line-height:1.9">'+mv+'</div></div>';
+  }
+
+  // what we know about the game
+  const facts=[];
+  if(L.event)facts.push(esc(L.event));
+  if(L.tc)facts.push(esc(tcLabel(L.tc)));
+  if(L.kind==='game'&&L.result)facts.push('You '+L.result+(L.reason?' — '+esc(trkReasonLabel(L.reason)):''));
+  if(L.kind==='game'&&L.acc)facts.push('accuracy '+L.acc+'%'+(L.oppAcc?' vs '+L.oppAcc+'%':''));
+  if(L.kind==='live'&&L.lastActivity)facts.push(esc(liveAgo(L.lastActivity)));
+  if(L.rated===false)facts.push('unrated');
+  h+='<div class="card">'+
+    (facts.length?'<div class="dim small" style="margin-bottom:8px">'+facts.join(' · ')+'</div>':'')+
+    '<div class="row" style="gap:6px;flex-wrap:wrap">'+
+      '<button class="btn sec sm" data-act="livereview">🔬 Full review of every move</button>'+
+      (L.kind==='live'?'<button class="btn ghost sm" data-act="liverefresh"'+(ccIsOnline()?'':' disabled')+'>⟳ Refresh now</button>':'')+
+      (L.url?'<a class="btn ghost sm" target="_blank" rel="noopener" href="'+esc(L.url)+'">Open on Chess.com ↗</a>':'')+
+    '</div></div>';
+  return h+'</div>';
+}
+/* Hand the moves so far to the existing Game Review. */
+function liveReview(){
+  const L=app.live;
+  if(!L||!L.moves||!L.moves.length)return;
+  reviewStart(L.moves.map(m=>({san:m.san})),null,
+    {side:L.side,opp:L.side==='w'?L.black:L.white,oppName:L.side==='w'?L.black:L.white,event:L.event||'Chess.com'});
 }
 
 /* ---- the voice itself ---- */
@@ -7229,13 +7611,16 @@ function hint(){if(!heroToMove())return;const node=curNode();const id=curLine().
 function isPromotion(fen,from,to){try{var c=new Chess(fen);var p=c.get(from);if(!p||p.type!=='p')return false;return (p.color==='w'&&to[1]==='8')||(p.color==='b'&&to[1]==='1');}catch(e){return false;}}
 function pvToSans(fen,pvUci,max){var c;try{c=new Chess(fen);}catch(e){return [];}var out=[];var mv=(pvUci||'').split(' ');for(var i=0;i<mv.length&&out.length<(max||6);i++){var u=mv[i];if(!/^[a-h][1-8][a-h][1-8]/.test(u))break;try{var m=c.move({from:u.slice(0,2),to:u.slice(2,4),promotion:u[4]||'q'});out.push(m.san);}catch(e){break;}}return out;}
 function linesHtml(arr){if(!arr||!arr.length)return '';return arr.map(function(L){return '<div class="dim small" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px"><b style="color:var(--text)">'+evalStr(L.t,L.v,L.stm)+'</b> '+L.sans.map(esc).join(' ')+'</div>';}).join('');}
-function analysePos(fen,cb){if(!store.settings.showEval){cb(null,null,[]);return;}Engine.load().then(function(ok){if(!ok){cb(null,null,[]);return;}Engine.onInfo=function(t,v){app._evTmp={t:t,v:v,stm:turnOf(fen)};};Engine.analyse(fen,99,function(best,lines){var san=null;if(best&&best!=='(none)'){var m=tryFromTo(fen,best.slice(0,2),best.slice(2,4),best[4]||'q');san=m?m.san:null;}var arr=[];if(lines){var ks=Object.keys(lines).sort(function(a,b){return (+a)-(+b);});for(var i=0;i<ks.length&&arr.length<3;i++){var L=lines[ks[i]];if(L)arr.push({t:L.t,v:L.v,stm:turnOf(fen),sans:pvToSans(fen,L.pv,6)});}}cb(app._evTmp||null,san,arr);});});}
+/* opts.force analyses even when the global eval toggle is off, so a screen with
+   its own switch (the live board) is not held hostage by a setting elsewhere.
+   Each line carries the squares of its first move too, for board arrows. */
+function analysePos(fen,cb,opts){if(!store.settings.showEval&&!(opts&&opts.force)){cb(null,null,[]);return;}Engine.load().then(function(ok){if(!ok){cb(null,null,[]);return;}Engine.onInfo=function(t,v){app._evTmp={t:t,v:v,stm:turnOf(fen)};};Engine.analyse(fen,(opts&&opts.depth)||99,function(best,lines){var san=null,bfrom=null,bto=null;if(best&&best!=='(none)'){var m=tryFromTo(fen,best.slice(0,2),best.slice(2,4),best[4]||'q');san=m?m.san:null;if(m){bfrom=best.slice(0,2);bto=best.slice(2,4);}}var arr=[];if(lines){var ks=Object.keys(lines).sort(function(a,b){return (+a)-(+b);});for(var i=0;i<ks.length&&arr.length<3;i++){var L=lines[ks[i]];if(!L)continue;var u=String(L.pv||'').split(' ')[0]||'';var ent={t:L.t,v:L.v,stm:turnOf(fen),sans:pvToSans(fen,L.pv,6)};if(/^[a-h][1-8][a-h][1-8]/.test(u)){ent.from=u.slice(0,2);ent.to=u.slice(2,4);}arr.push(ent);}}cb(app._evTmp||null,san?{san:san,from:bfrom,to:bto}:null,arr);});});}
 function exFen(){var o=byId.get(app.exId);if(!o)return null;if(app.exFree&&app.exFree.length)return app.exFree[app.exFree.length-1].fen;return exCurrent().fen;}
-function exAnalyse(){analysePos(exFen(),function(ev,san,lines){app.exEval=ev;app.exBest=san;app.exLines=lines;render();});}
+function exAnalyse(){analysePos(exFen(),function(ev,best,lines){app.exEval=ev;app.exBest=best?best.san:null;app.exLines=lines;render();});}
 function exMakeMove(from,to){if(!app.exFree||!app.exFree.length){var cur=exCurrent();var ch=cur.children.find(function(c){return c.from===from&&c.to===to;});if(ch){app.exPath.push(ch);app.sel=null;sfxSan(ch.move);coachSay(cur.fen,ch.move,{note:ch.comment||null});if(store.settings.showEval)exAnalyse();render();return;}}
   var m=tryFromTo(exFen(),from,to,app.promoChoice||'q');if(!m)return;app.exFree=app.exFree||[];app.exFree.push({fen:m.fen,last:{from:from,to:to},san:m.san});app.sel=null;sfxSan(m.san);render();}
 function mCurFen(){var g=MASTERGAMES[app.mGame];if(!g)return null;var c=new Chess();var mv=g.m.split(' ');for(var k=0;k<Math.min(app.mIdx||0,mv.length);k++){try{c.move(mv[k]);}catch(e){break;}}return c.fen();}
-function mAnalyse(){if(app.mGame==null){app.mEval=null;app.mBest=null;return;}var fen=mCurFen();if(!fen)return;analysePos(fen,function(ev,san,lines){app.mEval=ev;app.mBest=san;app.mLines=lines;render();});}
+function mAnalyse(){if(app.mGame==null){app.mEval=null;app.mBest=null;return;}var fen=mCurFen();if(!fen)return;analysePos(fen,function(ev,best,lines){app.mEval=ev;app.mBest=best?best.san:null;app.mLines=lines;render();});}
 function finishPromo(piece){var pr=app.promo;if(!pr)return;app.promo=null;app.promoChoice=piece||'q';
   if(pr.view==='train')heroMove(pr.from,pr.to);else if(pr.view==='play')playMove(pr.from,pr.to);else if(pr.view==='puzzles')pzMove(pr.from,pr.to);else if(pr.view==='explore')exMakeMove(pr.from,pr.to);
   app.promoChoice='q';}
@@ -7530,6 +7915,21 @@ document.getElementById('app').addEventListener('click',e=>{
     else{ccConnectThenSync();return;}
   }
   else if(act==='ccsync'){ccSyncNow(false);return;}
+  else if(act==='livego'){
+    var _lu=document.getElementById('live-user');
+    var _lv=(_lu?_lu.value.trim():'')||((store.ccAccount&&store.ccAccount.user)||'');
+    if(!_lv){app.liveErr='Type a Chess.com username first.';app.liveList=null;render();}
+    else{liveLoadList(_lv);return;}
+  }
+  else if(act==='liveopen'){var _lg=(app.liveList||[])[parseInt(val,10)];if(_lg&&!_lg.variant)liveOpen(_lg);else render();}
+  else if(act==='liveopenmine'){liveOpenStored(parseInt(val,10));}
+  else if(act==='liveseek'){liveSeek(parseInt(val,10));render();}
+  else if(act==='liveto'){liveJump(parseInt(val,10));render();}
+  else if(act==='liveflip'){if(app.live)app.live.flip=!app.live.flip;render();}
+  else if(act==='liveevaltog'){store.settings.liveEval=!liveEvalOn();app._liveKey=null;save();render();}
+  else if(act==='livehinttog'){store.settings.liveHints=!liveHintsOn();app._liveKey=null;save();render();}
+  else if(act==='liverefresh'){livePollStop();livePollTick();render();}
+  else if(act==='livereview'){liveReview();return;}
   else if(act==='ccfull'){uiConfirm('Read your whole archive again and replace the Chess.com games stored here?',function(){ccSyncNow(true);});}
   else if(act==='ccauto'){var _ca=ccAccount();if(_ca){_ca.autoSync=!_ca.autoSync;save();}render();}
   else if(act==='ccdisconnect'){uiConfirm('Disconnect this account? The games already here stay — they just stop updating on their own.',function(){ccDisconnect();app.ccSyncMsg=null;app.ccSyncErr=null;app._ccAutoTried=false;});}

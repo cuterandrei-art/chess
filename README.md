@@ -72,6 +72,30 @@ publishes automatically.
 
 ---
 
+## Following a game live
+
+The tracker's **Live** tab follows any Chess.com player. Chess.com's public API
+publishes a player's **daily** (correspondence) games while they are in
+progress — the position, whose move it is and the deadline — and does not
+publish live blitz or rapid until they have finished. So the Live tab follows
+daily games move by move, refreshing every 30 seconds while the tab is open,
+and picks everything else up the moment it lands in the archive.
+
+Open one and you get an analysis board: an **eval bar** and **engine
+suggestions**, each on its own switch. Suggestions draw the top three moves as
+arrows on the board — green, blue, violet — matching the lines listed beneath
+it. Step back through the game and the engine re-analyses whatever position you
+are looking at; return to the end and the board follows the game again. Your
+own stored games open on the same board, so this works with the radio off too.
+Variants (Chess960, bughouse) are listed but not analysed, because the engine
+cannot read them.
+
+The switches live in `settings.liveEval` and `settings.liveHints` and persist.
+Polling only runs while a live screen is open, and a redraw never postpones the
+next refresh.
+
+---
+
 ## Repo layout
 
 | Path | What it is |
