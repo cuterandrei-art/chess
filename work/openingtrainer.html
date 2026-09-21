@@ -4388,7 +4388,7 @@ function checkTitles(c){const got=[];const peak=titlePeak(c);
     c.titles.push(d.t);got.push(d.t);
   }
   return got;}
-const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none'},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null}};
+const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',voiceOn:false,voiceName:'',voiceRate:1},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null}};
 function freshCareer(){return JSON.parse(JSON.stringify(DEF.career));}
 /* Migrate saved career data: the old ladder (with `beaten`/`results`) is reset
    to the new FIDE structure; new-format saves are merged onto fresh defaults. */
@@ -4414,7 +4414,7 @@ function delRep(id){store.repertoire=store.repertoire.filter(x=>x!==id);save();}
 /* ============================== app state ============================== */
 const app={view:'career',exId:null,exPath:[],exFlip:false,courseId:null,setupOpening:'',
   pz:null,pzSeen:new Set(),pzFilter:{type:'auto'},rush:null,
-  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,parkBet:null,parkStake:0,parkDouble:null,
+  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,coachNote:null,parkBet:null,parkStake:0,parkDouble:null,
   confirm:null,
   review:null,studyId:null,studyChapter:0,studyPath:[],studyFlip:false,studyMsg:null,
 
@@ -4795,6 +4795,321 @@ function describeMove(fenBefore,san){
   return s;
 }
 function exCurrent(){const o=byId.get(app.exId);return app.exPath.length?app.exPath[app.exPath.length-1]:o.root;}
+/* The move that produced the position now on screen, with the fen it was played
+   from — that is all the coach needs. */
+function exLastMove(){
+  const o=byId.get(app.exId);if(!o)return null;
+  if(app.exFree&&app.exFree.length){
+    const i=app.exFree.length-1,cur=app.exFree[i];
+    const prev=i>0?app.exFree[i-1].fen:exCurrent().fen;
+    return {fenBefore:prev,san:cur.san,note:null};
+  }
+  if(!app.exPath.length)return null;
+  const node=app.exPath[app.exPath.length-1];
+  const prev=app.exPath.length>1?app.exPath[app.exPath.length-2]:o.root;
+  return {fenBefore:prev.fen,san:node.move,note:node.comment||null};
+}
+function exCoachText(){
+  const lm=exLastMove();if(!lm)return null;
+  if(lm.note)return lm.note;
+  const ex=explainMove(lm.fenBefore,lm.san);
+  return ex?ex.text:null;
+}
+/* ===================== THE COACH: MOVE EXPLANATIONS + VOICE =====================
+   Only a handful of library lines carry a hand-written comment, so the coach
+   works out *why* a move is played from the position itself: what it develops,
+   what it attacks, what it defends, what it opens, what it pins, whether it
+   wins material or gives it away. Facts are weighted and the best two or three
+   are stitched into a sentence, which speechSynthesis then reads aloud — a
+   browser built-in, so it costs nothing and works with the network off. */
+const VX_NAME={p:'pawn',n:'knight',b:'bishop',r:'rook',q:'queen',k:'king'};
+const VX_VAL={p:1,n:3,b:3,r:5,q:9,k:0};
+const VX_CENTRE=['d4','e4','d5','e5'];
+function vxFile(sq){return sq.charCodeAt(0)-97;}
+function vxRank(sq){return +sq[1]-1;}
+function vxSq(f,r){return (f<0||f>7||r<0||r>7)?null:String.fromCharCode(97+f)+(r+1);}
+function vxBoard(fen){var g;try{g=new Chess(fen);}catch(e){return null;}
+  var b={};for(var f=0;f<8;f++)for(var r=0;r<8;r++){var s=vxSq(f,r),p=g.get(s);if(p)b[s]={type:p.type,color:p.color};}
+  return b;}
+/* Every square the piece on `sq` attacks — computed geometrically, so it never
+   depends on whose turn the FEN claims it is. */
+function vxAttacks(b,sq){
+  var p=b[sq];if(!p)return [];
+  var f=vxFile(sq),r=vxRank(sq),out=[],s;
+  var push=function(o){s=vxSq(f+o[0],r+o[1]);if(s)out.push(s);};
+  if(p.type==='p'){var dr=p.color==='w'?1:-1;push([-1,dr]);push([1,dr]);return out;}
+  if(p.type==='n'){[[1,2],[2,1],[-1,2],[-2,1],[1,-2],[2,-1],[-1,-2],[-2,-1]].forEach(push);return out;}
+  if(p.type==='k'){[[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1]].forEach(push);return out;}
+  var dirs=[];
+  if(p.type==='r'||p.type==='q')dirs=dirs.concat([[1,0],[-1,0],[0,1],[0,-1]]);
+  if(p.type==='b'||p.type==='q')dirs=dirs.concat([[1,1],[1,-1],[-1,1],[-1,-1]]);
+  for(var i=0;i<dirs.length;i++){var d=dirs[i],cf=f+d[0],cr=r+d[1];
+    while((s=vxSq(cf,cr))){out.push(s);if(b[s])break;cf+=d[0];cr+=d[1];}}
+  return out;
+}
+function vxAttackedBy(b,color){var set={};
+  for(var s in b){if(b[s].color!==color)continue;vxAttacks(b,s).forEach(function(t){set[t]=(set[t]||0)+1;});}
+  return set;}
+function vxKingSq(b,color){for(var s in b)if(b[s].type==='k'&&b[s].color===color)return s;return null;}
+function vxMobility(b,color,skip){var n=0;
+  for(var s in b){if(b[s].color!==color||s===skip)continue;n+=vxAttacks(b,s).length;}
+  return n;}
+function vxList(a){return !a.length?'':a.length===1?a[0]:a.slice(0,-1).join(', ')+' and '+a[a.length-1];}
+/* A slider on `sq` pins an enemy piece when exactly one enemy piece stands
+   between it and the enemy king along the same ray. */
+function vxPinned(b,sq,them){
+  var p=b[sq];if(!p||'rbq'.indexOf(p.type)<0)return null;
+  var dirs=[];
+  if(p.type==='r'||p.type==='q')dirs=dirs.concat([[1,0],[-1,0],[0,1],[0,-1]]);
+  if(p.type==='b'||p.type==='q')dirs=dirs.concat([[1,1],[1,-1],[-1,1],[-1,-1]]);
+  var f=vxFile(sq),r=vxRank(sq);
+  for(var i=0;i<dirs.length;i++){
+    var d=dirs[i],cf=f+d[0],cr=r+d[1],found=null,s;
+    while((s=vxSq(cf,cr))){
+      var q=b[s];
+      if(q){
+        if(q.color!==them)break;
+        if(!found){if(q.type==='k')break;found={sq:s,type:q.type};}
+        else{
+          // whatever stands behind it: the king is an absolute pin, a bigger
+          // piece is still a pin worth pointing out
+          if(q.type==='k'||(VX_VAL[q.type]||0)>(VX_VAL[found.type]||0)){found.behind=q.type;return found;}
+          break;
+        }
+      }
+      cf+=d[0];cr+=d[1];
+    }
+  }
+  return null;
+}
+function explainMove(fenBefore,san,opts){
+  opts=opts||{};
+  var g,mv;
+  try{g=new Chess(fenBefore);mv=g.move(san);}catch(e){mv=null;}
+  if(!mv)return null;
+  var fenAfter=g.fen(),me=mv.color,them=me==='w'?'b':'w';
+  var b0=vxBoard(fenBefore),b1=vxBoard(fenAfter);
+  if(!b0||!b1)return null;
+  var name=VX_NAME[mv.piece],facts=[],caveat=null;
+  var add=function(k,w,t){facts.push({k:k,w:w,t:t});};
+  var theirName=me==='w'?'Black':'White';
+  var flags=String(mv.flags||'');
+
+  if(g.isCheckmate())
+    return {san:mv.san,text:mv.san+' is checkmate — the game ends right here.',facts:[{k:'mate',w:100,t:'checkmate'}]};
+
+  var atkThemBefore=vxAttackedBy(b0,them),atkThemAfter=vxAttackedBy(b1,them);
+  var atkMeBefore=vxAttackedBy(b0,me);
+  var moverAtk=vxAttacks(b1,mv.to),moverAtkBefore=vxAttacks(b0,mv.from);
+
+  /* --- castling, promotion, the special moves --- */
+  if(flags.indexOf('k')>=0||flags.indexOf('q')>=0)
+    add('castle',95,'castles — the king is tucked away behind its pawns and the rook steps toward the centre');
+  if(mv.promotion)
+    add('promo',92,'promotes to a '+VX_NAME[mv.promotion]);
+  if(flags.indexOf('e')>=0)
+    add('ep',80,'takes the pawn en passant');
+
+  /* --- material --- */
+  if(mv.captured){
+    var capV=VX_VAL[mv.captured]||0,movV=VX_VAL[mv.piece]||0;
+    var defended=!!atkThemBefore[mv.to];
+    if(opts.prevTo&&opts.prevTo===mv.to)
+      add('cap',88,'recaptures on '+mv.to+', restoring the material balance');
+    else if(!defended)
+      add('cap',90,'wins the undefended '+VX_NAME[mv.captured]);
+    else if(capV>movV)
+      add('cap',90,'wins material, taking the '+VX_NAME[mv.captured]+' with the '+name);
+    else if(capV===movV)
+      add('cap',68,'trades '+VX_NAME[mv.captured]+'s');
+    else
+      add('cap',72,'gives up the '+name+' for the '+VX_NAME[mv.captured]);
+  }
+
+  /* --- check --- */
+  if(g.isCheck())
+    add('check',85,'gives check, so the reply is forced');
+
+  /* --- pins (worked out first, so an attack is not reported twice) --- */
+  var pin=vxPinned(b1,mv.to,them);
+  if(pin&&pin.type!=='k'){
+    if(pin.behind==='k')
+      add('pin',86,'pins the '+VX_NAME[pin.type]+' on '+pin.sq+' against the king — it cannot move');
+    else if((VX_VAL[pin.type]||0)>=3)
+      add('pin',75,'pins the '+VX_NAME[pin.type]+' on '+pin.sq+' to the '+VX_NAME[pin.behind]+' behind it');
+    else pin=null;                                   // a pawn "pinned" to a rook is not news
+  }
+  /* --- what the piece now hits --- */
+  var targets=[],forkV=0;
+  moverAtk.forEach(function(s){
+    var q=b1[s];
+    if(!q||q.color!==them||q.type==='k')return;
+    if(moverAtkBefore.indexOf(s)>=0)return;                 // it already hit that
+    if(pin&&pin.sq===s)return;                                // already described as a pin
+    if((VX_VAL[q.type]||0)<3)return;                          // pawns are not news
+    // a defended target still counts as pressure when the trade is at least even
+    var safe=!atkThemAfter[s]||((VX_VAL[q.type]||0)>=(VX_VAL[mv.piece]||0));
+    if(safe){targets.push(VX_NAME[q.type]);forkV+=VX_VAL[q.type]||0;}
+  });
+  if(targets.length>=2)
+    add('fork',96,'forks the '+vxList(targets)+' — '+theirName+' cannot save both');
+  else if(targets.length===1)
+    add('attack',76,'attacks the '+targets[0]+', which has to deal with the threat');
+
+  /* --- development and king safety --- */
+  if(mv.piece==='b'&&['g2','b2','g7','b7'].indexOf(mv.to)>=0)
+    add('fianchetto',79,'fianchettoes the bishop onto the long diagonal');
+  var homeRank=me==='w'?0:7;
+  if(mv.piece!=='p'&&mv.piece!=='k'&&vxRank(mv.from)===homeRank&&vxRank(mv.to)!==homeRank){
+    var devWays=['develops the '+name,'brings the '+name+' into the game','gets the '+name+' off the back rank'];
+    add('dev',78,devWays[hashStr(mv.san+mv.to)%devWays.length]);
+  }
+
+  /* --- the centre --- */
+  if(mv.piece==='p'&&VX_CENTRE.indexOf(mv.to)>=0)
+    add('centre',80,'stakes a claim in the centre');
+  else if(mv.piece!=='p'&&VX_CENTRE.indexOf(mv.to)>=0)
+    add('centre',74,'plants the '+name+' on '+mv.to+', right in the middle of the board');
+  else{
+    // extra support for a central square counts even if something already covers it
+    var lenient=mv.piece==='p';
+    var newCentre=moverAtk.filter(function(s){return VX_CENTRE.indexOf(s)>=0&&moverAtkBefore.indexOf(s)<0&&(lenient||!atkMeBefore[s]);});
+    if(newCentre.length>=2)
+      add('centre',60,'takes aim at the centre, covering '+vxList(newCentre));
+    else if(newCentre.length===1)
+      add('centre',mv.piece==='p'?62:42,(mv.piece==='p'?'supports a future push to '+newCentre[0]:'adds control of '+newCentre[0]));
+  }
+  // a pawn shouldering into an enemy pawn is the whole point of moves like c4
+  if(mv.piece==='p'&&!mv.captured){
+    var challenged=moverAtk.filter(function(s){var q=b1[s];return q&&q.color===them&&q.type==='p';});
+    if(challenged.length)
+      add('challenge',77,'challenges '+theirName+'\u2019s pawn on '+challenged[0]);
+  }
+
+  /* --- the soft square on the castled king --- */
+  var weak=me==='w'?'f7':'f2';
+  if(moverAtk.indexOf(weak)>=0&&moverAtkBefore.indexOf(weak)<0&&'bnqr'.indexOf(mv.piece)>=0)
+    add('weak',70,'eyes '+weak+', the softest square in '+theirName+'’s position');
+
+  /* --- lines opened for the pieces left behind --- */
+  var gain=vxMobility(b1,me,mv.to)-vxMobility(b0,me,mv.from);
+  if(gain>=3){
+    var freed=[];
+    for(var s0 in b0){
+      if(b0[s0].color!==me||s0===mv.from||'bqr'.indexOf(b0[s0].type)<0)continue;
+      if(!b1[s0]||b1[s0].type!==b0[s0].type)continue;
+      if(vxAttacks(b1,s0).length-vxAttacks(b0,s0).length>=2)freed.push(VX_NAME[b0[s0].type]);
+    }
+    freed=freed.filter(function(v,i,a){return a.indexOf(v)===i;});
+    if(freed.length)add('open',64,'opens a line for the '+vxList(freed.slice(0,2)));
+    else add('open',48,'gives the pieces behind it more room');
+  }
+
+  /* --- rooks like open files --- */
+  if(mv.piece==='r'){
+    var fl=mv.to[0],pawns=0;
+    for(var s1 in b1)if(b1[s1].type==='p'&&s1[0]===fl)pawns++;
+    if(!pawns)add('file',68,'takes the open '+fl+'-file');
+  }
+
+  /* --- shoring something up --- */
+  var shored=null;
+  moverAtk.forEach(function(s){
+    if(shored)return;
+    var q=b1[s];
+    if(!q||q.color!==me||q.type==='k')return;
+    if(atkThemAfter[s]&&!atkMeBefore[s])shored=VX_NAME[q.type]+' on '+s;
+  });
+  if(shored)add('defend',66,'shores up the '+shored);
+
+  /* --- space --- */
+  if(mv.piece==='p'){
+    var adv=me==='w'?vxRank(mv.to)>=4:vxRank(mv.to)<=3;
+    if(adv&&!mv.captured)add('space',50,'gains space on the '+mv.to[0]+'-file');
+  }
+
+  /* --- is the piece safe where it landed? --- */
+  if(!g.isCheck()&&atkThemAfter[mv.to]){
+    var cheapest=99;
+    for(var s2 in b1){
+      if(b1[s2].color!==them)continue;
+      if(vxAttacks(b1,s2).indexOf(mv.to)<0)continue;
+      cheapest=Math.min(cheapest,VX_VAL[b1[s2].type]||0);
+    }
+    var guarded=vxAttackedBy(b1,me)[mv.to];
+    if(cheapest<(VX_VAL[mv.piece]||0)&&!guarded&&!mv.captured)
+      caveat='Watch out — the '+name+' is loose on '+mv.to+'.';
+  }
+
+  /* --- compose --- */
+  facts.sort(function(a,b){return b.w-a.w;});
+  var cap=(facts.length&&facts[0].w>=85)?2:3;   // a fork or a mate needs no padding
+  var seen={},picked=[];
+  for(var i=0;i<facts.length&&picked.length<cap;i++){
+    if(seen[facts[i].k])continue;
+    seen[facts[i].k]=1;picked.push(facts[i].t);
+  }
+  var text;
+  if(!picked.length)text=mv.san+' brings the '+name+' to '+mv.to+', keeping the position solid.';
+  else{
+    // only break out the comma when the phrase right before the joint already
+    // ends in a list, so "…queen and bishop and supports…" never happens
+    var jn=function(prev){return prev.indexOf(' and ')>=0?', and ':' and ';};
+    text=mv.san+' '+(picked.length===1?picked[0]
+      :picked.length===2?picked[0]+jn(picked[0])+picked[1]
+      :picked[0]+', '+picked[1]+jn(picked[1])+picked[2])+'.';
+  }
+  if(opts.opening)text='This is the '+opts.opening+'. '+text;
+  if(caveat)text+=' '+caveat;
+  return {san:mv.san,text:text,facts:facts,caveat:caveat};
+}
+/* ---- the voice itself ---- */
+const Voice={
+  ok:function(){try{return typeof window!=='undefined'&&!!window.speechSynthesis&&typeof window.SpeechSynthesisUtterance==='function';}catch(e){return false;}},
+  list:function(){if(!Voice.ok())return [];try{return window.speechSynthesis.getVoices()||[];}catch(e){return [];}},
+  pick:function(){
+    var vs=Voice.list();if(!vs.length)return null;
+    var want=store.settings.voiceName;
+    if(want){for(var i=0;i<vs.length;i++)if(vs[i].name===want)return vs[i];}
+    for(var j=0;j<vs.length;j++)if(/^en[-_]/i.test(vs[j].lang||''))return vs[j];
+    return vs[0];
+  },
+  stop:function(){if(Voice.ok()){try{window.speechSynthesis.cancel();}catch(e){}}},
+  say:function(text,force){
+    if(!text)return false;
+    if(!force&&!store.settings.voiceOn)return false;
+    if(!Voice.ok())return false;
+    try{
+      window.speechSynthesis.cancel();
+      var u=new window.SpeechSynthesisUtterance(String(text));
+      var v=Voice.pick();if(v)u.voice=v;
+      u.rate=Math.max(0.5,Math.min(1.6,+store.settings.voiceRate||1));
+      u.pitch=1;u.volume=1;
+      window.speechSynthesis.speak(u);
+      return true;
+    }catch(e){return false;}
+  }
+};
+/* Say a move's explanation, preferring an author's note when the line has one. */
+function coachSay(fenBefore,san,opts){
+  opts=opts||{};
+  var text=opts.note||null;
+  if(!text){var ex=explainMove(fenBefore,san,opts);text=ex?ex.text:null;}
+  if(!text)return null;
+  Voice.say(text,opts.force);
+  return text;
+}
+function coachCard(text,label){
+  if(!text)return '';
+  return '<div class="card" style="margin-top:12px;border-color:var(--brand2)">'+
+    '<div class="row" style="justify-content:space-between;align-items:flex-start;gap:8px">'+
+      '<div class="small" style="line-height:1.55;flex:1;min-width:0"><b style="color:var(--brand2)">'+(label||'🎓 Coach')+'</b> '+esc(text)+'</div>'+
+      '<div class="row" style="gap:5px;flex:0 0 auto">'+
+        '<button class="btn ghost sm" data-act="coachsay" title="Read it aloud">🔊</button>'+
+        '<button class="btn ghost sm" data-act="coachtoggle" title="'+(store.settings.voiceOn?'Voice is on':'Voice is off')+'">'+(store.settings.voiceOn?'🔈 On':'🔇 Off')+'</button>'+
+      '</div></div></div>';
+}
+
 function viewExplorer(){
   const o=byId.get(app.exId);if(!o)return '<div class="card center">Opening not found. <button class="btn sec sm" data-act="nav" data-val="library">Library</button></div>';
   const cur=exCurrent();const orient=app.exFlip?(o.side==='white'?'black':'white'):o.side;
@@ -4815,10 +5130,9 @@ function viewExplorer(){
     (store.settings.showEval?'<div class="card" style="margin-top:12px">'+(app.exEval?'<div class="row" style="justify-content:space-between;margin-bottom:5px"><span class="dim small">Engine</span><span class="small" style="font-weight:800">'+evalStr(app.exEval.t,app.exEval.v,app.exEval.stm)+'</span></div><div class="evalbar"><i style="width:'+evalPct(app.exEval.t,app.exEval.v,app.exEval.stm)+'%"></i></div>'+linesHtml(app.exLines):'<span class="dim small">Analysing… (deep)</span>')+'<button class="btn ghost sm" data-act="exeval" style="margin-top:8px">Hide engine</button></div>':'<div class="row" style="margin-top:12px"><button class="btn sec sm" data-act="exeval">🔍 Engine eval — play any move to test it</button></div>')+
     '<div class="card" style="margin-top:12px"><div class="l" style="text-transform:uppercase;font-size:11px;letter-spacing:.08em;color:var(--muted)">Moves</div>'+
     '<div class="moves" style="margin-top:4px">'+(sans.length?sans.map((m,i)=>'<button data-act="exjump" data-val="'+i+'">'+(i%2===0?(Math.floor(i/2)+1)+'.':'')+esc(m)+'</button>').join(' '):'<span class="dim">Starting position</span>')+'</div></div>';
-  if(cur.move){const expl=describeMove(cur.fenBefore,cur.move);
-    h+='<div class="card" style="margin-top:12px"><div style="font-weight:700">'+esc(fmtMoves([cur.move],cur.ply-1))+'</div>'+
-      (expl?'<div class="muted small" style="margin-top:4px">💡 '+esc(expl)+'</div>':'')+
-      (cur.comment?'<div class="note" style="margin-top:8px">'+esc(cur.comment)+'</div>':'')+'</div>';}
+  // one explanation, one box: the coach card carries the move, the reason and
+  // the speaker, so an author's comment is never printed twice
+  if(cur.move)h+=coachCard(exCoachText(),'🎓 '+esc(fmtMoves([cur.move],cur.ply-1))+' —');
   else if(cur.comment)h+='<div class="note" style="margin-top:12px">'+esc(cur.comment)+'</div>';
   h+='<div class="card" style="margin-top:12px"><div class="muted small" style="margin-bottom:8px">'+(cur.children.length?stm+' to move — choose a move:':'End of line')+'</div>';
   if(cur.children.length)h+='<div class="row">'+cur.children.map((c,i)=>'<button class="movebtn" data-act="exgo" data-val="'+i+'">'+esc(c.move)+'</button>').join('')+'</div>';
@@ -5052,7 +5366,10 @@ function clStart(id,ci,test){
 function clStep(L){return L&&L.i<L.line.length?L.line[L.i]:null;}
 function clHint(L){const s=clStep(L);if(!s||!s.you)return null;if(L.wrong)return {from:s.from,to:s.to};if(L.test||s.ex)return null;return {from:s.from,to:s.to};}
 function clAdvanceOpp(L){
-  while(L.i<L.line.length&&!L.line[L.i].you){const s=L.line[L.i];L.fen=s.fenAfter;L.last={from:s.from,to:s.to};L.oppNote=s.idea||null;L.i++;sfxSan(s.san);}
+  while(L.i<L.line.length&&!L.line[L.i].you){const s=L.line[L.i];L.fen=s.fenAfter;L.last={from:s.from,to:s.to};
+    let note=s.idea||null;
+    if(!note){const gx=explainMove(s.fenBefore,s.san);note=gx?gx.text:null;}
+    L.oppNote=note;L.i++;sfxSan(s.san);Voice.say(note);}
   if(L.i>=L.line.length&&!L.done){L.done=true;clComplete(L);}
 }
 function clTry(from,to){
@@ -5060,7 +5377,10 @@ function clTry(from,to){
   const s=clStep(L);if(!s||!s.you)return false;
   if(s.from!==from||s.to!==to){L.wrong={from:from,to:to};L.sel=null;render();return true;}
   if(s.ex)L.solved=(L.solved||0)+1;
-  L.reveal=s.ex?{ok:true,text:s.ex.why}:(s.idea?{ok:true,text:s.idea}:null);
+  var _clWhy=s.ex?s.ex.why:(s.idea||null);
+  if(!_clWhy){var _clEx=explainMove(s.fenBefore,s.san);_clWhy=_clEx?_clEx.text:null;}
+  L.reveal=_clWhy?{ok:true,text:_clWhy}:null;
+  Voice.say(_clWhy);
   L.fen=s.fenAfter;L.last={from:s.from,to:s.to};L.wrong=null;L.sel=null;L.oppNote=null;L.i++;sfxSan(s.san);render();
   setTimeout(function(){if(app.view!=='clearn'||app.cl!==L)return;clAdvanceOpp(L);render();},560);
   return true;
@@ -5160,6 +5480,7 @@ function viewCourseLearn(){
     '<div class="layout"><div class="boardwrap">'+renderBoard(L.fen,orient,{sel:L.sel,last:L.last,wrong:L.wrong,hint:clHint(L),interactive:interactive})+'</div>'+
     '<div><div class="card">'+panel+'</div>'+reveal+oppLine+
     '<div class="card" style="margin-top:12px"><div class="dim small" style="line-height:1.5">🎯 <b>'+esc(L.goal)+'</b></div></div>'+
+    coachCard((L.reveal&&L.reveal.text)||L.oppNote||null,'🎓 Why this move')+
     '</div></div></div>';
 }
 function curLine(){return app.session?app.session[app.sIdx]:null;}
@@ -5193,6 +5514,7 @@ function viewTrain(){
   h+='<div class="layout"><div class="boardwrap">'+renderBoard(app.fen,o.side,{sel:app.sel,last:app.last,wrong:app.wrongSq,hint:showMove?{from:node.from,to:node.to}:null,interactive:heroToMove()})+'</div>'+
     '<div><div class="card">'+panel+'</div>'+
     (lastPlayed&&lastPlayed.comment?'<div class="note" style="margin-top:12px">'+esc(lastPlayed.comment)+'</div>':'')+
+    coachCard(app.coachNote,'🎓 Why that move')+
     '<div class="card" style="margin-top:12px"><div class="l" style="text-transform:uppercase;font-size:11px;letter-spacing:.08em;color:var(--muted)">Line so far</div><div style="margin-top:4px">'+(sans.length?esc(fmtMoves(sans)):'Starting position')+'</div></div>'+
     '<div class="row" style="margin-top:12px"><button class="btn '+(app.guided?'primary':'ghost')+' sm" data-act="toggleguided" title="Show every move and its explanation">📖 Guided</button><button class="btn sec" style="flex:1" data-act="hint" '+(heroToMove()?'':'disabled')+'>💡 Hint</button><button class="btn ghost" style="flex:1" data-act="skip">Skip line →</button></div>'+
     '<div class="dim small" style="text-align:center;margin-top:8px">'+(app.guided?'Guided on — follow the highlighted move and read why it’s played.':'Tap a piece then its destination. Turn on 📖 Guided to be shown every move.')+'</div></div></div>';
@@ -5253,6 +5575,12 @@ function viewSettings(){
     rowSet('Colour palette','Overall colour theme of the app.',selOpt('appTheme',APP_THEMES))+
     rowSet('Backdrop','A scene behind the app — the park, a café, a tournament hall. Some are earned in your career.',selOpt('scene',SCENES))+
     rowSet('Accent colour','Buttons, links &amp; highlights.',selOpt('accent',ACCENTS))+'</div>'+
+    '<div class="card" style="margin-top:12px"><div style="font-weight:700;margin-bottom:2px">🎓 Coach &amp; voice</div>'+
+    '<div class="dim small" style="margin-bottom:2px">The coach works out why each move is played and can read it aloud while you step through a line. It uses your device\u2019s own speech, so it costs nothing and works offline.'+(Voice.ok()?'':' <b style="color:#fcd34d">This browser has no speech support, so the text still shows but nothing is spoken.</b>')+'</div>'+
+    rowSet('Read moves aloud','Speak the explanation as you play through openings, courses and drills.',(store.settings.voiceOn?'<input type="checkbox" data-setting="voiceOn" checked>':'<input type="checkbox" data-setting="voiceOn">'))+
+    rowSet('Voice','Which of your device\u2019s voices to use.','<select data-setting="voiceName"><option value=""'+(store.settings.voiceName?'':' selected')+'>Automatic</option>'+Voice.list().map(function(v){return '<option value="'+esc(v.name)+'"'+(store.settings.voiceName===v.name?' selected':'')+'>'+esc(v.name)+(v.lang?' ('+esc(v.lang)+')':'')+'</option>';}).join('')+'</select>')+
+    rowSet('Speaking speed','0.5 is slow, 1.6 is brisk.','<input type="number" min="0.5" max="1.6" step="0.1" value="'+(+store.settings.voiceRate||1)+'" data-setting="voiceRate">')+
+    '<div class="row" style="margin-top:8px"><button class="btn sec sm" data-act="voicetest">🔊 Test the voice</button></div></div>'+
     '<div class="card" style="margin-top:12px"><div style="font-weight:700;margin-bottom:2px">Training &amp; engine</div>'+
     rowSet('New cards per session','How many fresh positions “Learn” introduces per opening.','<input type="number" min="1" max="50" value="'+store.settings.newPer+'" data-setting="newPer">')+
     rowSet('Opponent strength','Approximate Elo of the Stockfish opponent in “Play vs engine”.',lvl)+'</div>'+
@@ -5273,7 +5601,7 @@ function startTraining(target,mode){
   loadLine();
 }
 function loadLine(){const l=curLine();app.nodePos=0;app.fen=l.nodes[0].fenBefore;app.last=null;app.wrongSq=null;app.sel=null;app.mistakes=false;app.status='play';advance();}
-function nextLine(){if(app.timer){clearTimeout(app.timer);app.timer=null;}if(app.sIdx+1<app.session.length){app.sIdx++;loadLine();}else{app.status='done';render();}}
+function nextLine(){app.coachNote=null;if(app.timer){clearTimeout(app.timer);app.timer=null;}if(app.sIdx+1<app.session.length){app.sIdx++;loadLine();}else{app.status='done';render();}}
 function advance(){if(app.timer){clearTimeout(app.timer);app.timer=null;}
   const l=curLine();if(!l){app.status='done';render();return;}
   const node=l.nodes[app.nodePos];
@@ -5292,7 +5620,9 @@ function heroMove(from,to){const line=curLine();const node=curNode();if(!node)re
   if(match){
     if(app.status!=='wrong'&&!app.mistakes){grade(id,'good');app.correct++;}
     if(match!==node){line.nodes=line.nodes.slice(0,app.nodePos).concat(pathToLeaf(match));}
-    app.fen=m.fen;app.last={from:from,to:to};app.sel=null;app.wrongSq=null;app.mistakes=false;app.status='play';app.nodePos++;sfxSan(m.san);render();advance();return true;}
+    app.fen=m.fen;app.last={from:from,to:to};app.sel=null;app.wrongSq=null;app.mistakes=false;app.status='play';app.nodePos++;sfxSan(m.san);
+    app.coachNote=coachSay(node.fenBefore,m.san,{note:match.comment||null})||(explainMove(node.fenBefore,m.san)||{}).text||null;
+    render();advance();return true;}
   if(!app.mistakes){app.mistakes=true;grade(id,'again');app.wrong++;}
   app.status='wrong';app.wrongSq={from:node.from,to:node.to};app.sel=null;render();return false;
 }
@@ -5306,7 +5636,7 @@ function linesHtml(arr){if(!arr||!arr.length)return '';return arr.map(function(L
 function analysePos(fen,cb){if(!store.settings.showEval){cb(null,null,[]);return;}Engine.load().then(function(ok){if(!ok){cb(null,null,[]);return;}Engine.onInfo=function(t,v){app._evTmp={t:t,v:v,stm:turnOf(fen)};};Engine.analyse(fen,99,function(best,lines){var san=null;if(best&&best!=='(none)'){var m=tryFromTo(fen,best.slice(0,2),best.slice(2,4),best[4]||'q');san=m?m.san:null;}var arr=[];if(lines){var ks=Object.keys(lines).sort(function(a,b){return (+a)-(+b);});for(var i=0;i<ks.length&&arr.length<3;i++){var L=lines[ks[i]];if(L)arr.push({t:L.t,v:L.v,stm:turnOf(fen),sans:pvToSans(fen,L.pv,6)});}}cb(app._evTmp||null,san,arr);});});}
 function exFen(){var o=byId.get(app.exId);if(!o)return null;if(app.exFree&&app.exFree.length)return app.exFree[app.exFree.length-1].fen;return exCurrent().fen;}
 function exAnalyse(){analysePos(exFen(),function(ev,san,lines){app.exEval=ev;app.exBest=san;app.exLines=lines;render();});}
-function exMakeMove(from,to){if(!app.exFree||!app.exFree.length){var cur=exCurrent();var ch=cur.children.find(function(c){return c.from===from&&c.to===to;});if(ch){app.exPath.push(ch);app.sel=null;sfxSan(ch.move);if(store.settings.showEval)exAnalyse();render();return;}}
+function exMakeMove(from,to){if(!app.exFree||!app.exFree.length){var cur=exCurrent();var ch=cur.children.find(function(c){return c.from===from&&c.to===to;});if(ch){app.exPath.push(ch);app.sel=null;sfxSan(ch.move);coachSay(cur.fen,ch.move,{note:ch.comment||null});if(store.settings.showEval)exAnalyse();render();return;}}
   var m=tryFromTo(exFen(),from,to,app.promoChoice||'q');if(!m)return;app.exFree=app.exFree||[];app.exFree.push({fen:m.fen,last:{from:from,to:to},san:m.san});app.sel=null;sfxSan(m.san);render();}
 function mCurFen(){var g=MASTERGAMES[app.mGame];if(!g)return null;var c=new Chess();var mv=g.m.split(' ');for(var k=0;k<Math.min(app.mIdx||0,mv.length);k++){try{c.move(mv[k]);}catch(e){break;}}return c.fen();}
 function mAnalyse(){if(app.mGame==null){app.mEval=null;app.mBest=null;return;}var fen=mCurFen();if(!fen)return;analysePos(fen,function(ev,san,lines){app.mEval=ev;app.mBest=san;app.mLines=lines;render();});}
@@ -5588,6 +5918,9 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='simtour')simRestOfTour();
   else if(act==='claimdaily')claimDaily();
   else if(act==='careerchal')startChallenge(val);
+  else if(act==='voicetest'){Voice.say('Knight f3 develops the knight and takes aim at the centre, covering e5 and d4.',true);}
+  else if(act==='coachtoggle'){store.settings.voiceOn=!store.settings.voiceOn;if(!store.settings.voiceOn)Voice.stop();save();}
+  else if(act==='coachsay'){var _ct=(app.view==='explore')?exCoachText():(app.view==='clearn'?((app.cl&&app.cl.reveal&&app.cl.reveal.text)||(app.cl&&app.cl.oppNote)):app.coachNote);if(_ct)Voice.say(_ct,true);}
   else if(act==='seasondismiss'){store.career.seasonReview=null;save();}
   else if(act==='profile'){if(val)profileOpen(val);}
   else if(act==='specvs'){var _sp=buildWorld().filter(function(x){return x.id===val;})[0];if(_sp){var _fmt='classical';var _list=worldRanking(store.career,_fmt).filter(function(x){return !x.you&&x.id!==val;});var _o=_list[Math.floor(Math.random()*Math.min(12,_list.length))]||_list[0];if(_o)startSpectate({name:_sp.name,flag:_sp.flag,rating:wpRating(_sp,_fmt),real:_sp.real},_o);}}
@@ -5662,7 +5995,9 @@ document.getElementById('app').addEventListener('change',e=>{
     else if(ds==='anim')store.settings.anim=e.target.checked;
     else if(ds==='haptics')store.settings.haptics=e.target.checked;
     else if(ds==='boardSize')store.settings.boardSize=+e.target.value;
-    else if((ds==='pieces'||ds==='theme'||ds==='appTheme'||ds==='accent')&&!isUnlocked(ds,e.target.value)){var _u=UNLOCKS[ds+':'+e.target.value];app.careerToast='🔒 Locked — '+((_u&&_u.lbl)||'keep progressing')+' to unlock this.';e.target.value=store.settings[ds];save();render();return;}
+    else if(ds==='voiceOn'){store.settings.voiceOn=e.target.checked;if(!store.settings.voiceOn)Voice.stop();else Voice.say('Voice coaching is on.',true);}
+    else if(ds==='voiceRate')store.settings.voiceRate=Math.max(0.5,Math.min(1.6,+e.target.value||1));
+    else if((ds==='pieces'||ds==='theme'||ds==='appTheme'||ds==='accent'||ds==='scene')&&!isUnlocked(ds,e.target.value)){var _u=UNLOCKS[ds+':'+e.target.value];app.careerToast='🔒 Locked — '+((_u&&_u.lbl)||'keep progressing')+' to unlock this.';e.target.value=store.settings[ds];save();render();return;}
     else store.settings[ds]=e.target.value;
     save();render();return;
   }
