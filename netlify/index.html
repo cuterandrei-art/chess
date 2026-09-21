@@ -4075,7 +4075,12 @@ function buildSession(ops,srs,mode,newPer,now=Date.now()){const out=[];
       }
       out.push({o,nodes,startAt});
     }}
-  return shuffle(out);}
+  // Lines you actually meet come first. sort is stable, so the shuffle still
+  // decides the order within each frequency band.
+  const fq=personalFreq();
+  const sh=shuffle(out);
+  sh.sort(function(a,b){return (fq[b.o.id]||0)-(fq[a.o.id]||0);});
+  return sh;}
 
 /* ================================ store ================================ */
 const LS='opening-trainer-standalone-v1';
@@ -4410,13 +4415,13 @@ function checkTitles(c){const got=[];const peak=titlePeak(c);
     c.titles.push(d.t);got.push(d.t);
   }
   return got;}
-const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',blunderWarn:true,srsSkip:true,voiceOn:false,voiceName:'',voiceRate:1},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null}};
+const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',blunderWarn:true,srsSkip:true,voiceOn:false,voiceName:'',voiceRate:1},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},myGames:[],myGamesMeta:null,daily:null,brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null}};
 function freshCareer(){return JSON.parse(JSON.stringify(DEF.career));}
 /* Migrate saved career data: the old ladder (with `beaten`/`results`) is reset
    to the new FIDE structure; new-format saves are merged onto fresh defaults. */
 function migrateCareer(d){if(!d||typeof d!=='object'||('beaten'in d)||!('setup'in d))return freshCareer();return Object.assign(freshCareer(),d);}
 let store=DEF;
-try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],courseProgress:d.courseProgress||{},settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],brilliancies:d.brilliancies||[],career:migrateCareer(d.career)};}catch(e){}
+try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],courseProgress:d.courseProgress||{},settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],myGames:d.myGames||[],myGamesMeta:d.myGamesMeta||null,daily:d.daily||null,brilliancies:d.brilliancies||[],career:migrateCareer(d.career)};}catch(e){}
 function rebuildOpenings(){const cust=(store.custom||[]).map(d=>{try{return buildOpening(d);}catch(e){return null;}}).filter(Boolean);BUILT=BASE.concat(cust);byId=new Map(BUILT.map(o=>[o.id,o]));}
 rebuildOpenings();
 function save(){localStorage.setItem(LS,JSON.stringify(store));}
@@ -4436,7 +4441,7 @@ function delRep(id){store.repertoire=store.repertoire.filter(x=>x!==id);save();}
 /* ============================== app state ============================== */
 const app={view:'career',exId:null,exPath:[],exFlip:false,courseId:null,setupOpening:'',
   pz:null,pzSeen:new Set(),pzFilter:{type:'auto'},rush:null,
-  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
+  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
   confirm:null,
   review:null,studyId:null,studyChapter:0,studyPath:[],studyFlip:false,studyMsg:null,
 
@@ -4613,6 +4618,7 @@ function viewMasters(){
 function viewLearn(){
   const items=[
     ['courses','📘','Guided Courses','Learn the top openings move-by-move, with exercises in the lines'],
+    ['daily','☀️','Daily exercise','A few minutes on memory, understanding and plans'],
     ['train','🎓','Train','Spaced-repetition drills of your opening repertoire'],
     ['library','📖','Openings','Browse the library &amp; build your repertoire'],
     ['guess','🎯','Guess the Move','Find the move the master actually played'],
@@ -4623,6 +4629,7 @@ function viewLearn(){
     ['review','🔬','Game Review','Analyse any game with the engine'],
     ['brilliancy','💎','Brilliancies','Your gallery of sacrifices that worked'],
     ['report','📊','Opening report','Which of your openings actually score in your games'],
+    ['import','📥','Import my games','Build a course from your real Chess.com or Lichess games'],
     ['studies','📚','Studies','Import &amp; browse Lichess studies'],
     ['dashboard','📊','Dashboard','Your repertoire progress &amp; stats']
   ];
@@ -4634,12 +4641,12 @@ function render(){
   document.body.style.setProperty('--bw',(store.settings.boardSize||520)+'px');
   applyAppTheme();
   const repOps=BUILT.filter(o=>inRep(o.id));const agg=aggregate(repOps,store.srs);
-  const nav=['career','dashboard','play','puzzles','learn','courses','train','library','endgames','classics','guess','blindfold','review','brilliancy','report','studies','masters','settings'];
-  const NAV_META={career:['🏆','Career'],dashboard:['📊','Dashboard'],play:['♟️','Play'],puzzles:['🧩','Puzzles'],learn:['📚','Learn'],courses:['📘','Courses'],train:['🎓','Train'],library:['📖','Openings'],endgames:['♟️','Endgames'],classics:['📜','Classics'],guess:['🎯','Guess the Move'],blindfold:['🙈','Blindfold'],review:['🔬','Game Review'],brilliancy:['💎','Brilliancies'],report:['📊','Opening report'],studies:['📚','Studies'],masters:['♞','Master Games'],settings:['⚙️','Settings']};
+  const nav=['career','dashboard','play','puzzles','learn','courses','train','library','endgames','classics','guess','blindfold','daily','review','brilliancy','report','import','studies','masters','settings'];
+  const NAV_META={career:['🏆','Career'],dashboard:['📊','Dashboard'],play:['♟️','Play'],puzzles:['🧩','Puzzles'],learn:['📚','Learn'],courses:['📘','Courses'],train:['🎓','Train'],library:['📖','Openings'],endgames:['♟️','Endgames'],classics:['📜','Classics'],guess:['🎯','Guess the Move'],blindfold:['🙈','Blindfold'],review:['🔬','Game Review'],brilliancy:['💎','Brilliancies'],report:['📊','Opening report'],import:['📥','Import games'],daily:['☀️','Daily exercise'],studies:['📚','Studies'],masters:['♞','Master Games'],settings:['⚙️','Settings']};
   const label=v=>(NAV_META[v]?NAV_META[v][1]:v[0].toUpperCase()+v.slice(1));
   const navIcon=v=>(NAV_META[v]?NAV_META[v][0]:'•');
   const cur=nav.indexOf(app.view)>=0?app.view:'dashboard';
-  const LEARN_VIEWS=['learn','courses','clearn','train','library','build','explore','course','endgames','eglesson','classics','guess','blindfold','masters','studies','review','brilliancy','report','dashboard','reptree'];
+  const LEARN_VIEWS=['learn','courses','clearn','train','library','build','explore','course','endgames','eglesson','classics','guess','blindfold','daily','masters','studies','review','brilliancy','report','import','dashboard','reptree'];
   const primaryOf=v=>(v==='career'?'career':v==='play'?'play':v==='puzzles'?'puzzles':LEARN_VIEWS.indexOf(v)>=0?'learn':'');
   const PRIMARY=[['career','🏆','Career'],['play','♟️','Play'],['puzzles','🧩','Puzzles'],['learn','📚','Learn']];
   const curP=primaryOf(cur);
@@ -4670,6 +4677,8 @@ function render(){
   else if(app.view==='review')body=viewReview();
   else if(app.view==='brilliancy')body=viewBrilliancy();
   else if(app.view==='report')body=viewReport();
+  else if(app.view==='import')body=viewImport();
+  else if(app.view==='daily')body=viewDaily();
   else if(app.view==='player')body=viewPlayer();
   else if(app.view==='studies')body=viewStudies();
   else if(app.view==='masters')body=viewMasters();
@@ -5474,6 +5483,490 @@ function oppDrawPanel(){
         '<button class="btn primary sm" data-act="oppdrawyes">Accept the draw</button>'+
         '<button class="btn ghost sm" data-act="oppdrawno">Play on</button>'+
       '</div></div></div>';
+}
+
+/* ===================== IMPORT YOUR OWN GAMES =====================
+   A repertoire you chose is a guess; the games you actually played are
+   evidence. This pulls your games from Chess.com or Lichess, works out which
+   opening each one was, where you left the book, and how each line scores —
+   then builds a course out of the lines you meet often and lose in.
+
+   Both APIs are public, need no account, and send
+   Access-Control-Allow-Origin: *, so the browser can call them directly. */
+
+/* ---- PGN ---- */
+function pgnHeaders(pgn){
+  const h={};
+  String(pgn||'').replace(/\[(\w+)\s+"([^"]*)"\]/g,function(_,k,v){h[k]=v;return '';});
+  return h;
+}
+/* SAN list from PGN movetext: strips headers, comments, variations, NAGs,
+   clock annotations, move numbers and the result token. */
+function pgnToSans(pgn){
+  let t=String(pgn||'');
+  const bodyAt=t.search(/^\s*(?:1\.|\[?%?)/m);
+  t=t.replace(/\[[^\]]*\]/g,' ');            // headers (and [%clk ...] inside comments)
+  t=t.replace(/\{[^}]*\}/g,' ');             // comments
+  let prev;do{prev=t;t=t.replace(/\([^()]*\)/g,' ');}while(t!==prev);   // nested variations
+  t=t.replace(/\$\d+/g,' ')                  // NAGs
+     .replace(/\d+\s*\.(\.\.)?/g,' ')        // move numbers, incl. 1...
+     .replace(/\b(?:1-0|0-1|1\/2-1\/2|\*)\b/g,' ')
+     .replace(/[?!]+/g,' ');
+  const out=[];
+  t.split(/\s+/).forEach(function(tok){
+    if(!tok)return;
+    if(/^(?:[KQRBN][a-h1-8]?x?[a-h][1-8](?:=[QRBN])?|[a-h]x?[a-h][1-8](?:=[QRBN])?|[a-h][1-8](?:=[QRBN])?|O-O(?:-O)?)[+#]?$/.test(tok))out.push(tok);
+  });
+  return out;
+}
+/* Replay the SANs to be sure they are a real game, and trim anything illegal. */
+function sansValidate(sans,max){
+  const c=new Chess(),out=[];
+  for(let i=0;i<sans.length&&out.length<(max||40);i++){
+    try{if(!c.move(sans[i]))break;}catch(e){break;}
+    out.push(sans[i]);
+  }
+  return out;
+}
+const CC_DRAW={agreed:1,repetition:1,stalemate:1,insufficient:1,'50move':1,timevsinsufficient:1};
+function ccScore(res){return res==='win'?1:(CC_DRAW[res]?0.5:0);}
+function impResultFromPgn(h,color){
+  const r=h.Result||'';
+  if(r==='1/2-1/2')return 0.5;
+  if(r==='1-0')return color==='w'?1:0;
+  if(r==='0-1')return color==='b'?1:0;
+  return null;
+}
+/* ---- the two sources ---- */
+async function impFetchChessCom(user,maxGames,onStep){
+  const u=String(user||'').trim().toLowerCase();
+  if(!u)throw new Error('Enter your Chess.com username.');
+  onStep&&onStep('Looking up your archive…');
+  const ar=await fetch('https://api.chess.com/pub/player/'+encodeURIComponent(u)+'/games/archives');
+  if(ar.status===404)throw new Error('Chess.com has no player called “'+user+'”.');
+  if(!ar.ok)throw new Error('Chess.com replied '+ar.status+'.');
+  const list=((await ar.json())||{}).archives||[];
+  if(!list.length)throw new Error('That account has no archived games.');
+  const out=[];
+  // newest months first, and only as many as we need — be kind to the API
+  for(let i=list.length-1;i>=0&&out.length<maxGames;i--){
+    onStep&&onStep('Reading '+(list.length-i)+' month'+(list.length-i>1?'s':'')+'… '+out.length+' games so far');
+    let j;
+    try{const r=await fetch(list[i]);if(!r.ok)continue;j=await r.json();}catch(e){continue;}
+    for(const g of (j.games||[])){
+      if(out.length>=maxGames)break;
+      if(g.rules&&g.rules!=='chess')continue;
+      const w=(g.white&&g.white.username||'').toLowerCase();
+      const b=(g.black&&g.black.username||'').toLowerCase();
+      const color=w===u?'w':(b===u?'b':null);
+      if(!color)continue;
+      const sans=sansValidate(pgnToSans(g.pgn));
+      if(sans.length<6)continue;
+      const res=color==='w'?ccScore(g.white.result):ccScore(g.black.result);
+      out.push({src:'chesscom',moves:sans,color:color,result:res,tc:g.time_class||'',
+        date:(g.end_time||0)*1000,opp:(color==='w'?(g.black&&g.black.username):(g.white&&g.white.username))||''});
+    }
+  }
+  return out;
+}
+async function impFetchLichess(user,maxGames,onStep){
+  const u=String(user||'').trim();
+  if(!u)throw new Error('Enter your Lichess username.');
+  onStep&&onStep('Downloading your games from Lichess…');
+  const url='https://lichess.org/api/games/user/'+encodeURIComponent(u)+
+    '?max='+Math.max(1,Math.min(600,maxGames))+'&moves=true&clocks=false&evals=false&opening=false';
+  const r=await fetch(url,{headers:{Accept:'application/x-chess-pgn'}});
+  if(r.status===404)throw new Error('Lichess has no player called “'+u+'”.');
+  if(r.status===429)throw new Error('Lichess is rate-limiting — wait a minute and try again.');
+  if(!r.ok)throw new Error('Lichess replied '+r.status+'.');
+  const text=await r.text();
+  if(/^\s*</.test(text))throw new Error('Lichess did not return games (got a web page instead).');
+  const out=[];
+  const chunks=text.split(/\n\n(?=\[Event )/);
+  const lower=u.toLowerCase();
+  for(const ch of chunks){
+    if(out.length>=maxGames)break;
+    const h=pgnHeaders(ch);
+    if(!h.White&&!h.Black)continue;
+    if(h.Variant&&h.Variant!=='Standard'&&h.Variant!=='From Position')continue;
+    const color=(h.White||'').toLowerCase()===lower?'w':((h.Black||'').toLowerCase()===lower?'b':null);
+    if(!color)continue;
+    const sans=sansValidate(pgnToSans(ch));
+    if(sans.length<6)continue;
+    const res=impResultFromPgn(h,color);
+    if(res===null)continue;
+    out.push({src:'lichess',moves:sans,color:color,result:res,tc:(h.Event||'').replace(/^rated\s+/i,'').split(' ')[0].toLowerCase(),
+      date:h.UTCDate?Date.parse(h.UTCDate.replace(/\./g,'-')+'T'+(h.UTCTime||'00:00:00')+'Z')||0:0,
+      opp:(color==='w'?h.Black:h.White)||''});
+  }
+  if(!out.length)throw new Error('No standard games found for “'+u+'”.');
+  return out;
+}
+/* ---- run an import ---- */
+async function runImport(){
+  const src=app.impSrc||'chesscom',user=app.impUser||'',max=Math.max(10,Math.min(600,+app.impMax||200));
+  app.imp={status:'fetching',msg:'Starting…',added:0};render();
+  const step=function(m){if(app.imp){app.imp.msg=m;render();}};
+  try{
+    const games=src==='lichess'?await impFetchLichess(user,max,step):await impFetchChessCom(user,max,step);
+    store.myGames=games;
+    store.myGamesMeta={src:src,user:user,at:Date.now(),n:games.length};
+    save();
+    app.imp={status:'done',msg:'Imported '+games.length+' games.',added:games.length};
+    app.reportSrc='mine';
+    render();
+  }catch(e){
+    app.imp={status:'error',msg:(e&&e.message)||'Could not reach the server.',added:0};
+    render();
+  }
+}
+/* ---- what the games say ----
+   For one game: which library opening it followed, how deep, and the first of
+   YOUR moves that left the book. */
+function myGameOpening(sans,color){
+  // An opening arises from the moves, not from which colour you happen to be:
+  // the Italian is the Italian whether you are White or Black. Ties go to a
+  // line you actually study, so the report links to your own repertoire.
+  let best=null;
+  for(const o of BUILT){
+    let node=o.root,depth=0;
+    for(const s of sans){
+      const ch=node.children.find(c=>c.move===s);
+      if(!ch)break;
+      node=ch;depth++;
+    }
+    if(depth<3)continue;
+    const mineRep=inRep(o.id)?1:0;
+    if(!best||depth>best.depth||(depth===best.depth&&mineRep>best.mineRep))
+      best={id:o.id,name:o.name,eco:o.eco,depth:depth,mineRep:mineRep};
+  }
+  if(!best)return null;
+  // where did *you* leave it? the first of your own moves not in the tree
+  const o=byId.get(best.id);
+  let node=o.root,devPly=null,devMove=null,bookMove=null;
+  for(let i=0;i<sans.length;i++){
+    const mine=(color==='w')===(i%2===0);
+    const ch=node.children.find(c=>c.move===sans[i]);
+    if(!ch){
+      if(mine&&node.children.length){devPly=i;devMove=sans[i];bookMove=node.children[0].move;}
+      break;
+    }
+    node=ch;
+  }
+  return {id:best.id,name:best.name,eco:best.eco,depth:best.depth,devPly:devPly,devMove:devMove,bookMove:bookMove};
+}
+/* Aggregate a set of games into per-opening and per-variation records. */
+function analyseGames(games){
+  const by={};
+  for(const g of (games||[])){
+    if(!g||!g.moves||g.moves.length<6)continue;
+    const det=myGameOpening(g.moves,g.color||'w');
+    const key=det?det.id+':'+(g.color||'w'):'other:'+(g.color||'w');
+    const b=by[key]||(by[key]={id:det?det.id:null,name:det?det.name:'Other / off-book',eco:det?det.eco:'',
+      color:g.color||'w',n:0,w:0,d:0,l:0,devs:{},depthSum:0});
+    b.n++;b.depthSum+=det?det.depth:0;
+    if(g.result===1)b.w++;else if(g.result===0)b.l++;else b.d++;
+    if(det&&det.devPly!=null){
+      const dk=det.devPly+'|'+det.devMove+'|'+det.bookMove;
+      const dv=b.devs[dk]||(b.devs[dk]={ply:det.devPly,played:det.devMove,book:det.bookMove,n:0,pts:0});
+      dv.n++;dv.pts+=(g.result==null?0.5:g.result);
+    }
+  }
+  const rows=Object.keys(by).map(function(k){
+    const b=by[k];
+    b.score=(b.w+b.d*0.5)/b.n;
+    b.pct=Math.round(b.score*100);
+    b.avgDepth=Math.round(b.depthSum/b.n);
+    b.inRep=!!(b.id&&inRep(b.id));
+    if(b.id){try{const o=byId.get(b.id);b.mastery=o?Math.round((progress(o,store.srs).mastery||0)*100):null;}catch(e){b.mastery=null;}}
+    // the deviation you make most often
+    b.devList=Object.keys(b.devs).map(x=>b.devs[x]).sort((x,y)=>y.n-x.n);
+    b.topDev=b.devList[0]||null;
+    // what to work on: seen often, scoring badly
+    b.priority=b.n*(1-b.score)+(b.topDev?b.topDev.n*0.5:0);
+    return b;
+  });
+  rows.sort((a,b)=>b.priority-a.priority);
+  return rows;
+}
+let _pfCache=null;
+function personalFreq(){
+  const n=(store.myGames||[]).length;
+  if(_pfCache&&_pfCache.n===n)return _pfCache.map;
+  const map={};
+  analyseGames(store.myGames||[]).forEach(function(r){if(r.id)map[r.id]=(map[r.id]||0)+r.n;});
+  _pfCache={n:n,map:map};
+  return map;
+}
+function personalCourse(){
+  const games=(store.myGames||[]);
+  const rows=analyseGames(games);
+  const meaningful=rows.filter(r=>r.n>=2);
+  return {
+    rows:rows,
+    course:meaningful.filter(r=>r.id&&(r.score<0.55||r.topDev)).slice(0,8),
+    solid:rows.filter(r=>r.n>=3&&r.score>=0.6).sort((a,b)=>b.score-a.score).slice(0,3),
+    n:games.length,
+    meta:store.myGamesMeta||null
+  };
+}
+
+function impMoveNo(ply){return Math.floor(ply/2)+1;}
+function impDevLine(d,color){
+  if(!d)return '';
+  const no=impMoveNo(d.ply);
+  return 'move '+no+(color==='b'?'…':'.')+' you play <b>'+esc(d.played)+'</b> where the book plays <b>'+esc(d.book)+'</b>'+
+    (d.n>1?' ('+d.n+' games, '+Math.round(d.pts/d.n*100)+'%)':'');
+}
+function impCourseRow(r){
+  const col=r.score>=0.6?'var(--green)':r.score<0.45?'#f87171':'var(--amber)';
+  return '<div style="padding:10px 13px;border-top:1px solid var(--border)">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<div style="flex:1;min-width:0"><div style="font-weight:700;line-height:1.35">'+
+        esc(r.name)+' <span class="dim small">'+(r.color==='w'?'as White':'as Black')+(r.eco?' · '+esc(r.eco):'')+'</span>'+
+        (r.inRep?' <span class="chip green" style="font-size:9px">studied</span>':' <span class="chip" style="font-size:9px">not studied</span>')+'</div>'+
+        '<div class="dim small">'+r.n+' game'+(r.n===1?'':'s')+' · '+r.w+'W–'+r.d+'D–'+r.l+'L'+(r.mastery!=null?' · learned '+r.mastery+'%':'')+'</div>'+
+        (r.topDev?'<div class="small" style="margin-top:4px;color:var(--amber)">↪ '+impDevLine(r.topDev,r.color)+'</div>':'')+
+      '</div>'+
+      '<div style="width:52px;text-align:right;font-weight:800;color:'+col+'">'+r.pct+'%</div>'+
+    '</div>'+
+    (r.id?'<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap">'+
+      (r.inRep?'':'<button class="btn ghost sm" data-act="addrep" data-val="'+r.id+'">+ Add to repertoire</button>')+
+      '<button class="btn sec sm" data-act="explore" data-val="'+r.id+'">📖 Study</button>'+
+      '<button class="btn primary sm" data-act="train" data-val="'+r.id+'">🎓 Drill it</button>'+
+      '</div>':'')+
+    '</div>';
+}
+function viewImport(){
+  const src=app.impSrc||'chesscom',P=personalCourse(),meta=P.meta;
+  const srcBtn=(k,l)=>'<button class="btn '+(src===k?'primary':'ghost')+' sm" data-act="impsrc" data-val="'+k+'">'+l+'</button>';
+  let h='<div style="max-width:880px;margin:0 auto"><h1>📥 Build a course from your own games</h1>'+
+    '<div class="muted small" style="margin:6px 0 14px">Your repertoire is what you meant to play. Your games are what actually happens. This reads them, finds where you leave the book, and puts the lines you lose in at the top.</div>';
+  h+='<div class="card" style="margin-bottom:12px">'+
+    '<div class="row" style="gap:6px;margin-bottom:9px">'+srcBtn('chesscom','♟ Chess.com')+srcBtn('lichess','🐴 Lichess')+'</div>'+
+    '<div class="row" style="gap:8px;flex-wrap:wrap;align-items:flex-end">'+
+      '<div style="flex:1;min-width:160px"><div class="dim small" style="margin-bottom:3px">Your '+(src==='lichess'?'Lichess':'Chess.com')+' username</div>'+
+        '<input id="imp-user" type="text" autocapitalize="off" spellcheck="false" placeholder="username" value="'+esc(app.impUser||'')+'" style="width:100%"></div>'+
+      '<div style="width:110px"><div class="dim small" style="margin-bottom:3px">Games</div>'+
+        '<input id="imp-max" type="number" min="10" max="600" step="10" value="'+(+app.impMax||200)+'" style="width:100%"></div>'+
+      '<button class="btn primary" data-act="impgo"'+(app.imp&&app.imp.status==='fetching'?' disabled':'')+'>'+(app.imp&&app.imp.status==='fetching'?'Working…':'Import')+'</button>'+
+    '</div>'+
+    '<div class="dim small" style="margin-top:7px">Public data only — no password, no login. Nothing leaves your device afterwards; the games are stored in this browser.</div>';
+  if(app.imp&&app.imp.status==='fetching')
+    h+='<div class="note" style="margin-top:10px">⏳ '+esc(app.imp.msg||'Working…')+'</div>';
+  else if(app.imp&&app.imp.status==='error')
+    h+='<div class="note" style="margin-top:10px;border-color:#7f1d1d;background:#7f1d1d22;color:#fca5a5">⚠️ '+esc(app.imp.msg)+'</div>';
+  else if(app.imp&&app.imp.status==='done')
+    h+='<div class="note" style="margin-top:10px;border-color:#14532d;background:#052e1655;color:#86efac">✓ '+esc(app.imp.msg)+'</div>';
+  h+='</div>';
+
+  if(!P.n)
+    return h+'<div class="card"><b>Nothing imported yet.</b><div class="dim small" style="margin-top:4px">Put your username in above. Everything below fills in once your games are here.</div></div></div>';
+
+  h+='<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+    '<div class="small"><b>'+P.n+' games</b> <span class="dim">from '+esc(meta&&meta.src==='lichess'?'Lichess':'Chess.com')+(meta&&meta.user?' as '+esc(meta.user):'')+'</span></div>'+
+    '<button class="btn ghost sm" data-act="impclear">Clear them</button></div></div>';
+
+  if(P.course.length){
+    h+='<div class="card" style="padding:0;margin-bottom:12px;border-color:var(--brand2)">'+
+      '<div style="padding:11px 13px;border-bottom:1px solid var(--border)"><div style="font-weight:700">🎯 Your course, in priority order</div>'+
+      '<div class="dim small">Weighted by how often you meet the line and how badly it goes — the top one is costing you the most.</div></div>';
+    P.course.forEach(function(r){h+=impCourseRow(r);});
+    const toAdd=P.course.filter(r=>r.id&&!r.inRep);
+    if(toAdd.length)
+      h+='<div style="padding:10px 13px;border-top:1px solid var(--border)"><button class="btn sec sm" data-act="impaddall">+ Add all '+toAdd.length+' to my repertoire</button></div>';
+    h+='</div>';
+  }
+  if(P.solid.length)
+    h+='<div class="card" style="margin-bottom:12px;border-color:var(--green)"><div style="font-weight:700;margin-bottom:4px">✅ These are working</div>'+
+      P.solid.map(r=>'<div class="small" style="padding:3px 0">'+esc(r.name)+' <span class="dim">'+(r.color==='w'?'as White':'as Black')+'</span> — '+r.pct+'% over '+r.n+' games</div>').join('')+'</div>';
+
+  h+='<div class="card" style="padding:0"><div style="padding:11px 13px;border-bottom:1px solid var(--border);font-weight:700">Everything you played</div>';
+  P.rows.slice(0,40).forEach(function(r){
+    const col=r.score>=0.6?'var(--green)':r.score<0.45?'#f87171':'var(--amber)';
+    h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 13px;border-top:1px solid var(--border)">'+
+      '<div style="flex:1;min-width:0"><div class="small" style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(r.name)+' <span class="dim">'+(r.color==='w'?'W':'B')+'</span></div>'+
+      '<div class="dim small">'+r.n+' · '+r.w+'W–'+r.d+'D–'+r.l+'L</div></div>'+
+      '<div style="width:46px;text-align:right;font-weight:700;color:'+col+'">'+r.pct+'%</div>'+
+      (r.id?'<button class="btn ghost sm" data-act="train" data-val="'+r.id+'">Drill</button>':'')+
+      '</div>';
+  });
+  return h+'</div></div>';
+}
+
+/* ===================== THE DAILY EXERCISE =====================
+   A few minutes a day, on three things a repertoire actually needs: memory
+   (which move does my line play?), intuition (which move is strongest here?)
+   and understanding (why is it played, and what is the plan?). Every question
+   is multiple choice so it works one-handed on a phone, and the decoys are
+   generated from the same position — a wrong answer is a real move with a real
+   reason, not obvious filler. The set is seeded from the date, so it is the
+   same all day and different tomorrow. */
+function dailyPickLine(rnd,pool){
+  for(let tries=0;tries<40;tries++){
+    const o=pool[Math.floor(rnd()*pool.length)];
+    if(!o)continue;
+    const lines=enumerate(o);
+    if(!lines.length)continue;
+    const nodes=lines[Math.floor(rnd()*lines.length)];
+    if(!nodes||nodes.length<4)continue;
+    const ht=heroTurn(o);
+    const mine=nodes.filter(n=>n.fenBefore&&turnOf(n.fenBefore)===ht&&n.ply>=3);
+    if(!mine.length)continue;
+    return {o:o,node:mine[Math.floor(rnd()*mine.length)],nodes:nodes};
+  }
+  return null;
+}
+function dailyDecoyMoves(fen,correct,rnd,n){
+  let ms=[];
+  try{ms=new Chess(fen).moves();}catch(e){return [];}
+  ms=ms.filter(m=>m!==correct);
+  const out=[];
+  while(out.length<n&&ms.length){
+    const i=Math.floor(rnd()*ms.length);
+    out.push(ms.splice(i,1)[0]);
+  }
+  return out;
+}
+/* A wrong "reason" that is still a real reason — the explanation of a
+   different legal move in the same position. */
+function dailyDecoyReasons(fen,correctSan,rnd,n){
+  const alts=dailyDecoyMoves(fen,correctSan,rnd,10),out=[];
+  for(const a of alts){
+    if(out.length>=n)break;
+    const ex=explainMove(fen,a);
+    if(!ex)continue;
+    const phrase=(ex.facts&&ex.facts.length)?ex.facts[0].t:null;
+    if(!phrase)continue;
+    const t=phrase.charAt(0).toUpperCase()+phrase.slice(1)+'.';
+    if(out.indexOf(t)<0)out.push(t);
+  }
+  return out;
+}
+function dailyBuild(){
+  const key=dayKey(Date.now());
+  const rnd=mulberry32(hashStr('daily'+key));
+  const reps=(store.repertoire||[]).map(id=>byId.get(id)).filter(Boolean);
+  const pool=reps.length?reps:BUILT.slice(0,40);
+  if(!pool.length)return {key:key,qs:[]};
+  const qs=[];
+
+  // --- memory: which move does your repertoire play? ---
+  for(let i=0;i<2;i++){
+    const p=dailyPickLine(rnd,pool);if(!p)break;
+    const fen=p.node.fenBefore,correct=p.node.move;
+    const opts=[correct].concat(dailyDecoyMoves(fen,correct,rnd,3));
+    if(opts.length<2)continue;
+    qs.push({kind:'memory',fen:fen,side:turnOf(fen)==='w'?'white':'black',
+      q:'Your line: which move do you play here?',opts:shuffleSeeded(opts,rnd),answer:correct,
+      why:(explainMove(fen,correct)||{}).text||null,opening:p.o.name});
+  }
+  // --- understanding: why is this move played? ---
+  for(let i=0;i<2;i++){
+    const p=dailyPickLine(rnd,pool);if(!p)break;
+    const fen=p.node.fenBefore,correct=p.node.move;
+    const ex=explainMove(fen,correct);
+    if(!ex||!ex.facts||!ex.facts.length)continue;
+    const right=ex.facts[0].t.charAt(0).toUpperCase()+ex.facts[0].t.slice(1)+'.';
+    const decoys=dailyDecoyReasons(fen,correct,rnd,2).filter(d=>d!==right);
+    if(decoys.length<2)continue;
+    qs.push({kind:'understanding',fen:fen,side:turnOf(fen)==='w'?'white':'black',
+      q:'Why is <b>'+esc(correct)+'</b> played here?',opts:shuffleSeeded([right].concat(decoys),rnd),
+      answer:right,why:ex.text,opening:p.o.name,move:correct});
+  }
+  // --- intuition: what is the plan in this structure? ---
+  for(let i=0;i<1;i++){
+    const p=dailyPickLine(rnd,pool);if(!p)break;
+    const last=p.nodes[p.nodes.length-1];
+    const fen=last&&last.fen?last.fen:p.node.fenBefore;
+    const hero=heroTurn(p.o);
+    const right=explainPlan(fen,hero);
+    if(!right)continue;
+    const others=[];
+    for(let t=0;t<12&&others.length<2;t++){
+      const q=dailyPickLine(rnd,pool);if(!q)continue;
+      const ql=q.nodes[q.nodes.length-1];
+      const alt=explainPlan(ql&&ql.fen?ql.fen:q.node.fenBefore,heroTurn(q.o));
+      if(alt&&alt!==right&&others.indexOf(alt)<0)others.push(alt);
+    }
+    if(others.length<2)continue;
+    qs.push({kind:'plan',fen:fen,side:hero==='w'?'white':'black',
+      q:'What is the plan in this structure?',opts:shuffleSeeded([right].concat(others),rnd),
+      answer:right,why:right,opening:p.o.name});
+  }
+  return {key:key,qs:qs};
+}
+function shuffleSeeded(arr,rnd){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));const t=a[i];a[i]=a[j];a[j]=t;}
+  return a;
+}
+function dailyState(){
+  const key=dayKey(Date.now());
+  let d=store.daily;
+  if(!d||d.key!==key){
+    const prev=d&&d.key;
+    const yesterday=dayKey(Date.now()-DAY);
+    const streak=(prev===yesterday&&d.finished)?(d.streak||0):0;
+    d=store.daily={key:key,i:0,right:0,answers:[],finished:false,streak:streak,best:(d&&d.best)||0};
+  }
+  return d;
+}
+function dailyAnswer(idx){
+  const d=dailyState(),set=app.dailySet||(app.dailySet=dailyBuild());
+  const q=set.qs[d.i];if(!q||d.finished)return;
+  const chosen=q.opts[idx];if(chosen==null)return;
+  const correct=chosen===q.answer;
+  if(correct)d.right=(d.right||0)+1;
+  d.answers.push({chosen:chosen,correct:correct});
+  app.dailyFeedback={correct:correct,why:q.why||null,answer:q.answer};
+  if(q.why)Voice.say((correct?'Correct. ':'Not quite. ')+q.why);
+  d.i++;
+  if(d.i>=set.qs.length){
+    d.finished=true;d.streak=(d.streak||0)+1;d.best=Math.max(d.best||0,d.streak);
+    markActiveDay();
+    if(typeof questBump==='function')try{questBump('daily',1);}catch(e){}
+  }
+  save();render();
+}
+function viewDaily(){
+  const d=dailyState();
+  const set=app.dailySet&&app.dailySet.key===d.key?app.dailySet:(app.dailySet=dailyBuild());
+  let h='<div style="max-width:720px;margin:0 auto">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">'+
+      '<h1 style="font-size:20px;margin:0">☀️ Daily exercise</h1>'+
+      '<div class="row" style="gap:6px"><span class="chip amber">🔥 '+(d.streak||0)+'-day streak</span>'+
+      (d.best?'<span class="chip">best '+d.best+'</span>':'')+'</div></div>';
+  if(!set.qs.length)
+    return h+'<div class="card"><b>Add an opening first.</b><div class="dim small" style="margin-top:4px">The daily set is built from your own repertoire. Pick a line in the Library and this fills up tomorrow — or right away.</div><div class="row" style="margin-top:10px"><button class="btn primary sm" data-act="nav" data-val="library">Open the library</button></div></div></div>';
+  if(d.finished){
+    const pct=Math.round((d.right||0)/set.qs.length*100);
+    return h+'<div class="card" style="text-align:center;border-color:'+(pct>=70?'var(--green)':'var(--amber)')+'">'+
+      '<div style="font-size:34px;line-height:1">'+(pct>=70?'🎉':'💪')+'</div>'+
+      '<div style="font-weight:800;font-size:17px;margin-top:5px">'+(d.right||0)+' of '+set.qs.length+' right</div>'+
+      '<div class="dim small" style="margin-top:4px">Come back tomorrow for a fresh set — your streak is at '+(d.streak||0)+'.</div>'+
+      '<div class="row" style="justify-content:center;gap:8px;margin-top:11px;flex-wrap:wrap">'+
+        '<button class="btn sec sm" data-act="nav" data-val="train">🎓 Drill your repertoire</button>'+
+        '<button class="btn ghost sm" data-act="nav" data-val="puzzles">🧩 Puzzles</button></div></div></div>';
+  }
+  const q=set.qs[d.i];
+  const KIND={memory:['🧠 Memory','Recall the move your line plays.'],
+    understanding:['💡 Understanding','Know why the move is played, not just what it is.'],
+    plan:['🗺️ Plan','Read the structure and name the plan.']}[q.kind]||['Question',''];
+  h+='<div class="card" style="margin-bottom:10px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+    '<div><span class="chip brand">'+KIND[0]+'</span> <span class="dim small">'+esc(q.opening||'')+'</span></div>'+
+    '<div class="dim small">'+(d.i+1)+' of '+set.qs.length+'</div></div>'+
+    '<div class="dim small" style="margin-top:5px">'+KIND[1]+'</div></div>';
+  h+='<div class="layout"><div class="boardwrap">'+renderBoard(q.fen,q.side,{interactive:false})+'</div><div>'+
+    '<div class="card"><div style="font-weight:700;line-height:1.5">'+q.q+'</div>'+
+    '<div class="grid" style="grid-template-columns:1fr;gap:7px;margin-top:10px">'+
+      q.opts.map(function(o,i){return '<button class="actcard" data-act="dailyans" data-val="'+i+'"><span class="an">'+esc(o)+'</span></button>';}).join('')+
+    '</div></div>';
+  if(app.dailyFeedback)
+    h+='<div class="card" style="margin-top:10px;border-color:'+(app.dailyFeedback.correct?'var(--green)':'#f87171')+'">'+
+      '<div class="small"><b style="color:'+(app.dailyFeedback.correct?'var(--green)':'#f87171')+'">'+(app.dailyFeedback.correct?'✓ Correct.':'✗ Not that one.')+'</b> '+
+      (app.dailyFeedback.why?esc(app.dailyFeedback.why):'')+'</div></div>';
+  return h+'</div></div></div>';
 }
 
 /* ---- the voice itself ---- */
@@ -6361,6 +6854,16 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='voicetest'){Voice.say('Knight f3 develops the knight and takes aim at the centre, covering e5 and d4.',true);}
   else if(act==='coachtoggle'){store.settings.voiceOn=!store.settings.voiceOn;if(!store.settings.voiceOn)Voice.stop();save();}
   else if(act==='coachsay'){var _ct=(app.view==='explore')?exCoachText():(app.view==='clearn'?((app.cl&&app.cl.whyNot)||(app.cl&&app.cl.reveal&&app.cl.reveal.text)||(app.cl&&app.cl.oppNote)):(app.whyNot||app.coachNote));if(_ct)Voice.say(_ct,true);}
+  else if(act==='dailyans'){app.dailyFeedback=null;dailyAnswer(parseInt(val,10));return;}
+  else if(act==='impsrc'){app.impSrc=val;app.imp=null;}
+  else if(act==='impgo'){
+    var _u=document.getElementById('imp-user'),_m=document.getElementById('imp-max');
+    app.impUser=_u?_u.value.trim():'';app.impMax=_m?(+_m.value||200):200;
+    if(!app.impUser){app.imp={status:'error',msg:'Type your username first.'};}
+    else{runImport();return;}
+  }
+  else if(act==='impclear'){uiConfirm('Remove the imported games from this browser?',function(){store.myGames=[];store.myGamesMeta=null;app.imp=null;save();});}
+  else if(act==='impaddall'){var _pc=personalCourse();_pc.course.forEach(function(r){if(r.id&&!inRep(r.id))addRep(r.id);});save();}
   else if(act==='seasondismiss'){store.career.seasonReview=null;save();}
   else if(act==='profile'){if(val)profileOpen(val);}
   else if(act==='specvs'){var _sp=buildWorld().filter(function(x){return x.id===val;})[0];if(_sp){var _fmt='classical';var _list=worldRanking(store.career,_fmt).filter(function(x){return !x.you&&x.id!==val;});var _o=_list[Math.floor(Math.random()*Math.min(12,_list.length))]||_list[0];if(_o)startSpectate({name:_sp.name,flag:_sp.flag,rating:wpRating(_sp,_fmt),real:_sp.real},_o);}}
