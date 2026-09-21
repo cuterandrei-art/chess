@@ -4415,13 +4415,13 @@ function checkTitles(c){const got=[];const peak=titlePeak(c);
     c.titles.push(d.t);got.push(d.t);
   }
   return got;}
-const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',blunderWarn:true,srsSkip:true,voiceOn:false,voiceName:'',voiceRate:1},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},myGames:[],myGamesMeta:null,daily:null,brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null}};
+const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',blunderWarn:true,srsSkip:true,voiceOn:false,voiceName:'',voiceRate:1},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},myGames:[],myGamesMeta:null,ccProfile:null,daily:null,brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null}};
 function freshCareer(){return JSON.parse(JSON.stringify(DEF.career));}
 /* Migrate saved career data: the old ladder (with `beaten`/`results`) is reset
    to the new FIDE structure; new-format saves are merged onto fresh defaults. */
 function migrateCareer(d){if(!d||typeof d!=='object'||('beaten'in d)||!('setup'in d))return freshCareer();return Object.assign(freshCareer(),d);}
 let store=DEF;
-try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],courseProgress:d.courseProgress||{},settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],myGames:d.myGames||[],myGamesMeta:d.myGamesMeta||null,daily:d.daily||null,brilliancies:d.brilliancies||[],career:migrateCareer(d.career)};}catch(e){}
+try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],courseProgress:d.courseProgress||{},settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],myGames:d.myGames||[],myGamesMeta:d.myGamesMeta||null,ccProfile:d.ccProfile||null,daily:d.daily||null,brilliancies:d.brilliancies||[],career:migrateCareer(d.career)};}catch(e){}
 function rebuildOpenings(){const cust=(store.custom||[]).map(d=>{try{return buildOpening(d);}catch(e){return null;}}).filter(Boolean);BUILT=BASE.concat(cust);byId=new Map(BUILT.map(o=>[o.id,o]));}
 rebuildOpenings();
 function save(){localStorage.setItem(LS,JSON.stringify(store));}
@@ -4441,7 +4441,7 @@ function delRep(id){store.repertoire=store.repertoire.filter(x=>x!==id);save();}
 /* ============================== app state ============================== */
 const app={view:'career',exId:null,exPath:[],exFlip:false,courseId:null,setupOpening:'',
   pz:null,pzSeen:new Set(),pzFilter:{type:'auto'},rush:null,
-  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
+  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
   confirm:null,
   review:null,studyId:null,studyChapter:0,studyPath:[],studyFlip:false,studyMsg:null,
 
@@ -4630,6 +4630,7 @@ function viewLearn(){
     ['brilliancy','💎','Brilliancies','Your gallery of sacrifices that worked'],
     ['report','📊','Opening report','Which of your openings actually score in your games'],
     ['import','📥','Import my games','Build a course from your real Chess.com or Lichess games'],
+    ['tracker','📡','Chess.com tracker','Full breakdown of your profile, results, clock and habits'],
     ['studies','📚','Studies','Import &amp; browse Lichess studies'],
     ['dashboard','📊','Dashboard','Your repertoire progress &amp; stats']
   ];
@@ -4641,12 +4642,12 @@ function render(){
   document.body.style.setProperty('--bw',(store.settings.boardSize||520)+'px');
   applyAppTheme();
   const repOps=BUILT.filter(o=>inRep(o.id));const agg=aggregate(repOps,store.srs);
-  const nav=['career','dashboard','play','puzzles','learn','courses','train','library','endgames','classics','guess','blindfold','daily','review','brilliancy','report','import','studies','masters','settings'];
-  const NAV_META={career:['🏆','Career'],dashboard:['📊','Dashboard'],play:['♟️','Play'],puzzles:['🧩','Puzzles'],learn:['📚','Learn'],courses:['📘','Courses'],train:['🎓','Train'],library:['📖','Openings'],endgames:['♟️','Endgames'],classics:['📜','Classics'],guess:['🎯','Guess the Move'],blindfold:['🙈','Blindfold'],review:['🔬','Game Review'],brilliancy:['💎','Brilliancies'],report:['📊','Opening report'],import:['📥','Import games'],daily:['☀️','Daily exercise'],studies:['📚','Studies'],masters:['♞','Master Games'],settings:['⚙️','Settings']};
+  const nav=['career','dashboard','play','puzzles','learn','courses','train','library','endgames','classics','guess','blindfold','daily','review','brilliancy','report','import','tracker','studies','masters','settings'];
+  const NAV_META={career:['🏆','Career'],dashboard:['📊','Dashboard'],play:['♟️','Play'],puzzles:['🧩','Puzzles'],learn:['📚','Learn'],courses:['📘','Courses'],train:['🎓','Train'],library:['📖','Openings'],endgames:['♟️','Endgames'],classics:['📜','Classics'],guess:['🎯','Guess the Move'],blindfold:['🙈','Blindfold'],review:['🔬','Game Review'],brilliancy:['💎','Brilliancies'],report:['📊','Opening report'],import:['📥','Import games'],tracker:['📡','Chess.com tracker'],daily:['☀️','Daily exercise'],studies:['📚','Studies'],masters:['♞','Master Games'],settings:['⚙️','Settings']};
   const label=v=>(NAV_META[v]?NAV_META[v][1]:v[0].toUpperCase()+v.slice(1));
   const navIcon=v=>(NAV_META[v]?NAV_META[v][0]:'•');
   const cur=nav.indexOf(app.view)>=0?app.view:'dashboard';
-  const LEARN_VIEWS=['learn','courses','clearn','train','library','build','explore','course','endgames','eglesson','classics','guess','blindfold','daily','masters','studies','review','brilliancy','report','import','dashboard','reptree'];
+  const LEARN_VIEWS=['learn','courses','clearn','train','library','build','explore','course','endgames','eglesson','classics','guess','blindfold','daily','masters','studies','review','brilliancy','report','import','tracker','dashboard','reptree'];
   const primaryOf=v=>(v==='career'?'career':v==='play'?'play':v==='puzzles'?'puzzles':LEARN_VIEWS.indexOf(v)>=0?'learn':'');
   const PRIMARY=[['career','🏆','Career'],['play','♟️','Play'],['puzzles','🧩','Puzzles'],['learn','📚','Learn']];
   const curP=primaryOf(cur);
@@ -4679,6 +4680,7 @@ function render(){
   else if(app.view==='report')body=viewReport();
   else if(app.view==='import')body=viewImport();
   else if(app.view==='daily')body=viewDaily();
+  else if(app.view==='tracker')body=viewTracker();
   else if(app.view==='player')body=viewPlayer();
   else if(app.view==='studies')body=viewStudies();
   else if(app.view==='masters')body=viewMasters();
@@ -5562,9 +5564,22 @@ async function impFetchChessCom(user,maxGames,onStep){
       if(!color)continue;
       const sans=sansValidate(pgnToSans(g.pgn));
       if(sans.length<6)continue;
-      const res=color==='w'?ccScore(g.white.result):ccScore(g.black.result);
+      const me=color==='w'?g.white:g.black,them=color==='w'?g.black:g.white;
+      const res=ccScore(me.result);
+      const h=pgnHeaders(g.pgn);
+      const all=pgnToSans(g.pgn);
+      const ts=gameTimeStats(g.pgn,color,g.time_control);
+      const acc=g.accuracies||null;
       out.push({src:'chesscom',moves:sans,color:color,result:res,tc:g.time_class||'',
-        date:(g.end_time||0)*1000,opp:(color==='w'?(g.black&&g.black.username):(g.white&&g.white.username))||''});
+        date:(g.end_time||0)*1000,opp:(them&&them.username)||'',
+        reason:me.result||'',oppReason:(them&&them.result)||'',
+        myRating:+me.rating||0,oppRating:(them&&+them.rating)||0,
+        rated:g.rated!==false,tcStr:g.time_control||'',nmoves:Math.ceil(all.length/2),
+        acc:acc?(color==='w'?acc.white:acc.black):null,
+        oppAcc:acc?(color==='w'?acc.black:acc.white):null,
+        ecoName:(h.ECOUrl?String(h.ECOUrl).split('/').pop().replace(/-/g,' '):(h.ECO||null)),
+        eco:h.ECO||null,url:g.url||null,
+        avgSec:ts?ts.avgSec:0,endSec:ts?ts.endSec:0,maxSec:ts?ts.maxSec:0,base:ts?ts.base:0});
     }
   }
   return out;
@@ -5608,12 +5623,16 @@ async function runImport(){
   app.imp={status:'fetching',msg:'Starting…',added:0};render();
   const step=function(m){if(app.imp){app.imp.msg=m;render();}};
   try{
+    let prof=null;
+    if(src==='chesscom'){try{prof=await ccFetchProfile(user,step);}catch(e){if(/no player called/.test(e.message||''))throw e;}}
     const games=src==='lichess'?await impFetchLichess(user,max,step):await impFetchChessCom(user,max,step);
     store.myGames=games;
+    store.ccProfile=prof;
     store.myGamesMeta={src:src,user:user,at:Date.now(),n:games.length};
     save();
     app.imp={status:'done',msg:'Imported '+games.length+' games.',added:games.length};
     app.reportSrc='mine';
+    if(src==='chesscom'&&store.ccProfile)app.imp.toTracker=true;
     render();
   }catch(e){
     app.imp={status:'error',msg:(e&&e.message)||'Could not reach the server.',added:0};
@@ -5757,7 +5776,8 @@ function viewImport(){
   else if(app.imp&&app.imp.status==='error')
     h+='<div class="note" style="margin-top:10px;border-color:#7f1d1d;background:#7f1d1d22;color:#fca5a5">⚠️ '+esc(app.imp.msg)+'</div>';
   else if(app.imp&&app.imp.status==='done')
-    h+='<div class="note" style="margin-top:10px;border-color:#14532d;background:#052e1655;color:#86efac">✓ '+esc(app.imp.msg)+'</div>';
+    h+='<div class="note" style="margin-top:10px;border-color:#14532d;background:#052e1655;color:#86efac"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span>✓ '+esc(app.imp.msg)+'</span>'+
+      (app.imp.toTracker?'<button class="btn sec sm" data-act="nav" data-val="tracker">📡 See the full breakdown</button>':'')+'</div></div>';
   h+='</div>';
 
   if(!P.n)
@@ -5967,6 +5987,490 @@ function viewDaily(){
       '<div class="small"><b style="color:'+(app.dailyFeedback.correct?'var(--green)':'#f87171')+'">'+(app.dailyFeedback.correct?'✓ Correct.':'✗ Not that one.')+'</b> '+
       (app.dailyFeedback.why?esc(app.dailyFeedback.why):'')+'</div></div>';
   return h+'</div></div></div>';
+}
+
+/* ===================== CHESS.COM TRACKER =====================
+   Everything the public API will tell you about an account, plus everything
+   that can be derived from the games themselves: how you win and how you lose,
+   accuracy, opponent strength, streaks, the hour of day you play worst, how
+   you hold up deep into a session, what a loss does to the next game, and
+   where your clock goes. No key, no login — all of it is public data. */
+function ccTimeCtl(s){
+  s=String(s||'');
+  if(s.indexOf('/')>=0)return {daily:true,base:0,inc:0};
+  const p=s.split('+');
+  return {daily:false,base:parseInt(p[0],10)||0,inc:parseInt(p[1],10)||0};
+}
+/* Clock readings in move order, from the {[%clk 0:02:31.4]} comments. */
+function pgnClocks(pgn){
+  const out=[];
+  String(pgn||'').replace(/\[%clk\s+(\d+):(\d+):(\d+(?:\.\d+)?)\]/g,function(_,h,m,sec){
+    out.push((+h)*3600+(+m)*60+parseFloat(sec));return '';
+  });
+  return out;
+}
+/* Your own time use in one game: seconds per move, what you had left, and the
+   longest single think. */
+function gameTimeStats(pgn,color,tcStr){
+  const tc=ccTimeCtl(tcStr);
+  if(tc.daily)return null;
+  const clk=pgnClocks(pgn);
+  if(clk.length<4)return null;
+  const mine=[];
+  for(let i=(color==='w'?0:1);i<clk.length;i+=2)mine.push(clk[i]);
+  if(mine.length<2)return null;
+  const spent=[];
+  for(let i=0;i<mine.length;i++){
+    const before=i===0?tc.base:mine[i-1];
+    const s=before+tc.inc-mine[i];
+    if(s>=0&&s<7200)spent.push(s);
+  }
+  if(!spent.length)return null;
+  const sum=spent.reduce((a,b)=>a+b,0);
+  return {avgSec:Math.round(sum/spent.length*10)/10,endSec:Math.round(mine[mine.length-1]),
+    maxSec:Math.round(Math.max.apply(null,spent)),base:tc.base};
+}
+/* ---- the profile side of the API ---- */
+async function ccFetchProfile(user,onStep){
+  const u=String(user||'').trim().toLowerCase();
+  onStep&&onStep('Reading your profile…');
+  const pr=await fetch('https://api.chess.com/pub/player/'+encodeURIComponent(u));
+  if(pr.status===404)throw new Error('Chess.com has no player called “'+user+'”.');
+  if(!pr.ok)throw new Error('Chess.com replied '+pr.status+' for the profile.');
+  const profile=await pr.json();
+  onStep&&onStep('Reading your ratings…');
+  let stats={};
+  try{const sr=await fetch('https://api.chess.com/pub/player/'+encodeURIComponent(u)+'/stats');if(sr.ok)stats=await sr.json();}catch(e){}
+  let country=null;
+  if(profile&&profile.country){
+    try{const cr=await fetch(profile.country);if(cr.ok)country=await cr.json();}catch(e){}
+  }
+  return {profile:profile,stats:stats,country:country,at:Date.now()};
+}
+const CC_CLASSES=[['chess_bullet','Bullet','🚀'],['chess_blitz','Blitz','⚡'],['chess_rapid','Rapid','🐢'],['chess_daily','Daily','📅'],['chess960_daily','960 daily','🎲']];
+/* ---- statistics over the imported games ---- */
+function trkPct(w,d,n){return n?Math.round((w+d*0.5)/n*100):0;}
+function trkBucket(){return {n:0,w:0,d:0,l:0};}
+function trkAdd(b,r){b.n++;if(r===1)b.w++;else if(r===0)b.l++;else b.d++;}
+function trkGroup(games,keyFn){
+  const by={};
+  for(const g of games){
+    const k=keyFn(g);
+    if(k==null)continue;
+    (by[k]||(by[k]=trkBucket()));
+    trkAdd(by[k],g.result);
+  }
+  return Object.keys(by).map(function(k){
+    const b=by[k];b.key=k;b.pct=trkPct(b.w,b.d,b.n);return b;
+  });
+}
+/* How a game finished, from your point of view. */
+const CC_REASON={win:'won',checkmated:'checkmated',resigned:'resigned',timeout:'lost on time',
+  abandoned:'abandoned',agreed:'draw agreed',repetition:'repetition',stalemate:'stalemate',
+  insufficient:'insufficient material','50move':'50-move rule',timevsinsufficient:'time vs insufficient',
+  bughousepartnerlose:'partner lost',threecheck:'three checks',kingofthehill:'king of the hill'};
+function trkReasonLabel(r){return CC_REASON[r]||r||'other';}
+function trackerStats(){
+  const games=(store.myGames||[]).filter(g=>g&&g.moves&&g.moves.length>=6);
+  const S={n:games.length};
+  if(!games.length)return S;
+  const sorted=games.slice().sort((a,b)=>(a.date||0)-(b.date||0));
+  S.from=sorted[0].date||0;S.to=sorted[sorted.length-1].date||0;
+
+  /* overall and the simple splits */
+  const all=trkBucket();games.forEach(g=>trkAdd(all,g.result));
+  S.all=all;S.pct=trkPct(all.w,all.d,all.n);
+  S.byColour={w:trkBucket(),b:trkBucket()};
+  games.forEach(g=>trkAdd(S.byColour[g.color==='b'?'b':'w'],g.result));
+  S.byColour.w.pct=trkPct(S.byColour.w.w,S.byColour.w.d,S.byColour.w.n);
+  S.byColour.b.pct=trkPct(S.byColour.b.w,S.byColour.b.d,S.byColour.b.n);
+  S.colourGap=S.byColour.w.pct-S.byColour.b.pct;
+  S.byClass=trkGroup(games,g=>g.tc||'other').sort((a,b)=>b.n-a.n);
+  S.rated=games.filter(g=>g.rated!==false).length;
+
+  /* how you win, how you lose */
+  const winWays={},lossWays={},drawWays={};
+  games.forEach(function(g){
+    const r=g.reason||'';
+    if(g.result===1)winWays[r]=(winWays[r]||0)+1;
+    else if(g.result===0)lossWays[r]=(lossWays[r]||0)+1;
+    else drawWays[r]=(drawWays[r]||0)+1;
+  });
+  const top=o=>Object.keys(o).map(k=>({k:k,n:o[k]})).sort((a,b)=>b.n-a.n);
+  S.winWays=top(winWays);S.lossWays=top(lossWays);S.drawWays=top(drawWays);
+  const flagged=games.filter(g=>g.result===0&&g.reason==='timeout').length;
+  S.timeoutLosses=flagged;
+  S.timeoutPct=all.l?Math.round(flagged/all.l*100):0;
+
+  /* accuracy, where chess.com has analysed the game */
+  const withAcc=games.filter(g=>typeof g.acc==='number');
+  if(withAcc.length){
+    S.acc={n:withAcc.length,
+      avg:Math.round(withAcc.reduce((a,g)=>a+g.acc,0)/withAcc.length*10)/10,
+      best:withAcc.slice().sort((a,b)=>b.acc-a.acc)[0],
+      wins:null,losses:null};
+    const aw=withAcc.filter(g=>g.result===1),al=withAcc.filter(g=>g.result===0);
+    if(aw.length)S.acc.wins=Math.round(aw.reduce((a,g)=>a+g.acc,0)/aw.length*10)/10;
+    if(al.length)S.acc.losses=Math.round(al.reduce((a,g)=>a+g.acc,0)/al.length*10)/10;
+    const oa=withAcc.filter(g=>typeof g.oppAcc==='number');
+    if(oa.length)S.acc.opp=Math.round(oa.reduce((a,g)=>a+g.oppAcc,0)/oa.length*10)/10;
+  }
+
+  /* who you play, and how you do against them */
+  const rated=games.filter(g=>g.oppRating>0);
+  if(rated.length){
+    S.oppAvg=Math.round(rated.reduce((a,g)=>a+g.oppRating,0)/rated.length);
+    const band=function(f){const b=trkBucket();rated.filter(f).forEach(g=>trkAdd(b,g.result));b.pct=trkPct(b.w,b.d,b.n);return b;};
+    S.vsStronger=band(g=>g.myRating>0&&g.oppRating-g.myRating>=100);
+    S.vsSimilar=band(g=>g.myRating>0&&Math.abs(g.oppRating-g.myRating)<100);
+    S.vsWeaker=band(g=>g.myRating>0&&g.oppRating-g.myRating<=-100);
+    const upsets=rated.filter(g=>g.result===1&&g.myRating>0&&g.oppRating-g.myRating>=150)
+      .sort((a,b)=>(b.oppRating-b.myRating)-(a.oppRating-a.myRating));
+    S.bestUpset=upsets[0]||null;
+  }
+
+  /* the rating journey, per time class, straight from the games */
+  S.curve={};
+  CC_CLASSES.forEach(function(c){
+    const key=c[0].replace('chess_','').replace('chess960_','960_');
+    const gs=sorted.filter(g=>g.tc===key&&g.myRating>0);
+    if(gs.length>=2){
+      const rs=gs.map(g=>g.myRating);
+      S.curve[key]={n:gs.length,first:rs[0],last:rs[rs.length-1],
+        min:Math.min.apply(null,rs),max:Math.max.apply(null,rs),
+        delta:rs[rs.length-1]-rs[0],pts:gs.map(g=>({t:g.date,r:g.myRating}))};
+    }
+  });
+
+  /* streaks */
+  let cw=0,cl=0,cu=0,bw=0,bl=0,bu=0;
+  sorted.forEach(function(g){
+    if(g.result===1){cw++;cu++;cl=0;}
+    else if(g.result===0){cl++;cw=0;cu=0;}
+    else{cu++;cw=0;cl=0;}
+    bw=Math.max(bw,cw);bl=Math.max(bl,cl);bu=Math.max(bu,cu);
+  });
+  S.streaks={bestWin:bw,worstLoss:bl,bestUnbeaten:bu,currentWin:cw,currentLoss:cl};
+
+  /* when you play well — and when you should stop */
+  S.byHour=trkGroup(games,g=>g.date?new Date(g.date).getHours():null)
+    .map(b=>({h:+b.key,n:b.n,w:b.w,d:b.d,l:b.l,pct:b.pct})).sort((a,b)=>a.h-b.h);
+  const hourish=S.byHour.filter(b=>b.n>=5);
+  S.bestHour=hourish.slice().sort((a,b)=>b.pct-a.pct)[0]||null;
+  S.worstHour=hourish.slice().sort((a,b)=>a.pct-b.pct)[0]||null;
+  const DOW=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  S.byDay=trkGroup(games,g=>g.date?new Date(g.date).getDay():null)
+    .map(b=>({d:+b.key,name:DOW[+b.key],n:b.n,pct:b.pct})).sort((a,b)=>a.d-b.d);
+
+  /* sessions: games within an hour of each other, and how you fade */
+  const SESS_GAP=60*60*1000;
+  let sess=[],cur=[];
+  sorted.forEach(function(g){
+    if(cur.length&&(g.date-cur[cur.length-1].date)>SESS_GAP){sess.push(cur);cur=[];}
+    cur.push(g);
+  });
+  if(cur.length)sess.push(cur);
+  S.sessions={n:sess.length,avgLen:Math.round(games.length/Math.max(1,sess.length)*10)/10,
+    longest:sess.reduce((m,s)=>Math.max(m,s.length),0)};
+  const early=trkBucket(),late=trkBucket();
+  sess.forEach(function(s){s.forEach(function(g,i){trkAdd(i<3?early:late,g.result);});});
+  early.pct=trkPct(early.w,early.d,early.n);late.pct=trkPct(late.w,late.d,late.n);
+  S.sessions.early=early;S.sessions.late=late;
+
+  /* tilt: what the previous result does to the next game */
+  const afterWin=trkBucket(),afterLoss=trkBucket();
+  for(let i=1;i<sorted.length;i++){
+    if((sorted[i].date-sorted[i-1].date)>SESS_GAP)continue;   // same sitting only
+    if(sorted[i-1].result===1)trkAdd(afterWin,sorted[i].result);
+    else if(sorted[i-1].result===0)trkAdd(afterLoss,sorted[i].result);
+  }
+  afterWin.pct=trkPct(afterWin.w,afterWin.d,afterWin.n);
+  afterLoss.pct=trkPct(afterLoss.w,afterLoss.d,afterLoss.n);
+  S.tilt={afterWin:afterWin,afterLoss:afterLoss,swing:afterWin.pct-afterLoss.pct};
+
+  /* game length */
+  const lens=games.filter(g=>g.nmoves>0).map(g=>g.nmoves);
+  if(lens.length){
+    S.len={avg:Math.round(lens.reduce((a,b)=>a+b,0)/lens.length),
+      min:Math.min.apply(null,lens),max:Math.max.apply(null,lens)};
+    const bucket=function(lo,hi){const b=trkBucket();games.filter(g=>g.nmoves>=lo&&g.nmoves<hi).forEach(g=>trkAdd(b,g.result));b.pct=trkPct(b.w,b.d,b.n);b.label=hi>900?lo+'+':lo+'–'+(hi-1);return b;};
+    S.byLength=[bucket(0,21),bucket(21,41),bucket(41,61),bucket(61,1000)].filter(b=>b.n);
+  }
+
+  /* the clock */
+  const timed=games.filter(g=>g.avgSec>0);
+  if(timed.length){
+    S.time={n:timed.length,avgSec:Math.round(timed.reduce((a,g)=>a+g.avgSec,0)/timed.length*10)/10,
+      maxThink:Math.round(Math.max.apply(null,timed.map(g=>g.maxSec||0)))};
+    const scramble=timed.filter(g=>g.base>0&&g.endSec<=g.base*0.08);
+    S.time.scrambles=scramble.length;
+    const sb=trkBucket();scramble.forEach(g=>trkAdd(sb,g.result));sb.pct=trkPct(sb.w,sb.d,sb.n);
+    S.time.scrambleRecord=sb;
+  }
+
+  /* first moves */
+  const asW=games.filter(g=>g.color==='w'),asB=games.filter(g=>g.color==='b');
+  S.firstMoves=trkGroup(asW,g=>g.moves[0]||null).sort((a,b)=>b.n-a.n).slice(0,6);
+  S.replies={e4:trkGroup(asB.filter(g=>g.moves[0]==='e4'),g=>g.moves[1]||null).sort((a,b)=>b.n-a.n).slice(0,5),
+             d4:trkGroup(asB.filter(g=>g.moves[0]==='d4'),g=>g.moves[1]||null).sort((a,b)=>b.n-a.n).slice(0,5)};
+
+  /* openings, by chess.com's own ECO name when we have it */
+  S.byEco=trkGroup(games,g=>g.ecoName||null).map(function(b){
+    b.name=b.key;return b;
+  }).filter(b=>b.n>=2).sort((a,b)=>b.n-a.n).slice(0,20);
+  return S;
+}
+/* ---- turn the numbers into things worth doing ---- */
+function trackerInsights(S){
+  if(!S||!S.n)return [];
+  const out=[];
+  const push=(w,e,t)=>out.push({w:w,e:e,t:t});
+  if(Math.abs(S.colourGap)>=8)
+    push(Math.abs(S.colourGap),'⚖️',
+      'You score '+Math.abs(S.colourGap)+' points better as '+(S.colourGap>0?'White':'Black')+
+      ' ('+S.byColour.w.pct+'% vs '+S.byColour.b.pct+'%). Your '+(S.colourGap>0?'Black':'White')+' repertoire is the cheaper thing to fix.');
+  if(S.timeoutPct>=20&&S.timeoutLosses>=3)
+    push(S.timeoutPct,'⏰','You lose on time in '+S.timeoutPct+'% of your losses ('+S.timeoutLosses+' games). That is a clock habit, not a chess weakness.');
+  if(S.tilt&&S.tilt.afterLoss.n>=8&&S.tilt.swing>=10)
+    push(S.tilt.swing,'🎭','After a win you score '+S.tilt.afterWin.pct+'%; after a loss, '+S.tilt.afterLoss.pct+'%. Losing one game costs you '+S.tilt.swing+' points on the next — stop after two.');
+  if(S.sessions&&S.sessions.late.n>=8&&(S.sessions.early.pct-S.sessions.late.pct)>=10)
+    push(S.sessions.early.pct-S.sessions.late.pct,'🔋','Your first three games of a session score '+S.sessions.early.pct+'%, the rest '+S.sessions.late.pct+'%. Short sessions suit you.');
+  if(S.worstHour&&S.bestHour&&(S.bestHour.pct-S.worstHour.pct)>=15)
+    push(S.bestHour.pct-S.worstHour.pct,'🌙','You score '+S.bestHour.pct+'% at '+S.bestHour.h+':00 and '+S.worstHour.pct+'% at '+S.worstHour.h+':00. Avoid the '+S.worstHour.h+':00 games.');
+  if(S.time&&S.time.scrambles>=5&&S.time.scrambleRecord.pct<S.pct-8)
+    push(S.pct-S.time.scrambleRecord.pct,'⌛','In the '+S.time.scrambles+' games where you finished under 8% of your clock you scored '+S.time.scrambleRecord.pct+'%, against '+S.pct+'% overall.');
+  if(S.acc&&S.acc.wins!=null&&S.acc.losses!=null)
+    push(6,'🎯','Your accuracy averages '+S.acc.avg+'% — '+S.acc.wins+'% in wins, '+S.acc.losses+'% in losses'+(S.acc.opp?', against '+S.acc.opp+'% for your opponents':'')+'.');
+  if(S.vsWeaker&&S.vsWeaker.n>=8&&S.vsWeaker.pct<65)
+    push(65-S.vsWeaker.pct,'⚠️','Against opponents 100+ below you, you score only '+S.vsWeaker.pct+'%. Those are the cheapest points on the board.');
+  if(S.vsStronger&&S.vsStronger.n>=8&&S.vsStronger.pct>=45)
+    push(S.vsStronger.pct-45,'💪','You hold your own against stronger players ('+S.vsStronger.pct+'% versus opponents 100+ above you).');
+  if(S.byLength&&S.byLength.length>=2){
+    const worst=S.byLength.slice().filter(b=>b.n>=5).sort((a,b)=>a.pct-b.pct)[0];
+    const best=S.byLength.slice().filter(b=>b.n>=5).sort((a,b)=>b.pct-a.pct)[0];
+    if(worst&&best&&best.pct-worst.pct>=12)
+      push(best.pct-worst.pct,'📏','You score '+best.pct+'% in games of '+best.label+' moves but '+worst.pct+'% in games of '+worst.label+'. '+
+        (worst.label==='61+'?'Long games are where it slips — that points at endgames.':'Short games are where it slips — that points at the opening.'));
+  }
+  if(S.streaks&&S.streaks.worstLoss>=5)
+    push(S.streaks.worstLoss,'📉','Your longest losing run was '+S.streaks.worstLoss+' games. Best winning run: '+S.streaks.bestWin+'.');
+  return out.sort((a,b)=>b.w-a.w);
+}
+
+const TRK_TABS=[['overview','📋','Overview'],['results','📈','Results'],['openings','♟️','Openings'],['clock','⏱️','Clock &amp; time'],['insights','💡','Insights']];
+function trkTab(){const k=app.trkTab;return TRK_TABS.some(t=>t[0]===k)?k:'overview';}
+function trkStat(label,value,sub,col){
+  return '<div style="flex:1;min-width:88px;text-align:center;padding:8px 4px">'+
+    '<div class="dim small" style="text-transform:uppercase;letter-spacing:.05em;font-size:10px">'+label+'</div>'+
+    '<div style="font-weight:800;font-size:19px'+(col?';color:'+col:'')+'">'+value+'</div>'+
+    (sub?'<div class="dim small" style="font-size:10px">'+sub+'</div>':'')+'</div>';
+}
+function trkBar(label,b,total){
+  const pct=total?Math.round(b.n/total*100):0;
+  return '<div style="padding:4px 0"><div class="dim small">'+label+' <b style="color:var(--text);float:right">'+b.n+' · '+b.pct+'%</b></div>'+
+    '<div style="height:7px;background:#1e293b;border-radius:5px;overflow:hidden;margin-top:3px;display:flex">'+
+      '<i style="display:block;height:100%;width:'+(b.n?b.w/b.n*100:0)+'%;background:#22c55e"></i>'+
+      '<i style="display:block;height:100%;width:'+(b.n?b.d/b.n*100:0)+'%;background:#64748b"></i>'+
+      '<i style="display:block;height:100%;width:'+(b.n?b.l/b.n*100:0)+'%;background:#f43f5e"></i>'+
+    '</div><div class="dim small" style="font-size:10px;margin-top:2px">'+b.w+'W · '+b.d+'D · '+b.l+'L'+(total?' · '+pct+'% of your games':'')+'</div></div>';
+}
+function trkSpark(pts,w,h){
+  if(!pts||pts.length<2)return '';
+  w=w||300;h=h||60;
+  const rs=pts.map(p=>p.r),lo=Math.min.apply(null,rs),hi=Math.max.apply(null,rs),rng=Math.max(20,hi-lo);
+  const X=i=>4+i*(w-8)/(pts.length-1),Y=r=>4+(h-8)*(1-(r-lo)/rng);
+  const d=pts.map((p,i)=>X(i).toFixed(1)+','+Y(p.r).toFixed(1)).join(' ');
+  return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+
+    '<polyline fill="none" stroke="var(--brand2)" stroke-width="2" points="'+d+'"/></svg>';
+}
+function trkAgo(ts){
+  if(!ts)return '';
+  const d=Math.floor((Date.now()-ts)/86400000);
+  return d<=0?'today':d===1?'yesterday':d<30?d+' days ago':d<365?Math.round(d/30)+' months ago':Math.round(d/365)+' years ago';
+}
+function trkProfileCard(){
+  const P=store.ccProfile;
+  if(!P||!P.profile)return '';
+  const p=P.profile,st=P.stats||{};
+  const flag=P.country&&P.country.name?esc(P.country.name):'';
+  let h='<div class="card" style="margin-bottom:12px"><div class="row" style="gap:12px;align-items:center">'+
+    (p.avatar?'<img src="'+esc(p.avatar)+'" alt="" style="width:64px;height:64px;border-radius:12px;flex:0 0 auto;object-fit:cover">':'')+
+    '<div style="flex:1;min-width:0">'+
+      '<div style="font-weight:800;font-size:17px">'+(p.title?'<span style="color:var(--brand2)">'+esc(p.title)+'</span> ':'')+esc(p.username||'')+
+        (p.verified?' <span title="Verified">✔️</span>':'')+(p.is_streamer?' <span title="Streamer">📺</span>':'')+'</div>'+
+      '<div class="dim small">'+[esc(p.name||''),flag,esc(p.location||'')].filter(Boolean).join(' · ')+'</div>'+
+      '<div class="dim small" style="margin-top:3px">'+
+        (p.followers?'👥 '+p.followers.toLocaleString()+' followers · ':'')+
+        (p.joined?'joined '+new Date(p.joined*1000).getFullYear():'')+
+        (p.last_online?' · last online '+trkAgo(p.last_online*1000):'')+
+        (p.league?' · '+esc(p.league)+' league':'')+
+      '</div>'+
+    '</div>'+
+    (p.url?'<a class="btn ghost sm" style="flex:0 0 auto" target="_blank" rel="noopener" href="'+esc(p.url)+'">Profile ↗</a>':'')+
+  '</div>';
+  // ratings straight from the API
+  const rows=CC_CLASSES.map(function(c){
+    const d=st[c[0]];if(!d||!d.last)return '';
+    const rec=d.record||{},n=(rec.win||0)+(rec.loss||0)+(rec.draw||0);
+    return '<div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-top:1px solid var(--border)">'+
+      '<div style="width:24px;text-align:center;font-size:15px">'+c[2]+'</div>'+
+      '<div style="flex:1;min-width:0"><div style="font-weight:700">'+c[1]+'</div>'+
+        '<div class="dim small">'+(rec.win||0)+'W–'+(rec.draw||0)+'D–'+(rec.loss||0)+'L'+(n?' · '+trkPct(rec.win||0,rec.draw||0,n)+'%':'')+
+        (rec.timeout_percent!=null?' · '+rec.timeout_percent+'% timeouts':'')+'</div></div>'+
+      '<div style="text-align:right"><div style="font-weight:800;font-size:16px">'+d.last.rating+'</div>'+
+        (d.best&&d.best.rating?'<div class="dim small" style="font-size:10px">best '+d.best.rating+'</div>':'')+'</div>'+
+      '</div>';
+  }).filter(Boolean).join('');
+  if(rows)h+='<div style="margin-top:10px">'+rows+'</div>';
+  const extra=[];
+  if(st.tactics&&st.tactics.highest)extra.push('🧩 Puzzles best '+st.tactics.highest.rating);
+  if(st.puzzle_rush&&st.puzzle_rush.best)extra.push('⚡ Puzzle Rush '+st.puzzle_rush.best.score+'/'+st.puzzle_rush.best.total_attempts);
+  if(st.fide)extra.push('🏛️ FIDE '+st.fide);
+  if(extra.length)h+='<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:9px;padding-top:8px;border-top:1px solid var(--border)">'+
+    extra.map(e=>'<span class="chip" style="font-size:11px">'+e+'</span>').join('')+'</div>';
+  return h+'</div>';
+}
+function viewTracker(){
+  const S=trackerStats();
+  let h='<div style="max-width:900px;margin:0 auto">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">'+
+      '<h1 style="font-size:20px;margin:0">📡 Chess.com tracker</h1>'+
+      '<button class="btn sec sm" data-act="nav" data-val="import">📥 Import / refresh</button></div>';
+  h+=trkProfileCard();
+  if(!S.n)
+    return h+'<div class="card"><b>No games loaded yet.</b><div class="dim small" style="margin-top:4px">Import your games and this fills with a full breakdown: how you win and lose, accuracy, opponents, streaks, the hours you play worst, session fatigue, tilt and your clock.</div><div class="row" style="margin-top:10px"><button class="btn primary sm" data-act="nav" data-val="import">Import my games</button></div></div></div>';
+  const cur=trkTab();
+  h+='<div class="ctabs">'+TRK_TABS.map(t=>'<button class="ctab'+(t[0]===cur?' active':'')+'" data-act="trktab" data-val="'+t[0]+'">'+t[1]+' '+t[2]+'</button>').join('')+'</div>';
+
+  if(cur==='overview'){
+    h+='<div class="card" style="margin-bottom:12px"><div class="row" style="flex-wrap:wrap">'+
+      trkStat('Games',S.n,(S.from?new Date(S.from).toLocaleDateString()+' → '+new Date(S.to).toLocaleDateString():''))+
+      trkStat('Score',S.pct+'%',S.all.w+'W–'+S.all.d+'D–'+S.all.l+'L',S.pct>=55?'var(--green)':S.pct<45?'#f87171':'var(--amber)')+
+      trkStat('Avg opponent',S.oppAvg||'—',S.rated?S.rated+' rated':'')+
+      (S.acc?trkStat('Accuracy',S.acc.avg+'%',S.acc.n+' analysed','var(--brand2)'):'')+
+      '</div></div>';
+    h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:5px">By colour</div>'+
+      trkBar('As White',S.byColour.w,S.n)+trkBar('As Black',S.byColour.b,S.n)+
+      (Math.abs(S.colourGap)>=5?'<div class="small" style="margin-top:6px;color:var(--amber)">↪ '+Math.abs(S.colourGap)+' points better as '+(S.colourGap>0?'White':'Black')+'.</div>':'')+
+      '</div>';
+    if(S.byClass.length)
+      h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:5px">By time control</div>'+
+        S.byClass.map(b=>trkBar(esc(b.key),b,S.n)).join('')+'</div>';
+    if(S.streaks)
+      h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:5px">Streaks</div><div class="row" style="flex-wrap:wrap">'+
+        trkStat('Best win run',S.streaks.bestWin,'','var(--green)')+
+        trkStat('Worst losing run',S.streaks.worstLoss,'','#f87171')+
+        trkStat('Unbeaten',S.streaks.bestUnbeaten,'')+
+        trkStat('Current',(S.streaks.currentWin?'+'+S.streaks.currentWin:S.streaks.currentLoss?'−'+S.streaks.currentLoss:'0'),'')+
+        '</div></div>';
+  }
+
+  if(cur==='results'){
+    const ways=(title,list,col)=>list.length?'<div style="margin-bottom:9px"><div class="dim small" style="margin-bottom:3px">'+title+'</div>'+
+      list.map(x=>'<div class="row" style="justify-content:space-between;padding:2px 0"><span class="small">'+esc(trkReasonLabel(x.k))+'</span><b style="color:'+col+'">'+x.n+'</b></div>').join('')+'</div>':'';
+    h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:6px">How your games end</div>'+
+      ways('Wins',S.winWays,'var(--green)')+ways('Losses',S.lossWays,'#f87171')+ways('Draws',S.drawWays,'var(--muted)')+
+      (S.timeoutPct>=15?'<div class="small" style="color:var(--amber)">⏰ '+S.timeoutPct+'% of your losses are on the clock, not the board.</div>':'')+
+      '</div>';
+    if(S.vsStronger&&(S.vsStronger.n+S.vsSimilar.n+S.vsWeaker.n)>=10)
+      h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:5px">By opponent strength</div>'+
+        trkBar('Stronger (+100 and up)',S.vsStronger)+trkBar('Around your level',S.vsSimilar)+trkBar('Weaker (−100 and below)',S.vsWeaker)+
+        (S.bestUpset?'<div class="small" style="margin-top:7px">🏆 Best upset: beat <b>'+esc(S.bestUpset.opp)+'</b> ('+S.bestUpset.oppRating+') at '+S.bestUpset.myRating+((S.bestUpset.url)?' · <a target="_blank" rel="noopener" href="'+esc(S.bestUpset.url)+'">see it ↗</a>':'')+'</div>':'')+
+        '</div>';
+    const curves=Object.keys(S.curve||{});
+    if(curves.length)
+      h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:5px">Rating through these games</div>'+
+        curves.map(function(k){const c=S.curve[k];
+          return '<div style="margin-bottom:8px"><div class="dim small">'+esc(k)+' · '+c.first+' → <b style="color:var(--text)">'+c.last+'</b> ('+(c.delta>=0?'+':'')+c.delta+') · low '+c.min+' / high '+c.max+'</div>'+trkSpark(c.pts)+'</div>';
+        }).join('')+'</div>';
+    if(S.byLength)
+      h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:5px">By game length</div>'+
+        '<div class="dim small" style="margin-bottom:4px">Average '+S.len.avg+' moves · shortest '+S.len.min+' · longest '+S.len.max+'</div>'+
+        S.byLength.map(b=>trkBar(b.label+' moves',b)).join('')+'</div>';
+    if(S.acc)
+      h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:5px">Accuracy</div><div class="row" style="flex-wrap:wrap">'+
+        trkStat('Average',S.acc.avg+'%','over '+S.acc.n+' games')+
+        (S.acc.wins!=null?trkStat('In wins',S.acc.wins+'%','','var(--green)'):'')+
+        (S.acc.losses!=null?trkStat('In losses',S.acc.losses+'%','','#f87171'):'')+
+        (S.acc.opp!=null?trkStat('Opponents',S.acc.opp+'%',''):'')+
+        '</div>'+(S.acc.best?'<div class="small" style="margin-top:6px">✨ Best game: '+S.acc.best.acc+'% vs '+esc(S.acc.best.opp||'?')+(S.acc.best.url?' · <a target="_blank" rel="noopener" href="'+esc(S.acc.best.url)+'">see it ↗</a>':'')+'</div>':'')+'</div>';
+  }
+
+  if(cur==='openings'){
+    if(S.firstMoves.length)
+      h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:5px">Your first move as White</div>'+
+        S.firstMoves.map(b=>trkBar(esc(b.key),b,S.byColour.w.n)).join('')+'</div>';
+    ['e4','d4'].forEach(function(k){
+      const list=S.replies[k];
+      if(list&&list.length)
+        h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:5px">Your answer to 1.'+k+'</div>'+
+          list.map(b=>trkBar('1…'+esc(b.key),b)).join('')+'</div>';
+    });
+    if(S.byEco.length)
+      h+='<div class="card" style="padding:0;margin-bottom:12px"><div style="padding:11px 13px;border-bottom:1px solid var(--border);font-weight:700">Openings by name <span class="dim small" style="font-weight:600">· from Chess.com’s own classification</span></div>'+
+        S.byEco.map(function(b){const col=b.pct>=55?'var(--green)':b.pct<45?'#f87171':'var(--amber)';
+          return '<div style="display:flex;align-items:center;gap:10px;padding:8px 13px;border-top:1px solid var(--border)">'+
+            '<div style="flex:1;min-width:0"><div class="small" style="font-weight:600">'+esc(b.name)+'</div>'+
+            '<div class="dim small">'+b.n+' games · '+b.w+'W–'+b.d+'D–'+b.l+'L</div></div>'+
+            '<div style="width:46px;text-align:right;font-weight:800;color:'+col+'">'+b.pct+'%</div></div>';
+        }).join('')+'</div>';
+    h+='<div class="card"><div class="small">For the line-by-line version — where you leave the book and what to drill — see <b>Import my games</b>.</div>'+
+      '<div class="row" style="margin-top:8px"><button class="btn sec sm" data-act="nav" data-val="import">📥 Open it</button></div></div>';
+  }
+
+  if(cur==='clock'){
+    if(S.time)
+      h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:5px">Your clock</div><div class="row" style="flex-wrap:wrap">'+
+        trkStat('Sec / move',S.time.avgSec,'over '+S.time.n+' games')+
+        trkStat('Longest think',S.time.maxThink+'s','')+
+        trkStat('Time scrambles',S.time.scrambles,'finished under 8%')+
+        (S.time.scrambleRecord.n?trkStat('Score there',S.time.scrambleRecord.pct+'%','',S.time.scrambleRecord.pct<S.pct?'#f87171':'var(--green)'):'')+
+        '</div>'+
+        (S.time.scrambles&&S.time.scrambleRecord.pct<S.pct?'<div class="small" style="margin-top:6px;color:var(--amber)">↪ You score '+(S.pct-S.time.scrambleRecord.pct)+' points worse when you let the clock get that low.</div>':'')+
+        '</div>';
+    else h+='<div class="card" style="margin-bottom:12px"><div class="dim small">No clock data in these games — Chess.com only records it for live games, not daily.</div></div>';
+    if(S.byHour.length){
+      const mx=Math.max.apply(null,S.byHour.map(b=>b.n));
+      h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:5px">By hour of day <span class="dim small" style="font-weight:600">· your local time</span></div>'+
+        '<div style="display:flex;align-items:flex-end;gap:2px;height:74px;margin-top:6px">'+
+        S.byHour.map(function(b){const col=b.n<3?'#334155':b.pct>=55?'#22c55e':b.pct<45?'#f43f5e':'#f59e0b';
+          return '<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%" title="'+b.h+':00 — '+b.n+' games, '+b.pct+'%">'+
+            '<i style="display:block;background:'+col+';height:'+Math.max(3,b.n/mx*100)+'%;border-radius:2px 2px 0 0"></i></div>';
+        }).join('')+'</div>'+
+        '<div class="row" style="justify-content:space-between"><span class="dim small">00</span><span class="dim small">12</span><span class="dim small">23</span></div>'+
+        '<div class="dim small" style="font-size:10px">Bar height is how many games; colour is your score. Grey means too few to judge.</div>'+
+        (S.bestHour&&S.worstHour?'<div class="small" style="margin-top:6px">Best at <b>'+S.bestHour.h+':00</b> ('+S.bestHour.pct+'%), worst at <b>'+S.worstHour.h+':00</b> ('+S.worstHour.pct+'%).</div>':'')+
+        '</div>';
+    }
+    if(S.byDay.length)
+      h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:5px">By day of week</div>'+
+        S.byDay.filter(b=>b.n).map(b=>'<div class="row" style="justify-content:space-between;padding:2px 0"><span class="small">'+b.name+'</span><span class="small"><b>'+b.pct+'%</b> <span class="dim">'+b.n+' games</span></span></div>').join('')+'</div>';
+    if(S.sessions)
+      h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:5px">Sessions</div>'+
+        '<div class="dim small" style="margin-bottom:5px">'+S.sessions.n+' sittings · '+S.sessions.avgLen+' games each on average · longest '+S.sessions.longest+'</div>'+
+        (S.sessions.late.n>=5
+          ? trkBar('First three of a session',S.sessions.early)+trkBar('Everything after',S.sessions.late)
+          : '<div class="dim small">Your sittings are too short to compare — this needs a few sessions of five games or more.</div>')+'</div>';
+    if(S.tilt&&(S.tilt.afterWin.n+S.tilt.afterLoss.n)>=10)
+      h+='<div class="card"><div style="font-weight:700;margin-bottom:5px">After a win vs after a loss</div>'+
+        trkBar('Following a win',S.tilt.afterWin)+trkBar('Following a loss',S.tilt.afterLoss)+
+        (S.tilt.swing>=8?'<div class="small" style="margin-top:6px;color:var(--amber)">↪ A loss costs you '+S.tilt.swing+' points on the very next game.</div>':'')+'</div>';
+  }
+
+  if(cur==='insights'){
+    const ins=trackerInsights(S);
+    if(!ins.length)
+      h+='<div class="card"><b>Not enough to say yet.</b><div class="dim small" style="margin-top:4px">Import more games — a hundred or so is where the patterns start to separate from noise.</div></div>';
+    else{
+      h+='<div class="dim small" style="margin-bottom:8px">Ranked by how much they look worth acting on.</div>';
+      ins.forEach(function(x){
+        h+='<div class="card" style="margin-bottom:9px"><div class="row" style="gap:10px;align-items:flex-start">'+
+          '<span style="font-size:19px;flex:0 0 auto">'+x.e+'</span>'+
+          '<span class="small" style="line-height:1.55">'+esc(x.t)+'</span></div></div>';
+      });
+    }
+  }
+  return h+'</div>';
 }
 
 /* ---- the voice itself ---- */
@@ -6852,34 +7356,35 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='careerchal')startChallenge(val);
   else if(act==='plansay'){var _pt=(app.view==='explore')?exPlanText():(app.cl?explainPlan(app.cl.fen,app.cl.hero):null);if(_pt)Voice.say(_pt,true);}
   else if(act==='voicetest'){Voice.say('Knight f3 develops the knight and takes aim at the centre, covering e5 and d4.',true);}
-  else if(act==='coachtoggle'){store.settings.voiceOn=!store.settings.voiceOn;if(!store.settings.voiceOn)Voice.stop();save();}
+  else if(act==='coachtoggle'){store.settings.voiceOn=!store.settings.voiceOn;if(!store.settings.voiceOn)Voice.stop();save();render();}
   else if(act==='coachsay'){var _ct=(app.view==='explore')?exCoachText():(app.view==='clearn'?((app.cl&&app.cl.whyNot)||(app.cl&&app.cl.reveal&&app.cl.reveal.text)||(app.cl&&app.cl.oppNote)):(app.whyNot||app.coachNote));if(_ct)Voice.say(_ct,true);}
   else if(act==='dailyans'){app.dailyFeedback=null;dailyAnswer(parseInt(val,10));return;}
-  else if(act==='impsrc'){app.impSrc=val;app.imp=null;}
+  else if(act==='trktab'){app.trkTab=val;render();}
+  else if(act==='impsrc'){app.impSrc=val;app.imp=null;render();}
   else if(act==='impgo'){
     var _u=document.getElementById('imp-user'),_m=document.getElementById('imp-max');
     app.impUser=_u?_u.value.trim():'';app.impMax=_m?(+_m.value||200):200;
-    if(!app.impUser){app.imp={status:'error',msg:'Type your username first.'};}
+    if(!app.impUser){app.imp={status:'error',msg:'Type your username first.'};render();}
     else{runImport();return;}
   }
-  else if(act==='impclear'){uiConfirm('Remove the imported games from this browser?',function(){store.myGames=[];store.myGamesMeta=null;app.imp=null;save();});}
-  else if(act==='impaddall'){var _pc=personalCourse();_pc.course.forEach(function(r){if(r.id&&!inRep(r.id))addRep(r.id);});save();}
-  else if(act==='seasondismiss'){store.career.seasonReview=null;save();}
+  else if(act==='impclear'){uiConfirm('Remove the imported games from this browser?',function(){store.myGames=[];store.myGamesMeta=null;app.imp=null;store.ccProfile=null;save();});}
+  else if(act==='impaddall'){var _pc=personalCourse();_pc.course.forEach(function(r){if(r.id&&!inRep(r.id))addRep(r.id);});save();render();}
+  else if(act==='seasondismiss'){store.career.seasonReview=null;save();render();}
   else if(act==='profile'){if(val)profileOpen(val);}
   else if(act==='specvs'){var _sp=buildWorld().filter(function(x){return x.id===val;})[0];if(_sp){var _fmt='classical';var _list=worldRanking(store.career,_fmt).filter(function(x){return !x.you&&x.id!==val;});var _o=_list[Math.floor(Math.random()*Math.min(12,_list.length))]||_list[0];if(_o)startSpectate({name:_sp.name,flag:_sp.flag,rating:wpRating(_sp,_fmt),real:_sp.real},_o);}}
   else if(act==='doday')doDay(val);
-  else if(act==='movehome'){var _mc=store.career;var _hm=HOMES.filter(function(x){return x.id===val;})[0];if(_hm&&!homeLocked(_mc,_hm)){_mc.home=_hm.id;pushNews(_mc,_hm.e,'You moved into '+_hm.n.toLowerCase()+' — 💰'+_hm.rent+' a week.');toastAdd(_hm.e+' Moved in: '+_hm.n);save();}}
-  else if(act==='avset'){var _av=store.career;var _p=String(val).split(':');if(_p.length===2){if(_p[0]==='acc'&&!avAccUnlocked(_av,_p[1])){app.careerToast='🔒 '+AV_ACC_LOCK[_p[1]].lbl+' to unlock that.';}else{avatarOf(_av)[_p[0]]=_p[1];_av.avatarStyle='char';save();}}}
-  else if(act==='avrandom'){var _ar=store.career;var _na=avatarFromSeed((Math.random()*0xffffffff)>>>0);if(!avAccUnlocked(_ar,_na.acc))_na.acc='none';_ar.avatar=_na;_ar.avatarStyle='char';save();}
-  else if(act==='avstyle'){var _as=store.career;_as.avatarStyle=_as.avatarStyle==='piece'?'char':'piece';save();}
-  else if(act==='parkstake'){app.parkStake=parseInt(val,10)||0;}
+  else if(act==='movehome'){var _mc=store.career;var _hm=HOMES.filter(function(x){return x.id===val;})[0];if(_hm&&!homeLocked(_mc,_hm)){_mc.home=_hm.id;pushNews(_mc,_hm.e,'You moved into '+_hm.n.toLowerCase()+' — 💰'+_hm.rent+' a week.');toastAdd(_hm.e+' Moved in: '+_hm.n);save();}render();}
+  else if(act==='avset'){var _av=store.career;var _p=String(val).split(':');if(_p.length===2){if(_p[0]==='acc'&&!avAccUnlocked(_av,_p[1])){app.careerToast='🔒 '+AV_ACC_LOCK[_p[1]].lbl+' to unlock that.';}else{avatarOf(_av)[_p[0]]=_p[1];_av.avatarStyle='char';save();}}render();}
+  else if(act==='avrandom'){var _ar=store.career;var _na=avatarFromSeed((Math.random()*0xffffffff)>>>0);if(!avAccUnlocked(_ar,_na.acc))_na.acc='none';_ar.avatar=_na;_ar.avatarStyle='char';save();render();}
+  else if(act==='avstyle'){var _as=store.career;_as.avatarStyle=_as.avatarStyle==='piece'?'char':'piece';save();render();}
+  else if(act==='parkstake'){app.parkStake=parseInt(val,10)||0;render();}
   else if(act==='parkplay')startParkGame(val);
-  else if(act==='parkwalk'){app.parkDouble=null;}
+  else if(act==='parkwalk'){app.parkDouble=null;render();}
   else if(act==='parkdouble'){var _pd=app.parkDouble;if(_pd){var _h=parkById(_pd.id);if(_h){var _i=_h.stakes.indexOf(parkStakeOf(_h));app.parkStake=Math.min(_h.stakes.length-1,(_i<0?0:_i)+1);}app.parkDouble=null;startParkGame(_pd.id);}}
   else if(act==='simulstart')startSimul(val);
-  else if(act==='feedall'){app.feedAll=!app.feedAll;}
-  else if(act==='brildel'){(store.brilliancies||[]).splice(parseInt(val,10),1);save();}
-  else if(act==='arcchoice'){arcChoose(store.career,parseInt(val,10));save();}
+  else if(act==='feedall'){app.feedAll=!app.feedAll;render();}
+  else if(act==='brildel'){(store.brilliancies||[]).splice(parseInt(val,10),1);save();render();}
+  else if(act==='arcchoice'){arcChoose(store.career,parseInt(val,10));save();render();}
   else if(act==='chalfmt'){app.chalFormat=val;render();}
   else if(act==='lbfmt'){app.lbFormat=val;render();}
   else if(act==='careerdismiss'){app.careerFinish=null;render();}
