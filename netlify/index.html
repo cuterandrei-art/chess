@@ -4415,13 +4415,13 @@ function checkTitles(c){const got=[];const peak=titlePeak(c);
     c.titles.push(d.t);got.push(d.t);
   }
   return got;}
-const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',blunderWarn:true,srsSkip:true,voiceOn:false,voiceName:'',voiceRate:1},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},myGames:[],myGamesMeta:null,ccProfile:null,daily:null,brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null}};
+const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',blunderWarn:true,srsSkip:true,voiceOn:false,voiceName:'',voiceRate:1},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},myGames:[],myGamesMeta:null,ccProfile:null,ccAccount:null,daily:null,brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null}};
 function freshCareer(){return JSON.parse(JSON.stringify(DEF.career));}
 /* Migrate saved career data: the old ladder (with `beaten`/`results`) is reset
    to the new FIDE structure; new-format saves are merged onto fresh defaults. */
 function migrateCareer(d){if(!d||typeof d!=='object'||('beaten'in d)||!('setup'in d))return freshCareer();return Object.assign(freshCareer(),d);}
 let store=DEF;
-try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],courseProgress:d.courseProgress||{},settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],myGames:d.myGames||[],myGamesMeta:d.myGamesMeta||null,ccProfile:d.ccProfile||null,daily:d.daily||null,brilliancies:d.brilliancies||[],career:migrateCareer(d.career)};}catch(e){}
+try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],courseProgress:d.courseProgress||{},settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],myGames:d.myGames||[],myGamesMeta:d.myGamesMeta||null,ccProfile:d.ccProfile||null,ccAccount:d.ccAccount||null,daily:d.daily||null,brilliancies:d.brilliancies||[],career:migrateCareer(d.career)};}catch(e){}
 function rebuildOpenings(){const cust=(store.custom||[]).map(d=>{try{return buildOpening(d);}catch(e){return null;}}).filter(Boolean);BUILT=BASE.concat(cust);byId=new Map(BUILT.map(o=>[o.id,o]));}
 rebuildOpenings();
 function save(){localStorage.setItem(LS,JSON.stringify(store));}
@@ -4441,7 +4441,7 @@ function delRep(id){store.repertoire=store.repertoire.filter(x=>x!==id);save();}
 /* ============================== app state ============================== */
 const app={view:'career',exId:null,exPath:[],exFlip:false,courseId:null,setupOpening:'',
   pz:null,pzSeen:new Set(),pzFilter:{type:'auto'},rush:null,
-  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
+  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,ccSyncing:false,ccSyncMsg:null,ccSyncErr:null,_ccAutoTried:false,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
   confirm:null,
   review:null,studyId:null,studyChapter:0,studyPath:[],studyFlip:false,studyMsg:null,
 
@@ -5540,9 +5540,19 @@ function impResultFromPgn(h,color){
   return null;
 }
 /* ---- the two sources ---- */
-async function impFetchChessCom(user,maxGames,onStep){
+/* A month archive's url ends in /YYYY/MM. If the whole month finished before
+   the newest game we already hold, there is nothing in it to fetch. */
+function ccArchiveEndsBefore(url,sinceTs){
+  if(!sinceTs)return false;
+  const m=/\/(\d{4})\/(\d{2})\s*$/.exec(String(url||''));
+  if(!m)return false;
+  const y=+m[1],mo=+m[2];
+  return Date.UTC(mo===12?y+1:y,mo===12?0:mo,1)<=sinceTs;   // start of the next month
+}
+async function impFetchChessCom(user,maxGames,onStep,sinceTs){
   const u=String(user||'').trim().toLowerCase();
   if(!u)throw new Error('Enter your Chess.com username.');
+  const since=+sinceTs||0;
   onStep&&onStep('Looking up your archive…');
   const ar=await fetch('https://api.chess.com/pub/player/'+encodeURIComponent(u)+'/games/archives');
   if(ar.status===404)throw new Error('Chess.com has no player called “'+user+'”.');
@@ -5552,12 +5562,14 @@ async function impFetchChessCom(user,maxGames,onStep){
   const out=[];
   // newest months first, and only as many as we need — be kind to the API
   for(let i=list.length-1;i>=0&&out.length<maxGames;i--){
+    if(ccArchiveEndsBefore(list[i],since))break;   // older months hold nothing new
     onStep&&onStep('Reading '+(list.length-i)+' month'+(list.length-i>1?'s':'')+'… '+out.length+' games so far');
     let j;
     try{const r=await fetch(list[i]);if(!r.ok)continue;j=await r.json();}catch(e){continue;}
     for(const g of (j.games||[])){
       if(out.length>=maxGames)break;
       if(g.rules&&g.rules!=='chess')continue;
+      if(since&&(g.end_time||0)*1000<=since)continue;
       const w=(g.white&&g.white.username||'').toLowerCase();
       const b=(g.black&&g.black.username||'').toLowerCase();
       const color=w===u?'w':(b===u?'b':null);
@@ -5761,6 +5773,7 @@ function viewImport(){
   const srcBtn=(k,l)=>'<button class="btn '+(src===k?'primary':'ghost')+' sm" data-act="impsrc" data-val="'+k+'">'+l+'</button>';
   let h='<div style="max-width:880px;margin:0 auto"><h1>📥 Build a course from your own games</h1>'+
     '<div class="muted small" style="margin:6px 0 14px">Your repertoire is what you meant to play. Your games are what actually happens. This reads them, finds where you leave the book, and puts the lines you lose in at the top.</div>';
+  if(ccConnected())h+=ccConnectCard();
   h+='<div class="card" style="margin-bottom:12px">'+
     '<div class="row" style="gap:6px;margin-bottom:9px">'+srcBtn('chesscom','♟ Chess.com')+srcBtn('lichess','🐴 Lichess')+'</div>'+
     '<div class="row" style="gap:8px;flex-wrap:wrap;align-items:flex-end">'+
@@ -6331,11 +6344,13 @@ function trkProfileCard(){
   return h+'</div>';
 }
 function viewTracker(){
+  ccAutoSync();
   const S=trackerStats();
   let h='<div style="max-width:900px;margin:0 auto">'+
     '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">'+
       '<h1 style="font-size:20px;margin:0">📡 Chess.com tracker</h1>'+
       '<button class="btn sec sm" data-act="nav" data-val="import">📥 Import / refresh</button></div>';
+  h+=ccConnectCard();
   h+=trkProfileCard();
   if(!S.n)
     return h+'<div class="card"><b>No games loaded yet.</b><div class="dim small" style="margin-top:4px">Import your games and this fills with a full breakdown: how you win and lose, accuracy, opponents, streaks, the hours you play worst, session fatigue, tilt and your clock.</div><div class="row" style="margin-top:10px"><button class="btn primary sm" data-act="nav" data-val="import">Import my games</button></div></div></div>';
@@ -6471,6 +6486,163 @@ function viewTracker(){
     }
   }
   return h+'</div>';
+}
+
+/* ===================== CONNECTING AN ACCOUNT =====================
+   Chess.com's public API has no login: no OAuth, no token, no password. Every
+   endpoint used here is readable by anyone who knows the username, so
+   "connecting" cannot mean authenticating — and it does not need to. What it
+   does mean is that the account is remembered and kept up to date: the app
+   checks the name really exists, stores it, and from then on syncs only the
+   games it has not seen, automatically when you are online. */
+function ccIsOnline(){
+  try{return (typeof navigator==='undefined'||navigator.onLine===undefined)?true:!!navigator.onLine;}catch(e){return true;}
+}
+function ccAccount(){return store.ccAccount||null;}
+function ccConnected(){const a=ccAccount();return !!(a&&a.user);}
+/* Check the account exists, then remember it. */
+async function ccConnect(user,onStep){
+  const u=String(user||'').trim();
+  if(!u)throw new Error('Type your Chess.com username first.');
+  if(!ccIsOnline())throw new Error('You are offline — connect to the internet and try again.');
+  const prof=await ccFetchProfile(u,onStep);                 // throws a clear error on 404
+  store.ccAccount={src:'chesscom',user:(prof.profile&&prof.profile.username)||u,
+    connectedAt:Date.now(),lastSync:0,lastGameTs:0,autoSync:true};
+  store.ccProfile=prof;
+  save();
+  return store.ccAccount;
+}
+function ccDisconnect(){
+  store.ccAccount=null;
+  save();
+}
+/* Merge freshly fetched games into what we already have, newest first, without
+   duplicating anything. A game's url is its identity; where that is missing we
+   fall back to the finish time and the opponent. */
+function ccMergeGames(existing,incoming){
+  const key=g=>g.url||((g.date||0)+'|'+(g.opp||''));
+  const seen={},out=[];
+  for(const g of (incoming||[]).concat(existing||[])){
+    const k=key(g);
+    if(seen[k])continue;
+    seen[k]=1;out.push(g);
+  }
+  out.sort((a,b)=>(b.date||0)-(a.date||0));
+  if(out.length>600)out.length=600;
+  return out;
+}
+/* Sync the connected account. Incremental by default: only the months that
+   could hold something new, and within those only games finished after the
+   newest one already stored. */
+async function ccSync(opts){
+  opts=opts||{};
+  const a=ccAccount();
+  if(!a||!a.user)throw new Error('No account connected.');
+  if(!ccIsOnline())throw new Error('You are offline — nothing to sync until you are back.');
+  const full=!!opts.full;
+  const since=full?0:(a.lastGameTs||0);
+  const step=opts.onStep||function(){};
+  const fresh=await impFetchChessCom(a.user,full?Math.max(10,Math.min(600,+app.impMax||200)):400,step,since);
+  const before=(store.myGames||[]).length;
+  // a full re-import replaces this account's games and leaves other sources alone
+  const keep=full?(store.myGames||[]).filter(g=>g.src!=='chesscom'):(store.myGames||[]);
+  store.myGames=ccMergeGames(keep,fresh);
+  const added=full?fresh.length:Math.max(0,store.myGames.length-before);
+  const newest=(store.myGames||[]).reduce((m,g)=>Math.max(m,g.date||0),0);
+  a.lastSync=Date.now();
+  a.lastGameTs=newest;
+  store.myGamesMeta={src:'chesscom',user:a.user,at:Date.now(),n:store.myGames.length};
+  // refresh the profile and ratings too — they move between syncs
+  try{store.ccProfile=await ccFetchProfile(a.user,step);}catch(e){}
+  save();
+  return {added:added,total:store.myGames.length};
+}
+function ccSyncAge(){
+  const a=ccAccount();
+  if(!a||!a.lastSync)return null;
+  return Date.now()-a.lastSync;
+}
+function ccSyncLabel(){
+  const ms=ccSyncAge();
+  if(ms==null)return 'never synced';
+  const m=Math.floor(ms/60000);
+  if(m<1)return 'synced just now';
+  if(m<60)return 'synced '+m+' min ago';
+  const h=Math.floor(m/60);
+  if(h<24)return 'synced '+h+' hour'+(h>1?'s':'')+' ago';
+  const d=Math.floor(h/24);
+  return 'synced '+d+' day'+(d>1?'s':'')+' ago';
+}
+/* Run a sync from the UI, keeping the button honest about what it is doing. */
+async function ccSyncNow(full){
+  if(app.ccSyncing)return;
+  app.ccSyncing=true;app.ccSyncMsg='Syncing…';app.ccSyncErr=null;render();
+  try{
+    const r=await ccSync({full:!!full,onStep:function(m){app.ccSyncMsg=m;render();}});
+    app.ccSyncMsg=r.added?('Added '+r.added+' new game'+(r.added===1?'':'s')+'.'):'Already up to date.';
+  }catch(e){
+    app.ccSyncErr=(e&&e.message)||'Sync failed.';app.ccSyncMsg=null;
+  }
+  app.ccSyncing=false;render();
+}
+/* Connect from the UI, then pull the games straight away — connecting with
+   nothing to show for it would be a button that appears to do nothing. */
+async function ccConnectThenSync(){
+  if(app.ccSyncing)return;
+  app.ccSyncing=true;app.ccSyncMsg='Checking the account…';app.ccSyncErr=null;render();
+  try{
+    await ccConnect(app.impUser,function(m){app.ccSyncMsg=m;render();});
+  }catch(e){
+    app.ccSyncErr=(e&&e.message)||'Could not connect.';app.ccSyncMsg=null;app.ccSyncing=false;render();
+    return;
+  }
+  app.ccSyncing=false;app.ccSyncMsg=null;app._ccAutoTried=true;render();
+  await ccSyncNow(false);        // lastGameTs is 0, so this reads the archive
+}
+/* Once per page load, quietly catch up if the account is connected, we are
+   online and it has been a while. Never blocks the page and never loops. */
+const CC_AUTO_MS=6*3600*1000;
+function ccAutoSync(){
+  const a=ccAccount();
+  if(!a||!a.user||!a.autoSync||app.ccSyncing||app._ccAutoTried)return;
+  if(!ccIsOnline())return;
+  const age=ccSyncAge();
+  if(age!=null&&age<CC_AUTO_MS)return;
+  app._ccAutoTried=true;                       // one attempt per page load
+  setTimeout(function(){ccSyncNow(false);},400);
+}
+function ccConnectCard(){
+  const a=ccAccount(),online=ccIsOnline();
+  if(!a||!a.user){
+    return '<div class="card" style="margin-bottom:12px;border-color:var(--brand2)">'+
+      '<div style="font-weight:700;margin-bottom:3px">🔗 Connect your Chess.com account</div>'+
+      '<div class="dim small" style="margin-bottom:8px">Chess.com’s public API has no login — there is no password or token to give, and everything here is data anyone can read from your username. Connecting just means the app remembers the account and keeps it up to date by itself.</div>'+
+      '<div class="row" style="gap:8px;flex-wrap:wrap;align-items:flex-end">'+
+        '<div style="flex:1;min-width:150px"><div class="dim small" style="margin-bottom:3px">Username</div>'+
+        '<input id="cc-user" type="text" autocapitalize="off" spellcheck="false" placeholder="username" value="'+esc(app.impUser||'')+'" style="width:100%"></div>'+
+        '<button class="btn primary" data-act="ccconnect"'+(app.ccSyncing||!online?' disabled':'')+'>'+(app.ccSyncing?'Checking…':'Connect')+'</button>'+
+      '</div>'+
+      (!online?'<div class="note" style="margin-top:9px">📴 You are offline. Everything already imported still works — connect when you are back on the internet.</div>':'')+
+      (app.ccSyncErr?'<div class="note" style="margin-top:9px;border-color:#7f1d1d;background:#7f1d1d22;color:#fca5a5">⚠️ '+esc(app.ccSyncErr)+'</div>':'')+
+      '</div>';
+  }
+  return '<div class="card" style="margin-bottom:12px;border-color:var(--green)">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<div style="min-width:0"><div style="font-weight:700">🔗 Connected as '+esc(a.user)+
+        (online?'':' <span class="chip" style="font-size:10px">📴 offline</span>')+'</div>'+
+        '<div class="dim small">'+ccSyncLabel()+' · '+((store.myGames||[]).length)+' games stored'+
+        (a.autoSync?' · auto-sync on':' · auto-sync off')+'</div></div>'+
+      '<div class="row" style="gap:6px;flex-wrap:wrap;min-width:0">'+
+        '<button class="btn primary sm" data-act="ccsync"'+(app.ccSyncing||!online?' disabled':'')+'>'+(app.ccSyncing?'Syncing…':'⟳ Sync now')+'</button>'+
+        '<button class="btn ghost sm" data-act="ccauto">'+(a.autoSync?'Auto: on':'Auto: off')+'</button>'+
+        '<button class="btn ghost sm" data-act="ccfull"'+(app.ccSyncing||!online?' disabled':'')+'>Re-import all</button>'+
+        '<button class="btn ghost sm" data-act="ccdisconnect">Disconnect</button>'+
+      '</div></div>'+
+    (app.ccSyncing&&app.ccSyncMsg?'<div class="note" style="margin-top:9px">⏳ '+esc(app.ccSyncMsg)+'</div>':'')+
+    (!app.ccSyncing&&app.ccSyncMsg?'<div class="note" style="margin-top:9px;border-color:#14532d;background:#052e1655;color:#86efac">✓ '+esc(app.ccSyncMsg)+'</div>':'')+
+    (app.ccSyncErr?'<div class="note" style="margin-top:9px;border-color:#7f1d1d;background:#7f1d1d22;color:#fca5a5">⚠️ '+esc(app.ccSyncErr)+'</div>':'')+
+    (!online?'<div class="dim small" style="margin-top:8px">Offline — the numbers below are from the last sync.</div>':'')+
+    '</div>';
 }
 
 /* ---- the voice itself ---- */
@@ -7360,6 +7532,17 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='coachsay'){var _ct=(app.view==='explore')?exCoachText():(app.view==='clearn'?((app.cl&&app.cl.whyNot)||(app.cl&&app.cl.reveal&&app.cl.reveal.text)||(app.cl&&app.cl.oppNote)):(app.whyNot||app.coachNote));if(_ct)Voice.say(_ct,true);}
   else if(act==='dailyans'){app.dailyFeedback=null;dailyAnswer(parseInt(val,10));return;}
   else if(act==='trktab'){app.trkTab=val;render();}
+  else if(act==='ccconnect'){
+    var _cc=document.getElementById('cc-user');
+    app.impUser=_cc?_cc.value.trim():(app.impUser||'');
+    app.ccSyncMsg=null;app.ccSyncErr=null;
+    if(!app.impUser){app.ccSyncErr='Type your Chess.com username first.';render();}
+    else{ccConnectThenSync();return;}
+  }
+  else if(act==='ccsync'){ccSyncNow(false);return;}
+  else if(act==='ccfull'){uiConfirm('Read your whole archive again and replace the Chess.com games stored here?',function(){ccSyncNow(true);});}
+  else if(act==='ccauto'){var _ca=ccAccount();if(_ca){_ca.autoSync=!_ca.autoSync;save();}render();}
+  else if(act==='ccdisconnect'){uiConfirm('Disconnect this account? The games already here stay — they just stop updating on their own.',function(){ccDisconnect();app.ccSyncMsg=null;app.ccSyncErr=null;app._ccAutoTried=false;});}
   else if(act==='impsrc'){app.impSrc=val;app.imp=null;render();}
   else if(act==='impgo'){
     var _u=document.getElementById('imp-user'),_m=document.getElementById('imp-max');
@@ -7367,7 +7550,7 @@ document.getElementById('app').addEventListener('click',e=>{
     if(!app.impUser){app.imp={status:'error',msg:'Type your username first.'};render();}
     else{runImport();return;}
   }
-  else if(act==='impclear'){uiConfirm('Remove the imported games from this browser?',function(){store.myGames=[];store.myGamesMeta=null;app.imp=null;store.ccProfile=null;save();});}
+  else if(act==='impclear'){uiConfirm('Remove the imported games from this browser?',function(){store.myGames=[];store.myGamesMeta=null;app.imp=null;store.ccProfile=null;var _cl=ccAccount();if(_cl){_cl.lastGameTs=0;_cl.lastSync=0;}app.ccSyncMsg=null;app._ccAutoTried=false;save();});}
   else if(act==='impaddall'){var _pc=personalCourse();_pc.course.forEach(function(r){if(r.id&&!inRep(r.id))addRep(r.id);});save();render();}
   else if(act==='seasondismiss'){store.career.seasonReview=null;save();render();}
   else if(act==='profile'){if(val)profileOpen(val);}
@@ -11178,6 +11361,9 @@ function viewStudyOpen(){
   return h;
 }
 
+/* The connect card reports whether you are online, so it must be told. */
+window.addEventListener('online',function(){app._ccAutoTried=false;render();});
+window.addEventListener('offline',function(){render();});
 window.addEventListener('keydown',e=>{
   if(e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;
   if(app.view==='explore'){

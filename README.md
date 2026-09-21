@@ -11,6 +11,24 @@ it has loaded once it works with no internet at all.
 
 ---
 
+## Connecting your Chess.com account
+
+The tracker can read your real games. Chess.com's public API has **no login** —
+no OAuth, no token, no password — so connecting is not authentication: every
+endpoint the app touches is readable by anyone who knows the username, and the
+only thing stored is that username. What connecting buys you is that it is
+remembered and kept current: open **Learn → Chess.com tracker**, type your name
+once, and from then on the app syncs by itself whenever you are online and the
+last sync is more than six hours old.
+
+Syncs are incremental. The app remembers the finish time of the newest game it
+holds, skips every archive month that closed before it, and inside the months it
+does read ignores anything already seen — so a catch-up after a session costs
+one request, not a crawl of your whole history. *Re-import all* forces a full
+re-read and leaves games imported from Lichess untouched. Offline, the card
+says so, the buttons go quiet, and every number below it still works from the
+last sync.
+
 ## Get it on your phone
 
 **Android app (recommended).** Every push builds an installable APK and attaches
