@@ -4388,7 +4388,7 @@ function checkTitles(c){const got=[];const peak=titlePeak(c);
     c.titles.push(d.t);got.push(d.t);
   }
   return got;}
-const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',voiceOn:false,voiceName:'',voiceRate:1},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null}};
+const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',blunderWarn:true,voiceOn:false,voiceName:'',voiceRate:1},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null}};
 function freshCareer(){return JSON.parse(JSON.stringify(DEF.career));}
 /* Migrate saved career data: the old ladder (with `beaten`/`results`) is reset
    to the new FIDE structure; new-format saves are merged onto fresh defaults. */
@@ -4414,7 +4414,7 @@ function delRep(id){store.repertoire=store.repertoire.filter(x=>x!==id);save();}
 /* ============================== app state ============================== */
 const app={view:'career',exId:null,exPath:[],exFlip:false,courseId:null,setupOpening:'',
   pz:null,pzSeen:new Set(),pzFilter:{type:'auto'},rush:null,
-  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,coachNote:null,parkBet:null,parkStake:0,parkDouble:null,
+  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,coachNote:null,whyNot:null,blunderNote:null,parkBet:null,parkStake:0,parkDouble:null,
   confirm:null,
   review:null,studyId:null,studyChapter:0,studyPath:[],studyFlip:false,studyMsg:null,
 
@@ -4809,6 +4809,10 @@ function exLastMove(){
   const prev=app.exPath.length>1?app.exPath[app.exPath.length-2]:o.root;
   return {fenBefore:prev.fen,san:node.move,note:node.comment||null};
 }
+function exPlanText(){
+  const o=byId.get(app.exId);if(!o)return null;
+  return explainPlan(exFen(),o.side==='white'?'w':'b');
+}
 function exCoachText(){
   const lm=exLastMove();if(!lm)return null;
   if(lm.note)return lm.note;
@@ -5063,6 +5067,194 @@ function explainMove(fenBefore,san,opts){
   if(caveat)text+=' '+caveat;
   return {san:mv.san,text:text,facts:facts,caveat:caveat};
 }
+/* ---- one-ply static exchange: what is the best capture available here, and
+   is it actually winning material once the recapture is counted? ---- */
+function vxBestCapture(fen){
+  var g;try{g=new Chess(fen);}catch(e){return null;}
+  var best=null,ms;
+  try{ms=g.moves({verbose:true});}catch(e){return null;}
+  for(var i=0;i<ms.length;i++){
+    var m=ms[i];if(!m.captured)continue;
+    var after;try{after=new Chess(fen);after.move(m.san);}catch(e){continue;}
+    var b=vxBoard(after.fen());if(!b)continue;
+    var gain=VX_VAL[m.captured]||0;
+    var them=m.color==='w'?'b':'w';
+    if(vxAttackedBy(b,them)[m.to])gain-=VX_VAL[m.piece]||0;   // they can take back
+    if(!best||gain>best.gain)best={san:m.san,gain:gain,captured:m.captured,to:m.to,piece:m.piece};
+  }
+  return best;
+}
+/* What does this move actually cost, netted against what it won?
+   1.e4 d5 2.exd5 Qxd5 wins a pawn and loses it back — that is an even trade,
+   not a blunder, so the reply's gain is offset by our own capture. */
+function vxCostOf(fenBefore,san){
+  var g,mv;try{g=new Chess(fenBefore);mv=g.move(san);if(!mv)return null;}catch(e){return null;}
+  var reply=vxBestCapture(g.fen());
+  if(!reply||reply.gain<=0)return null;
+  var won=mv.captured?(VX_VAL[mv.captured]||0):0;
+  var net=reply.gain-won;
+  if(net<=0)return null;
+  return {san:reply.san,captured:reply.captured,to:reply.to,piece:reply.piece,gain:reply.gain,net:net};
+}
+/* ---- "why not that move?" ----
+   Turns a wrong answer into a lesson: what it drops, what it allows, or simply
+   which opening it would have been instead. */
+function whyNot(fenBefore,playedSan,bookSan,opts){
+  opts=opts||{};
+  var g;try{g=new Chess(fenBefore);}catch(e){return null;}
+  var legal=false;try{legal=g.moves().indexOf(playedSan)>=0;}catch(e){}
+  if(!legal)return null;
+  var bookText=null;
+  if(bookSan){var bx=explainMove(fenBefore,bookSan);bookText=bx?bx.text:null;}
+  var bits=[];
+
+  // the worst thing first: does it allow mate in one?
+  var mateIn1=null;
+  try{
+    var af=new Chess(fenBefore);af.move(playedSan);
+    var rs=af.moves();
+    for(var k=0;k<rs.length;k++){
+      var probe=new Chess(af.fen());probe.move(rs[k]);
+      if(probe.isCheckmate()){mateIn1=rs[k];break;}
+    }
+  }catch(e){}
+  if(mateIn1)bits.push(playedSan+' allows '+mateIn1+', which is checkmate.');
+
+  // does it simply lose material?
+  var cost=mateIn1?null:vxCostOf(fenBefore,playedSan);
+  if(cost&&cost.net>=2)
+    bits.push(playedSan+' drops material — '+cost.san+' wins the '+VX_NAME[cost.captured]+'.');
+  else if(cost&&cost.net>=1)
+    bits.push(playedSan+' loses a pawn to '+cost.san+'.');
+
+  // does it walk into a fork?
+  if(!bits.length){
+    var after;try{after=new Chess(fenBefore);after.move(playedSan);}catch(e){after=null;}
+    if(after){
+      var them=after.turn(),tm;
+      try{tm=after.moves({verbose:true});}catch(e){tm=[];}
+      var forked=null;
+      for(var i=0;i<tm.length&&!forked;i++){
+        var t=tm[i],nx;
+        try{nx=new Chess(after.fen());nx.move(t.san);}catch(e){continue;}
+        var nb=vxBoard(nx.fen());if(!nb)continue;
+        var hits=vxAttacks(nb,t.to).filter(function(s){
+          var q=nb[s];
+          return q&&q.color!==them&&q.type!=='k'&&(VX_VAL[q.type]||0)>=3&&!vxAttackedBy(nb,q.color)[s];
+        });
+        if(hits.length>=2)forked={san:t.san,n:hits.length};
+      }
+      if(forked)bits.push(playedSan+' allows '+forked.san+', which forks two pieces.');
+    }
+  }
+
+  // otherwise: it may be perfectly playable, just not this course's line
+  if(!bits.length){
+    var alt=null;
+    if(opts.sans){
+      try{var d=detectOpening(opts.sans.concat([playedSan]));if(d&&d.name&&d.name!==opts.openingName)alt=d.name;}catch(e){}
+    }
+    if(alt)bits.push(playedSan+' is playable — that is the '+alt+', a different opening from the one you are drilling.');
+    else bits.push(playedSan+' is not losing, it is just not this line.');
+  }
+
+  if(bookSan)bits.push('The course plays '+bookSan+(bookText?': '+bookText.replace(/^\S+\s/,''):'.'));
+  return bits.join(' ');
+}
+
+/* ---- the plan ----
+   A move explanation says why one move; a plan says what you are actually
+   trying to do. Derived from the pawn structure, which is what decides it:
+   where each side has the majority, whether the centre is locked or open,
+   which files are half-open, where the kings went, and which pawns are weak. */
+function vxPawns(b,color){var out=[];for(var s in b)if(b[s].type==='p'&&b[s].color===color)out.push(s);return out;}
+function vxWing(sq){var f=vxFile(sq);return f<=2?'q':f>=5?'k':'c';}
+function vxCentreLocked(b){
+  // a locked centre: pawns of both colours blocked head to head on d/e
+  var locked=0;
+  ['d','e'].forEach(function(fl){
+    for(var r=2;r<=5;r++){
+      var a=fl+r,c2=fl+(r+1);
+      if(b[a]&&b[a].type==='p'&&b[c2]&&b[c2].type==='p'&&b[a].color!==b[c2].color)locked++;
+    }
+  });
+  return locked>=2;
+}
+function vxCentreOpen(b){
+  var n=0;['d','e'].forEach(function(fl){for(var r=1;r<=8;r++){var s=fl+r;if(b[s]&&b[s].type==='p')n++;}});
+  return n<=1;
+}
+function vxHalfOpen(b,color){
+  var out=[],them=color==='w'?'b':'w';
+  'abcdefgh'.split('').forEach(function(fl){
+    var mine=0,theirs=0;
+    for(var r=1;r<=8;r++){var s=fl+r,p=b[s];if(p&&p.type==='p'){if(p.color===color)mine++;else theirs++;}}
+    if(!mine&&theirs)out.push(fl);
+  });
+  return out;
+}
+function vxIsolated(b,color){
+  var files={},out=[];
+  vxPawns(b,color).forEach(function(s){files[s[0]]=(files[s[0]]||0)+1;});
+  Object.keys(files).forEach(function(fl){
+    var i='abcdefgh'.indexOf(fl);
+    var left=i>0?files['abcdefgh'[i-1]]:0,right=i<7?files['abcdefgh'[i+1]]:0;
+    if(!left&&!right)out.push(fl);
+  });
+  return out;
+}
+function vxDoubled(b,color){
+  var files={},out=[];
+  vxPawns(b,color).forEach(function(s){files[s[0]]=(files[s[0]]||0)+1;});
+  Object.keys(files).forEach(function(fl){if(files[fl]>1)out.push(fl);});
+  return out;
+}
+function vxKingSide(b,color){
+  var k=vxKingSq(b,color);if(!k)return null;
+  var f=vxFile(k);return f<=2?'q':f>=5?'k':'c';
+}
+function explainPlan(fen,hero){
+  var b=vxBoard(fen);if(!b)return null;
+  hero=hero||turnOf(fen);
+  var them=hero==='w'?'b':'w';
+  var us=hero==='w'?'White':'Black',theirs=hero==='w'?'Black':'White';
+  var mine=vxPawns(b,hero),yours=vxPawns(b,them);
+  var bits=[];
+
+  // where is the pawn majority?
+  var cnt=function(list,w){return list.filter(function(s){return vxWing(s)===w;}).length;};
+  var qd=cnt(mine,'q')-cnt(yours,'q'),kd=cnt(mine,'k')-cnt(yours,'k');
+  var locked=vxCentreLocked(b),open=vxCentreOpen(b);
+  var myK=vxKingSide(b,hero),theirK=vxKingSide(b,them);
+
+  if(locked)
+    bits.push('The centre is locked, so the game will be decided on a wing — push pawns where you have the majority and keep the centre closed');
+  else if(open)
+    bits.push('The centre is open, so king safety and active pieces matter more than pawn pushes — get castled and seize the open files');
+
+  if(qd>=1&&kd<=0)bits.push('you have the extra pawn on the queenside, so that is where to advance');
+  else if(kd>=1&&qd<=0)bits.push('you have the extra pawn on the kingside, so build the attack there');
+  else if(!locked&&!open)bits.push('the pawns are balanced, so play in the centre and improve your worst piece');
+
+  if(myK&&theirK&&myK!==theirK&&myK!=='c'&&theirK!=='c')
+    bits.push('you have castled on opposite wings — this is a race, so throw your pawns at their king and do not waste a move');
+
+  var half=vxHalfOpen(b,hero);
+  if(half.length)bits.push('the '+half.slice(0,2).join('- and ')+'-file'+(half.length>1?'s are':' is')+' half-open for your rooks');
+
+  var theirIso=vxIsolated(b,them),theirDbl=vxDoubled(b,them);
+  if(theirIso.length)bits.push('their '+theirIso[0]+'-pawn is isolated — pile onto it and trade pieces, not pawns');
+  else if(theirDbl.length)bits.push('their doubled pawns on the '+theirDbl[0]+'-file are a long-term target');
+
+  var myIso=vxIsolated(b,hero);
+  if(myIso.length)bits.push('your own '+myIso[0]+'-pawn is isolated, so keep the pieces active and avoid a pure endgame');
+
+  if(!bits.length)return null;
+  var text=bits[0].charAt(0).toUpperCase()+bits[0].slice(1);
+  for(var i=1;i<Math.min(bits.length,3);i++)text+='; '+bits[i];
+  return text+'.';
+}
+
 /* ---- the voice itself ---- */
 const Voice={
   ok:function(){try{return typeof window!=='undefined'&&!!window.speechSynthesis&&typeof window.SpeechSynthesisUtterance==='function';}catch(e){return false;}},
@@ -5099,13 +5291,14 @@ function coachSay(fenBefore,san,opts){
   Voice.say(text,opts.force);
   return text;
 }
-function coachCard(text,label){
+function coachCard(text,label,act){
   if(!text)return '';
+  act=act||'coachsay';
   return '<div class="card" style="margin-top:12px;border-color:var(--brand2)">'+
     '<div class="row" style="justify-content:space-between;align-items:flex-start;gap:8px">'+
       '<div class="small" style="line-height:1.55;flex:1;min-width:0"><b style="color:var(--brand2)">'+(label||'🎓 Coach')+'</b> '+esc(text)+'</div>'+
       '<div class="row" style="gap:5px;flex:0 0 auto">'+
-        '<button class="btn ghost sm" data-act="coachsay" title="Read it aloud">🔊</button>'+
+        '<button class="btn ghost sm" data-act="'+act+'" title="Read it aloud">🔊</button>'+
         '<button class="btn ghost sm" data-act="coachtoggle" title="'+(store.settings.voiceOn?'Voice is on':'Voice is off')+'">'+(store.settings.voiceOn?'🔈 On':'🔇 Off')+'</button>'+
       '</div></div></div>';
 }
@@ -5134,8 +5327,13 @@ function viewExplorer(){
   // the speaker, so an author's comment is never printed twice
   if(cur.move)h+=coachCard(exCoachText(),'🎓 '+esc(fmtMoves([cur.move],cur.ply-1))+' —');
   else if(cur.comment)h+='<div class="note" style="margin-top:12px">'+esc(cur.comment)+'</div>';
+  h+=coachCard(exPlanText(),'📋 The plan','plansay');
   h+='<div class="card" style="margin-top:12px"><div class="muted small" style="margin-bottom:8px">'+(cur.children.length?stm+' to move — choose a move:':'End of line')+'</div>';
-  if(cur.children.length)h+='<div class="row">'+cur.children.map((c,i)=>'<button class="movebtn" data-act="exgo" data-val="'+i+'">'+esc(c.move)+'</button>').join('')+'</div>';
+  if(cur.children.length)h+='<div class="row">'+cur.children.map(function(c,i){
+    var risk=store.settings.blunderWarn===false?null:vxCostOf(bfen,c.move);
+    var warn=risk&&risk.net>=2?' title="Drops material — '+esc(risk.san)+' wins the '+esc(VX_NAME[risk.captured])+'"':(risk&&risk.net>=1?' title="Loses a pawn to '+esc(risk.san)+'"':'');
+    return '<button class="movebtn" data-act="exgo" data-val="'+i+'"'+warn+'>'+esc(c.move)+(risk&&risk.net>=2?' <span style="color:#f87171">⚠️</span>':'')+'</button>';
+  }).join('')+'</div>';
   else h+='<div class="dim small">Use Back, or click a move above to explore another branch.</div>';
   h+='</div></div></div>';
   return h;
@@ -5375,18 +5573,25 @@ function clAdvanceOpp(L){
 function clTry(from,to){
   const L=app.cl;if(!L||L.done)return false;
   const s=clStep(L);if(!s||!s.you)return false;
-  if(s.from!==from||s.to!==to){L.wrong={from:from,to:to};L.sel=null;render();return true;}
+  if(s.from!==from||s.to!==to){
+    L.wrong={from:from,to:to};L.sel=null;
+    var _pm=null;try{var _pg=new Chess(s.fenBefore);_pm=_pg.move({from:from,to:to,promotion:'q'});}catch(e){}
+    L.whyNot=_pm?whyNot(s.fenBefore,_pm.san,s.san,{sans:L.line.slice(0,L.i).map(function(x){return x.san;})}):null;
+    if(L.whyNot)Voice.say(L.whyNot);
+    render();return true;}
   if(s.ex)L.solved=(L.solved||0)+1;
   var _clWhy=s.ex?s.ex.why:(s.idea||null);
   if(!_clWhy){var _clEx=explainMove(s.fenBefore,s.san);_clWhy=_clEx?_clEx.text:null;}
   L.reveal=_clWhy?{ok:true,text:_clWhy}:null;
   Voice.say(_clWhy);
-  L.fen=s.fenAfter;L.last={from:s.from,to:s.to};L.wrong=null;L.sel=null;L.oppNote=null;L.i++;sfxSan(s.san);render();
+  L.fen=s.fenAfter;L.last={from:s.from,to:s.to};L.wrong=null;L.whyNot=null;L.sel=null;L.oppNote=null;L.i++;sfxSan(s.san);render();
   setTimeout(function(){if(app.view!=='clearn'||app.cl!==L)return;clAdvanceOpp(L);render();},560);
   return true;
 }
 function clComplete(L){
   if(L._saved)return;L._saved=true;
+  var _pl=explainPlan(L.fen,L.hero);
+  if(_pl)Voice.say('Chapter complete. '+_pl);
   addRep(L.id);
   store.courseProgress=store.courseProgress||{};
   const done=store.courseProgress[L.id]=store.courseProgress[L.id]||[];
@@ -5480,6 +5685,8 @@ function viewCourseLearn(){
     '<div class="layout"><div class="boardwrap">'+renderBoard(L.fen,orient,{sel:L.sel,last:L.last,wrong:L.wrong,hint:clHint(L),interactive:interactive})+'</div>'+
     '<div><div class="card">'+panel+'</div>'+reveal+oppLine+
     '<div class="card" style="margin-top:12px"><div class="dim small" style="line-height:1.5">🎯 <b>'+esc(L.goal)+'</b></div></div>'+
+    coachCard(L.whyNot,'🚫 Why not')+
+    coachCard(explainPlan(L.fen,L.hero),'📋 The plan','plansay')+
     coachCard((L.reveal&&L.reveal.text)||L.oppNote||null,'🎓 Why this move')+
     '</div></div></div>';
 }
@@ -5514,6 +5721,7 @@ function viewTrain(){
   h+='<div class="layout"><div class="boardwrap">'+renderBoard(app.fen,o.side,{sel:app.sel,last:app.last,wrong:app.wrongSq,hint:showMove?{from:node.from,to:node.to}:null,interactive:heroToMove()})+'</div>'+
     '<div><div class="card">'+panel+'</div>'+
     (lastPlayed&&lastPlayed.comment?'<div class="note" style="margin-top:12px">'+esc(lastPlayed.comment)+'</div>':'')+
+    coachCard(app.whyNot,'🚫 Why not')+
     coachCard(app.coachNote,'🎓 Why that move')+
     '<div class="card" style="margin-top:12px"><div class="l" style="text-transform:uppercase;font-size:11px;letter-spacing:.08em;color:var(--muted)">Line so far</div><div style="margin-top:4px">'+(sans.length?esc(fmtMoves(sans)):'Starting position')+'</div></div>'+
     '<div class="row" style="margin-top:12px"><button class="btn '+(app.guided?'primary':'ghost')+' sm" data-act="toggleguided" title="Show every move and its explanation">📖 Guided</button><button class="btn sec" style="flex:1" data-act="hint" '+(heroToMove()?'':'disabled')+'>💡 Hint</button><button class="btn ghost" style="flex:1" data-act="skip">Skip line →</button></div>'+
@@ -5577,6 +5785,7 @@ function viewSettings(){
     rowSet('Accent colour','Buttons, links &amp; highlights.',selOpt('accent',ACCENTS))+'</div>'+
     '<div class="card" style="margin-top:12px"><div style="font-weight:700;margin-bottom:2px">🎓 Coach &amp; voice</div>'+
     '<div class="dim small" style="margin-bottom:2px">The coach works out why each move is played and can read it aloud while you step through a line. It uses your device\u2019s own speech, so it costs nothing and works offline.'+(Voice.ok()?'':' <b style="color:#fcd34d">This browser has no speech support, so the text still shows but nothing is spoken.</b>')+'</div>'+
+    rowSet('Blunder warnings','Mark moves that drop material in the opening explorer, and tell you when one of your own moves does. Worked out from the position, so it needs no engine and works offline.',(store.settings.blunderWarn!==false?'<input type="checkbox" data-setting="blunderWarn" checked>':'<input type="checkbox" data-setting="blunderWarn">'))+
     rowSet('Read moves aloud','Speak the explanation as you play through openings, courses and drills.',(store.settings.voiceOn?'<input type="checkbox" data-setting="voiceOn" checked>':'<input type="checkbox" data-setting="voiceOn">'))+
     rowSet('Voice','Which of your device\u2019s voices to use.','<select data-setting="voiceName"><option value=""'+(store.settings.voiceName?'':' selected')+'>Automatic</option>'+Voice.list().map(function(v){return '<option value="'+esc(v.name)+'"'+(store.settings.voiceName===v.name?' selected':'')+'>'+esc(v.name)+(v.lang?' ('+esc(v.lang)+')':'')+'</option>';}).join('')+'</select>')+
     rowSet('Speaking speed','0.5 is slow, 1.6 is brisk.','<input type="number" min="0.5" max="1.6" step="0.1" value="'+(+store.settings.voiceRate||1)+'" data-setting="voiceRate">')+
@@ -5601,7 +5810,7 @@ function startTraining(target,mode){
   loadLine();
 }
 function loadLine(){const l=curLine();app.nodePos=0;app.fen=l.nodes[0].fenBefore;app.last=null;app.wrongSq=null;app.sel=null;app.mistakes=false;app.status='play';advance();}
-function nextLine(){app.coachNote=null;if(app.timer){clearTimeout(app.timer);app.timer=null;}if(app.sIdx+1<app.session.length){app.sIdx++;loadLine();}else{app.status='done';render();}}
+function nextLine(){app.coachNote=null;app.whyNot=null;if(app.timer){clearTimeout(app.timer);app.timer=null;}if(app.sIdx+1<app.session.length){app.sIdx++;loadLine();}else{app.status='done';render();}}
 function advance(){if(app.timer){clearTimeout(app.timer);app.timer=null;}
   const l=curLine();if(!l){app.status='done';render();return;}
   const node=l.nodes[app.nodePos];
@@ -5620,11 +5829,14 @@ function heroMove(from,to){const line=curLine();const node=curNode();if(!node)re
   if(match){
     if(app.status!=='wrong'&&!app.mistakes){grade(id,'good');app.correct++;}
     if(match!==node){line.nodes=line.nodes.slice(0,app.nodePos).concat(pathToLeaf(match));}
-    app.fen=m.fen;app.last={from:from,to:to};app.sel=null;app.wrongSq=null;app.mistakes=false;app.status='play';app.nodePos++;sfxSan(m.san);
+    app.fen=m.fen;app.last={from:from,to:to};app.sel=null;app.wrongSq=null;app.whyNot=null;app.mistakes=false;app.status='play';app.nodePos++;sfxSan(m.san);
     app.coachNote=coachSay(node.fenBefore,m.san,{note:match.comment||null})||(explainMove(node.fenBefore,m.san)||{}).text||null;
     render();advance();return true;}
   if(!app.mistakes){app.mistakes=true;grade(id,'again');app.wrong++;}
-  app.status='wrong';app.wrongSq={from:node.from,to:node.to};app.sel=null;render();return false;
+  app.status='wrong';app.wrongSq={from:node.from,to:node.to};app.sel=null;
+  app.whyNot=whyNot(node.fenBefore,m.san,node.move,{sans:line.nodes.slice(0,app.nodePos).map(function(n){return n.move;})});
+  if(app.whyNot)Voice.say(app.whyNot);
+  render();return false;
 }
 function hint(){if(!heroToMove())return;const node=curNode();const id=curLine().o.id+'::'+node.fenBefore;
   if(!app.mistakes){app.mistakes=true;grade(id,'again');app.wrong++;}app.status='wrong';app.wrongSq={from:node.from,to:node.to};render();}
@@ -5918,9 +6130,10 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='simtour')simRestOfTour();
   else if(act==='claimdaily')claimDaily();
   else if(act==='careerchal')startChallenge(val);
+  else if(act==='plansay'){var _pt=(app.view==='explore')?exPlanText():(app.cl?explainPlan(app.cl.fen,app.cl.hero):null);if(_pt)Voice.say(_pt,true);}
   else if(act==='voicetest'){Voice.say('Knight f3 develops the knight and takes aim at the centre, covering e5 and d4.',true);}
   else if(act==='coachtoggle'){store.settings.voiceOn=!store.settings.voiceOn;if(!store.settings.voiceOn)Voice.stop();save();}
-  else if(act==='coachsay'){var _ct=(app.view==='explore')?exCoachText():(app.view==='clearn'?((app.cl&&app.cl.reveal&&app.cl.reveal.text)||(app.cl&&app.cl.oppNote)):app.coachNote);if(_ct)Voice.say(_ct,true);}
+  else if(act==='coachsay'){var _ct=(app.view==='explore')?exCoachText():(app.view==='clearn'?((app.cl&&app.cl.whyNot)||(app.cl&&app.cl.reveal&&app.cl.reveal.text)||(app.cl&&app.cl.oppNote)):(app.whyNot||app.coachNote));if(_ct)Voice.say(_ct,true);}
   else if(act==='seasondismiss'){store.career.seasonReview=null;save();}
   else if(act==='profile'){if(val)profileOpen(val);}
   else if(act==='specvs'){var _sp=buildWorld().filter(function(x){return x.id===val;})[0];if(_sp){var _fmt='classical';var _list=worldRanking(store.career,_fmt).filter(function(x){return !x.you&&x.id!==val;});var _o=_list[Math.floor(Math.random()*Math.min(12,_list.length))]||_list[0];if(_o)startSpectate({name:_sp.name,flag:_sp.flag,rating:wpRating(_sp,_fmt),real:_sp.real},_o);}}
@@ -5995,6 +6208,7 @@ document.getElementById('app').addEventListener('change',e=>{
     else if(ds==='anim')store.settings.anim=e.target.checked;
     else if(ds==='haptics')store.settings.haptics=e.target.checked;
     else if(ds==='boardSize')store.settings.boardSize=+e.target.value;
+    else if(ds==='blunderWarn')store.settings.blunderWarn=e.target.checked;
     else if(ds==='voiceOn'){store.settings.voiceOn=e.target.checked;if(!store.settings.voiceOn)Voice.stop();else Voice.say('Voice coaching is on.',true);}
     else if(ds==='voiceRate')store.settings.voiceRate=Math.max(0.5,Math.min(1.6,+e.target.value||1));
     else if((ds==='pieces'||ds==='theme'||ds==='appTheme'||ds==='accent'||ds==='scene')&&!isUnlocked(ds,e.target.value)){var _u=UNLOCKS[ds+':'+e.target.value];app.careerToast='🔒 Locked — '+((_u&&_u.lbl)||'keep progressing')+' to unlock this.';e.target.value=store.settings[ds];save();render();return;}
@@ -6189,7 +6403,7 @@ function fallbackCopy(text,done){try{const ta=document.createElement('textarea')
 function startPlay(fen,side,openingId,title,opts){opts=opts||{};
   app.view='play';app.playFen=fen;app._playStartFen=fen;app.playSide=side;app.playOpening=openingId||null;
   app.playTitle=title||'Free game';app.playFlip=false;app.playStack=[fen];app.playMoves=[];app.playView=0;app.playLast=null;app.playSel=null;app.careerBanter=null;app.careerReaction=null;
-  app.playHint=null;app.playEval=null;app.playResult=null;app.engineErr=false;app.drawMsg=null;app.pgnCopied=false;app.playPremoves=[];app.blindfold=!!opts.blindfold;app.peek=false;app.careerOpp=opts.careerOpp||null;app.careerElo=opts.careerElo||null;app.careerScored=false;app.careerDelta=0;app.careerTour=!!opts.careerTour;app.careerRoundOpp=opts.roundOpp||null;app.careerOneoff=opts.oneoff||null;app.c960=opts.c960||null;app.endgame=opts.endgame||null;app.playBot=opts.bot||null;app.tiltEval=false;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=!!(opts.league);app.careerHintsLeft=opts.careerOpp?careerHintAllowance():0;app._fxKey=null;
+  app.playHint=null;app.playEval=null;app.playResult=null;app.engineErr=false;app.drawMsg=null;app.blunderNote=null;app.coachNote=null;app.whyNot=null;app.pgnCopied=false;app.playPremoves=[];app.blindfold=!!opts.blindfold;app.peek=false;app.careerOpp=opts.careerOpp||null;app.careerElo=opts.careerElo||null;app.careerScored=false;app.careerDelta=0;app.careerTour=!!opts.careerTour;app.careerRoundOpp=opts.roundOpp||null;app.careerOneoff=opts.oneoff||null;app.c960=opts.c960||null;app.endgame=opts.endgame||null;app.playBot=opts.bot||null;app.tiltEval=false;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=!!(opts.league);app.careerHintsLeft=opts.careerOpp?careerHintAllowance():0;app._fxKey=null;
   app.playBook=opts.bookId?byId.get(opts.bookId):(opts.book||null);
   app.playBookNode=opts.bookNode||(app.playBook?app.playBook.root:null);
   const tc=opts.tc||tcById((opts.tcId)||'unlimited');app.tc=tc;
@@ -6275,6 +6489,11 @@ function playMove(from,to){
   if(app.c960)c960UpdateRights(app.playSide,from);
   app.playStack.push(m.fen);app.playMoves.push({from,to,san:m.san});app.playFen=m.fen;app.playLast={from,to};app.playSel=null;app.playHint=null;app.playView=app.playStack.length-1;
   advanceBook(from,to);addIncrement(app.playSide);sfxSan(m.san);
+  if(store.settings.blunderWarn!==false){
+    var _bl=vxCostOf(app.playStack[app.playStack.length-2]||app._playStartFen,m.san);
+    app.blunderNote=(_bl&&_bl.net>=2)?('⚠️ That drops material — '+_bl.san+' wins the '+VX_NAME[_bl.captured]+'.'):null;
+    if(app.blunderNote)Voice.say(app.blunderNote);
+  } else app.blunderNote=null;
   if(checkOver()){render();return true;}app.playStatus='engine';render();setTimeout(engineMove,260);return true;}
 function playUndo(){const st=app.playStack;if(!st||st.length<=1)return;
   do{st.pop();app.playMoves.pop();}while(st.length>1&&turnOf(st[st.length-1])!==app.playSide);
@@ -9331,6 +9550,7 @@ function viewPlay(){
   let h='<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap"><div class="row" style="align-items:center"><button class="btn ghost sm" data-act="nav" data-val="library">←</button><h1 style="font-size:18px">Play vs Stockfish</h1><span class="chip brand">'+esc(app.playTitle)+'</span></div>'+
     '<div class="row"><span class="chip">'+(app.tc&&app.tc.base?app.tc.cat+' '+app.tc.label:'No clock')+'</span><span class="chip">'+(app.careerElo?'Opponent '+app.careerElo:'Lvl: '+lvl.label)+'</span></div></div>';
   if(app.careerOpp&&app.careerRoundOpp&&app.playStatus!=='over')h+=careerMatchupStrip();
+  if(app.blunderNote&&app.playStatus!=='over')h+=coachCard(app.blunderNote,'🚫 Careful');
   if(app.careerBanter&&app.careerOpp&&app.playStatus!=='over')h+='<div class="note" style="margin-bottom:10px;border-color:#a855f73d;background:#a855f714;color:#e9d5ff">💬 <b>'+esc(app.careerBanter.who)+':</b> “'+esc(app.careerBanter.line)+'”</div>';
   if(app.c960)h+='<div class="note" style="margin-bottom:10px;border-color:#1e4e8c66;background:#0c294b44;color:#bae0ff">🎲 <b>Chess960</b> — shuffled start, no opening theory. To <b>castle</b>, tap your king then your rook.</div>';
   if(app.engineErr)h+='<div class="note" style="margin-bottom:10px;border-color:#7f1d1d66;background:#7f1d1d22;color:#fecaca">Couldn’t load Stockfish (it needs internet on first use). Opening training still works without it.</div>';
