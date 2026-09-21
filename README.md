@@ -135,6 +135,26 @@ node engine-check.mjs
 cd app_project/android && ./gradlew assembleDebug
 ```
 
+## Learn from your mistakes
+
+Game Review tells you where you went wrong. That is a report, not practice, so
+a finished review offers **🎯 Learn from your mistakes**: it puts you back in
+each position you got wrong, in the order you played them, with the move
+hidden, and asks you to find something better.
+
+It does not demand the engine's exact first choice. A move it did not name is
+sent to the engine and measured — anything that keeps essentially as much as
+the best move is accepted, because that is what finding the idea means. A move
+that throws the position away too is refused with the damage named, and playing
+your original mistake again is called out by name. After two wrong tries the
+answer is offered. Either way the move is explained in words by the same coach
+that narrates the opening trainer, and spoken aloud if the voice is on.
+
+Only your own errors are practised, the session is capped so it can be
+finished, and the end screen offers a second pass at just the ones you missed.
+A lifetime tally lives in `stats.drill`. With no engine available only the
+best move can be checked, and the drill says so rather than pretending.
+
 ## The engine
 
 One Stockfish worker serves six callers: the bot in a game, the hint button,

@@ -4431,7 +4431,7 @@ function delRep(id){store.repertoire=store.repertoire.filter(x=>x!==id);save();}
 /* ============================== app state ============================== */
 const app={view:'career',exId:null,exPath:[],exFlip:false,courseId:null,setupOpening:'',
   pz:null,pzSeen:new Set(),pzFilter:{type:'auto'},rush:null,
-  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,ccSyncing:false,ccSyncMsg:null,ccSyncErr:null,_ccAutoTried:false,live:null,liveUser:null,liveList:null,liveLoading:false,liveErr:null,liveListAt:0,liveEv:null,liveBest:null,liveLines:[],liveEngErr:false,_liveKey:null,_livePollT:null,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
+  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,ccSyncing:false,ccSyncMsg:null,ccSyncErr:null,_ccAutoTried:false,drill:null,live:null,liveUser:null,liveList:null,liveLoading:false,liveErr:null,liveListAt:0,liveEv:null,liveBest:null,liveLines:[],liveEngErr:false,_liveKey:null,_livePollT:null,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
   confirm:null,
   review:null,studyId:null,studyChapter:0,studyPath:[],studyFlip:false,studyMsg:null,
 
@@ -4683,6 +4683,7 @@ function render(){
   else if(app.view==='daily')body=viewDaily();
   else if(app.view==='tracker')body=viewTracker();
   else if(app.view==='livegame')body=viewLiveGame();
+  else if(app.view==='drill')body=viewDrill();
   else if(app.view==='player')body=viewPlayer();
   else if(app.view==='studies')body=viewStudies();
   else if(app.view==='masters')body=viewMasters();
@@ -7021,6 +7022,237 @@ function liveReview(){
     {side:L.side,opp:L.side==='w'?L.black:L.white,oppName:L.side==='w'?L.black:L.white,event:L.event||'Chess.com'});
 }
 
+/* ============== LEARN FROM YOUR MISTAKES ==============
+   Game Review tells you where you went wrong. That is a report, not practice:
+   reading "5...Nxd5 was a mistake" teaches far less than being put back in the
+   position and made to find the move yourself. So after a review, this walks
+   you through your own errors one at a time, with the board live and the move
+   hidden, and it explains why the right move is right.
+
+   It does not demand the engine's exact first choice. Any move that keeps
+   essentially as much as the best one is accepted, because that is what
+   finding the idea actually means — the engine decides, not a string compare.
+   With no engine (offline, first run) it falls back to the best move alone. */
+const DRILL_MAX=12;          // a finishable session
+const DRILL_TOL_CP=50;       // how much worse than best still counts as found
+const DRILL_TOL_WIN=4;       // …or this much win-percentage
+const DRILL_TRIES=2;         // wrong guesses before the answer is offered
+/* Your own errors, in the order you made them. */
+function drillBuild(R){
+  if(!R||R.status!=='done'||!R.moves)return [];
+  const mine=(R.meta&&R.meta.side)||null,out=[];
+  for(let k=0;k<R.moves.length;k++){
+    const cls=R.classes[k];
+    if(cls!=='inacc'&&cls!=='mistake'&&cls!=='blunder')continue;
+    const stm=turnOf(R.fens[k]);
+    if(mine&&stm!==mine)continue;
+    const bestUci=(R.best[k]||'').slice(0,4);
+    if(!bestUci||bestUci.length<4)continue;
+    const playedUci=R.moves[k].from+R.moves[k].to;
+    if(bestUci===playedUci)continue;                 // nothing to find
+    let bestSan=null;
+    try{const c=new Chess(R.fens[k]);const m=c.move({from:bestUci.slice(0,2),to:bestUci.slice(2,4),promotion:(R.best[k]||'')[4]||'q'});bestSan=m?m.san:null;}catch(e){}
+    if(!bestSan)continue;
+    const bestCp=cpOf(R.evals[k]);
+    const evA=R.evals[k+1];
+    const playedCp=evA?-cpOf(evA):bestCp;
+    out.push({k:k,fen:R.fens[k],side:stm,playedSan:R.moves[k].san,playedUci:playedUci,
+      bestUci:bestUci,bestSan:bestSan,cls:cls,bestCp:bestCp,playedCp:playedCp,
+      lost:Math.max(0,bestCp-playedCp),
+      drop:Math.round(Math.max(0,winPct(bestCp)-winPct(playedCp))),
+      ply:k+1});
+  }
+  // the worst first would be a different exercise; playing the game through
+  // in order is how you remember where it happened
+  return out.slice(0,DRILL_MAX);
+}
+function drillStart(R){
+  const items=drillBuild(R);
+  if(!items.length)return false;
+  app.drill={items:items,i:0,tries:0,status:'solving',sel:null,found:0,
+    results:[],note:null,tryFen:null,trySan:null,solvedFen:null,checking:false,from:R===app.review?'review':'other'};
+  app.view='drill';
+  render();
+  return true;
+}
+function drillCur(){const D=app.drill;return D&&D.items?D.items[D.i]:null;}
+/* Judge a move the player has just tried. The engine's exact choice is always
+   right; anything else is measured, not guessed at. */
+function drillTry(from,to){
+  const D=app.drill,it=drillCur();
+  if(!D||!it||D.status!=='solving'||D.checking)return false;
+  const promo=isPromotion(it.fen,from,to)?(app.promoChoice||'q'):undefined;
+  const m=tryFromTo(it.fen,from,to,promo||'q');
+  if(!m)return false;
+  D.sel=null;
+  const uci=from+to;
+  if(uci===it.bestUci){drillRight(it,m.san,0,true,m.fen);return true;}
+  if(uci===it.playedUci){
+    D.status='wrong';D.tries++;D.tryFen=null;
+    D.note='That is the move you played in the game'+(it.lost>=100?' — it cost '+(it.lost/100).toFixed(1)+' pawns':'')+'. There is something better.';
+    sfx('move');render();return true;
+  }
+  // measure it: how much worse than the best move is it really?
+  D.checking=true;D.trySan=m.san;D.tryFen=m.fen;D.note=null;render();
+  analysePos(m.fen,function(ev,best,lines,superseded){
+    if(superseded)return;                              // a newer search owns the engine
+    if(!app.drill||app.drill!==D||D.status!=='solving')return;
+    D.checking=false;
+    if(!ev){                                           // no engine: only the best move can be judged
+      D.status='wrong';D.tries++;D.tryFen=null;
+      D.note='Not the move. (Without the engine only the best move can be checked here.)';
+      render();return;
+    }
+    const mineCp=-cpOf({t:ev.t,v:ev.v});               // back to the mover's point of view
+    const lost=Math.max(0,it.bestCp-mineCp);
+    const dropPct=Math.max(0,winPct(it.bestCp)-winPct(mineCp));
+    if(lost<=DRILL_TOL_CP||dropPct<=DRILL_TOL_WIN)drillRight(it,m.san,lost,false,m.fen);
+    else{
+      D.status='wrong';D.tries++;D.tryFen=null;
+      D.note=m.san+' gives up '+(lost>=100?(lost/100).toFixed(1)+' pawns':'ground')+' as well — '+
+        (dropPct>=20?'that is about as bad.':'better, but still not it.');
+      sfx('move');render();
+    }
+  },{force:true,depth:14,movetime:2000});
+  return true;
+}
+/* The coach's own prose for a move. `full` begins with the move's name, `tail`
+   has it stripped so it can be appended to a sentence that already named it. */
+function drillWhy(fen,san){
+  const ex=explainMove(fen,san);
+  const full=(ex&&ex.text)||'';
+  let tail=full;
+  if(tail.indexOf(san)===0)tail=tail.slice(san.length).replace(/^[\s,;:—-]+/,'');
+  return {full:full,tail:tail};
+}
+function drillRight(it,san,lost,exact,afterFen){
+  const D=app.drill;
+  D.status='right';D.found++;D.checking=false;
+  D.solvedFen=afterFen||null;              // show the move that was accepted, not an earlier guess
+  D.results.push({ply:it.ply,ok:true,san:san});
+  const w=drillWhy(it.fen,san);
+  D.note=exact
+    ? (w.full?'Yes — '+w.full:'Yes — '+san+' is the move.')
+    : (san+' works too; the engine prefers '+it.bestSan+', but this keeps what matters.'+(w.full?' '+w.full:''));
+  drillTally(true);
+  if(store.settings.voiceOn)Voice.say(D.note,true);
+  sfxSan(san);
+  render();
+}
+function drillShow(){
+  const D=app.drill,it=drillCur();
+  if(!D||!it)return;
+  D.status='shown';D.checking=false;
+  try{const c=new Chess(it.fen);c.move(it.bestSan);D.solvedFen=c.fen();}catch(e){D.solvedFen=null;}
+  D.results.push({ply:it.ply,ok:false,san:it.bestSan});
+  const w=drillWhy(it.fen,it.bestSan);
+  D.note=w.tail?(it.bestSan+' was the move — '+w.tail):(it.bestSan+' was the move.');
+  drillTally(false);
+  if(store.settings.voiceOn)Voice.say(D.note,true);
+  render();
+}
+function drillNext(){
+  const D=app.drill;
+  if(!D)return;
+  if(D.i+1>=D.items.length){D.status='done';render();return;}
+  D.i++;D.tries=0;D.status='solving';D.sel=null;D.note=null;D.trySan=null;D.tryFen=null;D.solvedFen=null;D.checking=false;
+  render();
+}
+function drillRetryMissed(){
+  const D=app.drill;
+  if(!D)return;
+  const missed=D.results.filter(r=>!r.ok).map(r=>r.ply);
+  const items=D.items.filter(it=>missed.indexOf(it.ply)>=0);
+  if(!items.length)return;
+  app.drill={items:items,i:0,tries:0,status:'solving',sel:null,found:0,results:[],
+    note:null,tryFen:null,trySan:null,solvedFen:null,checking:false,from:D.from};
+  render();
+}
+/* A lifetime tally, so the habit is visible. */
+function drillTally(found){
+  store.stats=store.stats||{};
+  const d=store.stats.drill=store.stats.drill||{seen:0,found:0};
+  d.seen++;if(found)d.found++;
+  save();
+}
+function drillGrade(D){
+  const n=D.items.length,f=D.found;
+  const pct=n?Math.round(f/n*100):0;
+  if(pct>=100)return ['Every one.','var(--green)'];
+  if(pct>=70)return ['Most of them.','var(--green)'];
+  if(pct>=40)return ['Some of them.','var(--amber)'];
+  return ['Worth another go.','#f87171'];
+}
+function viewDrill(){
+  const D=app.drill;
+  if(!D||!D.items||!D.items.length)
+    return msgCard('Nothing to practise','Review a game first — this puts you back in the positions you got wrong.',
+      '<button class="btn sec" data-act="nav" data-val="review">Open Game Review</button>');
+  if(D.status==='done'){
+    const g=drillGrade(D),d=(store.stats&&store.stats.drill)||{seen:0,found:0};
+    const missed=D.results.filter(r=>!r.ok).length;
+    return '<div style="max-width:560px;margin:0 auto">'+
+      '<div class="card" style="text-align:center;padding:20px">'+
+        '<div style="font-size:34px">🎯</div>'+
+        '<h1 style="font-size:22px;margin:6px 0">'+D.found+' of '+D.items.length+'</h1>'+
+        '<div style="color:'+g[1]+';font-weight:700;margin-bottom:6px">'+g[0]+'</div>'+
+        '<div class="dim small">You found the better move in '+D.found+' of the '+D.items.length+
+          ' position'+(D.items.length===1?'':'s')+' you went wrong in.</div>'+
+        (d.seen?'<div class="dim small" style="margin-top:6px">All time: '+d.found+' of '+d.seen+' ('+Math.round(d.found/d.seen*100)+'%)</div>':'')+
+        '<div class="row" style="gap:6px;justify-content:center;flex-wrap:wrap;margin-top:14px">'+
+          (missed?'<button class="btn primary sm" data-act="drillretry">↻ Retry the '+missed+' you missed</button>':'')+
+          '<button class="btn sec sm" data-act="nav" data-val="review">Back to the review</button>'+
+        '</div></div>'+
+      '<div class="card" style="margin-top:12px;padding:0">'+
+        '<div style="padding:11px 13px;font-weight:700">How it went</div>'+
+        D.results.map(function(r){
+          return '<div class="row" style="justify-content:space-between;padding:8px 13px;border-top:1px solid var(--border)">'+
+            '<span class="small">Move '+Math.ceil(r.ply/2)+' · <b>'+esc(r.san)+'</b></span>'+
+            '<span class="chip" style="font-size:10px;color:'+(r.ok?'var(--green)':'#f87171')+'">'+(r.ok?'✓ found it':'shown')+'</span></div>';
+        }).join('')+'</div></div>';
+  }
+  const it=drillCur();
+  const solved=D.status==='right'||D.status==='shown';
+  const showFen=(solved&&D.solvedFen)?D.solvedFen:it.fen;
+  const orient=it.side==='b'?'black':'white';
+  const arrow=solved?[{from:it.bestUci.slice(0,2),to:it.bestUci.slice(2,4),col:'#22c55e',w:2.3}]:[];
+  const clsName=(REV_CLASS[it.cls]&&REV_CLASS[it.cls][0])||it.cls;
+  const clsCol=(REV_CLASS[it.cls]&&REV_CLASS[it.cls][1])||'#f87171';
+  let h='<div style="max-width:560px;margin:0 auto">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">'+
+      '<div class="row" style="align-items:center;gap:7px">'+
+        '<button class="btn ghost sm" data-act="nav" data-val="review">←</button>'+
+        '<h1 style="font-size:17px;margin:0">🎯 Learn from your mistakes</h1></div>'+
+      '<span class="chip">'+(D.i+1)+' / '+D.items.length+'</span></div>'+
+    '<div class="bar" style="margin-bottom:10px"><i style="width:'+Math.round((D.i+(solved?1:0))/D.items.length*100)+'%;background:var(--brand)"></i></div>';
+  h+='<div class="card" style="margin-bottom:10px">'+
+    '<div class="small" style="margin-bottom:3px">Move '+Math.ceil(it.ply/2)+', you played <b>'+esc(it.playedSan)+'</b> '+
+      '<span style="color:'+clsCol+';font-weight:700">('+clsName+')</span></div>'+
+    '<div class="dim small">'+(it.side==='w'?'White':'Black')+' to move'+
+      (it.lost>=80?' · it cost '+(it.lost/100).toFixed(1)+' pawns':(it.drop?' · '+it.drop+'% of the win':''))+
+      ' · <b>find something better</b></div></div>';
+  h+='<div class="boardwrap" style="margin-bottom:10px">'+
+    renderBoard(showFen,orient,{interactive:!solved&&!D.checking,sel:D.sel,arrows:arrow})+'</div>';
+  if(D.checking)
+    h+='<div class="note" style="margin-bottom:10px">⏳ Checking your move against the engine…</div>';
+  else if(D.status==='wrong')
+    h+='<div class="note" style="margin-bottom:10px;border-color:#7f1d1d;background:#7f1d1d22;color:#fca5a5">✗ '+esc(D.note||'Not the move.')+'</div>';
+  else if(D.status==='right')
+    h+='<div class="note" style="margin-bottom:10px;border-color:#14532d;background:#052e1655;color:#86efac">✓ '+esc(D.note||'')+'</div>';
+  else if(D.status==='shown')
+    h+='<div class="note" style="margin-bottom:10px">💡 '+esc(D.note||'')+'</div>';
+  const acts=[];
+  if(solved)acts.push('<button class="btn primary sm" data-act="drillnext">'+(D.i+1>=D.items.length?'See how you did →':'Next position →')+'</button>');
+  else{
+    if(D.tries>=DRILL_TRIES)acts.push('<button class="btn sec sm" data-act="drillshow">Show me the move</button>');
+    acts.push('<button class="btn ghost sm" data-act="drillskip">Skip</button>');
+  }
+  if(!solved&&D.tries>0&&D.tries<DRILL_TRIES)
+    acts.push('<span class="dim small" style="align-self:center">'+(DRILL_TRIES-D.tries)+' more try before the answer</span>');
+  h+='<div class="row" style="gap:6px;flex-wrap:wrap">'+acts.join('')+'</div>';
+  return h+'</div>';
+}
+
 /* ---- the voice itself ---- */
 const Voice={
   ok:function(){try{return typeof window!=='undefined'&&!!window.speechSynthesis&&typeof window.SpeechSynthesisUtterance==='function';}catch(e){return false;}},
@@ -7656,10 +7888,10 @@ function exMakeMove(from,to){if(!app.exFree||!app.exFree.length){var cur=exCurre
 function mCurFen(){var g=MASTERGAMES[app.mGame];if(!g)return null;var c=new Chess();var mv=g.m.split(' ');for(var k=0;k<Math.min(app.mIdx||0,mv.length);k++){try{c.move(mv[k]);}catch(e){break;}}return c.fen();}
 function mAnalyse(){if(app.mGame==null){app.mEval=null;app.mBest=null;return;}var fen=mCurFen();if(!fen)return;analysePos(fen,function(ev,best,lines){app.mEval=ev;app.mBest=best?best.san:null;app.mLines=lines;render();});}
 function finishPromo(piece){var pr=app.promo;if(!pr)return;app.promo=null;app.promoChoice=piece||'q';
-  if(pr.view==='train')heroMove(pr.from,pr.to);else if(pr.view==='play')playMove(pr.from,pr.to);else if(pr.view==='puzzles')pzMove(pr.from,pr.to);else if(pr.view==='explore')exMakeMove(pr.from,pr.to);
+  if(pr.view==='train')heroMove(pr.from,pr.to);else if(pr.view==='play')playMove(pr.from,pr.to);else if(pr.view==='puzzles')pzMove(pr.from,pr.to);else if(pr.view==='explore')exMakeMove(pr.from,pr.to);else if(pr.view==='drill')drillTry(pr.from,pr.to);
   app.promoChoice='q';}
 function promoOverlay(){if(!app.promo)return '';var pr=app.promo;
-  var fen=pr.view==='play'?app.playFen:pr.view==='train'?app.fen:pr.view==='explore'?exFen():pr.view==='puzzles'?(app.pz&&app.pz.fenNow):(new Chess()).fen();
+  var fen=pr.view==='play'?app.playFen:pr.view==='train'?app.fen:pr.view==='explore'?exFen():pr.view==='puzzles'?(app.pz&&app.pz.fenNow):pr.view==='drill'?((drillCur()&&drillCur().fen)||(new Chess()).fen()):(new Chess()).fen();
   var color=(fen&&turnOf(fen))||'w';
   var b=function(p){return '<button class="btn sec" data-act="promopick" data-val="'+p+'" style="width:66px;height:66px;padding:7px;display:flex;align-items:center;justify-content:center"><span style="width:50px;height:50px;display:flex;align-items:center;justify-content:center">'+pieceImg(color,p)+'</span></button>';};
   return '<div data-act="promocancel" style="position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55)"><div class="card" style="text-align:center"><div style="font-weight:700;margin-bottom:10px">Promote to…</div><div class="row" style="gap:8px;justify-content:center">'+b('q')+b('r')+b('b')+b('n')+'</div></div></div>';}
@@ -7688,6 +7920,12 @@ function boardClick(sq){
   if(app.view==='puzzles'){const P=app.pz;if(!P||P.status!=='solving'||turnOf(P.fenNow)!==P.side)return;
     if(P.sel&&P.sel!==sq){if(dests(P.fenNow,P.sel).includes(sq)&&isPromotion(P.fenNow,P.sel,sq)){app.promo={view:'puzzles',from:P.sel,to:sq};render();return;}if(pzMove(P.sel,sq))return;}
     P.sel=dests(P.fenNow,sq).length?sq:null;render();return;}
+  if(app.view==='drill'){const D=app.drill;if(!D||D.status!=='solving'||D.checking)return;
+    const it=drillCur();if(!it)return;
+    if(D.sel&&D.sel!==sq){if(dests(it.fen,D.sel).includes(sq)){
+      if(isPromotion(it.fen,D.sel,sq)){app.promo={view:'drill',from:D.sel,to:sq};render();return;}
+      if(drillTry(D.sel,sq))return;}}
+    D.sel=dests(it.fen,sq).length?sq:null;render();return;}
   if(app.view==='eglesson'){const L=app.egLesson;if(!L||L.done)return;const s=egStep(L);if(!s||!s.you||turnOf(L.fen)!==L.side)return;
     if(L.sel&&L.sel!==sq){if(dests(L.fen,L.sel).includes(sq)){if(egTry(L.sel,sq))return;}}
     L.sel=dests(L.fen,sq).length?sq:null;L.wrong=null;render();return;}
@@ -7964,6 +8202,11 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='livehinttog'){store.settings.liveHints=!liveHintsOn();app._liveKey=null;save();render();}
   else if(act==='liverefresh'){livePollStop();livePollTick();render();}
   else if(act==='livereview'){liveReview();return;}
+  else if(act==='drillgo'){if(!drillStart(app.review))render();}
+  else if(act==='drillnext'){drillNext();}
+  else if(act==='drillshow'){drillShow();}
+  else if(act==='drillskip'){drillShow();}
+  else if(act==='drillretry'){drillRetryMissed();}
   else if(act==='ccfull'){uiConfirm('Read your whole archive again and replace the Chess.com games stored here?',function(){ccSyncNow(true);});}
   else if(act==='ccauto'){var _ca=ccAccount();if(_ca){_ca.autoSync=!_ca.autoSync;save();}render();}
   else if(act==='ccdisconnect'){uiConfirm('Disconnect this account? The games already here stay — they just stop updating on their own.',function(){ccDisconnect();app.ccSyncMsg=null;app.ccSyncErr=null;app._ccAutoTried=false;});}
@@ -11890,6 +12133,12 @@ function viewReview(){
   const atEnd=R.pos>=R.fens.length-1,atStart=R.pos<=0;
   let h='<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px"><h1 style="font-size:20px">Game Review</h1><button class="btn ghost sm" data-act="nav" data-val="review">✕</button></div>';
   h+='<div class="row" style="margin-bottom:12px">'+stat('White accuracy',R.accW+'%','#e2e8f0')+stat('Black accuracy',R.accB+'%','#94a3b8')+'</div>';
+  // reading that a move was a mistake teaches less than being made to find the
+  // better one, so offer the practice right next to the verdict
+  const _dn=drillBuild(R).length;
+  if(_dn)h+='<div class="card" style="margin-bottom:12px;border-color:var(--brand)"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+    '<div><b>🎯 Learn from your mistakes</b><div class="dim small">Go back to the '+_dn+' position'+(_dn===1?'':'s')+' you got wrong and find the better move yourself.</div></div>'+
+    '<button class="btn primary sm" style="flex:0 0 auto" data-act="drillgo">Practise '+_dn+' position'+(_dn===1?'':'s')+' →</button></div></div>';
   if(R.bril&&R.bril.length)h+='<div class="card" style="margin-bottom:12px;border-color:#22d3ee;background:linear-gradient(90deg,rgba(34,211,238,.12),transparent)"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div class="small"><b style="color:#22d3ee">💎 Brilliancy'+(R.bril.length>1?' ×'+R.bril.length:'')+':</b> '+R.bril.map(b=>esc(b.san)).join(', ')+' <span class="dim">— '+esc(brilLabel(R.bril[0]))+', saved to your gallery</span></div><button class="btn sec sm" style="flex:0 0 auto" data-act="revjump" data-val="'+R.bril[0].ply+'">See it →</button></div></div>';
   if(R.key)h+='<div class="card" style="margin-bottom:12px;border-color:'+(REV_CLASS[R.key.cls]?REV_CLASS[R.key.cls][1]:'#f87171')+'"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div class="small"><b>🔍 Your biggest mistake:</b> '+esc(R.key.played)+' <span style="color:'+(REV_CLASS[R.key.cls]?REV_CLASS[R.key.cls][1]:'#f87171')+';font-weight:700">('+(REV_CLASS[R.key.cls]?REV_CLASS[R.key.cls][0]:R.key.cls)+')</span>'+(R.key.better?' — better was <b>'+esc(R.key.better)+'</b>':'')+'</div><button class="btn sec sm" style="flex:0 0 auto" data-act="revjump" data-val="'+R.key.ply+'">See it →</button></div></div>';
   h+='<div class="layout"><div class="boardwrap">'+renderBoard(fen,orient,{last,hint:bestArrow,interactive:false})+

@@ -74,10 +74,15 @@ ok(/Purse/.test(X.simulStrip(tr))&&/clear-the-room/.test(X.simulStrip(tr)),'the 
 // clearing the room pays the per-point money plus the bonus
 tr.results=tr.field.map(o=>({name:o.name,rating:o.rating,score:1,delta:2})); tr.round=6;
 const before=c.money, fans=c.fans||0;
+// The week's living costs are random and can exceed a small purse, which made
+// the bank-balance check below fail about once in twenty runs. Pin the
+// randomness so this asserts the payout, not the weather.
+const _rnd=Math.random;Math.random=()=>0.5;
 X.finalizeTournament(c);
+Math.random=_rnd;
 ok(c.lastSimulPay&&c.lastSimulPay.perPt===360&&c.lastSimulPay.bonus===200&&c.lastSimulPay.cleared,'a clean sweep pays every point (6×60) plus the clear-the-room bonus (200)');
 ok(X.simulPayout(tr,4,6).bonus===0,'falling short of the target pays the points but no bonus');
-ok(c.money>before,'the purse lands in your bank, net of what the week cost you');
+ok(c.money>before,'the purse lands in your bank, net of what the week cost you (+'+(c.money-before)+')');
 ok((c.fans||0)>fans,'a simul wins you new fans');
 ok((c.simuls||0)===1&&(c.simulPerfect||0)===1,'perfect simuls are recorded');
 X.checkAchievements(c);
