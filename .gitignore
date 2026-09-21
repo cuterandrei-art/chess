@@ -2,6 +2,7 @@ node_modules/
 *.log
 openingtrainer-*.zip
 ChessCareer.html
+ChessCareer-standalone.html
 ChessCareer.apk
 *.apk
 build/apk/

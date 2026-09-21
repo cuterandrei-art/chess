@@ -25,6 +25,9 @@ jobs:
       - name: Install deps
         run: npm ci || npm install
 
+      - name: Build the standalone file
+        run: node build-standalone.mjs
+
       - name: Run the validation battery
         run: |
           fail=0

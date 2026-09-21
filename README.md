@@ -30,8 +30,16 @@ at:
 Open it on your phone and use *Add to Home Screen* (iOS: Share → Add to Home
 Screen). It installs like an app and works offline.
 
-**Just the file.** `work/openingtrainer.html` is the whole game in one file —
-download it and open it in any browser.
+**Just the file (fully offline).** `ChessCareer-standalone.html`, built by
+`node build-standalone.mjs`, is the whole game in one file that fetches
+*nothing* — the rules engine, all 25,000 puzzles and the piece graphics are
+inlined, and the web-font links are removed. Put it on a phone, a USB stick or
+a plane and open it. The only thing it will still reach for is Stockfish, and
+only if you play the engine, open the eval bar or run Game Review; everything
+else works with the radio off.
+
+`work/openingtrainer.html` is the same app but still pulls the pieces and the
+font from a CDN (pieces fall back to Unicode glyphs offline).
 
 ### One-time: switch Pages on
 
@@ -53,6 +61,8 @@ publishes automatically.
 | `work/openingtrainer.html` | **The source of truth.** The entire app — markup, styles and logic — in one file. |
 | `build/` | The PWA `<head>` block and service-worker snippet injected at build time. |
 | `build-netlify.mjs` | Builds `netlify/` from the source file. `node build-netlify.mjs 51` also bumps the service-worker cache to `v51`. |
+| `build-standalone.mjs` | Builds `ChessCareer-standalone.html` — inlines the piece set from `build/pieces/` and strips every network reference the page needs to render. |
+| `build/pieces/` | The twelve cburnett piece SVGs, committed so the standalone build is reproducible without a network. |
 | `netlify/` | The generated, installable web bundle (`index.html`, `sw.js`, manifest, icons). |
 | `app_project/android/` | The Android WebView wrapper that bundles the same files into an APK. |
 | `validate-*.mjs` | The test battery — one suite per system. |
@@ -68,6 +78,9 @@ for f in validate-*.mjs; do node "$f"; done
 
 # rebuild the web bundle (optionally bumping the service-worker cache)
 node build-netlify.mjs 51
+
+# build the fully-offline single file
+node build-standalone.mjs
 
 # boot the app in a real browser and screenshot it
 node visual-check.mjs
