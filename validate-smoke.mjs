@@ -23,7 +23,19 @@ ok(true, 'module parses');
     const n = m[1]; names[n] = (names[n] || 0) + 1; if (names[n] === 2) dups.push(n);
   }
   ok(dups.length === 0, 'no duplicate top-level declarations' + (dups.length ? ' — ' + dups.join(', ') : ''));
+
+
+// Every click handler must re-render: the dispatcher has no fallthrough, so a
+// handler that changes state without calling render() leaves a dead control on
+// screen — a whole tab bar failed this way once.
+const RENDERS=/render\(\)|go\(|startPlay|runImport|doDay|dailyAnswer|startSimul|startParkGame|profileOpen|startSpectate|uiConfirm|arcChoose|clStart|egLessonStart|startChallenge|joinTournament|newCareer|guessStart|reviewStart|openStudy|startRivalFinale|careerRest|careerSabbatical|playSeekTo|startTraining|pzNext|Voice\.say|return/;
+const dead=[];
+for (const m of script.matchAll(/else if\(act==='([a-zA-Z0-9_]+)'\)(\{[^\n]*\}|[^\n;]*;)/g)) {
+  if (!/\bapp\.|\bstore\./.test(m[0])) continue;
+  if (RENDERS.test(m[0])) continue;
+  dead.push(m[1]);
 }
+ok(dead.length === 0, 'every state-changing click handler re-renders' + (dead.length ? ' — dead: ' + dead.join(', ') : ''));}
 
 const dom = new JSDOM('<!doctype html><body><div id="app"></div></body>', { url: 'http://localhost/' });
 globalThis.window = dom.window; globalThis.document = dom.window.document; globalThis.localStorage = dom.window.localStorage;
