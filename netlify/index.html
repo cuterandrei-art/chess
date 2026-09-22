@@ -79,6 +79,12 @@
   .learncard .li{font-size:26px;flex:0 0 auto}
   .learncard .lt{font-weight:800}
   .learncard .ld{color:var(--muted);font-size:12.5px;margin-top:2px;line-height:1.4}
+  /* twenty-six week columns have to fit a phone without scrolling */
+  .heatmap{display:flex;gap:2px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .heatmap::-webkit-scrollbar{display:none}
+  .heatcol{display:flex;flex-direction:column;gap:2px;flex:0 0 auto}
+  .heatmap i{display:block;width:10px;height:10px;border-radius:2px}
+  @media(min-width:620px){.heatmap,.heatcol{gap:3px}.heatmap i{width:13px;height:13px;border-radius:3px}}
   .ctabs{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 8px;margin-bottom:10px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   .ctabs::-webkit-scrollbar{display:none}
   .ctab{flex:0 0 auto;position:relative;background:#141f38;border:1px solid var(--border);color:var(--muted);font:inherit;font-weight:700;font-size:13px;padding:9px 13px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:6px}
@@ -4538,7 +4544,7 @@ function delRep(id){store.repertoire=store.repertoire.filter(x=>x!==id);save();}
 /* ============================== app state ============================== */
 const app={view:'career',exId:null,exPath:[],exFlip:false,courseId:null,setupOpening:'',
   pz:null,pzSeen:new Set(),pzFilter:{type:'auto'},rush:null,
-  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,ccSyncing:false,ccSyncMsg:null,ccSyncErr:null,_ccAutoTried:false,drill:null,installOpen:false,installMsg:null,replaySpeed:1,_replayTick:null,live:null,liveUser:null,liveList:null,liveLoading:false,liveErr:null,liveListAt:0,liveEv:null,liveBest:null,liveLines:[],liveEngErr:false,_liveKey:null,_livePollT:null,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
+  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,ccSyncing:false,ccSyncMsg:null,ccSyncErr:null,_ccAutoTried:false,drill:null,installOpen:false,installMsg:null,trkF:null,trkQ:'',trkSort:'date',trkPage:0,trkMsg:null,replaySpeed:1,_replayTick:null,live:null,liveUser:null,liveList:null,liveLoading:false,liveErr:null,liveListAt:0,liveEv:null,liveBest:null,liveLines:[],liveEngErr:false,_liveKey:null,_livePollT:null,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
   confirm:null,
   review:null,studyId:null,studyChapter:0,studyPath:[],studyFlip:false,studyMsg:null,
 
@@ -6183,6 +6189,233 @@ async function ccFetchProfile(user,onStep){
   return {profile:profile,stats:stats,country:country,at:Date.now()};
 }
 const CC_CLASSES=[['chess_bullet','Bullet','🚀'],['chess_blitz','Blitz','⚡'],['chess_rapid','Rapid','🐢'],['chess_daily','Daily','📅'],['chess960_daily','960 daily','🎲']];
+/* ================= SLICING THE SET =================
+   Every number in the tracker is only as useful as the games it was taken
+   over. "You score 48%" means little; "you score 41% at 3+0 as Black in the
+   last month" is something you can act on. So one filter sits above the whole
+   thing and every tab reads through it. */
+const TRK_PERIODS=[['all','All time'],['30','30 days'],['90','3 months'],['365','1 year']];
+function trkFilter(){
+  if(!app.trkF)app.trkF={tc:'',color:'',rated:false,period:'all'};
+  return app.trkF;
+}
+function trkFilterActive(){
+  const f=trkFilter();
+  return !!(f.tc||f.color||f.rated||f.period!=='all');
+}
+function trkFilterApply(games){
+  const f=trkFilter();
+  let out=games||[];
+  if(f.tc)out=out.filter(g=>(g.tc||'other')===f.tc);
+  if(f.color)out=out.filter(g=>(g.color==='b'?'b':'w')===f.color);
+  if(f.rated)out=out.filter(g=>g.rated!==false);
+  if(f.period!=='all'){
+    const cut=Date.now()-(+f.period)*86400000;
+    out=out.filter(g=>(g.date||0)>=cut);
+  }
+  return out;
+}
+function trkFilterLabel(){
+  const f=trkFilter(),bits=[];
+  if(f.tc)bits.push(f.tc);
+  if(f.color)bits.push('as '+(f.color==='w'?'White':'Black'));
+  if(f.rated)bits.push('rated only');
+  if(f.period!=='all'){const p=TRK_PERIODS.filter(x=>x[0]===f.period)[0];if(p)bits.push('last '+p[1]);}
+  return bits.join(' · ');
+}
+function trkFilterBar(total,shown){
+  const f=trkFilter();
+  const classes=[];
+  (store.myGames||[]).forEach(function(g){
+    const k=g.tc||'other';
+    if(g&&g.moves&&g.moves.length>=6&&classes.indexOf(k)<0)classes.push(k);
+  });
+  classes.sort();
+  const chip=(act,val,label,on)=>'<button class="btn '+(on?'sec':'ghost')+' sm" data-act="'+act+'" data-val="'+esc(val)+'" style="padding:5px 9px;font-size:12px">'+esc(label)+'</button>';
+  return '<div class="card" style="margin-bottom:12px;padding:9px 11px">'+
+    '<div class="row" style="gap:5px;flex-wrap:wrap;align-items:center">'+
+      '<span class="dim small" style="margin-right:2px">Time</span>'+
+      chip('trkftc','','Any',!f.tc)+classes.map(c=>chip('trkftc',c,c,f.tc===c)).join('')+
+    '</div>'+
+    '<div class="row" style="gap:5px;flex-wrap:wrap;align-items:center;margin-top:5px">'+
+      '<span class="dim small" style="margin-right:2px">Side</span>'+
+      chip('trkfcolor','','Both',!f.color)+chip('trkfcolor','w','White',f.color==='w')+chip('trkfcolor','b','Black',f.color==='b')+
+      '<span class="dim small" style="margin:0 2px 0 8px">When</span>'+
+      TRK_PERIODS.map(p=>chip('trkfperiod',p[0],p[1],f.period===p[0])).join('')+
+      chip('trkfrated','','Rated only',f.rated)+
+    '</div>'+
+    (trkFilterActive()
+      ? '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-top:7px;flex-wrap:wrap">'+
+        '<span class="small"><b>'+shown+'</b> of '+total+' games <span class="dim">· '+esc(trkFilterLabel())+'</span></span>'+
+        '<button class="btn ghost sm" data-act="trkfreset" style="padding:4px 9px;font-size:12px">Clear</button></div>'
+      : '<div class="dim small" style="margin-top:6px">All '+total+' games</div>')+
+    '</div>';
+}
+/* ================= WHAT THE RESULTS ARE WORTH =================
+   A score means nothing without the opposition it came against. The
+   performance rating is the rating that score would be normal for, and the
+   expected score is what your own rating said you should have taken. */
+function trkPerf(games){
+  const g2=(games||[]).filter(g=>g.oppRating>0&&g.result!=null);
+  if(g2.length<5)return null;
+  const n=g2.length;
+  const avgOpp=g2.reduce((a,g)=>a+g.oppRating,0)/n;
+  const w=g2.filter(g=>g.result===1).length, l=g2.filter(g=>g.result===0).length;
+  // the tournament-table approximation: ±400 per point of margin per game
+  const perf=Math.round(avgOpp+400*(w-l)/n);
+  const rated=g2.filter(g=>g.myRating>0);
+  let expected=null,actual=null;
+  if(rated.length>=5){
+    expected=rated.reduce((a,g)=>a+1/(1+Math.pow(10,(g.oppRating-g.myRating)/400)),0);
+    actual=rated.reduce((a,g)=>a+(g.result===1?1:g.result===0?0:0.5),0);
+  }
+  return {n:n,avgOpp:Math.round(avgOpp),perf:perf,
+    myAvg:rated.length?Math.round(rated.reduce((a,g)=>a+g.myRating,0)/rated.length):null,
+    expected:expected==null?null:Math.round(expected*10)/10,
+    actual:actual==null?null:Math.round(actual*10)/10,
+    over:expected==null?null:Math.round((actual-expected)*10)/10,
+    ratedN:rated.length};
+}
+/* ================= WHO YOU KEEP PLAYING ================= */
+function trkOpponents(games){
+  const by={};
+  (games||[]).forEach(function(g){
+    const name=(g.opp||'').trim();
+    if(!name)return;
+    const k=name.toLowerCase();
+    const o=by[k]||(by[k]={name:name,n:0,w:0,d:0,l:0,ratings:[],last:0});
+    trkAdd(o,g.result);
+    if(g.oppRating>0)o.ratings.push(g.oppRating);
+    if((g.date||0)>o.last)o.last=g.date||0;
+  });
+  const list=Object.keys(by).map(function(k){
+    const o=by[k];
+    o.pct=trkPct(o.w,o.d,o.n);
+    o.rating=o.ratings.length?Math.round(o.ratings.reduce((a,b)=>a+b,0)/o.ratings.length):null;
+    return o;
+  });
+  list.sort((a,b)=>b.n-a.n||b.last-a.last);
+  const repeat=list.filter(o=>o.n>=3);
+  const worst=repeat.slice().sort((a,b)=>a.pct-b.pct||b.n-a.n)[0]||null;
+  const best=repeat.slice().sort((a,b)=>b.pct-a.pct||b.n-a.n)[0]||null;
+  // the two tests are mutually exclusive, so one opponent can never be both
+  return {list:list,repeat:repeat.length,unique:list.length,
+    nemesis:(worst&&worst.pct<50)?worst:null,
+    customer:(best&&best.pct>50)?best:null};
+}
+/* ================= THE THINGS WORTH REMEMBERING ================= */
+function trkRecords(games,S){
+  const R={};
+  // an opponent who walked away on move 3 is not your fastest win
+  const wins=games.filter(g=>g.result===1&&g.nmoves>=5&&g.reason!=='abandoned');
+  if(wins.length){
+    const fast=wins.slice().sort((a,b)=>a.nmoves-b.nmoves)[0];
+    R.fastestWin={n:fast.nmoves,opp:fast.opp,url:fast.url,date:fast.date};
+  }
+  const withLen=games.filter(g=>g.nmoves>0);
+  if(withLen.length){
+    const long=withLen.slice().sort((a,b)=>b.nmoves-a.nmoves)[0];
+    R.longest={n:long.nmoves,opp:long.opp,url:long.url,date:long.date,result:long.result};
+  }
+  const peaks=[];
+  Object.keys(S.curve||{}).forEach(k=>peaks.push({key:k,r:S.curve[k].max}));
+  peaks.sort((a,b)=>b.r-a.r);
+  R.peaks=peaks;
+  if(S.acc&&S.acc.best)R.bestAcc=S.acc.best;
+  if(S.bestUpset)R.upset=S.bestUpset;
+  // the busiest day you ever had
+  const perDay={};
+  games.forEach(function(g){
+    if(!g.date)return;
+    const d=new Date(g.date),k=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+    perDay[k]=(perDay[k]||0)+1;
+  });
+  const days=Object.keys(perDay).map(k=>({k:k,n:perDay[k]})).sort((a,b)=>b.n-a.n);
+  if(days.length)R.busiest=days[0];
+  return R;
+}
+/* ================= CASTLING =================
+   Which way you go, and whether it works out. Read off your own moves. */
+function trkCastling(games){
+  const side={k:trkBucket(),q:trkBucket(),none:trkBucket()};
+  let plies=0,castled=0;
+  games.forEach(function(g){
+    const mine=[],start=(g.color==='b')?1:0;
+    for(let i=start;i<(g.moves||[]).length;i+=2)mine.push(g.moves[i]);
+    let found=null,at=0;
+    for(let i=0;i<mine.length;i++){
+      const m=String(mine[i]||'').replace(/[+#]/g,'');
+      if(m==='O-O-O'||m==='0-0-0'){found='q';at=i+1;break;}
+      if(m==='O-O'||m==='0-0'){found='k';at=i+1;break;}
+    }
+    trkAdd(side[found||'none'],g.result);
+    if(found){castled++;plies+=at;}
+  });
+  ['k','q','none'].forEach(k=>{side[k].pct=trkPct(side[k].w,side[k].d,side[k].n);});
+  const n=games.length;
+  return {k:side.k,q:side.q,none:side.none,n:n,
+    castledPct:n?Math.round(castled/n*100):0,
+    avgMove:castled?Math.round(plies/castled):null};
+}
+/* ================= ACTIVITY =================
+   A calendar of the last half-year: how much you played and how it went. */
+const TRK_HEAT_DAYS=182;
+function trkActivity(games){
+  const today=new Date();today.setHours(0,0,0,0);
+  const start=today.getTime()-(TRK_HEAT_DAYS-1)*86400000;
+  const cells={};
+  games.forEach(function(g){
+    if(!g.date||g.date<start)return;
+    const d=new Date(g.date);d.setHours(0,0,0,0);
+    const k=d.getTime();
+    const c=cells[k]||(cells[k]={n:0,w:0,d:0,l:0});
+    trkAdd(c,g.result);
+  });
+  const days=[];
+  for(let t=start;t<=today.getTime();t+=86400000){
+    const c=cells[t];
+    days.push({t:t,n:c?c.n:0,pct:c?trkPct(c.w,c.d,c.n):null});
+  }
+  const played=days.filter(d=>d.n>0);
+  const max=played.reduce((m,d)=>Math.max(m,d.n),0);
+  // only the games inside the window count towards the rate — older ones have
+  // no day on this calendar to belong to
+  const inWindow=played.reduce((a,d)=>a+d.n,0);
+  // a streak of days with at least one game
+  let cur=0,best=0;
+  days.forEach(d=>{if(d.n>0){cur++;best=Math.max(best,cur);}else cur=0;});
+  return {days:days,max:max,activeDays:played.length,span:days.length,n:inWindow,
+    perActiveDay:played.length?Math.round(inWindow/played.length*10)/10:0,
+    streak:best,currentStreak:cur};
+}
+/* ================= MONTH BY MONTH ================= */
+const TRK_MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function trkByMonth(games){
+  const by={};
+  games.forEach(function(g){
+    if(!g.date)return;
+    const d=new Date(g.date),k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    const b=by[k]||(by[k]={key:k,label:TRK_MONTHS[d.getMonth()]+' '+d.getFullYear(),n:0,w:0,d:0,l:0,cls:{}});
+    trkAdd(b,g.result);
+    // ratings belong to one time control each, so a month's movement is only
+    // meaningful within a class — mixing blitz and rapid would be nonsense
+    if(g.myRating>0){
+      const c=g.tc||'other';
+      const r=b.cls[c]||(b.cls[c]={n:0,first:g.myRating,last:g.myRating});
+      r.n++;r.last=g.myRating;
+    }
+  });
+  return Object.keys(by).sort().map(function(k){
+    const b=by[k];b.pct=trkPct(b.w,b.d,b.n);
+    const keys=Object.keys(b.cls).sort((x,y)=>b.cls[y].n-b.cls[x].n);
+    const top=keys.length?b.cls[keys[0]]:null;
+    b.delta=(top&&top.n>=3)?top.last-top.first:null;
+    b.deltaClass=(top&&top.n>=3)?keys[0]:null;
+    b.deltaEnd=(top&&top.n>=3)?top.last:null;
+    return b;
+  });
+}
+
 /* ---- statistics over the imported games ---- */
 function trkPct(w,d,n){return n?Math.round((w+d*0.5)/n*100):0;}
 function trkBucket(){return {n:0,w:0,d:0,l:0};}
@@ -6206,8 +6439,9 @@ const CC_REASON={win:'won',checkmated:'checkmated',resigned:'resigned',timeout:'
   bughousepartnerlose:'partner lost',threecheck:'three checks',kingofthehill:'king of the hill'};
 function trkReasonLabel(r){return CC_REASON[r]||r||'other';}
 function trackerStats(){
-  const games=(store.myGames||[]).filter(g=>g&&g.moves&&g.moves.length>=6);
-  const S={n:games.length};
+  const usable=(store.myGames||[]).filter(g=>g&&g.moves&&g.moves.length>=6);
+  const games=trkFilterApply(usable);
+  const S={n:games.length,total:usable.length,filtered:trkFilterActive(),games:games};
   if(!games.length)return S;
   const sorted=games.slice().sort((a,b)=>(a.date||0)-(b.date||0));
   S.from=sorted[0].date||0;S.to=sorted[sorted.length-1].date||0;
@@ -6353,6 +6587,29 @@ function trackerStats(){
   S.byEco=trkGroup(games,g=>g.ecoName||null).map(function(b){
     b.name=b.key;return b;
   }).filter(b=>b.n>=2).sort((a,b)=>b.n-a.n).slice(0,20);
+
+  /* what the results were actually worth, who you played, and the rest */
+  S.perf=trkPerf(games);
+  S.perfByClass={};
+  S.byClass.forEach(function(b){
+    const p=trkPerf(games.filter(g=>(g.tc||'other')===b.key));
+    if(p)S.perfByClass[b.key]=p;
+  });
+  S.opponents=trkOpponents(games);
+  S.castling=trkCastling(games);
+  S.activity=trkActivity(games);
+  S.byMonth=trkByMonth(games);
+  /* the exact time control, not just its class: 3+0 and 3+2 are different games */
+  S.byTc=trkGroup(games,g=>g.tcStr||null).filter(b=>b.n>=3)
+    .sort((a,b)=>b.n-a.n).slice(0,10)
+    .map(function(b){b.label=tcLabel(b.key);return b;});
+  /* how often a game goes the distance, and how you do when it does */
+  const longGames=games.filter(g=>g.nmoves>=41);
+  if(games.length){
+    const eb=trkBucket();longGames.forEach(g=>trkAdd(eb,g.result));eb.pct=trkPct(eb.w,eb.d,eb.n);
+    S.endgame={rate:Math.round(longGames.length/games.length*100),rec:eb};
+  }
+  S.records=trkRecords(games,S);
   return S;
 }
 /* ---- turn the numbers into things worth doing ---- */
@@ -6389,10 +6646,332 @@ function trackerInsights(S){
   }
   if(S.streaks&&S.streaks.worstLoss>=5)
     push(S.streaks.worstLoss,'📉','Your longest losing run was '+S.streaks.worstLoss+' games. Best winning run: '+S.streaks.bestWin+'.');
+  if(S.perf&&S.perf.myAvg!=null&&S.perf.n>=20){
+    const d=S.perf.perf-S.perf.myAvg;
+    if(Math.abs(d)>=40)
+      push(Math.abs(d),d>0?'📈':'🧊',d>0
+        ? 'You are performing '+d+' points above your rating over these '+S.perf.n+' games — the number has not caught up yet.'
+        : 'You are performing '+Math.abs(d)+' points below your rating over these '+S.perf.n+' games, so the losses are not bad luck.');
+  }
+  if(S.opponents&&S.opponents.nemesis&&S.opponents.nemesis.n>=4)
+    push(30,'😾','You have played '+S.opponents.nemesis.name+' '+S.opponents.nemesis.n+' times and score '+
+      S.opponents.nemesis.pct+'%. Look at those games before the next one.');
+  if(S.castling){
+    const C=S.castling;
+    if(C.none.n>=10&&C.none.pct<=Math.max(C.k.pct,C.q.pct)-12)
+      push(C.none.n,'🏰','In the '+C.none.n+' games where you never castled you score '+C.none.pct+'%, against '+
+        Math.max(C.k.pct,C.q.pct)+'% when you did.');
+    if(C.k.n>=12&&C.q.n>=12&&Math.abs(C.k.pct-C.q.pct)>=12)
+      push(Math.abs(C.k.pct-C.q.pct),'🏰','Castling '+(C.k.pct>C.q.pct?'queenside':'kingside')+' costs you '+
+        Math.abs(C.k.pct-C.q.pct)+' points of score. Be sure before you go that way.');
+  }
+  if(S.byTc&&S.byTc.length>=2){
+    const s2=S.byTc.slice().filter(b=>b.n>=10).sort((a,b)=>b.pct-a.pct);
+    if(s2.length>=2&&s2[0].pct-s2[s2.length-1].pct>=15)
+      push(s2[0].pct-s2[s2.length-1].pct,'⏲️','At '+s2[0].label+' you score '+s2[0].pct+'%, at '+
+        s2[s2.length-1].label+' only '+s2[s2.length-1].pct+'%. The increment matters more than you think.');
+  }
+  if(S.endgame&&S.endgame.rec.n>=10&&S.pct-S.endgame.rec.pct>=10)
+    push(S.pct-S.endgame.rec.pct,'🔚','Past move 40 you score '+S.endgame.rec.pct+'% against '+S.pct+
+      '% overall — '+S.endgame.rate+'% of your games get there, so endgames are worth the hours.');
+  if(S.activity&&S.activity.activeDays>=20&&S.activity.perActiveDay>=8)
+    push(20,'🗓️','You average '+S.activity.perActiveDay+' games on the days you play. Long sittings are where scores drop.');
   return out.sort((a,b)=>b.w-a.w);
 }
 
-const TRK_TABS=[['overview','📋','Overview'],['results','📈','Results'],['openings','♟️','Openings'],['clock','⏱️','Clock &amp; time'],['insights','💡','Insights'],['live','📺','Live']];
+/* ---- the cards the wider tracker draws ---- */
+function trkPerfCard(S){
+  const p=S.perf;
+  if(!p)return '';
+  const diff=(p.myAvg!=null)?p.perf-p.myAvg:null;
+  const col=diff==null?'var(--text)':(diff>=25?'var(--green)':diff<=-25?'#f87171':'var(--amber)');
+  let h='<div class="card" style="margin-bottom:12px">'+
+    '<div style="font-weight:700;margin-bottom:2px">🎯 What these results are worth</div>'+
+    '<div class="dim small" style="margin-bottom:6px">The rating your score would be normal for, against the opposition you actually met.</div>'+
+    '<div class="row" style="flex-wrap:wrap">'+
+      trkStat('Performance',p.perf,'over '+p.n+' games',col)+
+      trkStat('Your rating',p.myAvg||'—','average across them')+
+      trkStat('Opposition',p.avgOpp,'average')+
+    '</div>';
+  if(diff!=null)
+    h+='<div class="small" style="margin-top:4px">'+(Math.abs(diff)<25
+      ? 'You are performing at about your rating.'
+      : (diff>0?'You are playing <b style="color:var(--green)">'+diff+' above</b> your rating — it has catching up to do.'
+               :'You are playing <b style="color:#f87171">'+Math.abs(diff)+' below</b> your rating over this set.'))+'</div>';
+  if(p.over!=null&&p.ratedN>=10)
+    h+='<div class="dim small" style="margin-top:4px">Your ratings predicted '+p.expected+' points from these '+p.ratedN+
+      ' games; you took '+p.actual+' — '+(p.over>0?'<b style="color:var(--green)">'+p.over+' more</b>':
+      p.over<0?'<b style="color:#f87171">'+Math.abs(p.over)+' fewer</b>':'exactly as many')+'.</div>';
+  const keys=Object.keys(S.perfByClass||{});
+  if(keys.length>1)
+    h+='<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:7px">'+
+      keys.sort((a,b)=>S.perfByClass[b].n-S.perfByClass[a].n).map(function(k){
+        const q=S.perfByClass[k],d=(q.myAvg!=null)?q.perf-q.myAvg:null;
+        return '<div class="row" style="justify-content:space-between;padding:2px 0">'+
+          '<span class="small">'+esc(k)+' <span class="dim">'+q.n+' games</span></span>'+
+          '<span class="small" style="font-weight:700">'+q.perf+
+          (d!=null?' <span class="dim" style="font-weight:600">('+(d>0?'+':'')+d+')</span>':'')+'</span></div>';
+      }).join('')+'</div>';
+  return h+'</div>';
+}
+function trkRecordsCard(S){
+  const R=S.records||{};
+  const rows=[];
+  if(R.peaks&&R.peaks.length)rows.push(['🏔️','Best rating',R.peaks.map(p=>p.r+' <span class="dim">'+esc(p.key)+'</span>').join(' · ')]);
+  if(S.streaks&&S.streaks.bestWin)rows.push(['🔥','Longest win run',S.streaks.bestWin+' games'+(S.streaks.bestUnbeaten>S.streaks.bestWin?' <span class="dim">· '+S.streaks.bestUnbeaten+' unbeaten</span>':'')]);
+  if(R.fastestWin)rows.push(['⚡','Fastest win',R.fastestWin.n+' moves'+(R.fastestWin.opp?' <span class="dim">vs '+esc(R.fastestWin.opp)+'</span>':'')+
+    (R.fastestWin.url?' <a target="_blank" rel="noopener" href="'+esc(R.fastestWin.url)+'">↗</a>':'')]);
+  if(R.longest)rows.push(['🪨','Longest game',R.longest.n+' moves'+(R.longest.opp?' <span class="dim">vs '+esc(R.longest.opp)+'</span>':'')+
+    (R.longest.url?' <a target="_blank" rel="noopener" href="'+esc(R.longest.url)+'">↗</a>':'')]);
+  if(R.upset)rows.push(['🏆','Biggest upset','beat '+esc(R.upset.opp||'?')+' ('+R.upset.oppRating+') at '+R.upset.myRating+
+    (R.upset.url?' <a target="_blank" rel="noopener" href="'+esc(R.upset.url)+'">↗</a>':'')]);
+  if(R.bestAcc)rows.push(['✨','Best accuracy',R.bestAcc.acc+'%'+(R.bestAcc.opp?' <span class="dim">vs '+esc(R.bestAcc.opp)+'</span>':'')]);
+  if(R.busiest)rows.push(['📅','Busiest day',R.busiest.n+' games']);
+  if(!rows.length)return '';
+  return '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:4px">🗂️ Records</div>'+
+    rows.map(r=>'<div class="row" style="justify-content:space-between;gap:10px;padding:5px 0;border-top:1px solid var(--border)">'+
+      '<span class="small">'+r[0]+' '+esc(r[1])+'</span><span class="small" style="text-align:right">'+r[2]+'</span></div>').join('')+
+    '</div>';
+}
+function trkOppCard(S){
+  const O=S.opponents;
+  if(!O||!O.list.length)return '';
+  const top=O.list.slice(0,20);
+  let h='<div class="card" style="margin-bottom:12px;padding:0">'+
+    '<div style="padding:11px 13px"><div style="font-weight:700">👥 Who you play</div>'+
+    '<div class="dim small">'+O.unique+' different opponents'+(O.repeat?' · '+O.repeat+' met three times or more':'')+'</div></div>';
+  if(O.nemesis||O.customer){
+    h+='<div style="padding:0 13px 9px">';
+    if(O.nemesis)h+='<div class="note" style="border-color:#7f1d1d;background:#7f1d1d22;color:#fca5a5;margin-bottom:6px">'+
+      '😾 <b>'+esc(O.nemesis.name)+'</b> has your number — '+O.nemesis.w+'W–'+O.nemesis.d+'D–'+O.nemesis.l+'L ('+O.nemesis.pct+'%) over '+O.nemesis.n+' games.</div>';
+    if(O.customer)h+='<div class="note" style="border-color:#14532d;background:#052e1655;color:#86efac">'+
+      '😺 You own <b>'+esc(O.customer.name)+'</b> — '+O.customer.w+'W–'+O.customer.d+'D–'+O.customer.l+'L ('+O.customer.pct+'%).</div>';
+    h+='</div>';
+  }
+  h+=top.map(function(o){
+    const col=o.pct>=55?'var(--green)':o.pct<45?'#f87171':'var(--amber)';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 13px;border-top:1px solid var(--border)">'+
+      '<div style="flex:1;min-width:0"><div class="small" style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+
+        esc(o.name)+(o.rating?' <span class="dim">('+o.rating+')</span>':'')+'</div>'+
+      '<div class="dim small">'+o.n+' game'+(o.n===1?'':'s')+' · '+o.w+'W–'+o.d+'D–'+o.l+'L</div></div>'+
+      '<div style="width:46px;text-align:right;font-weight:800;color:'+col+'">'+o.pct+'%</div></div>';
+  }).join('');
+  return h+'</div>';
+}
+function trkCastleCard(S){
+  const C=S.castling;
+  if(!C||!C.n)return '';
+  const line=(label,b)=>b.n?trkBar(label,b,C.n):'';
+  return '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:5px">🏰 Castling</div>'+
+    '<div class="dim small" style="margin-bottom:5px">You castle in '+C.castledPct+'% of your games'+
+      (C.avgMove?', on average around move '+C.avgMove:'')+'.</div>'+
+    line('Kingside',C.k)+line('Queenside',C.q)+line('Never castled',C.none)+
+    (C.k.n>=10&&C.q.n>=10&&Math.abs(C.k.pct-C.q.pct)>=10
+      ? '<div class="small" style="margin-top:6px;color:var(--amber)">↪ '+Math.abs(C.k.pct-C.q.pct)+
+        ' points better going '+(C.k.pct>C.q.pct?'kingside':'queenside')+'.</div>':'')+
+    (C.none.n>=10&&C.none.pct<Math.max(C.k.pct,C.q.pct)-10
+      ? '<div class="small" style="margin-top:4px;color:#f87171">↪ The games where you never castle go badly ('+C.none.pct+'%).</div>':'')+
+    '</div>';
+}
+function trkHeatmap(S){
+  const A=S.activity;
+  if(!A||!A.activeDays)return '';
+  const cell=function(d){
+    if(!d.n)return '<i style="background:#16223b" title="no games"></i>';
+    const strength=Math.min(1,d.n/Math.max(3,A.max));
+    const good=d.pct>=55,bad=d.pct<45;
+    const col=good?'34,197,94':bad?'248,113,113':'148,163,184';
+    return '<i style="background:rgba('+col+','+(0.25+strength*0.75).toFixed(2)+')" title="'+
+      new Date(d.t).toLocaleDateString()+': '+d.n+' game'+(d.n===1?'':'s')+', '+d.pct+'%"></i>';
+  };
+  // columns of seven, oldest on the left
+  let cols='',run=[];
+  A.days.forEach(function(d,i){
+    run.push(cell(d));
+    if(run.length===7||i===A.days.length-1){cols+='<div class="heatcol">'+run.join('')+'</div>';run=[];}
+  });
+  return '<div class="card" style="margin-bottom:12px">'+
+    '<div style="font-weight:700;margin-bottom:2px">🗓️ The last six months</div>'+
+    '<div class="dim small" style="margin-bottom:7px">A column is a week. Green days you scored well, red days you did not.</div>'+
+    '<div class="heatmap">'+cols+'</div>'+
+    '<div class="row" style="flex-wrap:wrap;margin-top:8px">'+
+      trkStat('Days played',A.activeDays,'of the last '+A.span)+
+      trkStat('Games a day',A.perActiveDay,'when you played')+
+      trkStat('Longest run',A.streak+'d','days in a row')+
+      (A.currentStreak?trkStat('On now',A.currentStreak+'d','and counting','var(--green)'):'')+
+    '</div></div>';
+}
+function trkMonthCard(S){
+  const M=S.byMonth;
+  if(!M||M.length<2)return '';
+  const rows=M.slice(-14);
+  return '<div class="card" style="margin-bottom:12px;padding:0">'+
+    '<div style="padding:11px 13px;font-weight:700">📆 Month by month</div>'+
+    rows.map(function(b){
+      const col=b.pct>=55?'var(--green)':b.pct<45?'#f87171':'var(--amber)';
+      return '<div style="display:flex;align-items:center;gap:10px;padding:7px 13px;border-top:1px solid var(--border)">'+
+        '<div style="width:84px" class="small">'+esc(b.label)+'</div>'+
+        '<div style="flex:1;min-width:0"><div class="bar" style="height:6px;margin-bottom:4px"><i style="width:'+b.pct+'%;background:'+col+'"></i></div>'+
+        '<div class="dim small" style="font-size:10px">'+b.n+' games · '+b.w+'W–'+b.d+'D–'+b.l+'L</div></div>'+
+        '<div style="width:74px;text-align:right"><span style="font-weight:800;color:'+col+'">'+b.pct+'%</span>'+
+          (b.delta!=null?'<div class="dim small" style="font-size:10px">'+(b.delta>0?'+':'')+b.delta+' '+esc(b.deltaClass)+'</div>':'')+
+        '</div></div>';
+    }).join('')+'</div>';
+}
+function trkTcCard(S){
+  if(!S.byTc||!S.byTc.length)return '';
+  return '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:2px">⏲️ By exact time control</div>'+
+    '<div class="dim small" style="margin-bottom:5px">3+0 and 3+2 are not the same game.</div>'+
+    S.byTc.map(b=>trkBar(esc(b.label),b,S.n)).join('')+'</div>';
+}
+function trkEndgameCard(S){
+  if(!S.endgame||!S.endgame.rec.n)return '';
+  const e=S.endgame;
+  return '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:4px">🔚 When it goes long</div>'+
+    '<div class="dim small" style="margin-bottom:5px">'+e.rate+'% of your games pass move 40.</div>'+
+    trkBar('Games past move 40',e.rec,S.n)+
+    (Math.abs(e.rec.pct-S.pct)>=8?'<div class="small" style="margin-top:6px;color:'+(e.rec.pct>S.pct?'var(--green)':'var(--amber)')+'">↪ '+
+      Math.abs(e.rec.pct-S.pct)+' points '+(e.rec.pct>S.pct?'better':'worse')+' than your overall '+S.pct+'% — '+
+      (e.rec.pct>S.pct?'long games suit you.':'the long ones are where it slips away.')+'</div>':'')+
+    '</div>';
+}
+
+/* ================= EVERY GAME, NOT JUST THE AVERAGE =================
+   All the rest of the tracker is aggregates, and an aggregate can only point
+   at a problem — it can never show it to you. This is the whole filtered set,
+   searchable and sortable, with every row opening on the analysis board. */
+const TRK_PAGE=25;
+const TRK_SORTS=[['date','Newest'],['old','Oldest'],['len','Longest'],['acc','Accuracy'],['opp','Toughest']];
+function trkQuery(){return String(app.trkQ||'').trim().toLowerCase();}
+function trkSearch(games){
+  const q=trkQuery();
+  if(!q)return games||[];
+  return (games||[]).filter(function(g){
+    return String(g.opp||'').toLowerCase().indexOf(q)>=0
+      ||String(g.ecoName||'').toLowerCase().indexOf(q)>=0
+      ||String(trkReasonLabel(g.reason)).toLowerCase().indexOf(q)>=0
+      ||String(g.tcStr?tcLabel(g.tcStr):'').toLowerCase().indexOf(q)>=0;
+  });
+}
+function trkSortKey(){const k=app.trkSort;return TRK_SORTS.some(s=>s[0]===k)?k:'date';}
+function trkSortGames(games){
+  const out=(games||[]).slice();
+  switch(trkSortKey()){
+    case 'old':out.sort((a,b)=>(a.date||0)-(b.date||0));break;
+    case 'len':out.sort((a,b)=>(b.nmoves||0)-(a.nmoves||0));break;
+    // a game chess.com never analysed has no accuracy; it sorts last rather
+    // than counting as zero
+    case 'acc':out.sort((a,b)=>(b.acc==null?-1:b.acc)-(a.acc==null?-1:a.acc));break;
+    case 'opp':out.sort((a,b)=>(b.oppRating||0)-(a.oppRating||0));break;
+    default:out.sort((a,b)=>(b.date||0)-(a.date||0));
+  }
+  return out;
+}
+function trkPages(n){return Math.max(1,Math.ceil((n||0)/TRK_PAGE));}
+function trkPageNo(n){return Math.min(Math.max(0,app.trkPage||0),trkPages(n)-1);}
+/* Rows carry their position in the stored list, because that is what the
+   analysis board opens by. */
+function trkGameRow(g){
+  const i=(store.myGames||[]).indexOf(g);
+  const r=g.result===1?['Won','var(--green)']:g.result===0?['Lost','#f87171']:['Drew','var(--muted)'];
+  const d=(g.myRating>0&&g.oppRating>0)?g.oppRating-g.myRating:null;
+  return '<div style="display:flex;align-items:center;gap:9px;padding:9px 13px;border-top:1px solid var(--border)">'+
+    '<div style="width:34px;flex:0 0 auto;font-weight:800;font-size:11px;color:'+r[1]+'">'+r[0]+'</div>'+
+    '<div style="flex:1;min-width:0">'+
+      // a long username wraps instead of eating its own rating
+      '<div class="small" style="font-weight:600;overflow-wrap:anywhere;line-height:1.35">'+
+        (g.color==='w'?'⬦ ':'⬥ ')+esc(g.opp||'?')+
+        (g.oppRating?' <span class="dim">('+g.oppRating+(d!=null&&Math.abs(d)>=50?', '+(d>0?'+':'')+d:'')+')</span>':'')+'</div>'+
+      // this line wraps rather than truncates: on a phone the opening name is
+      // half the reason for reading the list at all
+      '<div class="dim small" style="line-height:1.35">'+
+        esc(g.tcStr?tcLabel(g.tcStr):(g.tc||''))+' · '+esc(trkReasonLabel(g.reason))+' · '+
+        (g.nmoves||Math.ceil((g.moves||[]).length/2))+' moves'+
+        (typeof g.acc==='number'?' · '+g.acc+'%':'')+
+        (g.ecoName?' · '+esc(g.ecoName):'')+'</div>'+
+    '</div>'+
+    '<div style="flex:0 0 auto;text-align:right">'+
+      (g.date?'<div class="dim small" style="font-size:10px;margin-bottom:3px">'+esc(trkAgo(g.date))+'</div>':'')+
+      '<div class="row" style="gap:4px;justify-content:flex-end">'+
+        (i>=0?'<button class="btn sec sm" data-act="liveopenmine" data-val="'+i+'" title="Analyse it" style="padding:4px 8px">🔬</button>':'')+
+        (g.url?'<a class="btn ghost sm" target="_blank" rel="noopener" href="'+esc(g.url)+'" title="On Chess.com" style="padding:4px 8px">↗</a>':'')+
+      '</div></div></div>';
+}
+function trkGamesCard(S){
+  const all=trkSortGames(trkSearch(S.games||[]));
+  const q=trkQuery();
+  const page=trkPageNo(all.length),pages=trkPages(all.length);
+  const rows=all.slice(page*TRK_PAGE,(page+1)*TRK_PAGE);
+  const chip=(act,val,label,on)=>'<button class="btn '+(on?'sec':'ghost')+' sm" data-act="'+act+'" data-val="'+esc(val)+'" style="padding:5px 9px;font-size:12px">'+esc(label)+'</button>';
+  let h='<div class="card" style="margin-bottom:12px;padding:9px 11px">'+
+    '<div class="row" style="gap:8px;flex-wrap:wrap;align-items:flex-end">'+
+      '<div style="flex:1;min-width:150px"><div class="dim small" style="margin-bottom:3px">Search an opponent, opening or ending</div>'+
+      '<input id="trk-q" type="text" autocapitalize="off" spellcheck="false" placeholder="e.g. Sicilian, timeout, a name" value="'+esc(app.trkQ||'')+'" style="width:100%"></div>'+
+      '<button class="btn primary sm" data-act="trkq">Search</button>'+
+      (q?'<button class="btn ghost sm" data-act="trkqclear">Clear</button>':'')+
+    '</div>'+
+    '<div class="row" style="gap:5px;flex-wrap:wrap;align-items:center;margin-top:7px">'+
+      '<span class="dim small" style="margin-right:2px">Sort</span>'+
+      TRK_SORTS.map(s=>chip('trksort',s[0],s[1],trkSortKey()===s[0])).join('')+
+      '<button class="btn ghost sm" data-act="trkcsv" title="Download these games as a spreadsheet" style="padding:5px 9px;font-size:12px;margin-left:auto">⬇ CSV</button>'+
+    '</div>'+
+    (app.trkMsg?'<div class="note" style="margin-top:8px">⬇ '+esc(app.trkMsg)+'</div>':'')+
+    '</div>';
+  if(!all.length)
+    return h+'<div class="card"><b>Nothing matches “'+esc(app.trkQ||'')+'”.</b>'+
+      '<div class="dim small" style="margin-top:4px">Searched the opponent, the opening name, how the game ended and the time control across '+
+      (S.games||[]).length+' games.</div></div>';
+  h+='<div class="card" style="padding:0;margin-bottom:12px">'+
+    '<div style="padding:11px 13px;font-weight:700">'+all.length+' game'+(all.length===1?'':'s')+
+      (q?' matching “'+esc(app.trkQ)+'”':'')+
+      '<div class="dim small" style="font-weight:600">⬦ you had White · ⬥ Black · 🔬 opens it on the analysis board · ↗ on Chess.com</div></div>'+
+    rows.map(trkGameRow).join('')+'</div>';
+  if(pages>1)
+    h+='<div class="row" style="justify-content:center;align-items:center;gap:8px;margin-bottom:12px">'+
+      '<button class="btn ghost sm" data-act="trkpage" data-val="'+(page-1)+'"'+(page<=0?' disabled':'')+'>← Newer</button>'+
+      '<span class="small dim">'+(page*TRK_PAGE+1)+'–'+Math.min(all.length,(page+1)*TRK_PAGE)+' of '+all.length+'</span>'+
+      '<button class="btn ghost sm" data-act="trkpage" data-val="'+(page+1)+'"'+(page>=pages-1?' disabled':'')+'>Older →</button></div>';
+  return h;
+}
+/* ---- the whole set as a spreadsheet, for anyone who wants their own sums ---- */
+function csvCell(v){
+  const s=(v==null)?'':String(v);
+  return /[",\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
+}
+function trkCsv(games){
+  const head=['date','time_control','class','colour','opponent','opponent_rating','my_rating',
+    'result','ending','moves','accuracy','opening','rated','url'];
+  const rows=(games||[]).map(function(g){
+    return [g.date?new Date(g.date).toISOString():'',g.tcStr||'',g.tc||'',
+      g.color==='b'?'black':'white',g.opp||'',g.oppRating||'',g.myRating||'',
+      g.result===1?'win':g.result===0?'loss':'draw',trkReasonLabel(g.reason),
+      g.nmoves||'',(typeof g.acc==='number'?g.acc:''),g.ecoName||'',
+      g.rated===false?'no':'yes',g.url||''].map(csvCell).join(',');
+  });
+  return head.join(',')+'\n'+rows.join('\n')+(rows.length?'\n':'');
+}
+function trkSearchNow(){
+  const el=document.getElementById('trk-q');
+  app.trkQ=el?el.value:'';
+  app.trkPage=0;app.trkMsg=null;
+  render();
+}
+function trkExportCsv(){
+  const S=trackerStats();
+  const games=trkSortGames(trkSearch(S.games||[]));
+  if(!games.length){app.trkMsg='Nothing to export.';render();return;}
+  try{
+    const blob=new Blob([trkCsv(games)],{type:'text/csv;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;
+    a.download='chess-games-'+dayKey(Date.now())+'.csv';a.click();
+    URL.revokeObjectURL(url);
+    app.trkMsg=games.length+' games saved as a CSV file.';
+  }catch(e){app.trkMsg='Could not save the file here.';}
+  render();
+}
+
+const TRK_TABS=[['overview','📋','Overview'],['games','🗃️','Games'],['results','📈','Results'],['openings','♟️','Openings'],['opponents','👥','Opponents'],['clock','⏱️','Clock &amp; time'],['activity','🗓️','Activity'],['insights','💡','Insights'],['live','📺','Live']];
 function trkTab(){const k=app.trkTab;return TRK_TABS.some(t=>t[0]===k)?k:'overview';}
 function trkStat(label,value,sub,col){
   return '<div style="flex:1;min-width:88px;text-align:center;padding:8px 4px">'+
@@ -6476,8 +7055,13 @@ function viewTracker(){
   h+=trkProfileCard();
   // Following another player needs none of your own games, so the tabs stay
   // reachable from a cold start; only the statistics wait for an import.
-  const cur=S.n?trkTab():'live';
-  h+='<div class="ctabs">'+TRK_TABS.filter(t=>S.n||t[0]==='live').map(t=>'<button class="ctab'+(t[0]===cur?' active':'')+'" data-act="trktab" data-val="'+t[0]+'">'+t[1]+' '+t[2]+'</button>').join('')+'</div>';
+  if(S.total)h+=trkFilterBar(S.total,S.n);
+  const cur=(S.n||S.filtered)?trkTab():'live';
+  h+='<div class="ctabs">'+TRK_TABS.filter(t=>S.n||S.filtered||t[0]==='live').map(t=>'<button class="ctab'+(t[0]===cur?' active':'')+'" data-act="trktab" data-val="'+t[0]+'">'+t[1]+' '+t[2]+'</button>').join('')+'</div>';
+  if(!S.n&&S.filtered)
+    return h+'<div class="card"><b>No games match that.</b><div class="dim small" style="margin-top:4px">'+
+      esc(trkFilterLabel())+' leaves nothing out of your '+S.total+' games.</div>'+
+      '<div class="row" style="margin-top:10px"><button class="btn primary sm" data-act="trkfreset">Clear the filter</button></div></div></div>';
   if(!S.n)
     return h+trkLivePanel()+'<div class="card"><b>No games of your own loaded yet.</b><div class="dim small" style="margin-top:4px">Import them and this fills with a full breakdown: how you win and lose, accuracy, opponents, streaks, the hours you play worst, session fatigue, tilt and your clock.</div><div class="row" style="margin-top:10px"><button class="btn primary sm" data-act="nav" data-val="import">Import my games</button></div></div></div>';
 
@@ -6492,9 +7076,12 @@ function viewTracker(){
       trkBar('As White',S.byColour.w,S.n)+trkBar('As Black',S.byColour.b,S.n)+
       (Math.abs(S.colourGap)>=5?'<div class="small" style="margin-top:6px;color:var(--amber)">↪ '+Math.abs(S.colourGap)+' points better as '+(S.colourGap>0?'White':'Black')+'.</div>':'')+
       '</div>';
+    h+=trkPerfCard(S);
     if(S.byClass.length)
       h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:5px">By time control</div>'+
         S.byClass.map(b=>trkBar(esc(b.key),b,S.n)).join('')+'</div>';
+    h+=trkTcCard(S);
+    h+=trkRecordsCard(S);
     if(S.streaks)
       h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:5px">Streaks</div><div class="row" style="flex-wrap:wrap">'+
         trkStat('Best win run',S.streaks.bestWin,'','var(--green)')+
@@ -6523,6 +7110,8 @@ function viewTracker(){
           return '<div style="margin-bottom:8px"><div class="dim small">'+esc(k)+' · '+c.first+' → <b style="color:var(--text)">'+c.last+'</b> ('+(c.delta>=0?'+':'')+c.delta+') · low '+c.min+' / high '+c.max+'</div>'+trkSpark(c.pts)+'</div>';
         }).join('')+'</div>';
     h+=trkTrendCard(S);
+    h+=trkEndgameCard(S);
+    h+=trkMonthCard(S);
     if(S.byLength)
       h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:5px">By game length</div>'+
         '<div class="dim small" style="margin-bottom:4px">Average '+S.len.avg+' moves · shortest '+S.len.min+' · longest '+S.len.max+'</div>'+
@@ -6536,6 +7125,15 @@ function viewTracker(){
         '</div>'+(S.acc.best?'<div class="small" style="margin-top:6px">✨ Best game: '+S.acc.best.acc+'% vs '+esc(S.acc.best.opp||'?')+(S.acc.best.url?' · <a target="_blank" rel="noopener" href="'+esc(S.acc.best.url)+'">see it ↗</a>':'')+'</div>':'')+'</div>';
   }
 
+  if(cur==='games')h+=trkGamesCard(S);
+  if(cur==='opponents')
+    h+=trkOppCard(S)||'<div class="card"><b>No opponent names in these games.</b>'+
+      '<div class="dim small" style="margin-top:4px">Sync again and this fills with who you keep meeting, and how each of those runs is going.</div></div>';
+  if(cur==='activity'){
+    const act=trkHeatmap(S)+trkMonthCard(S);
+    h+=act||'<div class="card"><b>Nothing in the last six months.</b>'+
+      '<div class="dim small" style="margin-top:4px">These games are older than the calendar goes back. The rest of the tracker still covers them.</div></div>';
+  }
   if(cur==='live')h+=trkLivePanel();
 
   if(cur==='openings'){
@@ -6556,6 +7154,7 @@ function viewTracker(){
             '<div class="dim small">'+b.n+' games · '+b.w+'W–'+b.d+'D–'+b.l+'L</div></div>'+
             '<div style="width:46px;text-align:right;font-weight:800;color:'+col+'">'+b.pct+'%</div></div>';
         }).join('')+'</div>';
+    h+=trkCastleCard(S);
     h+='<div class="card"><div class="small">For the line-by-line version — where you leave the book and what to drill — see <b>Import my games</b>.</div>'+
       '<div class="row" style="margin-top:8px"><button class="btn sec sm" data-act="nav" data-val="import">📥 Open it</button></div></div>';
   }
@@ -9069,6 +9668,16 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='coachsay'){var _ct=(app.view==='explore')?exCoachText():(app.view==='clearn'?((app.cl&&app.cl.whyNot)||(app.cl&&app.cl.reveal&&app.cl.reveal.text)||(app.cl&&app.cl.oppNote)):(app.whyNot||app.coachNote));if(_ct)Voice.say(_ct,true);}
   else if(act==='dailyans'){app.dailyFeedback=null;dailyAnswer(parseInt(val,10));return;}
   else if(act==='trktab'){app.trkTab=val;render();}
+  else if(act==='trkftc'){trkFilter().tc=val||'';app.trkPage=0;render();}
+  else if(act==='trkfcolor'){trkFilter().color=val||'';app.trkPage=0;render();}
+  else if(act==='trkfperiod'){trkFilter().period=val||'all';app.trkPage=0;render();}
+  else if(act==='trkfrated'){trkFilter().rated=!trkFilter().rated;app.trkPage=0;render();}
+  else if(act==='trkfreset'){app.trkF=null;app.trkPage=0;render();}
+  else if(act==='trkq')trkSearchNow();
+  else if(act==='trkqclear'){app.trkQ='';app.trkPage=0;app.trkMsg=null;render();}
+  else if(act==='trksort'){app.trkSort=val||'date';app.trkPage=0;render();}
+  else if(act==='trkpage'){app.trkPage=Math.max(0,parseInt(val,10)||0);render();}
+  else if(act==='trkcsv')trkExportCsv();
   else if(act==='ccconnect'){
     var _cc=document.getElementById('cc-user');
     app.impUser=_cc?_cc.value.trim():(app.impUser||'');
@@ -14345,6 +14954,9 @@ window.addEventListener('online',function(){app._ccAutoTried=false;render();});
 window.addEventListener('offline',function(){render();});
 installListen();
 window.addEventListener('keydown',e=>{
+  // typing a name and pressing Enter is the obvious gesture; the rest of the
+  // shortcuts stay out of text fields
+  if(e.target&&e.target.id==='trk-q'&&e.key==='Enter'){e.preventDefault();trkSearchNow();return;}
   if(e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;
   if(app.view==='explore'){
     if(e.key==='ArrowLeft'){app.exPath.pop();app.sel=null;render();}

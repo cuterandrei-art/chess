@@ -334,6 +334,54 @@ than inventing a chore.
 
 ---
 
+## What the tracker knows
+
+Once your games are in, the tracker is nine tabs over one set of games, and a
+**filter above all of them** — time control, colour, rated only, and the last
+30 / 90 / 365 days — that every number on every tab reads through. Narrow it to
+3+2 as Black in the last month and the performance rating, the opponents, the
+calendar and the insights all narrow with it. A filter that keeps nothing says
+so and offers to clear itself, rather than showing an empty page.
+
+- **Overview** — score and record, White against Black, and *what the results
+  were worth*: the performance rating your score would be normal for against
+  the opposition you actually met, next to your own rating, broken down per
+  time class. If the two disagree by 25 points or more it says which way. Where
+  there are at least ten rated games it also prints what your ratings
+  *predicted* you would score and what you actually took. Then the exact time
+  controls (3+0 and 3+2 are not the same game), your records, and your streaks.
+- **Games** — every game the filter keeps, searchable by opponent, opening,
+  how it ended or the time control, sortable by newest, oldest, longest,
+  accuracy or toughest opposition, 25 to a page. 🔬 opens one on the analysis
+  board; ↗ opens it on Chess.com. **⬇ CSV** saves the filtered set as a
+  spreadsheet — one row a game, with the date, ratings, ending, accuracy and
+  opening — for anyone who wants to do their own sums.
+- **Results** — how your games end, how you do against stronger and weaker
+  opposition, the rating curve per time control, [the
+  projection](#where-your-rating-is-heading), how you do past move 40, month by
+  month, game length and accuracy.
+- **Openings** — your first move as White, your answers to 1.e4 and 1.d4, the
+  openings by Chess.com's own names, and **castling**: which way you go, on
+  about which move, and whether the games where you never castle go worse.
+- **Opponents** — everyone you have played, with a **nemesis** (three games or
+  more, and you are under 50%) and a **customer** (three or more, and over)
+  called out by name.
+- **Clock & time** — seconds a move, longest think, the games you finished
+  under 8% of your clock and how they went, the hours and days you play best
+  and worst, session fatigue, and what a loss does to the very next game.
+- **Activity** — a half-year calendar, one cell a day and one column a week,
+  green where you scored well and red where you did not, with days played,
+  games a day, your longest run and whether one is going now.
+- **Insights** — the whole lot turned into sentences worth acting on, ranked by
+  how much they look worth acting on.
+- **Live** — [following a game as it is played](#following-a-game-live).
+
+Every statistic that needs a minimum says so rather than guessing from three
+games: a performance rating needs five rated games, a nemesis three, a month's
+rating movement three games in one time class, a "best hour" five.
+
+---
+
 ## Following a game live
 
 The tracker's **Live** tab follows any Chess.com player. Chess.com's public API
@@ -488,6 +536,8 @@ the engine can answer, and a game with one known blunder).
 
 ## Tests
 
+Thirty-six suites, a little over three thousand checks.
+
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
 legal inside `new Function` but a `SyntaxError` in a real module, so a plain
@@ -495,6 +545,14 @@ parse test misses them and the app silently never boots. The other suites cover
 one system each (career pace, story arcs and the world feed, brilliancies, the
 park and simuls, the weekly life sim, avatars and backdrops, profiles, courses,
 endgames, and the rest).
+
+The tracker has two of its own. `validate-tracker.mjs` covers the import and
+the profile; `validate-trackerx.mjs` covers the statistics, against values
+worked out by hand rather than by running the code — the performance rating and
+the expected score, the nemesis and customer thresholds, castling read off SAN
+for both colours, the calendar window and its streaks, a month's rating
+movement staying inside one time class, the records that exclude a three-move
+walkover, the search, the sort, the paging, and the CSV's quoting.
 
 Every push runs the whole battery in CI, and both the Pages deploy and the APK
 build refuse to publish unless the smoke test passes first.
