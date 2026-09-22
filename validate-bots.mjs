@@ -13,10 +13,10 @@ globalThis.ResizeObserver=class{observe(){}unobserve(){}disconnect(){}}; globalT
 if(!dom.window.matchMedia)dom.window.matchMedia=()=>({matches:false,addEventListener(){},removeEventListener(){},addListener(){},removeListener(){}});
 dom.window.__PUZZLES=[];
 let pass=0; const ok=(c,m)=>{if(!c)throw new Error('FAIL: '+m);pass++;console.log('  ✓ '+m);};
-const X=new Function(script+'\nreturn {BOTS,botById,botGallery,STYLES,styleById,app,startPlay};')();
+const X=new Function(script+'\nreturn {BOTS,botById,botGallery,STYLES,styleById,app,startPlay,botRating,ratingInFormat,store};')();
 
 ok(X.BOTS.length>=8,'a roster of characters exists ('+X.BOTS.length+')');
-ok(X.BOTS.every(b=>b.id&&b.name&&b.emoji&&b.elo>0&&b.style&&b.banter),'every bot has id/name/emoji/elo/style/banter');
+ok(X.BOTS.every(b=>b.id&&b.name&&b.emoji&&b.elo>0&&b.style&&b.banter&&b.tempo>0),'every bot has id/name/emoji/elo/style/banter/tempo');
 ok(new Set(X.BOTS.map(b=>b.id)).size===X.BOTS.length,'bot ids are unique');
 const styleIds=new Set(X.STYLES.map(s=>s.id));
 ok(X.BOTS.every(b=>styleIds.has(b.style)),'every bot style maps to a real engine style');
@@ -31,7 +31,21 @@ const bot=X.botById('ade');
 X.startPlay(new Chess().fen(),'w',null,'test',{bot});
 ok(X.app.playBot&&X.app.playBot.id==='ade'&&X.app.playBot.elo===2100&&X.app.playBot.style==='aggressive','startPlay wires the bot (elo+style) into the game');
 
-// source: engineMove honors the bot's elo+style
-ok(/if\(app\.playBot\)\{lvl=\{elo:app\.playBot\.elo,mt:700,style:app\.playBot\.style\}/.test(script),'engine plays at the bot’s Elo and style');
+// source: engineMove honors the bot's rating *in this format* plus their style
+ok(/if\(app\.playBot\)\{lvl=\{elo:botRating\(app\.playBot,cat\),mt:700,style:app\.playBot\.style\}/.test(script),'engine plays at the bot’s rating for this time control, and their style');
+
+// every character is a different player at each speed, and the gap closes at the top
+for (const b of X.BOTS) {
+  const cl=X.botRating(b,'classical'), rp=X.botRating(b,'rapid'), bz=X.botRating(b,'blitz'), bu=X.botRating(b,'bullet');
+  if(!(cl===b.elo && rp<=cl && bz<=rp && bu<=bz)) throw new Error('FAIL: '+b.name+' format ladder '+[cl,rp,bz,bu]);
+}
+pass++; console.log('  ✓ every character is rated lower the faster the game gets');
+const weakGap=X.botRating(X.BOTS[0],'classical')-X.botRating(X.BOTS[0],'blitz');
+const eliteGap=X.botRating(X.BOTS[X.BOTS.length-1],'classical')-X.botRating(X.BOTS[X.BOTS.length-1],'blitz');
+ok(weakGap>eliteGap,'the beginner loses far more at speed chess than the super-GM does ('+weakGap+' vs '+eliteGap+')');
+
+// the gallery shows all three ratings so you can pick an opponent for the format
+const gal3=X.botGallery();
+ok(gal3.includes(String(X.botRating(X.BOTS[3],'blitz')))&&gal3.includes(String(X.botRating(X.BOTS[3],'rapid'))),'the gallery shows each character’s classical, rapid and blitz ratings');
 
 console.log('\n✅ bots: '+pass+' checks passed');

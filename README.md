@@ -72,6 +72,83 @@ publishes automatically.
 
 ---
 
+## Opponents that play like people
+
+A rating only means something inside its own time control. The same person is
+a different player at 3+2 and at 90+30, and the app now models that in two
+places. First their **numbers**: a character's classical rating is their
+anchor, and their rapid, blitz and bullet ratings sit below it — far below for
+a club player, barely below for a super-GM, who is sharp at every speed.
+Second their **moves**: a 1700 blitz rating is a fair rating among blitz
+players, but the moves behind it are worse than 1700 moves played with two
+hours on the clock, so the engine is given a lower quality target for the same
+label. Pick a time control in *Play* and every character's headline rating,
+and how they actually play, changes with it.
+
+On top of that they **miss things**. That is the one thing an engine never
+does and a person always does, and it was most of why the old bots felt two
+hundred points stronger than their label: they made small errors at an even
+rate and then never, ever hung anything. Every opponent now carries a slip
+chance — rare and small for a 2700, routine for a 1200, worse for everyone in
+time trouble.
+
+### and use a clock like people
+
+Real players do not spend an even slice of the clock on every move. They
+rattle out the opening from memory, stop hard on the first move that is
+genuinely theirs, snap off recaptures and forced moves, think longer when the
+position is unclear or has just changed, keep a safety buffer, and then — short
+of time — move almost on reflex and play worse for it. Each character also has
+a **pace**: Blitz Bella moves fast, Grinder Grace does not.
+
+What comes off their clock and how long you sit there are deliberately not the
+same number. In blitz and bullet they are — that is the whole point of the
+format. In a rapid or classical game the wait is compressed by a square root,
+so the shape of the think survives: a quick move still feels quick, a hard one
+still feels hard, and only the once-a-game monster think reaches the ceiling.
+Their clock drains at the matching rate, so what you watch tick down is what a
+person would really have burned. Over a 30+20 game that is about a minute a
+move on their clock and two or three seconds of your life.
+
+---
+
+## Automation
+
+A career has a lot of small obvious decisions in it — claim the daily reward,
+claim a finished quest, rest when you are exhausted, see the physio when you
+are injured, take a coaching shift when rent is due and the money is thin.
+None of them are interesting choices and all of them have to be clicked, so
+**Life → Automation** will do them for you.
+
+A **day plan** decides how a day gets spent: *Balanced*, *Train hard*, *Earn*,
+*Recover* or *Have a life*. Whatever the plan, an injury, exhaustion, tilt, ill
+health and unpayable rent come first — it will never pick something you cannot
+afford or have not the energy for. Then six **switches** cover the routine
+jobs: claiming the daily reward and finished quests, finishing the week in one
+click, signing the best sponsor offer, upgrading where you live and buying
+lifestyle upgrades, each never spending below a **cash reserve** you set.
+
+Everything starts **off**. Automation never takes a decision you did not ask
+it to take, nothing runs on a timer behind your back, and every switch only
+ever does bounded, repeatable things. What it has done is written down, so you
+can see exactly where your week went.
+
+---
+
+## The dashboard
+
+The career spreads across seven tabs and forty panels. A single card above all
+of them answers *what is going on*: who you are, what you are rated at
+classical, rapid and blitz, the money against the bills that are coming, your
+energy, health, mood, tilt and form, and one line for what is actually
+happening right now — round three of nine, or Wednesday with rent due Sunday —
+with the button to get on with it. Under that, everything quietly waiting for
+you is a chip you can tap straight to: an injury, a debt, an unclaimed reward,
+a sponsor offer, spare skill points. When there is nothing, it says so rather
+than inventing a chore.
+
+---
+
 ## Following a game live
 
 The tracker's **Live** tab follows any Chess.com player. Chess.com's public API
@@ -110,6 +187,7 @@ next refresh.
 | `validate-*.mjs` | The test battery — one suite per system. |
 | `visual-check.mjs` | Boots the real app in headless Chromium, screenshots key screens and reports page errors. |
 | `engine-check.mjs` | Downloads the real Stockfish and checks the evaluation against positions whose answer is known. |
+| `validate-strength.mjs` | The real-life strength model, the human clock, career automation, the dashboard, and that the board does not move. |
 
 ## Build it yourself
 

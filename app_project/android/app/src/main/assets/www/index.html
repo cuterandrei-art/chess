@@ -108,8 +108,34 @@
   .bar i{display:block;height:100%}
   .bar .ln{background:var(--green)}.bar .du{background:var(--amber)}.bar .fr{background:#33415588}
   .layout{display:grid;gap:22px;grid-template-columns:minmax(0,1fr) 330px}
-  @media(max-width:860px){.layout{grid-template-columns:1fr}}
-  .boardwrap{max-width:var(--bw,540px);margin:0 auto;width:100%}
+  /* minmax(0,…), not 1fr: a bare 1fr track takes its minimum from its widest
+     content, so on a phone the growing move list was stretching the column —
+     and the board, which is width:100% of it — a dozen pixels wider every few
+     moves. That is the board "moving a bit during the game". */
+  @media(max-width:860px){.layout{grid-template-columns:minmax(0,1fr)}}
+  .boardwrap{max-width:var(--bw,540px);margin:0 auto;width:100%;contain:layout}
+  /* In-game notices (a blunder warning, a draw offer, the opponent talking)
+     live under the board, never above it — anything above would push the
+     board down the moment it appeared. */
+  .noticerail{margin-top:10px;display:grid;gap:8px}
+  .noticerail:empty{display:none}
+  /* the career dashboard: the essentials, above every tab */
+  .dash{border-color:#22d3ee44;background:linear-gradient(160deg,rgba(34,211,238,.07),transparent 60%),var(--panel)}
+  .dashrts{display:flex;gap:7px;flex-wrap:wrap}
+  .dashrt{display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 9px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.02);min-width:74px}
+  .dashrt .dashv{font-weight:800;font-size:16px;line-height:1.1;font-variant-numeric:tabular-nums}
+  .dashmeters{display:grid;grid-template-columns:repeat(5,1fr);gap:8px 10px;margin-top:10px}
+  @media(max-width:700px){.dashmeters{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:360px){.dashmeters{grid-template-columns:repeat(2,1fr)}}
+  .dashmeter .dim{overflow:hidden;text-overflow:ellipsis}
+  .dashmeter{min-width:0}
+  .dashnow{display:flex;align-items:center;gap:10px;margin-top:10px;padding:9px 11px;border:1px solid var(--border);border-radius:11px;background:rgba(255,255,255,.025);flex-wrap:wrap}
+  .dashnow .dashtxt{min-width:0;flex:1 1 150px}
+  .dashnow .dashtxt .t{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dashnow .btn{flex:0 0 auto}
+  @media(max-width:430px){.dashnow .btn{flex:1 1 100%}}
+  .dashrts{width:100%}
+  @media(min-width:520px){.dashrts{width:auto}}
   textarea{width:100%;min-height:120px;background:#0b1426;border:1px solid var(--border);color:var(--text);border-radius:9px;padding:10px;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;resize:vertical}
   input[type=range]{accent-color:var(--brand);width:200px}
   .dragpiece{position:fixed;left:0;top:0;pointer-events:none;z-index:99999;display:flex;align-items:center;justify-content:center}
@@ -148,12 +174,17 @@
   .spark i{flex:1;background:#1c84f5aa;border-radius:3px 3px 0 0;min-height:2px}
   footer{max-width:1040px;margin:0 auto;padding:24px 16px;text-align:center;color:var(--dim);font-size:12px}
   .center{min-height:60vh;display:grid;place-items:center;text-align:center}
-  .pstrip{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 11px;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent),#0f1b30;border:1px solid var(--border);border-radius:11px}
-  .pstrip .who{display:flex;align-items:center;gap:9px;min-width:0;flex-wrap:wrap}
-  .pstrip .nm{font-weight:700;white-space:nowrap}
-  .capx{font-size:16px;line-height:1;letter-spacing:-2px;color:#9fb0c9;word-break:break-all}
-  .adv{font-size:12px;font-weight:800;color:#86efac;margin-left:5px}
-  .clock{font:800 21px/1 ui-monospace,Menlo,Consolas,monospace;padding:6px 12px;border-radius:9px;background:#0b1426;border:1px solid var(--border);color:#e2e8f0;min-width:90px;text-align:center;font-variant-numeric:tabular-nums}
+  /* The strips above and below the board are a fixed height on purpose. They
+     grow content all game long — captured pieces, a material lead, a clock
+     that gains a tenths digit — and every one of those used to re-wrap the
+     row and nudge the board a few pixels down. Now the row never wraps and
+     never changes height, so the board stays exactly where you left it. */
+  .pstrip{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 11px;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent),#0f1b30;border:1px solid var(--border);border-radius:11px;height:46px;overflow:hidden}
+  .pstrip .who{display:flex;align-items:center;gap:9px;min-width:0;flex:1 1 auto;flex-wrap:nowrap;overflow:hidden}
+  .pstrip .nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
+  .capx{font-size:16px;line-height:18px;height:18px;letter-spacing:-2px;color:#9fb0c9;white-space:nowrap;overflow:hidden;flex:1 1 auto;min-width:0}
+  .adv{font-size:12px;font-weight:800;color:#86efac;margin-left:5px;flex:0 0 auto}
+  .clock{font:800 21px/1 ui-monospace,Menlo,Consolas,monospace;padding:6px 12px;border-radius:9px;background:#0b1426;border:1px solid var(--border);color:#e2e8f0;width:104px;flex:0 0 104px;text-align:center;font-variant-numeric:tabular-nums}
   .clock.active{background:#10331f;border-color:#1f6f4a;color:#d6ffe6;box-shadow:0 0 0 1px #1f6f4a inset}
   .clock.low{color:#fecaca;background:#3a1420;border-color:#7f1d2e}
   .clock.low.active{background:#4a1626;color:#fff}
@@ -4198,7 +4229,7 @@ const TOURNAMENTS=[
 const FORMAT_TC={classical:'30+20', rapid:'10+5', blitz:'3+2'};
 function eventFormat(t){return t.format||'classical';}
 function eventTC(t){return tcById(FORMAT_TC[eventFormat(t)]||'30+20');}
-function fmtLabel(f){return f==='rapid'?'Rapid':f==='blitz'?'Blitz':'Classical';}
+function fmtLabel(f){return f==='rapid'?'Rapid':f==='blitz'?'Blitz':f==='bullet'?'Bullet':'Classical';}
 /* Title definitions. Open titles are available to everyone; the women's track
    (200 Elo lower, by FIDE rule) unlocks if you register on it. IM/GM and the
    women's WIM/WGM also require 3 norms. A GM norm counts as an IM norm. */
@@ -4415,7 +4446,7 @@ function checkTitles(c){const got=[];const peak=titlePeak(c);
     c.titles.push(d.t);got.push(d.t);
   }
   return got;}
-const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',blunderWarn:true,srsSkip:true,voiceOn:false,voiceName:'',voiceRate:1,liveEval:true,liveHints:true},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},myGames:[],myGamesMeta:null,ccProfile:null,ccAccount:null,daily:null,brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null}};
+const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',blunderWarn:true,srsSkip:true,voiceOn:false,voiceName:'',voiceRate:1,liveEval:true,liveHints:true},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},myGames:[],myGamesMeta:null,ccProfile:null,ccAccount:null,daily:null,brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null,auto:null}};
 function freshCareer(){return JSON.parse(JSON.stringify(DEF.career));}
 /* Migrate saved career data: the old ladder (with `beaten`/`results`) is reset
    to the new FIDE structure; new-format saves are merged onto fresh defaults. */
@@ -8043,8 +8074,8 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='guessexit'){app.guess=null;go('dashboard');}
   else if(act==='questclaim'){var qq=questsEnsure();var qit=qq.items.find(function(x){return x.id===val;});if(qit&&qit.prog>=qit.goal&&!qit.claimed){qit.claimed=true;var qc=store.career;lifeInit(qc);qc.money=(qc.money||0)+qit.cash;addXp(qc,qit.xp);app.careerToast='🗓️ Quest complete: '+qit.text+' — +💰'+qit.cash+', +'+qit.xp+' XP.';save();render();}}
   else if(act==='roadclaim'){var rdc=store.career;lifeInit(rdc);if(!rdc.roadDone)rdc.roadDone=[];var rst=ROADMAP.find(function(x){return x.id===val;});if(rst&&rst.test(rdc)&&rdc.roadDone.indexOf(val)<0){rdc.roadDone.push(val);rdc.money=(rdc.money||0)+(rst.cash||0);addXp(rdc,rst.xp||0);app.careerToast='🧭 Milestone reached: '+rst.t+' — +💰'+(rst.cash||0)+', +'+(rst.xp||0)+' XP.';if(typeof confetti==='function')confetti(90);save();render();}}
-  else if(act==='botstart'){var bt=botById(val);if(bt){var bs=Math.random()<0.5?'w':'b';startPlay(new Chess().fen(),bs,null,'🤖 '+bt.emoji+' '+bt.name+' ('+bt.elo+') · '+styleById(bt.style).emoji+' '+styleById(bt.style).name,{bot:bt,tcId:store.settings.tcId||'unlimited'});}}
-  else if(act==='prematch'){var s2=app.playSide==='w'?'b':'w';if(app.playBot){var pb=app.playBot;startPlay(new Chess().fen(),s2,null,'🤖 '+pb.emoji+' '+pb.name+' ('+pb.elo+') · '+styleById(pb.style).emoji+' '+styleById(pb.style).name,{bot:pb,tcId:store.settings.tcId||'unlimited'});}else{startPlay(new Chess().fen(),s2,app.playOpening,'Free game',{tcId:store.settings.tcId||'unlimited'});}}
+  else if(act==='botstart'){var bt=botById(val);if(bt){var bs=Math.random()<0.5?'w':'b';startPlay(new Chess().fen(),bs,null,'🤖 '+bt.emoji+' '+bt.name+' ('+botRating(bt,tcCategory(tcById(store.settings.tcId||'unlimited')))+') · '+styleById(bt.style).emoji+' '+styleById(bt.style).name,{bot:bt,tcId:store.settings.tcId||'unlimited'});}}
+  else if(act==='prematch'){var s2=app.playSide==='w'?'b':'w';if(app.playBot){var pb=app.playBot;startPlay(new Chess().fen(),s2,null,'🤖 '+pb.emoji+' '+pb.name+' ('+botRating(pb,tcCategory(tcById(store.settings.tcId||'unlimited')))+') · '+styleById(pb.style).emoji+' '+styleById(pb.style).name,{bot:pb,tcId:store.settings.tcId||'unlimited'});}else{startPlay(new Chess().fen(),s2,app.playOpening,'Free game',{tcId:store.settings.tcId||'unlimited'});}}
   else if(act==='cfirst'){app.classicPly=0;render();}
   else if(act==='cback'){app.classicPly=Math.max(0,(app.classicPly||0)-1);render();}
   else if(act==='cfwd'){const g=CLASSICS.find(x=>x.id===app.classicId);if(g)app.classicPly=Math.min(g.m.split(' ').length,(app.classicPly||0)+1);render();}
@@ -8232,7 +8263,12 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='seasondismiss'){store.career.seasonReview=null;save();render();}
   else if(act==='profile'){if(val)profileOpen(val);}
   else if(act==='specvs'){var _sp=buildWorld().filter(function(x){return x.id===val;})[0];if(_sp){var _fmt='classical';var _list=worldRanking(store.career,_fmt).filter(function(x){return !x.you&&x.id!==val;});var _o=_list[Math.floor(Math.random()*Math.min(12,_list.length))]||_list[0];if(_o)startSpectate({name:_sp.name,flag:_sp.flag,rating:wpRating(_sp,_fmt),real:_sp.real},_o);}}
-  else if(act==='doday')doDay(val);
+  else if(act==='doday'){doDay(val);var _ac=store.career;if(_ac&&_ac.auto&&_ac.auto.week&&(_ac.day||0)>0&&!_ac.tour){autoRunWeek(_ac);save();render();}}
+  else if(act==='autoplan'){var _ap=store.career;autoInit(_ap).plan=val;save();render();}
+  else if(act==='autotoggle'){var _at=store.career;var _aa=autoInit(_at);_aa[val]=!_aa[val];autoTick(_at);save();render();}
+  else if(act==='autoreserve'){var _ar=store.career;var _ra=autoInit(_ar);_ra.reserve=Math.max(0,Math.min(200000,(_ra.reserve||0)+(+val||0)));save();render();}
+  else if(act==='autoday'){var _ad=store.career;var _pk=autoRunDay(_ad);if(_pk&&autoInit(_ad).week)autoRunWeek(_ad);app.careerToast=_pk?('🤖 '+placeById(_pk).e+' '+placeById(_pk).n+' — your day is done.'):'🤖 Nothing it could do today.';save();render();}
+  else if(act==='autoweek'){var _aw=store.career;var _n=autoRunWeek(_aw);app.careerToast=_n?('🤖 Automation played '+_n+' day'+(_n===1?'':'s')+' for you.'):'🤖 Nothing left to play this week.';save();render();}
   else if(act==='movehome'){var _mc=store.career;var _hm=HOMES.filter(function(x){return x.id===val;})[0];if(_hm&&!homeLocked(_mc,_hm)){_mc.home=_hm.id;pushNews(_mc,_hm.e,'You moved into '+_hm.n.toLowerCase()+' — 💰'+_hm.rent+' a week.');toastAdd(_hm.e+' Moved in: '+_hm.n);save();}render();}
   else if(act==='avset'){var _av=store.career;var _p=String(val).split(':');if(_p.length===2){if(_p[0]==='acc'&&!avAccUnlocked(_av,_p[1])){app.careerToast='🔒 '+AV_ACC_LOCK[_p[1]].lbl+' to unlock that.';}else{avatarOf(_av)[_p[0]]=_p[1];_av.avatarStyle='char';save();}}render();}
   else if(act==='avrandom'){var _ar=store.career;var _na=avatarFromSeed((Math.random()*0xffffffff)>>>0);if(!avAccUnlocked(_ar,_na.acc))_na.acc='none';_ar.avatar=_na;_ar.avatarStyle='char';save();render();}
@@ -8318,43 +8354,159 @@ document.getElementById('app').addEventListener('change',e=>{
 document.getElementById('app').addEventListener('input',e=>{const ds=e.target.dataset&&e.target.dataset.setting;if(ds==='boardSize'){store.settings.boardSize=+e.target.value;document.body.style.setProperty('--bw',store.settings.boardSize+'px');}});
 
 /* ============================ Stockfish engine ============================ */
-/* Strength model. We DON'T trust Stockfish's UCI_Elo (it plays far above the
-   number); instead we let it search to a modest depth, then pick from the
-   MultiPV candidates accepting a rating-scaled centipawn loss. The curve is
-   tuned so a bot's displayed rating ≈ its real playing strength (so a ~2300
-   chess.com player can genuinely compete and climb), not 200+ points above. */
-function botParams(e){
-  const s=Math.max(0,Math.min(1,(e-600)/2200));          // 600→0 … 2800→1
-  let Lcap=Math.round(20+820*Math.pow(1-s,1.7));          // acceptable cp loss vs best
-  const T=Math.round(38+620*Math.pow(1-s,1.3));           // softmax temperature
-  const mpv=e>=2600?3:e>=2200?4:e>=1800?5:e>=1400?6:8;    // candidate width
+/* ---------------------------------------------------------------------------
+   Real-life strength model.
+
+   A rating only means something inside its own time control. The same person
+   is a different player at 3+2 and at 90+30, and that shows up twice:
+
+     1. Their published numbers differ. A club player's blitz rating sits well
+        below their classical one; for an elite player the three are almost
+        the same, because they are sharp at every speed. `ratingInFormat`
+        turns a classical anchor into the rating that player would carry in
+        rapid, blitz or bullet.
+
+     2. Their moves differ. A 1700 blitz rating is a fair rating *among blitz
+        players*, but the moves behind it are objectively worse than 1700
+        moves played with two hours on the clock. `humanQuality` converts a
+        displayed rating in a format into the move quality it really buys.
+
+   On top of that, people have one-move oversights. That is the single thing
+   an engine never does and a human always does, and it is what made the old
+   bots feel 200 points stronger than their label: they made small errors at
+   an even rate and then never, ever hung anything. So every bot now carries a
+   slip chance — rare and small for a 2700, routine for a 1200, and worse for
+   everyone when the clock is short.
+   --------------------------------------------------------------------------- */
+const TC_CATS=['bullet','blitz','rapid','classical'];
+/* Gap between a player's classical rating and their rating in a faster format.
+   It closes as strength rises — the elite are fast as well as good. */
+const TC_GAP={bullet:215,blitz:140,rapid:60,classical:0};
+/* How much worse the moves are at that speed, in classical-equivalent points. */
+const TC_QUALITY={bullet:-235,blitz:-130,rapid:-45,classical:0};
+function tcCategory(tc){
+  if(!tc||!tc.base)return 'classical';                    // no clock → all the time in the world
+  const c=String(tc.cat||'').toLowerCase();
+  return TC_CATS.indexOf(c)>=0?c:'classical';
+}
+function ratingInFormat(classicalElo,cat){
+  const s=Math.max(0,Math.min(1,(classicalElo-600)/2200));
+  return Math.round(classicalElo-(TC_GAP[cat]||0)*(1-s));
+}
+function humanQuality(displayElo,cat){
+  return Math.max(400,Math.round(displayElo+(TC_QUALITY[cat]||0)));
+}
+/* The engine settings that produce that quality. We DON'T trust Stockfish's
+   UCI_Elo (it plays far above the number); instead we search to a modest
+   depth and pick from the MultiPV candidates, accepting a rating-scaled
+   centipawn loss. */
+function botParams(e,cat,ms,panic){
+  cat=cat||'classical';
+  panic=Math.max(0,Math.min(1,panic||0));                 // 0 = plenty of time, 1 = flag hanging
+  const q=humanQuality(e,cat);
+  const s=Math.max(0,Math.min(1,(q-600)/2200));           // 600→0 … 2800→1
+  let Lcap=Math.round(26+900*Math.pow(1-s,1.7));          // acceptable cp loss vs best
+  const T=Math.round(34+660*Math.pow(1-s,1.3));           // softmax temperature
+  const mpv=q>=2600?3:q>=2200?4:q>=1800?5:q>=1400?6:8;    // candidate width
   // Strong players essentially never hang material in one move. Cap the worst
   // move a titled-strength bot will ever choose so it plays like a real player —
   // small inaccuracies, not piece blunders. Weaker bots keep blundering as before.
-  const blunderCap=e>=2600?20:e>=2400?30:e>=2200?50:e>=2000?95:9999;
+  const blunderCap=q>=2600?20:q>=2400?32:q>=2200?55:q>=2000?100:9999;
   Lcap=Math.min(Lcap,blunderCap);
-  const depth=Math.max(8,Math.min(16,Math.round((e-300)/150)));
-  return {s:s,Lcap:Lcap,T:T,mpv:mpv,depth:depth};
+  // The human oversight. `slip` is how often it happens, `slipCap` how bad it
+  // gets when it does — a dropped pawn for a master, a hung piece for a
+  // beginner. Short clocks and time trouble make both worse.
+  const rush=(cat==='bullet'?1.9:cat==='blitz'?1.5:cat==='rapid'?1.15:1)*(1+1.8*panic);
+  const slip=Math.min(0.32,0.26*Math.pow(1-s,1.6)*rush+0.05*panic);
+  const slipCap=Math.round((90+900*(1-s))*(1+0.8*panic));
+  // Search depth. A short time control really does mean a shallower search,
+  // which is most of why the same player is weaker at speed chess.
+  let depth=Math.max(6,Math.min(16,Math.round((q-300)/150)));
+  if(ms!=null&&ms>0)depth=Math.min(depth,Math.max(5,Math.round(6+Math.log2(Math.max(1,ms/110))*1.7)));
+  return {s:s,q:q,cat:cat,Lcap:Lcap,T:T,mpv:mpv,depth:depth,slip:slip,slipCap:slipCap,panic:panic};
 }
-/* Human-like clock usage: blitz out the opening, snap obvious/forced moves,
-   ponder unclear positions, take the odd long think, and keep clock discipline
-   when low. Pure so it can be unit-tested. */
+/* ---------------------------------------------------------------------------
+   Human clock usage.
+
+   Real players do not spend an even slice of the clock on every move. They
+   rattle out the opening from memory, stop hard on the first move that is
+   genuinely theirs, snap off recaptures and only-moves, think longer when the
+   position is unclear or has just changed, keep a safety buffer, and then —
+   in time trouble — move almost instantly and play worse for it.
+
+   It returns three numbers, because they are not the same number:
+     spend  — what comes off their clock (what a person would really burn)
+     wait   — how long you actually sit there (a 90+30 think is compressed)
+     search — how long the engine is allowed to think for
+   Pure, so it can be unit-tested.
+   --------------------------------------------------------------------------- */
 function botThinkMs(o){
-  if(!o.remaining) return Math.round((o.base||800)*(0.6+(o.rnd==null?Math.random():o.rnd)*0.9));
-  const ply=o.ply||0, movesLeft=Math.max(14,42-Math.floor(ply/2));
-  let b=o.remaining/movesLeft+(o.inc||0)*850;
-  if(ply<8) b*=0.16+0.05*ply;                             // opening theory is fast
-  else if(ply<16) b*=0.7;
-  const cp=(o.cp==null)?70:o.cp;
-  b*=Math.max(0.4,Math.min(1.75,1.6-cp/360));             // unclear → ponder, decided → snap
-  const r=(o.rnd==null)?Math.random():o.rnd, r2=(o.rnd2==null)?Math.random():o.rnd2;
-  b*= r<0.18?0.32 : (r<0.8?(0.75+r2*0.5) : (1.7+r2*1.5)); // mostly steady, sometimes snap / long think
-  if(o.onlyMove) b=Math.min(b,300);
-  else if(o.recapture) b*=0.5;
-  if(o.remaining<30000) b=Math.min(b,o.remaining*0.06);
-  if(o.remaining<10000) b=Math.min(b,300);
-  if(o.remaining<4000)  b=Math.min(b,140);
-  return Math.round(Math.max(120,Math.min(b,o.remaining*0.22,7000)));
+  o=o||{};
+  const cat=o.cat||'classical';
+  const tempo=Math.max(0.55,Math.min(1.7,o.tempo||1));    // this opponent's personal pace
+  const r1=(o.rnd==null)?Math.random():o.rnd,
+        r2=(o.rnd2==null)?Math.random():o.rnd2,
+        r3=(o.rnd3==null)?Math.random():o.rnd3;
+  if(!o.remaining){                                        // no clock at all
+    const base=(o.base||800)*tempo;
+    const w=Math.round(Math.max(180,base*(0.55+r1*0.95)));
+    return {spend:0,wait:w,search:Math.max(50,Math.min(w,2200))};
+  }
+  const ply=o.ply||0, inc=o.inc||0, rem=o.remaining;
+  // Keep something back. How much depends on the format: you finish a blitz
+  // game on the increment, a classical game with minutes in hand.
+  const reserve=Math.min(rem*0.3,cat==='classical'?90000:cat==='rapid'?25000:cat==='blitz'?8000:2500);
+  const movesLeft=Math.max(12,40-Math.floor(ply/2));
+  let b=(rem-reserve)/movesLeft+inc*0.85;
+  // ---- phase ----
+  if(ply<6)b*=0.08+0.05*ply;                              // known theory, played instantly
+  else if(ply<14)b*=0.55;
+  if(o.outOfBook)b*=2.4;                                  // the first move that is really yours
+  // ---- the position itself ----
+  const cp=(o.cp==null)?70:Math.abs(o.cp);
+  b*=Math.max(0.35,Math.min(1.8,1.7-cp/340));             // unclear → ponder, decided → snap
+  if(o.swing)b*=1+Math.min(0.9,o.swing/200);              // it just changed — re-check everything
+  const moves=o.moves||30;
+  b*=Math.max(0.7,Math.min(1.35,0.78+moves/70));          // a crowded position takes longer
+  // ---- how this person plays ----
+  b*=tempo;
+  // snap / steady / a long think — and what counts as "long" depends on the
+  // format: five minutes over one move is normal at 90+30 and absurd at 3+2.
+  const longMax=cat==='classical'?3.0:cat==='rapid'?2.4:cat==='blitz'?1.9:1.5;
+  b*= r1<0.20?0.30 : (r1<0.88?(0.75+r2*0.5) : (1.55+r3*Math.max(0,longMax-1.55)));
+  if(o.onlyMove)b=Math.min(b,Math.max(400,inc*0.5));      // forced is forced
+  else if(o.recapture)b*=0.45;
+  // ---- time trouble: lean on the increment, then move on reflex ----
+  if(rem<inc*3+20000)b=Math.min(b,Math.max(inc*0.9,rem*0.05));
+  if(rem<10000)b=Math.min(b,Math.max(inc*0.8,600));
+  if(rem<4000)b=Math.min(b,Math.max(inc*0.6,250));
+  const hardCap=cat==='classical'?240000:cat==='rapid'?75000:cat==='blitz'?22000:6000;
+  // The most of what is left that one move may ever cost. You can afford to
+  // sink a third of a classical clock into the critical moment; do that in
+  // blitz and you have lost the game to the clock instead of the board.
+  const share=cat==='classical'?0.3:cat==='rapid'?0.22:cat==='blitz'?0.15:0.12;
+  // 120ms is about as fast as a person moves a piece they had already decided on.
+  const spend=Math.round(Math.max(120,Math.min(b,rem*share,hardCap)));
+  // You should not have to sit through a real three-minute think. In blitz and
+  // bullet the clock IS the wait — that is the whole point of the format — but
+  // longer games are compressed, and the opponent's clock is drained at the
+  // matching rate so what you see on it is still what a person would have used.
+  //
+  // The compression is a square root rather than a ceiling, so the shape of the
+  // think survives it: a quick move still feels quick, a hard one still feels
+  // hard, and only the once-a-game monster think reaches the cap.
+  const realCap=cat==='classical'?7000:cat==='rapid'?5500:0;
+  const wait=Math.round(realCap?Math.min(spend,Math.max(400,realCap*Math.sqrt(spend/hardCap))):spend);
+  const s=Math.max(0,Math.min(1,((o.quality==null?1800:o.quality)-600)/2200));
+  const search=Math.round(Math.max(50,Math.min(wait,120+3600*s)));
+  return {spend:spend,wait:wait,search:search};
+}
+/* How short of time the bot is, 0–1 — drives the extra mistakes that real
+   players make when the flag is hanging. */
+function clockPanic(remaining,base,inc){
+  if(!remaining||!base)return 0;
+  const comfort=Math.max(8000,base*1000*0.12+inc*8000);
+  return Math.max(0,Math.min(1,1-remaining/comfort));
 }
 /* One worker, many callers — so every search carries a ticket.
 
@@ -8425,7 +8577,7 @@ const Engine={worker:null,ready:false,loading:null,
   _drop(req){if(!req||req.dead)return;req.dead=true;if(req.cb)req.cb(null,{},null,true);},
   _start(req){
     this._cur=req;this._stopping=false;
-    const P=req.kind==='think'?botParams(req.elo):null;
+    const P=req.kind==='think'?botParams(req.elo,req.cat,req.movetime,req.panic):null;
     this.send('setoption name UCI_LimitStrength value false');
     this.send('setoption name Skill Level value 20');
     this.send('setoption name MultiPV value '+(P?P.mpv:(req.mpv||3)));
@@ -8501,22 +8653,34 @@ const Engine={worker:null,ready:false,loading:null,
   },
   /* Pick a move at a believable strength: weaker bots accept a larger centipawn
      loss and spread their choice over more candidates, so the same engine plays
-     a smooth, wide range from beginner to 2800 instead of always best. */
+     a smooth, wide range from beginner to 2800 instead of always best.
+
+     Once in a while it also just misses something. Without that a bot plays a
+     clean, even game with no accidents in it, which reads as far stronger than
+     its rating however many small inaccuracies you feed it. */
   _chooseMove(req,best){
     const cs=Object.keys(req.cands).map(k=>req.cands[k]).filter(Boolean);
     if(!cs.length)return best;
-    cs.sort((a,b)=>b.cp-a.cp);const top=cs[0].cp;const P=botParams(req.elo||3000);
-    const pool=cs.filter(c=>(top-c.cp)<=P.Lcap);if(pool.length<=1)return cs[0].move;
+    cs.sort((a,b)=>b.cp-a.cp);const top=cs[0].cp;
+    const P=botParams(req.elo||3000,req.cat,req.movetime,req.panic);
+    const slipped=Math.random()<P.slip;
+    const cap=slipped?Math.max(P.Lcap,P.slipCap):P.Lcap;
+    const pool=cs.filter(c=>(top-c.cp)<=cap);if(pool.length<=1)return cs[0].move;
+    if(slipped){                                   // the oversight itself: not the best move
+      const bad=pool.filter(c=>(top-c.cp)>P.Lcap);
+      if(bad.length)return bad[Math.floor(Math.random()*bad.length)].move;
+    }
     const sb=req.style?pool.map(c=>styleBonus(req.fen,c.move,req.style)):null;
     let sum=0;const w=pool.map((c,i)=>{const x=Math.exp(-((top-c.cp)-(sb?sb[i]:0))/P.T);sum+=x;return x;});
     let r=Math.random()*sum;for(let i=0;i<pool.length;i++){r-=w[i];if(r<=0)return pool[i].move;}
     return pool[0].move;
   },
-  /* cb(uciMove) — the bot's choice at its rated strength. */
+  /* cb(uciMove) — the bot's choice at its rated strength, in this format. */
   think(fen,lvl,movetime,cb,onInfo){
     const skill=(typeof lvl==='number')?lvl:((lvl&&lvl.skill!=null)?lvl.skill:20);
     const elo=(lvl&&typeof lvl==='object'&&lvl.elo>0)?lvl.elo:(skill>=20?3000:1300+skill*90);
     return this._submit({kind:'think',fen:fen,elo:elo,style:(lvl&&lvl.style)||null,
+      cat:(lvl&&lvl.cat)||'classical',panic:(lvl&&lvl.panic)||0,
       movetime:movetime,cb:cb,onInfo:onInfo||null});
   },
   /* cb(bestUci, linesByMultipv, ev, superseded) — ev is this position's own. */
@@ -8582,9 +8746,38 @@ function startClockTick(){stopClockTick();if(app.clock){app.clock.lastTs=perform
 function tickClock(){
   if(!app.clock||app.view!=='play'){stopClockTick();return;}
   const now=performance.now();const active=clockRunningSide();
-  if(active){const dt=now-(app.clock.lastTs||now);app.clock[active]=Math.max(0,app.clock[active]-dt);
+  if(active){let dt=now-(app.clock.lastTs||now);
+    // While the bot is thinking its clock runs at the rate a person would have
+    // used it, not at the rate you are sitting there. In blitz the two are the
+    // same; in a 90+30 you wait a few seconds and watch them burn two minutes,
+    // which is what a real opponent would have done. It never runs past the
+    // time they decided to spend.
+    if(active===app.clock.botSide&&app.clock.botRate>1){
+      const left=Math.max(0,(app.clock.botBudget||0)-(app.clock.botUsed||0));
+      dt=Math.min(dt*app.clock.botRate,left);
+      app.clock.botUsed=(app.clock.botUsed||0)+dt;
+    }
+    app.clock[active]=Math.max(0,app.clock[active]-dt);
     if(app.clock[active]<=0){app.clock.lastTs=now;updateClockDOM();flagFall(active);return;}}
   app.clock.lastTs=now;updateClockDOM();}
+/* The bot has decided how long this move is worth. Start draining its clock
+   towards that, however long the engine actually takes to answer. */
+function startBotClock(side,plan){
+  if(!app.clock||!plan||!plan.spend)return;
+  app.clock.botSide=side;app.clock.botUsed=0;
+  app.clock.botBudget=Math.min(plan.spend,Math.max(0,app.clock[side]-40));
+  app.clock.botRate=Math.max(1,plan.spend/Math.max(150,plan.wait));
+  app.clock.botFrom=app.clock[side];app.clock.lastTs=performance.now();
+}
+/* ...and when the move lands, put the clock exactly where it should be, so a
+   slow engine or a fast one both cost the opponent the same thought. */
+function settleBotClock(side,plan){
+  if(!app.clock)return;
+  if(plan&&plan.spend&&app.clock.botFrom!=null&&app.clock.botSide===side)
+    app.clock[side]=Math.max(0,app.clock.botFrom-(app.clock.botBudget||0));
+  app.clock.botSide=null;app.clock.botRate=0;app.clock.botBudget=0;app.clock.botUsed=0;app.clock.botFrom=null;
+  app.clock.lastTs=performance.now();
+}
 function updateClockDOM(){if(!app.clock)return;const active=clockRunningSide();
   for(const c of ['w','b']){const el=document.getElementById('clk-'+c);if(!el)continue;
     el.textContent=fmtClock(app.clock[c]);el.classList.toggle('active',active===c);el.classList.toggle('low',app.clock[c]<=15000);}}
@@ -8600,7 +8793,10 @@ function material(fen){const pm=pmap(fen);const cnt={w:{p:0,n:0,b:0,r:0,q:0},b:{
   return{wCap,bCap,diff:score};}
 function capStr(cap,white){const G=white?WPIECE:PIECE;let s='';for(const t of ['q','r','b','n','p'])for(let i=0;i<cap[t];i++)s+=G[t];return s;}
 function playerStrip(color,fen,lvl){
-  const isYou=color===app.playSide;const opp=app.careerRoundOpp;const nm=isYou?'You':(app.careerElo?((opp&&opp.title?opp.title+' ':'')+((opp&&opp.name)||'Opponent')+' ('+app.careerElo+')'+(opp&&opp.style?' · '+styleById(opp.style).emoji+' '+styleById(opp.style).name:'')):('Stockfish · '+lvl.label));
+  const isYou=color===app.playSide;const opp=app.careerRoundOpp;const cat=tcCategory(app.tc);
+  const nm=isYou?'You':(app.careerElo?((opp&&opp.title?opp.title+' ':'')+((opp&&opp.name)||'Opponent')+' ('+app.careerElo+')'+(opp&&opp.style?' · '+styleById(opp.style).emoji+' '+styleById(opp.style).name:''))
+    :(app.playBot?(app.playBot.emoji+' '+app.playBot.name+' ('+botRating(app.playBot,cat)+')')
+                 :('Stockfish · '+lvl.label)));
   const mat=material(fen);const captured=color==='w'?capStr(mat.wCap,false):capStr(mat.bCap,true);
   const adv=color==='w'?mat.diff:-mat.diff;const advHtml=adv>0?'<span class="adv">+'+adv+'</span>':'';
   let clk='';
@@ -8649,11 +8845,12 @@ function fallbackCopy(text,done){try{const ta=document.createElement('textarea')
 function startPlay(fen,side,openingId,title,opts){opts=opts||{};
   app.view='play';app.playFen=fen;app._playStartFen=fen;app.playSide=side;app.playOpening=openingId||null;
   app.playTitle=title||'Free game';app.playFlip=false;app.playStack=[fen];app.playMoves=[];app.playView=0;app.playLast=null;app.playSel=null;app.careerBanter=null;app.careerReaction=null;
-  app.playHint=null;app.playEval=null;app.playResult=null;app.engineErr=false;app.drawMsg=null;app.blunderNote=null;app.coachNote=null;app.whyNot=null;app.oppDraw=null;app.oppSaid=null;app._oppLost=0;app._drawCd=0;app.pgnCopied=false;app.playPremoves=[];app.blindfold=!!opts.blindfold;app.peek=false;app.careerOpp=opts.careerOpp||null;app.careerElo=opts.careerElo||null;app.careerScored=false;app.careerDelta=0;app.careerTour=!!opts.careerTour;app.careerRoundOpp=opts.roundOpp||null;app.careerOneoff=opts.oneoff||null;app.c960=opts.c960||null;app.endgame=opts.endgame||null;app.playBot=opts.bot||null;app.tiltEval=false;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=!!(opts.league);app.careerHintsLeft=opts.careerOpp?careerHintAllowance():0;app._fxKey=null;
+  app.playHint=null;app.playEval=null;app.playResult=null;app.engineErr=false;app.drawMsg=null;app.blunderNote=null;app.coachNote=null;app.whyNot=null;app.oppDraw=null;app.oppSaid=null;app._oppLost=0;app._drawCd=0;app.pgnCopied=false;app.playPremoves=[];app.blindfold=!!opts.blindfold;app.peek=false;app.careerOpp=opts.careerOpp||null;app.careerElo=opts.careerElo||null;app.careerScored=false;app.careerDelta=0;app.careerTour=!!opts.careerTour;app.careerRoundOpp=opts.roundOpp||null;app.careerOneoff=opts.oneoff||null;app.c960=opts.c960||null;app.endgame=opts.endgame||null;app.playBot=opts.bot||null;app.tiltEval=false;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=!!(opts.league);app.careerHintsLeft=opts.careerOpp?careerHintAllowance():0;app._fxKey=null;app._lastEvalCp=null;app._engOutOfBook=false;app._engRetry=0;
   app.playBook=opts.bookId?byId.get(opts.bookId):(opts.book||null);
   app.playBookNode=opts.bookNode||(app.playBook?app.playBook.root:null);
   const tc=opts.tc||tcById((opts.tcId)||'unlimited');app.tc=tc;
-  if(tc.base>0){app.clock={w:tc.base*1000,b:tc.base*1000,inc:tc.inc*1000,lastTs:performance.now()};Engine.load();}
+  if(tc.base>0){app.clock={w:tc.base*1000,b:tc.base*1000,inc:tc.inc*1000,lastTs:performance.now(),
+    botSide:null,botRate:0,botBudget:0,botUsed:0,botFrom:null};Engine.load();}
   else app.clock=null;
   stopClockTick();
   app.playStatus=(turnOf(fen)===side)?'play':'engine';render();startClockTick();
@@ -8688,12 +8885,20 @@ async function engineMove(){app.playStatus='engine';render();
       app.playStack.push(m.fen);app.playMoves.push({from:pick.from,to:pick.to,san:m.san,book:true});
       app.playFen=m.fen;app.playLast={from:pick.from,to:pick.to};app.playSel=null;app.playView=app.playStack.length-1;
       app.playBookNode=pick;addIncrement(app.playSide==='w'?'b':'w');sfxSan(m.san);
+      // still in theory; the next move off the book is the one they stop on
+      app._engOutOfBook=!(pick.children&&pick.children.length);
       if(!checkOver())app.playStatus='play';render();tryPremove();return;}}
   const ok=await Engine.load();if(!ok){app.engineErr=true;app.playStatus='play';render();return;}
+  // Which format this is decides both how the opponent's rating is read and how
+  // well they actually move (see the real-life strength model above).
+  const cat=tcCategory(app.tc);
+  const engSide=app.playSide==='w'?'b':'w';
+  const panic=app.clock?clockPanic(app.clock[engSide],app.tc&&app.tc.base,app.tc?app.tc.inc:0):0;
   // Career opponents play ~120 Elo below their displayed rating so a human of the
   // same nominal strength can genuinely compete and climb (their published number
-  // is chess.com-ish, i.e. above FIDE).
-  let lvl;if(app.playBot){lvl={elo:app.playBot.elo,mt:700,style:app.playBot.style};}
+  // is chess.com-ish, i.e. above FIDE). The format penalty is applied on top of
+  // that, inside botParams.
+  let lvl;if(app.playBot){lvl={elo:botRating(app.playBot,cat),mt:700,style:app.playBot.style};}
   else if(app.careerElo){
     const ply=app.playMoves.length;
     const sharp=Math.min(45,Math.max(0,(((store.puzzle&&store.puzzle.rating)||1200)-1200)/16)); // tactical sharpness from puzzles
@@ -8706,32 +8911,57 @@ async function engineMove(){app.playStatus='engine';render();
     if(_lt>0){var _nv=oppTraits(app.careerRoundOpp).nerve;lvl.elo=Math.max(600,Math.round(lvl.elo-_lt*260*(1-_nv*0.6)));}
   }
   else if(app.endgame)lvl=LEVELS[LEVELS.length-1]; // endgame drills: a tough, full-strength defender
-  else lvl=(LEVELS[store.settings.level]||LEVELS[2]);const eng=app.playSide==='w'?'b':'w';
+  else lvl=(LEVELS[store.settings.level]||LEVELS[2]);
+  lvl=Object.assign({},lvl,{cat:cat,panic:panic});
+  const eng=engSide;
   // Human-like clock usage (see botThinkMs): fast openings & forced moves, longer
   // thinks in unclear positions, the odd deep think, and discipline when low.
-  let onlyMove=false,recapture=false;
-  try{const cc=new Chess(app.playFen);const mv=cc.moves({verbose:true});onlyMove=mv.length<=1;
+  let onlyMove=false,recapture=false,legalCount=30;
+  try{const cc=new Chess(app.playFen);const mv=cc.moves({verbose:true});onlyMove=mv.length<=1;legalCount=mv.length;
     const lastTo=app.playLast&&app.playLast.to;
     if(lastTo&&mv.length<=10&&mv.some(m=>m.to===lastTo&&/c|e/.test(m.flags||'')))recapture=true;
   }catch(e){}
   const ev=app.playEval;const cp=ev?(ev.t==='mate'?2000:Math.abs(ev.v)):70;
-  let mt=app.clock
-    ? botThinkMs({remaining:app.clock[eng],inc:app.tc?app.tc.inc:0,ply:app.playMoves.length,cp:cp,onlyMove:onlyMove,recapture:recapture})
-    : botThinkMs({base:lvl.mt||800});
+  const swing=(ev&&app._lastEvalCp!=null&&ev.t!=='mate')?Math.abs(Math.abs(ev.v)-app._lastEvalCp):0;
+  app._lastEvalCp=(ev&&ev.t!=='mate')?Math.abs(ev.v):null;
+  const plan=botThinkMs({
+    remaining:app.clock?app.clock[eng]:0,inc:app.tc?app.tc.inc:0,cat:cat,
+    ply:app.playMoves.length,cp:cp,swing:swing,moves:legalCount,
+    onlyMove:onlyMove,recapture:recapture,outOfBook:app._engOutOfBook===true,
+    tempo:oppTempo(),quality:humanQuality(lvl.elo||1800,cat),base:lvl.mt||800});
+  app._engOutOfBook=false;
+  startBotClock(eng,plan);
   const thinkFen=app.playFen;
-  Engine.think(app.playFen,lvl,mt,best=>{
+  const thinkStart=performance.now();
+  Engine.think(app.playFen,lvl,plan.search,best=>{
     // If the engine gave nothing (it timed out, or the search was taken from
     // it) the position is still its move: ask once more rather than handing
     // the turn back to a player who cannot move.
     if(!best&&app.view==='play'&&app.playStatus==='engine'&&app.playFen===thinkFen&&(app._engRetry||0)<1){
       app._engRetry=(app._engRetry||0)+1;setTimeout(engineMove,120);return;
     }
+    // The engine usually answers well inside the time the move was worth. A
+    // real opponent does not — they sit there and think. So the move waits out
+    // the rest of the think, which is what makes a blitz game feel like blitz
+    // and their clock tick down in front of you.
+    const hold=Math.max(0,plan.wait-(performance.now()-thinkStart));
+    if(hold>25&&app.view==='play'&&app.playStatus==='engine'&&app.playFen===thinkFen){
+      setTimeout(function(){playEngineBest(best,eng,plan,thinkFen);},hold);return;
+    }
+    playEngineBest(best,eng,plan,thinkFen);
+  },(t,v)=>{app.playEval={t:t,v:v,stm:turnOf(thinkFen)};});
+}
+/* Put the opponent's chosen move on the board, settle their clock and hand the
+   turn back. Split out of engineMove so the move can be held until the think
+   they decided on is actually over. */
+function playEngineBest(best,eng,plan,thinkFen){
+    if(app.view!=='play'||app.playStatus!=='engine'||app.playFen!==thinkFen)return;
     app._engRetry=0;
+    settleBotClock(eng,plan);
     if(best&&best!=='(none)'){const m=tryFromTo(app.playFen,best.slice(0,2),best.slice(2,4),best[4]||'q');
       if(m){if(app.c960)c960UpdateRights(eng,best.slice(0,2));app.playStack.push(m.fen);app.playMoves.push({from:best.slice(0,2),to:best.slice(2,4),san:m.san});app.playFen=m.fen;app.playLast={from:best.slice(0,2),to:best.slice(2,4)};app.playSel=null;app.playView=app.playStack.length-1;app.playBookNode=null;addIncrement(eng);sfxSan(m.san);}}
     if(!checkOver()){app.playStatus='play';oppAfterMove();}
     render();tryPremove();
-  },(t,v)=>{app.playEval={t:t,v:v,stm:turnOf(thinkFen)};});
 }
 function pieceColorAt(fen,sq){try{const c=new Chess(fen);const p=c.get(sq);return p?p.color:null;}catch(e){return null;}}
 function tryPremove(){const q=app.playPremoves;if(!q||!q.length)return;if(app.playStatus!=='play'||turnOf(app.playFen)!==app.playSide)return;
@@ -8781,7 +9011,7 @@ const COACH_TYPES=[
   {spec:'Endgame guru',salary:60,emoji:'♜',desc:'smaller rating losses'},
 ];
 const SPONSOR_NAMES=['ChessGear','NeoBoard','Gambit Wear','Knightly Foods','Zugzwang Energy','OpenFile Tech','BlitzCola','Endgame Apparel','64 Squares','Caïssa Coffee'];
-function lifeInit(c){if(c.age==null)c.age=16;if(c.pace==null)c.pace=1;if(c.weeks==null)c.weeks=0;if(c.energy==null)c.energy=100;if(c.form==null)c.form=0;if(c.tilt==null)c.tilt=0;if(c.fame==null)c.fame=0;if(c.fans==null)c.fans=0;if(c.reputation==null)c.reputation=50;if(!c.coaches)c.coaches=[];if(c.prep==null)c.prep=0;if(!c.h2h)c.h2h={};if(c.sponsor===undefined)c.sponsor=null;if(c.objective===undefined)c.objective=null;if(c.retired==null)c.retired=false;if(c.pressPending===undefined)c.pressPending=null;if(c.rival===undefined)c.rival=null;if(!c.achievements)c.achievements=[];if(!c.news)c.news=[];if(c.preppedOpening===undefined)c.preppedOpening=null;if(c.tacticsTrained==null)c.tacticsTrained=0;if(c.xp==null)c.xp=0;if(!c.perks)c.perks={};if(Array.isArray(c.perks)){var _pm={};c.perks.forEach(function(_k){_pm[_k]=1;});c.perks=_pm;}if(c.season==null)c.season=Math.floor((c.weeks||0)/52)+1;if(!c.prepUsage)c.prepUsage={};if(c.protege===undefined)c.protege=null;if(c.winStreak==null)c.winStreak=0;if(c.bestWinStreak==null)c.bestWinStreak=0;if(c.unbeaten==null)c.unbeaten=0;if(c.weeksAtNo1==null)c.weeksAtNo1=0;if(c.noveltyCharge==null)c.noveltyCharge=1;if(c.noveltyArmed==null)c.noveltyArmed=false;if(c.noveltyCd==null)c.noveltyCd=0;if(!c.theory)c.theory={};if(c.refuted===undefined)c.refuted=null;if(c.trendy===undefined)c.trendy=null;if(c.youngGun===undefined)c.youngGun=null;if(c.scandal===undefined)c.scandal=null;if(c.subs==null)c.subs=0;if(c.collabCd==null)c.collabCd=0;if(!c.assets)c.assets=[];if(c.club===undefined)c.club=null;if(!c.books)c.books=[];if(c.backer===undefined)c.backer=null;if(c.fedCd==null)c.fedCd=0;if(c.broadcasts==null)c.broadcasts=0;if(c.academy===undefined)c.academy=null;if(c.gmsMade==null)c.gmsMade=0;if(!c.legendsBeaten)c.legendsBeaten=[];if(c.injury===undefined)c.injury=null;if(c.burnout==null)c.burnout=0;if(c.calendar===undefined)c.calendar=null;if(!c.calDone)c.calDone=[];if(c.transferred==null)c.transferred=false;if(c.dilemma===undefined)c.dilemma=null;if(c.mercDeeds==null)c.mercDeeds=0;if(c.heroDeeds==null)c.heroDeeds=0;if(c.lastBonusDay===undefined)c.lastBonusDay=null;if(c.skillPts==null)c.skillPts=0;if(c.lvlSeen==null)c.lvlSeen=charLevel(c);if(!c.circuit)c.circuit={pts:0,season:c.season||1};if(!c.social)c.social={followers:0,verified:false,posts:0,cd:0};if(!c.classicsStudied)c.classicsStudied=[];if(!c.roadDone)c.roadDone=[];if(!c.feed)c.feed=[];if(c.arc===undefined)c.arc=null;if(!c.arcsDone)c.arcsDone=[];if(!c.arcBadges)c.arcBadges=[];if(!c.home)c.home='hostel';if(c.health==null)c.health=100;if(c.mood==null)c.mood=62;if(c.day==null)c.day=0;if(!c.dayLog)c.dayLog=[];if(!c.weekLog)c.weekLog=[];if(c.debt==null)c.debt=0;if(c.lifeWeeks==null)c.lifeWeeks=0;if(!c.seasonStart)c.seasonStart=seasonSnapshot(c);if(c.seasonReview===undefined)c.seasonReview=null;if(!c.avatar)c.avatar=avatarDefaults(c);if(!c.avatarStyle)c.avatarStyle='char';if(c.simuls==null)c.simuls=0;if(c.simulPerfect==null)c.simulPerfect=0;parkInit(c);if(!c._seed){c.money=(c.money||0)+1500;c._seed=true;}}
+function lifeInit(c){if(c.age==null)c.age=16;if(c.pace==null)c.pace=1;if(c.weeks==null)c.weeks=0;if(c.energy==null)c.energy=100;if(c.form==null)c.form=0;if(c.tilt==null)c.tilt=0;if(c.fame==null)c.fame=0;if(c.fans==null)c.fans=0;if(c.reputation==null)c.reputation=50;if(!c.coaches)c.coaches=[];if(c.prep==null)c.prep=0;if(!c.h2h)c.h2h={};if(c.sponsor===undefined)c.sponsor=null;if(c.objective===undefined)c.objective=null;if(c.retired==null)c.retired=false;if(c.pressPending===undefined)c.pressPending=null;if(c.rival===undefined)c.rival=null;if(!c.achievements)c.achievements=[];if(!c.news)c.news=[];if(c.preppedOpening===undefined)c.preppedOpening=null;if(c.tacticsTrained==null)c.tacticsTrained=0;if(c.xp==null)c.xp=0;if(!c.perks)c.perks={};if(Array.isArray(c.perks)){var _pm={};c.perks.forEach(function(_k){_pm[_k]=1;});c.perks=_pm;}if(c.season==null)c.season=Math.floor((c.weeks||0)/52)+1;if(!c.prepUsage)c.prepUsage={};if(c.protege===undefined)c.protege=null;if(c.winStreak==null)c.winStreak=0;if(c.bestWinStreak==null)c.bestWinStreak=0;if(c.unbeaten==null)c.unbeaten=0;if(c.weeksAtNo1==null)c.weeksAtNo1=0;if(c.noveltyCharge==null)c.noveltyCharge=1;if(c.noveltyArmed==null)c.noveltyArmed=false;if(c.noveltyCd==null)c.noveltyCd=0;if(!c.theory)c.theory={};if(c.refuted===undefined)c.refuted=null;if(c.trendy===undefined)c.trendy=null;if(c.youngGun===undefined)c.youngGun=null;if(c.scandal===undefined)c.scandal=null;if(c.subs==null)c.subs=0;if(c.collabCd==null)c.collabCd=0;if(!c.assets)c.assets=[];if(c.club===undefined)c.club=null;if(!c.books)c.books=[];if(c.backer===undefined)c.backer=null;if(c.fedCd==null)c.fedCd=0;if(c.broadcasts==null)c.broadcasts=0;if(c.academy===undefined)c.academy=null;if(c.gmsMade==null)c.gmsMade=0;if(!c.legendsBeaten)c.legendsBeaten=[];if(c.injury===undefined)c.injury=null;if(c.burnout==null)c.burnout=0;if(c.calendar===undefined)c.calendar=null;if(!c.calDone)c.calDone=[];if(c.transferred==null)c.transferred=false;if(c.dilemma===undefined)c.dilemma=null;if(c.mercDeeds==null)c.mercDeeds=0;if(c.heroDeeds==null)c.heroDeeds=0;if(c.lastBonusDay===undefined)c.lastBonusDay=null;if(c.skillPts==null)c.skillPts=0;if(c.lvlSeen==null)c.lvlSeen=charLevel(c);if(!c.circuit)c.circuit={pts:0,season:c.season||1};if(!c.social)c.social={followers:0,verified:false,posts:0,cd:0};if(!c.classicsStudied)c.classicsStudied=[];if(!c.roadDone)c.roadDone=[];if(!c.feed)c.feed=[];if(c.arc===undefined)c.arc=null;if(!c.arcsDone)c.arcsDone=[];if(!c.arcBadges)c.arcBadges=[];if(!c.home)c.home='hostel';if(c.health==null)c.health=100;if(c.mood==null)c.mood=62;if(c.day==null)c.day=0;if(!c.dayLog)c.dayLog=[];if(!c.weekLog)c.weekLog=[];if(c.debt==null)c.debt=0;if(c.lifeWeeks==null)c.lifeWeeks=0;if(!c.seasonStart)c.seasonStart=seasonSnapshot(c);if(c.seasonReview===undefined)c.seasonReview=null;if(!c.avatar)c.avatar=avatarDefaults(c);if(!c.avatarStyle)c.avatarStyle='char';if(c.simuls==null)c.simuls=0;if(c.simulPerfect==null)c.simulPerfect=0;parkInit(c);autoInit(c);if(!c._seed){c.money=(c.money||0)+1500;c._seed=true;}}
 function maxEnergy(c){var base=c.age>=38?Math.max(72,100-Math.round((c.age-38)*2.5)):100;var e=base+(hasAsset(c,'gym')?8:0)+(hasAsset(c,'house')?12:0);e+=Math.round(((c.health==null?100:c.health)-75)/6);if(c.injury)e-=(c.injury.sev||1)*10;return Math.max(40,e);}
 function hasCoach(c,spec){return (c.coaches||[]).some(function(x){return x.spec===spec;});}
 function cbar(v,max,color){var p=Math.max(0,Math.min(100,v/max*100));return '<div style="height:7px;background:#1e293b;border-radius:5px;overflow:hidden;margin-top:3px"><i style="display:block;height:100%;width:'+p+'%;background:'+color+'"></i></div>';}
@@ -9028,7 +9258,7 @@ function careerMediaPanel(c){
   return h;}
 function hireCoach2(spec){var c=store.career;lifeInit(c);var t=COACH_TYPES.find(function(x){return x.spec===spec;});if(!t||hasCoach(c,spec))return;var fee=t.salary*8;if((c.money||0)<fee)return;c.money-=fee;c.coaches.push({name:randName(),spec:t.spec,salary:t.salary,emoji:t.emoji});if(spec==='Engine analyst'){store.settings.showEval=true;c.coach=true;}if(spec==='Opening theoretician')c.prep=(c.prep||0)+3;save();render();}
 function fireCoach(i){var c=store.career;if(c.coaches&&c.coaches[+i]){var rm=c.coaches.splice(+i,1)[0];if(rm&&rm.spec==='Engine analyst')c.coach=false;}save();render();}
-function signSponsor(i){var c=store.career;lifeInit(c);var offs=sponsorOffers(c);var off=offs[(+i)||0];if(!off)return;c.sponsor={name:off.name,perWeek:off.perWeek,weeksLeft:off.weeks};if(off.bonus)c.money=(c.money||0)+off.bonus;app.careerToast='🤝 Signed with '+off.name+(off.bonus?' (+💰'+off.bonus+' signing bonus)':'')+'!';save();render();}
+function signSponsor(i,silent){var c=store.career;lifeInit(c);var offs=sponsorOffers(c);var off=offs[(+i)||0];if(!off)return;c.sponsor={name:off.name,perWeek:off.perWeek,weeksLeft:off.weeks};if(off.bonus)c.money=(c.money||0)+off.bonus;app.careerToast='🤝 Signed with '+off.name+(off.bonus?' (+💰'+off.bonus+' signing bonus)':'')+'!';if(silent)return;save();render();}
 function pressChoose(k){var c=store.career;lifeInit(c);if(!c.pressPending)return;
   if(k==='humble'){c.reputation=Math.min(100,c.reputation+8);c.fame=Math.min(100,c.fame+1);app.careerToast='“I got lucky, my opponents played well.” Respect +.';}
   else if(k==='confident'){c.fame=Math.min(100,c.fame+4);c.fans=Math.round(c.fans+(c.fame*3));app.careerToast='“I knew I’d win.” Fame +.';}
@@ -9168,6 +9398,193 @@ function endOfWeek(c){
   c.lifeWeeks=(c.lifeWeeks||0)+1;
   arcTick(c);
   pushNews(c,'📅','Week '+(c.weeks||0)+' done — bills 💰'+((c.bills&&c.bills.total)||0)+' paid.');
+}
+/* =========================================================================
+   AUTOMATION — hand the routine parts of the week over to your team.
+
+   A career has a lot of small, obvious decisions in it: claim the daily
+   reward, claim a finished quest, rest when you are exhausted, see the physio
+   when you are injured, take a coaching shift when rent is due on Sunday and
+   the money is thin. None of them are interesting choices, and all of them
+   have to be clicked. So you can set a plan and let them run.
+
+   Nothing here runs behind your back on a timer. The housekeeping switches
+   (`autoTick`) only ever do bounded, idempotent things — a daily reward can be
+   claimed once a day, a sponsor offer signed once, a home upgraded only
+   upwards. Days are only ever spent when you ask for them, one day or one
+   week at a time, and everything it does is written into the log so you can
+   see exactly what your week went on.
+   ========================================================================= */
+const AUTO_PLANS=[
+  {id:'balanced',e:'⚖️',n:'Balanced',d:'Keeps you fit, calm and solvent, and studies with whatever is left.'},
+  {id:'train',e:'📚',n:'Train hard',d:'Study and the gym come first. Rests only when it has to.'},
+  {id:'earn',e:'💼',n:'Earn',d:'Takes coaching shifts and keeps the bank well ahead of the rent.'},
+  {id:'recover',e:'🛌',n:'Recover',d:'Rest, therapy and physio until you are fit, calm and unburnt.'},
+  {id:'social',e:'☕',n:'Have a life',d:'Club nights, cafés and friends — mood and form over everything.'}
+];
+function autoPlanById(id){return AUTO_PLANS.filter(function(p){return p.id===id;})[0]||AUTO_PLANS[0];}
+const AUTO_TOGGLES=[
+  {k:'daily',e:'🎁',n:'Claim the daily reward',d:'Checks in for you so the streak never breaks.'},
+  {k:'quests',e:'✅',n:'Claim finished quests',d:'Collects the cash and XP the moment a quest completes.'},
+  {k:'week',e:'⏩',n:'Finish the week automatically',d:'One click fills Monday to Sunday with your plan.'},
+  {k:'sponsor',e:'🤝',n:'Sign the best sponsor offer',d:'Takes the highest weekly deal on the table.'},
+  {k:'home',e:'🏠',n:'Upgrade where you live',d:'Moves up whenever you can comfortably carry the rent.'},
+  {k:'buy',e:'💎',n:'Buy lifestyle upgrades',d:'Spends anything above your reserve on the cheapest one you are missing.'}
+];
+/* Everything is off to begin with. Automation should never quietly take a
+   decision you did not ask it to take — you turn each switch on yourself. */
+function autoDefaults(){return {plan:'balanced',daily:false,quests:false,week:false,sponsor:false,home:false,buy:false,reserve:3000,log:[]};}
+function autoInit(c){
+  if(!c.auto)c.auto=autoDefaults();
+  var d=autoDefaults();
+  for(var k in d)if(c.auto[k]===undefined)c.auto[k]=d[k];
+  if(!autoPlanById(c.auto.plan))c.auto.plan='balanced';
+  if(!Array.isArray(c.auto.log))c.auto.log=[];
+  return c.auto;
+}
+function autoLog(c,e,text){
+  var a=autoInit(c);
+  a.log.unshift({e:e,t:text,w:c.weeks||0,d:c.day||0});
+  if(a.log.length>24)a.log.length=24;
+}
+/* What the plan would do with today. Returns a PLACES id, or null if there is
+   genuinely nothing it can afford or has the energy for (then: rest). */
+function autoPickDay(c){
+  autoInit(c);
+  var can=function(id){var pl=placeById(id);return pl&&!placeBlocked(c,pl)?id:null;};
+  var em=maxEnergy(c),energy=c.energy||0,mood=c.mood==null?62:c.mood,health=c.health==null?100:c.health;
+  var bills=lifeCosts(c,1).total+(c.debt||0);
+  // 1. Things that are not optional, whatever the plan says.
+  if(c.injury&&can('physio'))return 'physio';
+  if(energy<em*0.28)return 'rest';
+  if((c.tilt||0)>=65)return can('therapy')||can('cafe')||'rest';
+  if(health<40)return can('gym')||'rest';
+  if((c.money||0)<bills)return can('work')||'rest';
+  if((c.burnout||0)>=70)return can('getaway')||'rest';
+  var plan=(c.auto.plan||'balanced');
+  // 2. Then the plan's own order of preference.
+  var order;
+  if(plan==='train')        order=['study','gym','club','study','rest'];
+  else if(plan==='earn')    order=['work','work','study','rest'];
+  else if(plan==='recover') order=['rest','therapy','gym','cafe'];
+  else if(plan==='social')  order=['club','cafe','club','study'];
+  else {                                                   // balanced
+    order=[];
+    if(energy<em*0.55)order.push('rest');
+    if(mood<45)order.push('cafe');
+    if((c.tilt||0)>=35)order.push('therapy','cafe');
+    if((c.money||0)<bills*3)order.push('work');
+    if(health<70)order.push('gym');
+    order.push('study','club','gym','rest');
+  }
+  for(var i=0;i<order.length;i++){var got=can(order[i]);if(got)return got;}
+  return 'rest';
+}
+/* Spend one day on your behalf. Returns what it picked, or null. */
+function autoRunDay(c){
+  autoInit(c);
+  if(c.tour||c.retired)return null;
+  var id=autoPickDay(c);var pl=placeById(id);
+  if(!pl||placeBlocked(c,pl))return null;
+  var wasDay=(c.day||0)+1;
+  doDay(id);
+  autoLog(c,pl.e,'Day '+wasDay+': '+pl.n.toLowerCase());
+  return id;
+}
+/* ...or the rest of the week, stopping the moment Sunday rolls over. */
+function autoRunWeek(c){
+  autoInit(c);
+  if(c.tour||c.retired)return 0;
+  var n=0,guard=0,startWeek=c.weeks||0;
+  while((c.weeks||0)===startWeek&&(c.day||0)<7&&guard++<8){
+    if(!autoRunDay(c))break;
+    n++;
+  }
+  return n;
+}
+/* The bounded housekeeping. Safe to call on every render: each branch can only
+   fire when there is something genuinely waiting, and each fires at most once. */
+function autoTick(c){
+  if(!c||!c.setup||c.retired)return 0;
+  var a=autoInit(c),did=0;
+  if(a.daily&&dailyAvailable(c)){
+    var b=dailyBonusAmt(dayStreak());
+    c.money=(c.money||0)+b.amt;addXp(c,b.xp);c.lastBonusDay=dayKey(Date.now());
+    pushNews(c,'📅','Daily check-in — '+b.streak+'-day streak (+💰'+b.amt+').');
+    autoLog(c,'🎁','Claimed the daily reward (+💰'+b.amt+')');did++;
+  }
+  if(a.quests){
+    var q=questsEnsure();
+    (q.items||[]).forEach(function(it){
+      if(it.claimed||it.prog<it.goal)return;
+      it.claimed=true;c.money=(c.money||0)+it.cash;addXp(c,it.xp);
+      autoLog(c,'✅','Claimed “'+it.text+'” (+💰'+it.cash+')');did++;
+    });
+  }
+  if(a.sponsor&&!c.sponsor){
+    var offs=sponsorOffers(c);
+    if(offs&&offs.length){
+      var bi=0;for(var i=1;i<offs.length;i++)if(offs[i].perWeek>offs[bi].perWeek)bi=i;
+      signSponsor(bi,true);
+      autoLog(c,'🤝','Signed '+offs[bi].name+' (💰'+offs[bi].perWeek+'/wk)');did++;
+    }
+  }
+  if(a.home){
+    var cur=homeIdx(c);
+    for(var j=HOMES.length-1;j>cur;j--){
+      var hm=HOMES[j];
+      // only move up if you can carry it for a couple of months without thinking
+      if(!homeLocked(c,hm)&&(c.money||0)>=hm.rent*8+(a.reserve||0)){
+        c.home=hm.id;pushNews(c,hm.e,'You moved into '+hm.n.toLowerCase()+' — 💰'+hm.rent+' a week.');
+        autoLog(c,hm.e,'Moved into '+hm.n.toLowerCase());did++;break;
+      }
+    }
+  }
+  if(a.buy){
+    var want=null;
+    LIFESTYLE.forEach(function(x){if(!hasAsset(c,x.k)&&(want===null||x.cost<want.cost))want=x;});
+    if(want&&(c.money||0)-want.cost>=(a.reserve||0)){
+      c.money-=want.cost;c.assets.push(want.k);c.fame=Math.min(100,c.fame+(want.fame||0));
+      if(want.k==='gym'||want.k==='house')c.energy=Math.min(maxEnergy(c),c.energy+10);
+      pushNews(c,want.e,'You treated yourself to a '+want.n.toLowerCase()+'.');
+      autoLog(c,want.e,'Bought '+want.n.toLowerCase()+' (−💰'+want.cost.toLocaleString()+')');did++;
+    }
+  }
+  if(did){checkAchievements(c);save();}
+  return did;
+}
+/* What automation is looking after right now, for the dashboard chip. */
+function autoSummary(c){
+  var a=autoInit(c);
+  var on=AUTO_TOGGLES.filter(function(t){return !!a[t.k];});
+  return {count:on.length,plan:autoPlanById(a.plan),on:on};
+}
+function careerAutoPanel(c){
+  var a=autoInit(c);var sum=autoSummary(c);
+  var h='<div class="card" style="margin-bottom:12px;border-color:#22d3ee55"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:700">🤖 Automation</div><div class="dim small">'+sum.count+' of '+AUTO_TOGGLES.length+' on</div></div>'+
+    '<div class="dim small" style="margin-top:3px">Hand the routine parts over. Your plan decides how a day gets spent; the switches below look after the things you would only ever click “yes” to anyway.</div>';
+  h+='<div class="dim small" style="margin:10px 0 5px;text-transform:uppercase;font-size:10px;letter-spacing:.08em">Day plan</div>'+
+    '<div class="actgrid">'+AUTO_PLANS.map(function(pl){
+      var cur=pl.id===a.plan;
+      return '<button class="actcard'+(cur?' on':'')+'" data-act="autoplan" data-val="'+pl.id+'"'+(cur?' style="border-color:var(--brand);background:rgba(28,132,245,.12)"':'')+'>'+
+        '<span class="an">'+pl.e+' '+esc(pl.n)+(cur?' ✓':'')+'</span><span class="ad">'+esc(pl.d)+'</span></button>';
+    }).join('')+'</div>';
+  h+='<div style="margin-top:10px">'+AUTO_TOGGLES.map(function(t){
+      var on=!!a[t.k];
+      return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border)">'+
+        '<span class="small" style="min-width:0">'+t.e+' <b>'+esc(t.n)+'</b><br><span class="dim" style="font-size:11px">'+esc(t.d)+'</span></span>'+
+        '<button class="btn '+(on?'primary':'ghost')+' sm" data-act="autotoggle" data-val="'+t.k+'" style="flex:0 0 auto">'+(on?'On':'Off')+'</button></div>';
+    }).join('')+'</div>';
+  h+='<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:8px 0 0;border-top:1px solid var(--border);margin-top:4px">'+
+    '<span class="small">🛡️ Cash reserve <span class="dim">— automation never spends below this</span></span>'+
+    '<span class="row" style="gap:5px;flex:0 0 auto"><button class="btn ghost sm" data-act="autoreserve" data-val="-1000">−</button><span class="chip">💰'+(a.reserve||0).toLocaleString()+'</span><button class="btn ghost sm" data-act="autoreserve" data-val="1000">+</button></span></div>';
+  h+='<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:10px">'+
+    '<button class="btn primary sm" data-act="autoday" '+(c.tour?'disabled':'')+'>▶ Play today for me</button>'+
+    '<button class="btn sec sm" data-act="autoweek" '+(c.tour?'disabled':'')+'>⏩ Finish the week</button></div>';
+  if(c.tour)h+='<div class="dim small" style="margin-top:6px">Life is on hold while you are playing '+esc(c.tour.name)+'.</div>';
+  if((a.log||[]).length)h+='<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border)"><div class="dim small" style="margin-bottom:4px">What it has done for you</div>'+
+    a.log.slice(0,8).map(function(l){return '<div class="dim small" style="padding:1px 0">'+l.e+' '+esc(l.t)+' <span style="opacity:.6">· wk '+l.w+'</span></div>';}).join('')+'</div>';
+  return h+'</div>';
 }
 /* ---- Season review: a year of your life, summed up ---- */
 function seasonSnapshot(c){
@@ -10453,6 +10870,8 @@ function viewCareer(){
   if(app.careerToast){h+='<div class="card" style="margin-bottom:10px;border-color:var(--brand);background:linear-gradient(90deg,var(--brand)18,transparent)"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><span style="font-weight:600">'+esc(app.careerToast)+'</span><button class="btn ghost sm" data-act="toastdismiss">✕</button></div></div>';}
   if(app.careerFinish)h+=careerFinishBanner(app.careerFinish);
   h+=careerSeasonBanner(c);
+  autoTick(c);                       // bounded housekeeping: claims, offers, upgrades
+  h+=careerDashboard(c);
   h+=careerHeader(c);
   h+=careerScandalPanel(c);
   h+=careerDilemmaPanel(c);
@@ -10509,6 +10928,7 @@ function careerTabContent(c,tab){
     if(!c.tour){h+=careerRivalryPanel(c);if(c.rival)h+=scoutCard(c,{name:c.rival.name,rating:rivalRating(c)},'Your rival');}
   } else if(tab==='life'){
     h+=careerDayPanel(c);
+    h+=careerAutoPanel(c);
     h+=careerLifePanel(c);
     h+=careerHomePanel(c);
     h+=careerTeamPanel(c);
@@ -10569,6 +10989,92 @@ function careerFinishBanner(f){
 }
 function fmtRating(v){return v==null?'Unrated':String(v);}
 function honorEmoji(h){if(/World Champion/.test(h))return'👑';if(/Rapid/.test(h))return'🚀';if(/Blitz/.test(h))return'💥';if(/World Cup/.test(h))return'🗺️';if(/Olympiad/.test(h))return'🤝';if(/Candidates/.test(h))return'♛';return'🏆';}
+/* =========================================================================
+   THE DASHBOARD — one card, above every tab, that answers "what is going on".
+
+   A career spreads across seven tabs and forty panels. This is the bit you
+   should be able to read in two seconds: who you are and what you are rated
+   in each format, what the money looks like against the bills that are
+   coming, how your body and head are holding up, what is actually happening
+   right now (round three of nine — or Wednesday, with rent due), and anything
+   that is quietly waiting for you to click it.
+   ========================================================================= */
+function dashMeters(c){
+  var em=maxEnergy(c);
+  var m=[
+    {e:'⚡',l:'Energy',v:Math.round(c.energy||0),max:em,col:'#22c55e',warn:(c.energy||0)<em*0.35},
+    {e:'❤️',l:'Health',v:Math.round(c.health==null?100:c.health),max:100,col:'#ef4444',warn:(c.health==null?100:c.health)<40},
+    {e:'🙂',l:'Mood',v:Math.round(c.mood==null?62:c.mood),max:100,col:'#a855f7',warn:(c.mood==null?62:c.mood)<30},
+    {e:'😖',l:'Tilt',v:Math.round(c.tilt||0),max:100,col:'#f43f5e',warn:(c.tilt||0)>=60},
+    {e:'📈',l:'Form',v:Math.round(c.form||0),max:100,col:'#33a2ff',pct:((c.form||0)+100)/2,signed:true}
+  ];
+  return '<div class="dashmeters">'+m.map(function(x){
+    var pct=x.pct==null?(x.v/x.max*100):x.pct;
+    return '<div class="dashmeter"><div class="dim small" style="white-space:nowrap">'+x.e+' '+x.l+' <b style="color:'+(x.warn?'#fca5a5':'var(--text)')+'">'+(x.signed&&x.v>0?'+':'')+x.v+'</b>'+(x.warn?' ⚠️':'')+'</div>'+
+      cbar(pct,100,x.col)+'</div>';
+  }).join('')+'</div>';
+}
+/* Everything that is waiting on a click, in one row. */
+function dashAlerts(c){
+  var a=[];
+  if(c.injury)a.push({e:'🤒',t:esc(c.injury.type)+' · '+c.injury.weeksLeft+'wk',tab:'life',col:'#f43f5e'});
+  if((c.debt||0)>0)a.push({e:'💸',t:'debt 💰'+(c.debt||0),tab:'life',col:'#f43f5e'});
+  if((c.burnout||0)>=60)a.push({e:'🔥',t:'burnout '+Math.round(c.burnout),tab:'life',col:'#f97316'});
+  if((c.tilt||0)>=60)a.push({e:'😖',t:'on tilt',tab:'life',col:'#f43f5e'});
+  if(dailyAvailable(c))a.push({e:'🎁',t:'daily reward',tab:'play',col:'#22c55e'});
+  var q=questsEnsure();
+  var qr=(q.items||[]).filter(function(it){return !it.claimed&&it.prog>=it.goal;}).length;
+  if(qr)a.push({e:'✅',t:qr+' quest'+(qr>1?'s':'')+' ready',tab:'play',col:'#22c55e'});
+  if((c.skillPts||0)>0)a.push({e:'⭐',t:(c.skillPts||0)+' skill point'+(c.skillPts>1?'s':''),tab:'you',col:'#f59e0b'});
+  if(!c.sponsor&&sponsorOffers(c).length)a.push({e:'🤝',t:'sponsor offer',tab:'life',col:'#f59e0b'});
+  if(c.pressPending)a.push({e:'🎤',t:'press waiting',tab:'play',col:'#a855f7'});
+  if(c.dilemma)a.push({e:'⚖️',t:'a decision',tab:'play',col:'#a855f7'});
+  if(c.seasonReview)a.push({e:'🗓️',t:'season review',tab:'progress',col:'#f59e0b'});
+  if(!a.length)return '<span class="dim small">✓ Nothing waiting — you are all caught up.</span>';
+  return a.map(function(x){return '<button class="chip" data-act="careertab" data-val="'+x.tab+'" style="border-color:'+x.col+'55;color:'+x.col+';cursor:pointer">'+x.e+' '+x.t+'</button>';}).join('');
+}
+/* The one line that says what you should be doing. */
+function dashNow(c){
+  if(c.tour){
+    var tr=c.tour,done=tr.round>=tr.rounds;
+    return {icon:tr.emoji||'🏟️',title:esc(tr.name),
+      sub:done?'All rounds played — collect your result.':('Round '+(tr.round+1)+' of '+tr.rounds+' · '+fmtLabel(tr.format||'classical')+' '+(FORMAT_TC[tr.format||'classical']||'')+' · you have '+fmtScore(tr.score||0)+'/'+tr.round),
+      btn:done?null:{act:'careertab',val:'play',label:'▶ Go to the round'}};
+  }
+  var bills=lifeCosts(c,1),day=(c.day||0);
+  var left=7-day;
+  return {icon:'📅',title:'Week '+((c.weeks||0)+1)+' · '+['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][Math.min(day,6)],
+    sub:(left>0?left+' day'+(left===1?'':'s')+' left · ':'')+'rent + food 💰'+bills.total+' due Sunday'+((c.money||0)<bills.total?' — you are short':''),
+    btn:{act:'autoday',val:null,label:'▶ Play today for me'}};
+}
+function careerDashboard(c){
+  var bt=bestTitle(c),now=dashNow(c),sum=autoSummary(c);
+  var rt=function(e,lab,v,rank){return '<div class="dashrt"><span class="dim small">'+e+' '+lab+'</span><span class="dashv">'+(v==null?'—':v)+'</span>'+(rank?'<span class="dim" style="font-size:10px">#'+rank+'</span>':'')+'</div>';};
+  var money=(c.money||0),bills=lifeCosts(c,1).total;
+  var h='<div class="card dash" style="margin-bottom:12px">'+
+    '<div class="row" style="gap:11px;align-items:center;justify-content:space-between;flex-wrap:wrap">'+
+      '<div class="row" style="gap:10px;align-items:center;min-width:0">'+playerAvatar(c,44)+
+        '<div style="min-width:0"><div style="font-weight:800;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(bt?'<span style="color:var(--brand2)">'+bt+'</span> ':'')+esc(c.name||'You')+' <span style="font-size:13px">'+(c.flag||'♟')+'</span></div>'+
+        '<div class="dim small">Age '+Math.floor(c.age||16)+' · Lv '+charLevel(c)+' · '+(c.won||0)+'–'+(c.lost||0)+'–'+(c.drawn||0)+'</div></div></div>'+
+      '<div class="dashrts">'+
+        rt('♟','Classical',c.provisional?null:c.rating,worldRank(c,'classical'))+
+        rt('⚡','Rapid',c.ratingRapid,worldRank(c,'rapid'))+
+        rt('🔥','Blitz',c.ratingBlitz,worldRank(c,'blitz'))+
+        '<div class="dashrt"><span class="dim small">💰 Money</span><span class="dashv" style="color:'+(money<bills?'#f87171':'#fbbf24')+'">'+money.toLocaleString()+'</span><span class="dim" style="font-size:10px">−'+bills+'/wk</span></div>'+
+      '</div></div>'+
+    dashMeters(c)+
+    '<div class="dashnow"><div style="font-size:20px;line-height:1;flex:0 0 auto">'+now.icon+'</div>'+
+      '<div class="dashtxt"><div class="t">'+now.title+'</div><div class="dim small">'+now.sub+'</div></div>'+
+      (now.btn?'<button class="btn primary sm" style="flex:0 0 auto" data-act="'+now.btn.act+'"'+(now.btn.val?' data-val="'+now.btn.val+'"':'')+'>'+now.btn.label+'</button>':'')+'</div>'+
+    '<div class="row" style="gap:5px;flex-wrap:wrap;align-items:center;margin-top:9px">'+dashAlerts(c)+'</div>'+
+    '<div class="row" style="gap:6px;flex-wrap:wrap;align-items:center;margin-top:9px;padding-top:8px;border-top:1px solid var(--border)">'+
+      '<button class="chip" data-act="careertab" data-val="life" style="cursor:pointer">🤖 '+sum.plan.e+' '+esc(sum.plan.n)+' · '+sum.count+'/'+AUTO_TOGGLES.length+' automated</button>'+
+      (c.tour?'':'<button class="btn sec sm" data-act="autoweek">⏩ Finish the week</button>')+
+    '</div>'+
+    (c.objective?'<div class="dim small" style="margin-top:7px">🎯 '+esc(c.objective.text)+(c.objective.reward?' · reward 💰'+c.objective.reward:'')+'</div>':'')+
+    '</div>';
+  return h;
+}
 function careerHeader(c){
   const bt=bestTitle(c);
   const rankC=worldRank(c,'classical'),rankR=worldRank(c,'rapid'),rankB=worldRank(c,'blitz');
@@ -10578,9 +11084,14 @@ function careerHeader(c){
   const rec=(c.won||0)+'–'+(c.lost||0)+'–'+(c.drawn||0);
   const chips=(c.titles||[]).length?TITLE_DEFS.filter(d=>c.titles.includes(d.t)).map(d=>'<span class="chip brand" title="'+d.name+'" style="font-weight:800">'+d.t+'</span>').join(' '):'<span class="dim small">No titles yet — your first is CM at 2200.</span>';
   const honors=(c.honors||[]).length?('<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><span class="dim small" style="margin-right:6px">Honours:</span>'+c.honors.map(hn=>'<span class="chip green" style="font-weight:700;margin-right:4px">'+honorEmoji(hn)+' '+esc(hn)+'</span>').join('')+'</div>'):'';
-  let h='<div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:10px"><div class="row" style="gap:11px;align-items:center"><div style="flex:0 0 auto">'+playerAvatar(c,52)+'</div><div>'+
-    '<h1 style="margin-bottom:2px">'+(bt?'<span style="color:var(--brand2)">'+bt+'</span> ':'')+esc(c.name)+' <span style="font-size:18px">'+(c.flag||'♟')+'</span></h1>'+
-    '<div class="muted small">'+esc(c.fed)+' · '+(c.gender==='women'?'Women’s':'Open')+' track · '+rec+' record · '+(c.played||0)+' games'+paceTag(c)+' · <span title="Days used this week">⏳ day '+Math.min((c.day||0)+1,7)+'/7</span></div>'+(personaChip(c)?'<div class="small" style="margin-top:4px;color:var(--brand2)">'+personaChip(c)+'</div>':'')+'</div></div></div>';
+  // Who you are, your ratings and your record are all in the dashboard above.
+  // What is left here is the detail that does not fit up there: how far off a
+  // published rating you are, your peak, your rank, and the title ladder.
+  let h='<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">'+
+    '<div class="muted small">'+esc(c.fed)+' · '+(c.gender==='women'?'Women’s':'Open')+' track · '+rec+' record · '+(c.played||0)+' games'+paceTag(c)+'</div>'+
+    (personaChip(c)?'<div class="small" style="color:var(--brand2)">'+personaChip(c)+'</div>':'')+'</div>';
+  // The headline numbers live in the dashboard now; here they carry the detail
+  // that does not fit up there — how far off publishing, peak, world rank.
   h+='<div class="row" style="margin-bottom:12px">'+
     stat('Classical',fmtRating(c.provisional?null:c.rating),'var(--brand2)',subC)+
     stat('Rapid',fmtRating(c.ratingRapid),'var(--text)',subR)+
@@ -11065,23 +11576,40 @@ const STYLES=[
 ];
 function pickStyle(){return STYLES[Math.floor(Math.random()*STYLES.length)].id;}
 function styleById(id){return STYLES.find(s=>s.id===id)||STYLES[5];}
-/* Named characters for casual play — each maps to a real engine Elo + style bias. */
+/* Named characters for casual play. `elo` is their classical rating — the
+   anchor. Their rapid and blitz numbers, and how well they actually move at
+   each speed, come from the real-life model (ratingInFormat / humanQuality),
+   so Blitz Bella is a genuinely different opponent at 3+2 than at 30+20.
+   `tempo` is how they use a clock: under 1 is a fast mover, over 1 a thinker. */
 const BOTS=[
-  {id:'robin',emoji:'🐣',name:'Rookie Robin',elo:700,style:'solid',banter:'Go easy on me!'},
-  {id:'casey',emoji:'☕',name:'Casual Casey',elo:1100,style:'universal',banter:'Just here for fun.'},
-  {id:'gary',emoji:'🔥',name:'Gambit Gary',elo:1400,style:'gambiteer',banter:'Sac first, ask questions later.'},
-  {id:'bella',emoji:'⚡',name:'Blitz Bella',elo:1600,style:'aggressive',banter:'Tick tock — try to keep up.'},
-  {id:'sam',emoji:'🛡️',name:'Solid Sam',elo:1750,style:'solid',banter:'You will earn every pawn.'},
-  {id:'petra',emoji:'🧠',name:'Positional Petra',elo:1950,style:'positional',banter:'I squeeze, slowly.'},
-  {id:'ade',emoji:'⚔️',name:'Attacker Ade',elo:2100,style:'aggressive',banter:'Your king looks lonely.'},
-  {id:'grace',emoji:'⚙️',name:'Grinder Grace',elo:2250,style:'grinder',banter:'I never let a draw slip.'},
-  {id:'max',emoji:'🎯',name:'Maestro Max',elo:2450,style:'universal',banter:'Show me something new.'},
-  {id:'machine',emoji:'🤖',name:'The Machine',elo:2750,style:'universal',banter:'Resistance is instructive.'}
+  {id:'robin',emoji:'🐣',name:'Rookie Robin',elo:700,style:'solid',tempo:0.7,banter:'Go easy on me!'},
+  {id:'casey',emoji:'☕',name:'Casual Casey',elo:1100,style:'universal',tempo:0.85,banter:'Just here for fun.'},
+  {id:'gary',emoji:'🔥',name:'Gambit Gary',elo:1400,style:'gambiteer',tempo:0.75,banter:'Sac first, ask questions later.'},
+  {id:'bella',emoji:'⚡',name:'Blitz Bella',elo:1600,style:'aggressive',tempo:0.6,banter:'Tick tock — try to keep up.'},
+  {id:'sam',emoji:'🛡️',name:'Solid Sam',elo:1750,style:'solid',tempo:1.2,banter:'You will earn every pawn.'},
+  {id:'petra',emoji:'🧠',name:'Positional Petra',elo:1950,style:'positional',tempo:1.35,banter:'I squeeze, slowly.'},
+  {id:'ade',emoji:'⚔️',name:'Attacker Ade',elo:2100,style:'aggressive',tempo:0.9,banter:'Your king looks lonely.'},
+  {id:'grace',emoji:'⚙️',name:'Grinder Grace',elo:2250,style:'grinder',tempo:1.4,banter:'I never let a draw slip.'},
+  {id:'max',emoji:'🎯',name:'Maestro Max',elo:2450,style:'universal',tempo:1.15,banter:'Show me something new.'},
+  {id:'machine',emoji:'🤖',name:'The Machine',elo:2750,style:'universal',tempo:1,banter:'Resistance is instructive.'}
 ];
 function botById(id){return BOTS.find(function(b){return b.id===id;});}
+/* What this character is rated in the format you picked. */
+function botRating(b,cat){return b?ratingInFormat(b.elo,cat||'classical'):1500;}
+/* How the opponent in the current game uses their clock. Characters carry it
+   explicitly; tournament opponents get a stable one from their own identity,
+   so the same person is always the same kind of thinker. */
+function oppTempo(){
+  if(app.playBot&&app.playBot.tempo)return app.playBot.tempo;
+  const opp=app.careerRoundOpp;
+  if(opp){const h=hashStr(String(opp.id||opp.name||'x'));return 0.7+((h>>>21)%80)/100;}
+  return 1;
+}
 function botGallery(){
-  return '<div class="card" style="margin-top:12px"><div style="font-weight:700;margin-bottom:2px">🤖 Play a character</div><div class="dim small" style="margin-bottom:8px">Named opponents with their own strength &amp; style — a quick, characterful game. Uses your selected time control.</div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'+BOTS.map(function(b){var st=styleById(b.style);return '<button class="btn sec" data-act="botstart" data-val="'+b.id+'" style="text-align:left;display:block;padding:8px 10px;white-space:normal"><div style="font-weight:800">'+b.emoji+' '+esc(b.name)+'</div><div class="dim small">'+b.elo+' · '+st.emoji+' '+st.name+'</div><div class="dim small" style="font-style:italic;margin-top:2px">“'+esc(b.banter)+'”</div></button>';}).join('')+'</div></div>';
+  return '<div class="card" style="margin-top:12px"><div style="font-weight:700;margin-bottom:2px">🤖 Play a character</div><div class="dim small" style="margin-bottom:8px">Named opponents with their own strength, style and pace at the board. Each is rated separately at classical, rapid and blitz — the big number is their rating in the time control you have picked, and it is how they will really play.</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'+BOTS.map(function(b){var st=styleById(b.style);var cat=tcCategory(tcById(store.settings.tcId||'unlimited'));
+      var rt=botRating(b,cat);
+      return '<button class="btn sec" data-act="botstart" data-val="'+b.id+'" style="text-align:left;display:block;padding:8px 10px;white-space:normal"><div style="font-weight:800">'+b.emoji+' '+esc(b.name)+'</div><div class="dim small">'+rt+' '+fmtLabel(cat).toLowerCase()+' · '+st.emoji+' '+st.name+'</div><div class="dim small" style="margin-top:2px">♿ '+botRating(b,'classical')+' · ⚡ '+botRating(b,'rapid')+' · 🔥 '+botRating(b,'blitz')+'</div><div class="dim small" style="font-style:italic;margin-top:2px">“'+esc(b.banter)+'”</div></button>';}).join('')+'</div></div>';
 }
 function scoutTip(id){return ({aggressive:'plays sharp attacks — a solid, well-booked line blunts them',positional:'grinds small edges — a forcing prepared line throws them off',gambiteer:'sacrifices for the initiative — prepare to accept and consolidate',solid:'is rock-solid — bring a sharp prepared weapon to make winning chances',grinder:'squeezes endgames — get your edge early from preparation',universal:'is well-rounded — your home prep is the difference-maker'})[id]||'your home prep is the difference-maker';}
 function styleBonus(fen,uci,style){
@@ -11806,12 +12334,11 @@ function viewPlay(){
   const inBook=app.playBookNode&&app.playBookNode.children&&app.playBookNode.children.length&&app.playStatus!=='over';
   let h='<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap"><div class="row" style="align-items:center"><button class="btn ghost sm" data-act="nav" data-val="library">←</button><h1 style="font-size:18px">Play vs Stockfish</h1><span class="chip brand">'+esc(app.playTitle)+'</span></div>'+
     '<div class="row"><span class="chip">'+(app.tc&&app.tc.base?app.tc.cat+' '+app.tc.label:'No clock')+'</span><span class="chip">'+(app.careerElo?'Opponent '+app.careerElo:'Lvl: '+lvl.label)+'</span></div></div>';
-  if(app.careerOpp&&app.careerRoundOpp&&app.playStatus!=='over')h+=careerMatchupStrip();
-  if(app.blunderNote&&app.playStatus!=='over')h+=coachCard(app.blunderNote,'🚫 Careful');
-  h+=oppDrawPanel();
-  if(app.careerBanter&&app.careerOpp&&app.playStatus!=='over')h+='<div class="note" style="margin-bottom:10px;border-color:#a855f73d;background:#a855f714;color:#e9d5ff">💬 <b>'+esc(app.careerBanter.who)+':</b> “'+esc(app.careerBanter.line)+'”</div>';
+  // Everything above the board is fixed for the whole game, so the board never
+  // moves. Anything that can appear or vanish mid-game goes in the notice rail
+  // underneath it (see noticeRail below).
+  if(app.careerOpp&&app.careerRoundOpp)h+=careerMatchupStrip();
   if(app.c960)h+='<div class="note" style="margin-bottom:10px;border-color:#1e4e8c66;background:#0c294b44;color:#bae0ff">🎲 <b>Chess960</b> — shuffled start, no opening theory. To <b>castle</b>, tap your king then your rook.</div>';
-  if(app.engineErr)h+='<div class="note" style="margin-bottom:10px;border-color:#7f1d1d66;background:#7f1d1d22;color:#fecaca">Couldn’t load Stockfish (it needs internet on first use). Opening training still works without it.</div>';
   const atStart=app.playView<=0,atEnd=app.playView>=lastIdx;
   const navbar='<div class="row" style="justify-content:center;align-items:center;gap:5px;margin-top:10px">'+
     '<button class="btn sec sm" data-act="pseek" data-val="0" '+(atStart?'disabled':'')+' title="Start">⏮</button>'+
@@ -11820,7 +12347,13 @@ function viewPlay(){
     '<button class="btn sec sm" data-act="pfwd" '+(atEnd?'disabled':'')+' title="Forward (→)">Forward ▶</button>'+
     '<button class="btn sec sm" data-act="plast" '+(atEnd?'disabled':'')+' title="Live position">⏭</button>'+
     '</div>';
-  h+='<div class="layout"><div class="boardwrap">'+topStrip+'<div style="height:7px"></div>'+renderBoard(boardFen,orient,{sel:app.playSel,last:blind?null:lastSq,hint:blind?null:(live?app.playHint:null),premoves:(app.playStatus==='engine'?app.playPremoves:null),interactive,hidePieces:blind})+'<div style="height:7px"></div>'+botStrip+navbar+'</div>'+
+  let rail='';
+  if(app.blunderNote&&app.playStatus!=='over')rail+=coachCard(app.blunderNote,'🚫 Careful');
+  rail+=oppDrawPanel();
+  if(app.careerBanter&&app.careerOpp&&app.playStatus!=='over')rail+='<div class="note" style="border-color:#a855f73d;background:#a855f714;color:#e9d5ff">💬 <b>'+esc(app.careerBanter.who)+':</b> “'+esc(app.careerBanter.line)+'”</div>';
+  if(app.engineErr)rail+='<div class="note" style="border-color:#7f1d1d66;background:#7f1d1d22;color:#fecaca">Couldn’t load Stockfish (it needs internet on first use). Opening training still works without it.</div>';
+  const noticeRail='<div class="noticerail">'+rail+'</div>';
+  h+='<div class="layout"><div class="boardwrap">'+topStrip+'<div style="height:7px"></div>'+renderBoard(boardFen,orient,{sel:app.playSel,last:blind?null:lastSq,hint:blind?null:(live?app.playHint:null),premoves:(app.playStatus==='engine'?app.playPremoves:null),interactive,hidePieces:blind})+'<div style="height:7px"></div>'+botStrip+navbar+noticeRail+'</div>'+
     '<div>'+
     (openingLine?'<div class="card" style="padding:9px 12px;margin-bottom:12px">'+openingLine+(inBook?'<div class="dim small" style="margin-top:4px">Engine is still in <b>'+esc(app.playBook.name)+'</b> theory.</div>':'')+'</div>':'')+
     '<div class="card">'+evalHtml+'<div style="margin-top:'+(evalHtml?'10px':'0')+'">'+status+'</div>'+
