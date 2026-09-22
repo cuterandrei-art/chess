@@ -148,7 +148,8 @@
   .square.wrong::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 4px rgba(244,63,94,.95)}
   .square.hint::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 4px rgba(34,197,94,.9)}
   .square.premove::after{content:"";position:absolute;inset:0;background:rgba(59,130,246,.45)}
-  .square.usq{box-shadow:inset 0 0 0 4px rgba(21,163,74,.85)}
+  /* a circled square: its own layer, so the ring can carry the colour you drew it in */
+  .square .usq{position:absolute;inset:0;pointer-events:none;z-index:4;border-radius:1px}
   .pc{width:90%;height:90%;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
   .piece{position:relative;line-height:1;font-size:clamp(22px,7.4vw,48px)}
   .piece.w{color:#fbfcfe;text-shadow:0 1.5px 0 #5b6470,0 2px 3px rgba(0,0,0,.45)}
@@ -4446,13 +4447,13 @@ function checkTitles(c){const got=[];const peak=titlePeak(c);
     c.titles.push(d.t);got.push(d.t);
   }
   return got;}
-const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',blunderWarn:true,srsSkip:true,voiceOn:false,voiceName:'',voiceRate:1,liveEval:true,liveHints:true},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},myGames:[],myGamesMeta:null,ccProfile:null,ccAccount:null,daily:null,brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null,auto:null}};
+const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},onboarded:false,settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',blunderWarn:true,srsSkip:true,tbOn:true,expOn:true,expDb:'masters',voiceOn:false,voiceName:'',voiceRate:1,liveEval:true,liveHints:true},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},myGames:[],myGamesMeta:null,ccProfile:null,ccAccount:null,daily:null,brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null,auto:null}};
 function freshCareer(){return JSON.parse(JSON.stringify(DEF.career));}
 /* Migrate saved career data: the old ladder (with `beaten`/`results`) is reset
    to the new FIDE structure; new-format saves are merged onto fresh defaults. */
 function migrateCareer(d){if(!d||typeof d!=='object'||('beaten'in d)||!('setup'in d))return freshCareer();return Object.assign(freshCareer(),d);}
 let store=DEF;
-try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],courseProgress:d.courseProgress||{},settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],myGames:d.myGames||[],myGamesMeta:d.myGamesMeta||null,ccProfile:d.ccProfile||null,ccAccount:d.ccAccount||null,daily:d.daily||null,brilliancies:d.brilliancies||[],career:migrateCareer(d.career)};}catch(e){}
+try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],courseProgress:d.courseProgress||{},settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],myGames:d.myGames||[],myGamesMeta:d.myGamesMeta||null,ccProfile:d.ccProfile||null,ccAccount:d.ccAccount||null,daily:d.daily||null,brilliancies:d.brilliancies||[],onboarded:!!d.onboarded,career:migrateCareer(d.career)};}catch(e){}
 function rebuildOpenings(){const cust=(store.custom||[]).map(d=>{try{return buildOpening(d);}catch(e){return null;}}).filter(Boolean);BUILT=BASE.concat(cust);byId=new Map(BUILT.map(o=>[o.id,o]));}
 rebuildOpenings();
 function save(){localStorage.setItem(LS,JSON.stringify(store));}
@@ -4509,15 +4510,15 @@ function renderBoard(fen,orient,o={}){const{sel=null,last=null,wrong=null,hint=n
   const an=(app.annot&&app.annot[fen])||null;const dl=last?(last.from+last.to):'';
   let h='<div class="board" style="position:relative;--lt:'+th.l+';--dk:'+th.d+'" data-fen="'+fen+'" data-orient="'+orient+'" data-last="'+dl+'">';
   for(let ri=0;ri<8;ri++)for(let fi=0;fi<8;fi++){const r=ranks[ri],f=files[fi],sq=f+r;const light=("abcdefgh".indexOf(f)+r)%2===0;
-    let cls='square '+(light?'light':'dark');if(sel===sq)cls+=' sel';if(last&&(last.from===sq||last.to===sq))cls+=' last';if(wrong&&(wrong.from===sq||wrong.to===sq))cls+=' wrong';if(hint&&(hint.from===sq||hint.to===sq))cls+=' hint';if(pmset.has(sq))cls+=' premove';if(an&&an.sqs&&an.sqs[sq])cls+=' usq';
+    let cls='square '+(light?'light':'dark');if(sel===sq)cls+=' sel';if(last&&(last.from===sq||last.to===sq))cls+=' last';if(wrong&&(wrong.from===sq||wrong.to===sq))cls+=' wrong';if(hint&&(hint.from===sq||hint.to===sq))cls+=' hint';if(pmset.has(sq))cls+=' premove';
     let inner='';
+    if(an&&an.sqs&&an.sqs[sq])inner+='<span class="usq" style="box-shadow:inset 0 0 0 4px '+(ANN_COLORS[an.sqs[sq]]||ANN_COLORS.g)+'d9"></span>';
     if(showC){if(fi===0)inner+='<span class="coord r">'+r+'</span>';if(ri===7)inner+='<span class="coord f">'+f+'</span>';}
     if(dset.has(sq)&&!hidePieces)inner+=pm[sq]?'<span class="ring"></span>':'<span class="dot"></span>';
     const p=pm[sq];if(p&&!hidePieces)inner+=pieceImg(p.color,p.type);
     h+='<div class="'+cls+'" data-sq="'+sq+'">'+inner+'</div>';}
-  if(an&&an.arrows&&an.arrows.length){let sv='<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6"><defs><marker id="ah" markerWidth="3.2" markerHeight="3.2" refX="2.1" refY="1.6" orient="auto"><path d="M0,0 L3.2,1.6 L0,3.2 z" fill="#15a34a"/></marker></defs>';
-    an.arrows.forEach(function(a){var p1=sqCenterPct(files,ranks,a.from),p2=sqCenterPct(files,ranks,a.to);if(p1&&p2)sv+='<line x1="'+p1.x+'" y1="'+p1.y+'" x2="'+p2.x+'" y2="'+p2.y+'" stroke="#15a34a" stroke-width="2.1" stroke-linecap="round" opacity="0.82" marker-end="url(#ah)"/>';});
-    h+=sv+'</svg>';}
+  if(an&&an.arrows&&an.arrows.length)h+=annSvg(files,ranks,an.arrows,'annsv');
+  h+='<svg id="annprev" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:7"></svg>';
   // engine suggestions: their own layer, so drawing your own arrows never fights them
   if(o.arrows&&o.arrows.length){
     var defs='',body='';
@@ -4708,7 +4709,10 @@ function render(){
     '<nav class="botnav">'+PRIMARY.map(p=>'<button data-act="nav" data-val="'+p[0]+'" class="'+(curP===p[0]?'active':'')+'"><span class="bi">'+p[1]+'</span>'+p[2]+'</button>').join('')+'<button data-act="menutoggle" class="'+(app.menuOpen?'active':'')+'"><span class="bi">☰</span>More</button></nav>'+
     (app.menuOpen?'<div class="menuscrim" data-act="menuclose"></div>':'');
   let body='';
-  if(app.view==='dashboard')body=viewDashboard(repOps,agg);
+  // A first-time visitor gets asked what they want before being shown all of it.
+  if(onbNeeded()&&app.view!=='onboard'&&!app.onb){app.onb={step:0,level:null,goal:null,pieces:store.settings.pieces||'cburnett'};app.view='onboard';}
+  if(app.view==='onboard')body=viewOnboard();
+  else if(app.view==='dashboard')body=viewDashboard(repOps,agg);
   else if(app.view==='library')body=viewLibrary();
   else if(app.view==='build')body=viewBuild();
   else if(app.view==='explore')body=viewExplorer();
@@ -4739,7 +4743,10 @@ function render(){
   else if(app.view==='classics')body=viewClassics();
   else if(app.view==='guess')body=guessView();
   else if(app.view==='settings')body=viewSettings();
-  document.getElementById('app').innerHTML=head+'<div class="wrap">'+body+'</div>'+confirmOverlay()+promoOverlay();
+  // The welcome gets the screen to itself: a navigation bar highlighting a
+  // section you have not chosen yet is exactly the noise it exists to spare you.
+  const chrome=app.view==='onboard'?'<header class="top"><div class="topin"><div class="brand"><span class="mark">♞</span><b>Chess</b> <span style="color:var(--brand2)">Career</span></div></div></header>':head;
+  document.getElementById('app').innerHTML=chrome+'<div class="wrap">'+body+'</div>'+confirmOverlay()+promoOverlay();
   if(app.view==='play'&&app.playStatus==='over'&&resultKind(app.playResult)==='win'&&app._fxKey!==app.playResult){app._fxKey=app.playResult;confetti();}
   var _cf=app.careerFinish;if(_cf&&((_cf.newTitles&&_cf.newTitles.length)||(_cf.honors&&_cf.honors.length)||(_cf.norms&&_cf.norms.length)||_cf.published)&&app._fxCareer!==_cf){app._fxCareer=_cf;confetti(130);}
   if(app.view==='clearn'&&app.cl&&app.cl.done&&app._fxCl!==app.cl){app._fxCl=app.cl;confetti(90);}
@@ -7374,8 +7381,231 @@ function viewExplorer(){
     return '<button class="movebtn" data-act="exgo" data-val="'+i+'"'+warn+'>'+esc(c.move)+(risk&&risk.net>=2?' <span style="color:#f87171">⚠️</span>':'')+'</button>';
   }).join('')+'</div>';
   else h+='<div class="dim small">Use Back, or click a move above to explore another branch.</div>';
-  h+='</div></div></div>';
+  h+='</div>';
+  // the course says what you should play; the database says what people do
+  expRequest(bfen);
+  h+=expPanel(bfen);
+  h+=tbPanel(bfen,{slot:'tbEx',max:6});
+  if(Tablebase.covers(bfen))tbRequest(bfen,'tbEx');
+  h+='</div></div>';
   return h;
+}
+
+/* =========================================================================
+   OPENING EXPLORER — what people actually play here
+
+   The repertoire tree says what this app thinks you should play. That is a
+   different question from what two million games say happens. Lichess
+   publishes both, key-less and free: a masters database of over-the-board
+   games by strong players, and the games its own users play, which is where
+   you find out that the move nobody recommends scores 58% under 1800 because
+   the refutation is hard to find.
+
+   Same manners as the tablebase: one request at a time, everything cached,
+   null on any failure, and the bundled repertoire carries on alone offline.
+   ========================================================================= */
+const EXP_DBS=[
+  {k:'masters',e:'♛',n:'Masters',d:'Over-the-board games, 2200+ rated, 1952 to now.'},
+  {k:'lichess',e:'👥',n:'Online players',d:'Games by everybody — what really happens at club level.'}
+];
+const Explorer={
+  _mem:new Map(),_chain:Promise.resolve(),_cool:0,
+  _url(fen,db){
+    const f=encodeURIComponent(fen);
+    return db==='lichess'
+      ? 'https://explorer.lichess.ovh/lichess?variant=standard&fen='+f+'&moves=12&topGames=0&recentGames=0&speeds=blitz,rapid,classical'
+      : 'https://explorer.lichess.ovh/masters?fen='+f+'&moves=12&topGames=3';
+  },
+  lookup(fen,db){
+    db=db==='lichess'?'lichess':'masters';
+    const key=db+'|'+fen;
+    if(!fen)return Promise.resolve(null);
+    if(this._mem.has(key))return Promise.resolve(this._mem.get(key));
+    if(typeof navigator!=='undefined'&&navigator.onLine===false)return Promise.resolve(null);
+    if(Date.now()<this._cool)return Promise.resolve(null);       // backing off
+    const self=this;
+    this._chain=this._chain.then(function(){
+      if(self._mem.has(key))return self._mem.get(key);
+      return fetch(self._url(fen,db)).then(function(r){
+        if(r.status===429){self._cool=Date.now()+60000;return null;}   // asked to slow down
+        return r.ok?r.json():null;
+      }).then(function(j){
+        if(!j||!Array.isArray(j.moves))return null;
+        const total=(j.white||0)+(j.draws||0)+(j.black||0);
+        const val={total:total,white:j.white||0,draws:j.draws||0,black:j.black||0,
+          opening:j.opening?{eco:j.opening.eco,name:j.opening.name}:null,
+          moves:j.moves.map(function(m){
+            const n=(m.white||0)+(m.draws||0)+(m.black||0);
+            return {uci:m.uci,san:m.san,n:n,white:m.white||0,draws:m.draws||0,black:m.black||0,
+              avg:m.averageRating||null};
+          }),
+          top:(j.topGames||[]).slice(0,3).map(function(g){
+            return {w:(g.white&&g.white.name)||'?',wr:(g.white&&g.white.rating)||null,
+              b:(g.black&&g.black.name)||'?',br:(g.black&&g.black.rating)||null,
+              year:g.year||null,winner:g.winner||null};
+          })};
+        self._mem.set(key,val);return val;
+      }).catch(function(){return null;});
+    }).catch(function(){return null;});
+    return this._chain;
+  }
+};
+function expDb(){return store.settings.expDb==='lichess'?'lichess':'masters';}
+/* Ask for this position and redraw when it lands. Guarded so a render cannot
+   set the same request going twice. */
+function expRequest(fen){
+  if(!fen||store.settings.expOn===false)return;
+  const db=expDb(),key=db+'|'+fen;
+  if(app.exp&&app.exp.key===key)return;
+  if(app._expPending===key)return;
+  app._expPending=key;
+  Explorer.lookup(fen,db).then(function(d){
+    if(app._expPending!==key)return;
+    app._expPending=null;
+    app.exp={key:key,fen:fen,db:db,data:d};
+    render();
+  });
+}
+/* A white / grey / black bar is the fastest way to read a result split, and it
+   is how every explorer people already use shows it. */
+function expBar(w,d,b,h){
+  const t=w+d+b;if(!t)return '';
+  const pc=function(x){return (x/t*100).toFixed(1)+'%';};
+  return '<div style="display:flex;height:'+(h||14)+'px;border-radius:4px;overflow:hidden;border:1px solid var(--border);min-width:90px">'+
+    '<div title="White wins '+Math.round(w/t*100)+'%" style="width:'+pc(w)+';background:#f1f5f9"></div>'+
+    '<div title="Draws '+Math.round(d/t*100)+'%" style="width:'+pc(d)+';background:#64748b"></div>'+
+    '<div title="Black wins '+Math.round(b/t*100)+'%" style="width:'+pc(b)+';background:#1e293b"></div></div>';
+}
+function expCount(n){
+  if(n>=1000000)return (n/1000000).toFixed(n>=10000000?0:1)+'M';
+  if(n>=1000)return (n/1000).toFixed(n>=10000?0:1)+'k';
+  return String(n);
+}
+function expPanel(fen){
+  if(store.settings.expOn===false)return '';
+  const db=expDb(),key=db+'|'+fen;
+  const dbSel='<div class="seg">'+EXP_DBS.map(function(d){
+    return '<button class="'+(d.k===db?'active':'')+'" data-act="expdb" data-val="'+d.k+'">'+d.e+' '+d.n+'</button>';}).join('')+'</div>';
+  let h='<div class="card" style="margin-top:12px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+    '<div style="font-weight:700">📊 What people play here</div>'+dbSel+'</div>';
+  const st=(app.exp&&app.exp.key===key)?app.exp:null;
+  if(!st){
+    return h+'<div class="dim small" style="margin-top:7px">'+
+      ((typeof navigator!=='undefined'&&navigator.onLine===false)?'Offline — the course carries on without it.':'Looking it up…')+'</div></div>';
+  }
+  const d=st.data;
+  if(!d)return h+'<div class="dim small" style="margin-top:7px">Couldn’t reach the database. Everything else still works.</div></div>';
+  if(!d.total)return h+'<div class="dim small" style="margin-top:7px">No games reach this position — you are past the edge of the book.</div></div>';
+  h+='<div class="row" style="justify-content:space-between;align-items:center;gap:10px;margin-top:8px">'+
+    '<span class="dim small">'+expCount(d.total)+' game'+(d.total===1?'':'s')+(d.opening?' · '+esc(d.opening.eco)+' '+esc(d.opening.name):'')+'</span>'+
+    '<span style="flex:1;max-width:190px">'+expBar(d.white,d.draws,d.black)+'</span></div>';
+  h+='<div style="margin-top:9px">';
+  d.moves.forEach(function(m){
+    const share=d.total?Math.round(m.n/d.total*100):0;
+    h+='<div class="row" style="justify-content:space-between;align-items:center;gap:9px;padding:5px 0;border-top:1px solid var(--border)">'+
+      '<button class="movebtn" data-act="expmove" data-val="'+esc(m.uci)+'" style="flex:0 0 auto;min-width:64px">'+esc(m.san)+'</button>'+
+      '<span class="dim small" style="flex:0 0 auto;min-width:74px;text-align:right">'+expCount(m.n)+' <span style="opacity:.6">'+share+'%</span></span>'+
+      '<span style="flex:1 1 70px;min-width:70px">'+expBar(m.white,m.draws,m.black,12)+'</span>'+
+      '<span class="dim small" style="flex:0 0 auto;min-width:38px;text-align:right">'+(m.avg||'')+'</span></div>';
+  });
+  h+='</div>';
+  if(d.top&&d.top.length){
+    h+='<div style="margin-top:9px;padding-top:7px;border-top:1px solid var(--border)"><div class="dim small" style="margin-bottom:3px">Played by</div>'+
+      d.top.map(function(g){
+        const r=g.winner==='white'?'1–0':g.winner==='black'?'0–1':'½–½';
+        return '<div class="dim small">'+esc(g.w)+(g.wr?' ('+g.wr+')':'')+' – '+esc(g.b)+(g.br?' ('+g.br+')':'')+' <span style="opacity:.7">'+r+(g.year?', '+g.year:'')+'</span></div>';
+      }).join('')+'</div>';
+  }
+  return h+'</div>';
+}
+
+/* =========================================================================
+   ONBOARDING
+
+   This app has thirty-odd screens and drops you straight into the deep end of
+   one of them. Three questions fix that: how much chess you already play, what
+   you came here for, and how the board should look. The answers set the engine
+   level, the time control, the career pace and the piece set, and then send
+   you to the one screen that matches what you said you wanted.
+
+   It is three taps and a skip link, it runs once, and it can be run again
+   from Settings. Nothing it sets is permanent — every answer is a setting you
+   can change afterwards, and the last card says so.
+   ========================================================================= */
+const ONB_LEVELS=[
+  {k:'new',e:'\ud83c\udf31',n:'New to chess',d:'I know how the pieces move, more or less.',level:0,tc:'unlimited',pace:3,puzzle:700},
+  {k:'casual',e:'\u2615',n:'I play a bit',d:'Online now and then, no rating to speak of.',level:2,tc:'10+5',pace:2,puzzle:1100},
+  {k:'club',e:'\u265e',n:'Club player',d:'I play regularly, maybe in a league.',level:4,tc:'15+10',pace:2,puzzle:1600},
+  {k:'strong',e:'\ud83c\udfaf',n:'Strong player',d:'Rated, and I want a real opponent.',level:6,tc:'30+20',pace:1,puzzle:2000}
+];
+const ONB_GOALS=[
+  {k:'career',e:'\ud83c\udfc6',n:'Live a chess career',d:'Climb from unrated to the World Championship — tournaments, rent, rivals and all.',view:'career'},
+  {k:'tactics',e:'\ud83e\udde9',n:'Get sharper',d:'Puzzles, drilled by motif, and the mistakes from my own games.',view:'puzzles'},
+  {k:'openings',e:'\ud83d\udcd6',n:'Build a repertoire',d:'Learn real opening theory, line by line, and have it test me.',view:'library'},
+  {k:'play',e:'\u265f\ufe0f',n:'Just play',d:'Give me an opponent at the right strength and get out of the way.',view:'play'}
+];
+function onbNeeded(){return !store.onboarded;}
+function onbStart(){app.onb={step:0,level:null,goal:null,pieces:store.settings.pieces||'cburnett'};app.view='onboard';render();}
+function onbFinish(skipped){
+  const o=app.onb||{};
+  if(!skipped){
+    const L=ONB_LEVELS.filter(function(x){return x.k===o.level;})[0];
+    const G=ONB_GOALS.filter(function(x){return x.k===o.goal;})[0];
+    if(L){
+      store.settings.level=L.level;
+      store.settings.tcId=L.tc;
+      if(store.puzzle&&!store.puzzle.solved&&!store.puzzle.failed)store.puzzle.rating=L.puzzle;
+      var c=store.career;if(c&&!c.setup)c.pace=L.pace;      // only before a career is begun
+    }
+    if(o.pieces)store.settings.pieces=o.pieces;
+    app.view=(G&&G.view)||'career';
+  } else app.view='career';
+  store.onboarded=true;
+  app.onb=null;save();render();
+}
+function onbCard(sel,items,act){
+  return '<div class="actgrid" style="margin-top:10px">'+items.map(function(it){
+    var on=sel===it.k;
+    return '<button class="actcard" data-act="'+act+'" data-val="'+it.k+'"'+(on?' style="border-color:var(--brand);background:rgba(28,132,245,.12)"':'')+'>'+
+      '<span class="an">'+it.e+' '+esc(it.n)+(on?' \u2713':'')+'</span><span class="ad">'+esc(it.d)+'</span></button>';
+  }).join('')+'</div>';
+}
+function viewOnboard(){
+  var o=app.onb||{step:0};
+  var step=o.step||0;
+  var dots='<div class="row" style="gap:5px;justify-content:center;margin-bottom:14px">'+[0,1,2].map(function(i){
+    return '<span style="width:7px;height:7px;border-radius:50%;background:'+(i<=step?'var(--brand)':'var(--border)')+'"></span>';}).join('')+'</div>';
+  var h='<div class="center" style="min-height:auto;padding:10px 0"><div class="card" style="max-width:600px;width:100%;text-align:left">';
+  h+=dots;
+  if(step===0){
+    h+='<h1 style="text-align:center;font-size:22px;margin-bottom:2px">Welcome</h1>'+
+      '<p class="muted" style="text-align:center;margin:0 0 4px">There is a lot in here. Answer three quick questions and it will be pointed at you — or skip, and nothing is changed.</p>'+
+      '<div style="font-weight:700;margin-top:14px">How much chess do you play?</div>'+
+      '<div class="dim small">This sets how strong your opponents are and how hard the puzzles start. You can change it any time.</div>'+
+      onbCard(o.level,ONB_LEVELS,'onblevel');
+  } else if(step===1){
+    h+='<h1 style="text-align:center;font-size:22px;margin-bottom:2px">What do you want out of it?</h1>'+
+      '<p class="muted" style="text-align:center;margin:0">Everything stays available — this just decides where you land first.</p>'+
+      onbCard(o.goal,ONB_GOALS,'onbgoal');
+  } else {
+    h+='<h1 style="text-align:center;font-size:22px;margin-bottom:2px">Pick a board</h1>'+
+      '<p class="muted" style="text-align:center;margin:0 0 10px">Purely how it looks. There are more sets and colours in Settings.</p>'+
+      '<div class="row" style="gap:8px;flex-wrap:wrap;justify-content:center">'+
+      ['cburnett','merida','alpha','glyph'].filter(function(k){return !!PIECE_SETS[k];}).map(function(k){
+        var on=o.pieces===k;
+        return '<button class="btn '+(on?'primary':'sec')+' sm" data-act="onbpieces" data-val="'+k+'">'+esc(PIECE_SETS[k].label)+'</button>';
+      }).join('')+'</div>'+
+      '<div style="max-width:260px;margin:12px auto 0">'+renderBoard('r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 0 1','white',{interactive:false})+'</div>'+
+      '<div class="dim small" style="text-align:center;margin-top:10px">Everything you just chose is a setting, and every one of them is in Settings.</div>';
+  }
+  var canNext=(step===0&&o.level)||(step===1&&o.goal)||step===2;
+  h+='<div class="row" style="justify-content:space-between;align-items:center;margin-top:16px;gap:8px">'+
+    '<button class="btn ghost sm" data-act="onbskip">Skip</button>'+
+    '<div class="row" style="gap:6px">'+
+      (step>0?'<button class="btn sec sm" data-act="onbback">\u2190 Back</button>':'')+
+      '<button class="btn primary" data-act="onbnext"'+(canNext?'':' disabled')+'>'+(step===2?'Start \u25b8':'Next \u25b8')+'</button>'+
+    '</div></div>';
+  return h+'</div></div>';
 }
 
 /* ============================== course view ============================ */
@@ -7825,6 +8055,8 @@ function viewSettings(){
     '<div class="card" style="margin-top:12px"><div style="font-weight:700;margin-bottom:2px">🎓 Coach &amp; voice</div>'+
     '<div class="dim small" style="margin-bottom:2px">The coach works out why each move is played and can read it aloud while you step through a line. It uses your device\u2019s own speech, so it costs nothing and works offline.'+(Voice.ok()?'':' <b style="color:#fcd34d">This browser has no speech support, so the text still shows but nothing is spoken.</b>')+'</div>'+
     rowSet('Blunder warnings','Mark moves that drop material in the opening explorer, and tell you when one of your own moves does. Worked out from the position, so it needs no engine and works offline.',(store.settings.blunderWarn!==false?'<input type="checkbox" data-setting="blunderWarn" checked>':'<input type="checkbox" data-setting="blunderWarn">'))+
+    rowSet('Opening database','Show what masters and online players actually play in the position you are looking at — how often, and how it scores. Needs the internet; the bundled repertoire works without it.',(store.settings.expOn!==false?'<input type="checkbox" data-setting="expOn" checked>':'<input type="checkbox" data-setting="expOn">'))+
+    rowSet('Tablebase','With seven pieces or fewer on the board, look the position up in the Syzygy tables instead of asking the engine — an exact answer with the distance to mate, and which moves really hold. Needs the internet; everything else carries on without it.',(store.settings.tbOn!==false?'<input type="checkbox" data-setting="tbOn" checked>':'<input type="checkbox" data-setting="tbOn">'))+
     rowSet('Read moves aloud','Speak the explanation as you play through openings, courses and drills.',(store.settings.voiceOn?'<input type="checkbox" data-setting="voiceOn" checked>':'<input type="checkbox" data-setting="voiceOn">'))+
     rowSet('Voice','Which of your device\u2019s voices to use.','<select data-setting="voiceName"><option value=""'+(store.settings.voiceName?'':' selected')+'>Automatic</option>'+Voice.list().map(function(v){return '<option value="'+esc(v.name)+'"'+(store.settings.voiceName===v.name?' selected':'')+'>'+esc(v.name)+(v.lang?' ('+esc(v.lang)+')':'')+'</option>';}).join('')+'</select>')+
     rowSet('Speaking speed','0.5 is slow, 1.6 is brisk.','<input type="number" min="0.5" max="1.6" step="0.1" value="'+(+store.settings.voiceRate||1)+'" data-setting="voiceRate">')+
@@ -7834,7 +8066,8 @@ function viewSettings(){
     rowSet('Skip moves you know','In review, start each line just before the first move that is actually due instead of replaying it from move one.',(store.settings.srsSkip!==false?'<input type="checkbox" data-setting="srsSkip" checked>':'<input type="checkbox" data-setting="srsSkip">'))+
     rowSet('Opponent strength','Approximate Elo of the Stockfish opponent in “Play vs engine”.',lvl)+'</div>'+
     '<div class="card" style="margin-top:12px"><div style="font-weight:700;margin-bottom:6px">Backup &amp; data</div><div class="muted small" style="margin-bottom:10px">'+BUILT.length+' openings available. Export your progress to move it between devices.</div>'+
-    '<div class="row"><button class="btn sec sm" data-act="export">Export progress</button><button class="btn sec sm" data-act="import">Import progress</button><input id="importfile" type="file" accept="application/json" style="display:none"></div></div>'+
+    '<div class="row"><button class="btn sec sm" data-act="onbredo">↺ Run the setup questions again</button></div>'+
+    '<div class="row" style="margin-top:8px"><button class="btn sec sm" data-act="export">Export progress</button><button class="btn sec sm" data-act="import">Import progress</button><input id="importfile" type="file" accept="application/json" style="display:none"></div></div>'+
     '<div class="card" style="margin-top:12px;border-color:#7f1d1d66"><div style="font-weight:600;color:#fda4af;margin-bottom:6px">Danger zone</div><div class="muted small" style="margin-bottom:10px">Clears all training progress and statistics. Your repertoire selection is kept.</div>'+
     '<button class="btn danger sm" data-act="reset">Reset all progress</button></div></div>';
 }
@@ -7987,21 +8220,85 @@ function confetti(n){try{if(typeof document==='undefined'||!document.body)return
 function curFen(){return app.view==='explore'?exFen():app.view==='train'?app.fen:app.view==='play'?(app.playStack?app.playStack[app.playView]:app.playFen):app.view==='puzzles'?(app.pz?app.pz.fenNow:null):app.view==='eglesson'?(app.egLesson?app.egLesson.fen:null):app.view==='clearn'?(app.cl?app.cl.fen:null):null;}
 function curInteractive(){if(app.view==='explore')return true;if(app.view==='train')return (app.status==='play'||app.status==='wrong')&&heroToMove();if(app.view==='play')return playIsLive()&&app.playStatus==='play'&&turnOf(app.playFen)===app.playSide;if(app.view==='puzzles')return !!(app.pz&&app.pz.status==='solving'&&turnOf(app.pz.fenNow)===app.pz.side);if(app.view==='eglesson'){const L=app.egLesson;return !!(L&&!L.done&&egStep(L)&&egStep(L).you&&turnOf(L.fen)===L.side);}if(app.view==='clearn'){const L=app.cl;return !!(L&&!L.done&&clStep(L)&&clStep(L).you&&turnOf(L.fen)===L.hero);}return false;}
 let _dragC=null,_dragA=null,_suppress=false,_ann=null,_lpTimer=null,_lpActive=false,_downXY=null;
-function toggleAnnotation(fen,from,to){if(!fen||!from)return;app.annot=app.annot||{};var a=app.annot[fen]=app.annot[fen]||{arrows:[],sqs:{}};
-  if(!to||to===from){if(a.sqs[from])delete a.sqs[from];else a.sqs[from]=1;}
-  else{var i=a.arrows.findIndex(function(x){return x.from===from&&x.to===to;});if(i>=0)a.arrows.splice(i,1);else a.arrows.push({from:from,to:to});}}
+/* Four colours, the way every board people already use has them: plain is
+   green ("my plan"), shift is red ("his threat"), alt is blue, ctrl is yellow.
+   Drawing the same shape again in the same colour rubs it out; drawing it in a
+   different one recolours it. */
+const ANN_COLORS={g:'#15a34a',r:'#e5484d',b:'#3b82f6',y:'#eab308'};
+function annColorOf(e){return (e&&e.shiftKey)?'r':(e&&e.altKey)?'b':(e&&(e.ctrlKey||e.metaKey))?'y':'g';}
+function toggleAnnotation(fen,from,to,col){if(!fen||!from)return;col=ANN_COLORS[col]?col:'g';
+  app.annot=app.annot||{};var a=app.annot[fen]=app.annot[fen]||{arrows:[],sqs:{}};
+  if(!to||to===from){if(a.sqs[from]===col)delete a.sqs[from];else a.sqs[from]=col;}
+  else{var i=a.arrows.findIndex(function(x){return x.from===from&&x.to===to;});
+    if(i<0)a.arrows.push({from:from,to:to,c:col});
+    else if(a.arrows[i].c===col)a.arrows.splice(i,1);
+    else a.arrows[i].c=col;}}
+function clearAnnotations(fen){if(!app.annot)return;if(fen)delete app.annot[fen];else app.annot={};}
+/* A knight's arrow is drawn as the move it actually is: along the file, then
+   along the rank. A straight diagonal line reads as a bishop move. */
+function annPath(files,ranks,from,to){
+  var p1=sqCenterPct(files,ranks,from),p2=sqCenterPct(files,ranks,to);
+  if(!p1||!p2)return null;
+  var df=Math.abs('abcdefgh'.indexOf(from[0])-'abcdefgh'.indexOf(to[0])),
+      dr=Math.abs((+from[1])-(+to[1]));
+  if((df===1&&dr===2)||(df===2&&dr===1)){
+    var knee=(df===1)?{x:p1.x,y:p2.y}:{x:p2.x,y:p1.y};   // the long leg first
+    return {d:'M'+p1.x+','+p1.y+' L'+knee.x+','+knee.y+' L'+p2.x+','+p2.y,p1:p1,p2:p2};
+  }
+  return {d:'M'+p1.x+','+p1.y+' L'+p2.x+','+p2.y,p1:p1,p2:p2};
+}
+/* One <svg> of drawn shapes, shared by the saved set and the live preview. */
+function annSvg(files,ranks,arrows,id){
+  var defs='',body='';
+  (arrows||[]).forEach(function(a,i){
+    var col=ANN_COLORS[a.c]||ANN_COLORS.g,pa=annPath(files,ranks,a.from,a.to);
+    if(!pa)return;
+    var mk=id+'m'+i;
+    defs+='<marker id="'+mk+'" markerWidth="3.2" markerHeight="3.2" refX="2.4" refY="1.6" orient="auto"><path d="M0,0 L3.2,1.6 L0,3.2 z" fill="'+col+'"/></marker>';
+    body+='<path d="'+pa.d+'" fill="none" stroke="'+col+'" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" opacity="0.85" marker-end="url(#'+mk+')"/>';
+  });
+  if(!body)return '';
+  return '<svg id="'+id+'" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6"><defs>'+defs+'</defs>'+body+'</svg>';
+}
 function onPDown(e){_suppress=false;const el=e.target.closest&&e.target.closest('[data-sq]');if(!el)return;const sq=el.dataset.sq;
   const bd=el.closest('.board');const bfen=bd?bd.getAttribute('data-fen'):null;_downXY={x:e.clientX,y:e.clientY};
-  if(e.button===2){_ann={from:sq,fen:bfen};return;} // right-click: annotate
-  if(_lpTimer)clearTimeout(_lpTimer);_lpActive=false;_lpTimer=setTimeout(function(){if(!_dragA){_ann={from:sq,fen:bfen};_lpActive=true;_dragC=null;}},480); // long-press: annotate
+  if(e.button===2){_ann={from:sq,fen:bfen,c:annColorOf(e),bd:bd};return;} // right-click: annotate
+  if(_lpTimer)clearTimeout(_lpTimer);_lpActive=false;_lpTimer=setTimeout(function(){if(!_dragA){_ann={from:sq,fen:bfen,c:annColorOf(e),bd:bd};_lpActive=true;_dragC=null;}},480); // long-press: annotate
   const fen=curFen();if(!fen)return;
   const inter=curInteractive();
   const pre=!inter&&app.view==='play'&&app.playStatus==='engine'&&playIsLive()&&pieceColorAt(premoveFen(),sq)===app.playSide; // drag a premove (on the virtual board) while Stockfish thinks
   if(!inter&&!pre)return;
   if(inter&&dests(fen,sq).length===0)return;
   _dragC={from:sq,x:e.clientX,y:e.clientY};}
+/* Paint the arrow being dragged straight into the board's preview layer. It is
+   drawn on every pointermove, so it has to bypass render() — a full re-render
+   per mouse move would be absurd, and would fight the drag. */
+function annPreview(shape){
+  const sv=document.getElementById('annprev');if(!sv)return;
+  if(!shape){sv.innerHTML='';return;}
+  const bd=sv.closest('.board');if(!bd)return;
+  const orient=bd.getAttribute('data-orient')==='white'?'white':'black';
+  const ranks=orient==='white'?[8,7,6,5,4,3,2,1]:[1,2,3,4,5,6,7,8];
+  const files=orient==='white'?['a','b','c','d','e','f','g','h']:['h','g','f','e','d','c','b','a'];
+  const col=ANN_COLORS[shape.c]||ANN_COLORS.g;
+  if(!shape.to||shape.to===shape.from){
+    const p=sqCenterPct(files,ranks,shape.from);
+    sv.innerHTML=p?'<circle cx="'+p.x+'" cy="'+p.y+'" r="5.4" fill="none" stroke="'+col+'" stroke-width="1.6" opacity="0.8"/>':'';
+    return;
+  }
+  const pa=annPath(files,ranks,shape.from,shape.to);
+  sv.innerHTML=pa?('<defs><marker id="apm" markerWidth="3.2" markerHeight="3.2" refX="2.4" refY="1.6" orient="auto"><path d="M0,0 L3.2,1.6 L0,3.2 z" fill="'+col+'"/></marker></defs>'+
+    '<path d="'+pa.d+'" fill="none" stroke="'+col+'" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" opacity="0.6" marker-end="url(#apm)"/>'):'';
+}
 function onPMove(e){
   if(_lpTimer&&_downXY&&Math.abs(e.clientX-_downXY.x)+Math.abs(e.clientY-_downXY.y)>8){clearTimeout(_lpTimer);_lpTimer=null;}
+  if(_ann){                                        // show the arrow as you drag it
+    const ae=document.elementFromPoint(e.clientX,e.clientY);
+    const at=ae&&ae.closest?ae.closest('[data-sq]'):null;
+    annPreview({from:_ann.from,to:at&&at.dataset.sq,c:_ann.c});
+    if(e.cancelable&&_lpActive)e.preventDefault();
+    return;
+  }
   if(_dragA){if(e.cancelable)e.preventDefault();_dragA.el.style.transform='translate('+(e.clientX-_dragA.size/2)+'px,'+(e.clientY-_dragA.size/2)+'px)';return;}
   if(!_dragC)return;if(Math.abs(e.clientX-_dragC.x)+Math.abs(e.clientY-_dragC.y)<6)return;
   boardClick(_dragC.from);
@@ -8026,7 +8323,8 @@ function dropPiece(from,to){
   else if(app.view==='clearn'&&app.cl)app.cl.sel=from;
   if(to&&to!==from)boardClick(to);else render();}
 function onPUp(e){if(_lpTimer){clearTimeout(_lpTimer);_lpTimer=null;}
-  if(_ann){const ae=document.elementFromPoint(e.clientX,e.clientY);const at=ae&&ae.closest?ae.closest('[data-sq]'):null;toggleAnnotation(_ann.fen,_ann.from,at&&at.dataset.sq);_ann=null;_lpActive=false;_suppress=true;render();return;}
+  if(_ann){const ae=document.elementFromPoint(e.clientX,e.clientY);const at=ae&&ae.closest?ae.closest('[data-sq]'):null;
+    annPreview(null);toggleAnnotation(_ann.fen,_ann.from,at&&at.dataset.sq,_ann.c);_ann=null;_lpActive=false;_suppress=true;render();return;}
   _dragC=null;if(!_dragA)return;const d=_dragA;_dragA=null;d.el.remove();_suppress=true;
   const el=document.elementFromPoint(e.clientX,e.clientY);const t=el&&el.closest?el.closest('[data-sq]'):null;const to=t&&t.dataset.sq;
   dropPiece(d.from,to);}
@@ -8117,6 +8415,15 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='exback'){app.exPath.pop();app.sel=null;app.exFree=null;app._exKey=null;render();}
   else if(act==='exrestart'){app.exPath=[];app.sel=null;app.exFree=null;app._exKey=null;render();}
   else if(act==='exflip'){app.exFlip=!app.exFlip;render();}
+  else if(act==='expdb'){store.settings.expDb=(val==='lichess'?'lichess':'masters');app.exp=null;app._expPending=null;save();render();}
+  else if(act==='onblevel'){app.onb=app.onb||{step:0};app.onb.level=val;render();}
+  else if(act==='onbgoal'){app.onb=app.onb||{step:1};app.onb.goal=val;render();}
+  else if(act==='onbpieces'){app.onb=app.onb||{step:2};app.onb.pieces=val;store.settings.pieces=val;render();}
+  else if(act==='onbnext'){app.onb=app.onb||{step:0};if(app.onb.step>=2)onbFinish(false);else{app.onb.step++;render();}}
+  else if(act==='onbback'){if(app.onb&&app.onb.step>0){app.onb.step--;render();}}
+  else if(act==='onbskip')onbFinish(true);
+  else if(act==='onbredo')onbStart();
+  else if(act==='expmove'){exMakeMove(val.slice(0,2),val.slice(2,4),val[4]||'q');}
   else if(act==='explay'){const o=byId.get(app.exId);const cur=exCurrent();startPlay(cur.fen,o.side==='white'?'w':'b',o.id,o.name,{tc:tcById(store.settings.tcId||'unlimited'),book:o,bookNode:cur});}
   else if(act==='pnew'){if(app.c960){const g=c960Start();startPlay(g.fen,app.playSide||'w',null,'🎲 Chess960 · vs engine',{tc:app.tc,c960:g.state});}else startPlay(app._playStartFen||new Chess().fen(),app.playSide||'w',app.playOpening||null,app.playTitle||'Free game',{tc:app.tc,bookId:(app.playBook?app.playBook.id:null)});}
   else if(act==='p960'){app.c960setup=!app.c960setup;render();}
@@ -8298,6 +8605,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='pzretry'){const P=app.pz;if(P)pzNext(P.idx);}
   else if(act==='pzsolution')pzShowSolution();
   else if(act==='pzauto'){app.pzFilter={type:'auto'};app.pz=null;render();}
+  else if(act==='pzmotif'){if(MOTIF_BY[val]){app.pzFilter={type:'motif',motif:val};pzNext();}else{app.pzFilter={type:'theme',theme:val};pzNext();}}
   else if(act==='pzdaily')pzDaily();
   else if(act==='rushstart')rushStart();
   else if(act==='rushend')rushEnd();
@@ -8327,7 +8635,10 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.dataset&&e.target.dataset.psetopening!==undefined){app.setupOpening=e.target.value;return;}
   if(e.target.dataset&&e.target.dataset.pzfilter){const k=e.target.dataset.pzfilter;
     if(k==='band')app.pzFilter={type:'band',band:+e.target.value};
-    else if(k==='theme'){if(e.target.value)app.pzFilter={type:'theme',theme:e.target.value};else app.pzFilter={type:'auto'};}
+    else if(k==='theme'){const v=e.target.value;
+      if(!v)app.pzFilter={type:'auto'};
+      else if(v.indexOf('m:')===0)app.pzFilter={type:'motif',motif:v.slice(2)};
+      else app.pzFilter={type:'theme',theme:v};}
     app.pz=null;render();return;}
   if(e.target.dataset&&e.target.dataset.studychapter!==undefined){app.studyChapter=+e.target.value;app.studyPath=[];render();return;}
   const ds=e.target.dataset&&e.target.dataset.setting;
@@ -8340,6 +8651,8 @@ document.getElementById('app').addEventListener('change',e=>{
     else if(ds==='haptics')store.settings.haptics=e.target.checked;
     else if(ds==='boardSize')store.settings.boardSize=+e.target.value;
     else if(ds==='blunderWarn')store.settings.blunderWarn=e.target.checked;
+    else if(ds==='tbOn'){store.settings.tbOn=e.target.checked;if(!store.settings.tbOn){app.tb=null;app.tbDrill=null;app.tbEx=null;}}
+    else if(ds==='expOn'){store.settings.expOn=e.target.checked;if(!store.settings.expOn){app.exp=null;app._expPending=null;}}
     else if(ds==='srsSkip')store.settings.srsSkip=e.target.checked;
     else if(ds==='voiceOn'){store.settings.voiceOn=e.target.checked;if(!store.settings.voiceOn)Voice.stop();else Voice.say('Voice coaching is on.',true);}
     else if(ds==='voiceRate')store.settings.voiceRate=Math.max(0.5,Math.min(1.6,+e.target.value||1));
@@ -12030,6 +12343,19 @@ function viewEndgames(){
   }
   return h+'</div>';
 }
+/* In a drill the tablebase can say something the engine cannot: not just that
+   you failed, but the exact move it went wrong on. */
+function endgameTbNote(){
+  const e=app.endgame;if(!e||!app.playStack)return '';
+  if(store.settings.tbOn===false)return '';
+  const start=app._playStartFen;
+  if(!start||!Tablebase.covers(start))return '';
+  const t=app.tbDrill&&app.tbDrill.fen===start?app.tbDrill.tb:null;
+  if(!t){tbRequest(start,'tbDrill');return '';}
+  const v=tbVerdict(t,turnOf(start));
+  if(!v)return '';
+  return '<div class="dim small" style="margin-top:5px">🧮 The tablebase says the starting position is <b style="color:'+v.col+'">'+esc(v.txt)+'</b>.</div>';
+}
 function endgameVerdict(){
   const e=app.endgame;if(!e)return '';const r=app.playResult||'';
   const drew=/[Dd]raw|stalemate|repetition|insufficient/.test(r);
@@ -12038,7 +12364,157 @@ function endgameVerdict(){
   return '<div class="small" style="margin-top:5px;font-weight:700;color:'+(ok?'var(--green)':'#f87171')+'">'+
     (ok?'✓ Success — '+(e.goal==='draw'?'you held the draw!':'you converted the win!')
        :'✗ Not yet — you needed to '+(e.goal==='draw'?'hold a draw':'win')+'. Try again.')+
-    '  <button class="btn ghost sm" data-act="nav" data-val="endgames">↺ Endgames</button></div>';
+    '  <button class="btn ghost sm" data-act="nav" data-val="endgames">↺ Endgames</button></div>'+endgameTbNote();
+}
+/* =========================================================================
+   SYZYGY TABLEBASE
+
+   An engine searching a seven-piece endgame gives you an opinion. The
+   tablebase gives you the answer: this is a win in 23, and these are the only
+   moves that keep it. For a trainer that is a different thing entirely — the
+   difference between "the engine likes Kf6" and "Kf6 is the only move that
+   does not throw away the win".
+
+   Lichess publishes the standard 7-piece tables over a free, key-less HTTP
+   endpoint, so this needs no account and no download. It is strictly an
+   enhancement: nothing depends on it, every caller handles null, and with the
+   radio off the app behaves exactly as it did before.
+
+   Two rules keep it polite to a service somebody else pays for: one request
+   at a time, and every answer is cached for the session and in storage, since
+   a tablebase answer for a position is true forever.
+   ========================================================================= */
+const TB_MAX_PIECES=7;
+const Tablebase={
+  _mem:new Map(),_chain:Promise.resolve(),_off:false,
+  /* How many men are on the board — the only cheap way to know whether it is
+     worth asking at all. */
+  count(fen){
+    const b=(fen||'').split(' ')[0];let n=0;
+    for(let i=0;i<b.length;i++)if(/[a-zA-Z]/.test(b[i]))n++;
+    return n;
+  },
+  covers(fen){return this.count(fen)>0&&this.count(fen)<=TB_MAX_PIECES;},
+  _store(){try{return JSON.parse(localStorage.getItem('tbcache')||'{}');}catch(e){return {};}},
+  _persist(fen,val){
+    try{
+      const c=this._store();c[fen]=val;
+      const keys=Object.keys(c);
+      if(keys.length>400)for(let i=0;i<keys.length-400;i++)delete c[keys[i]];
+      localStorage.setItem('tbcache',JSON.stringify(c));
+    }catch(e){}
+  },
+  /* cb-free: returns a promise of the answer, or of null when it cannot be had.
+     Never throws, never rejects — callers treat null as "no tablebase". */
+  lookup(fen){
+    if(!fen||!this.covers(fen))return Promise.resolve(null);
+    if(store.settings.tbOn===false)return Promise.resolve(null);
+    if(this._mem.has(fen))return Promise.resolve(this._mem.get(fen));
+    const saved=this._store()[fen];
+    if(saved){this._mem.set(fen,saved);return Promise.resolve(saved);}
+    if(typeof navigator!=='undefined'&&navigator.onLine===false)return Promise.resolve(null);
+    const self=this;
+    // one at a time: chain onto whatever is already in flight
+    this._chain=this._chain.then(function(){
+      if(self._mem.has(fen))return self._mem.get(fen);
+      return fetch('https://tablebase.lichess.ovh/standard?fen='+encodeURIComponent(fen))
+        .then(function(r){return r.ok?r.json():null;})
+        .then(function(j){
+          if(!j||typeof j.category!=='string')return null;
+          const val={category:j.category,dtz:j.dtz==null?null:j.dtz,dtm:j.dtm==null?null:j.dtm,
+            checkmate:!!j.checkmate,stalemate:!!j.stalemate,
+            moves:(j.moves||[]).slice(0,32).map(function(m){
+              return {uci:m.uci,san:m.san,category:m.category,dtz:m.dtz==null?null:m.dtz,dtm:m.dtm==null?null:m.dtm};
+            })};
+          self._mem.set(fen,val);self._persist(fen,val);return val;
+        })
+        .catch(function(){self._off=true;return null;});
+    }).catch(function(){return null;});
+    return this._chain;
+  }
+};
+/* The API reports each move's category from the point of view of the player
+   who will be to move after it — so a move that leaves the opponent "lost" is
+   the move that wins. This turns that inside out, into what the move does for
+   the person choosing it. */
+const TB_FLIP={win:'loss','cursed-win':'blessed-loss',draw:'draw','blessed-loss':'cursed-win',loss:'win',
+  'maybe-win':'maybe-loss','maybe-loss':'maybe-win','syzygy-win':'syzygy-loss','syzygy-loss':'syzygy-win',unknown:'unknown'};
+function tbMoveOutcome(cat){return TB_FLIP[cat]||'unknown';}
+function tbIsWin(c){return c==='win'||c==='syzygy-win'||c==='maybe-win';}
+function tbIsLoss(c){return c==='loss'||c==='syzygy-loss'||c==='maybe-loss';}
+function tbIsDraw(c){return c==='draw'||c==='cursed-win'||c==='blessed-loss';}
+/* Plain English, from the point of view of the side to move. */
+function tbVerdict(tb,stm){
+  if(!tb)return null;
+  if(tb.checkmate)return {txt:'Checkmated',col:'#f87171',kind:'loss'};
+  if(tb.stalemate)return {txt:'Stalemate — drawn',col:'var(--muted)',kind:'draw'};
+  const who=stm==='w'?'White':'Black';
+  const n=tb.dtm!=null?Math.abs(tb.dtm):null;
+  if(tbIsWin(tb.category))
+    return {txt:who+' wins'+(n?' — mate in '+n:(tb.dtz!=null?' — '+Math.abs(tb.dtz)+' to the next pawn move or capture':'')),col:'var(--green)',kind:'win'};
+  if(tbIsLoss(tb.category))
+    return {txt:who+' is lost'+(n?' — mated in '+n:''),col:'#f87171',kind:'loss'};
+  if(tb.category==='cursed-win')return {txt:'Won, but the 50-move rule saves it — drawn',col:'var(--amber)',kind:'draw'};
+  if(tb.category==='blessed-loss')return {txt:'Lost, but the 50-move rule saves you — drawn',col:'var(--amber)',kind:'draw'};
+  if(tb.category==='draw')return {txt:'Drawn with best play',col:'var(--muted)',kind:'draw'};
+  return null;
+}
+/* The moves that keep the result, best first. */
+function tbBestMoves(tb){
+  if(!tb||!tb.moves||!tb.moves.length)return [];
+  const scored=tb.moves.map(function(m){
+    const out=tbMoveOutcome(m.category);
+    return {uci:m.uci,san:m.san,outcome:out,dtm:m.dtm,dtz:m.dtz,
+      rank:tbIsWin(out)?0:tbIsDraw(out)?1:2};
+  });
+  scored.sort(function(a,b){
+    if(a.rank!==b.rank)return a.rank-b.rank;
+    const ad=a.dtm==null?9999:Math.abs(a.dtm),bd=b.dtm==null?9999:Math.abs(b.dtm);
+    return ad-bd;                                     // mate sooner, or survive longer
+  });
+  return scored;
+}
+/* Ask for this position and re-render when the answer lands. Safe to call from
+   a render: the guard stops it asking twice for the same position. */
+function tbRequest(fen,slot){
+  slot=slot||'tb';
+  if(!fen||!Tablebase.covers(fen)||store.settings.tbOn===false){app[slot]=null;return;}
+  if(app[slot]&&app[slot].fen===fen)return;
+  if(app['_'+slot+'Pending']===fen)return;
+  app['_'+slot+'Pending']=fen;
+  Tablebase.lookup(fen).then(function(tb){
+    if(app['_'+slot+'Pending']!==fen)return;
+    app['_'+slot+'Pending']=null;
+    app[slot]=tb?{fen:fen,tb:tb}:null;
+    if(tb)render();
+  });
+}
+function tbPanel(fen,opts){
+  opts=opts||{};
+  if(!fen||!Tablebase.covers(fen))return '';
+  if(store.settings.tbOn===false)return '';
+  const slot=opts.slot||'tb';
+  const cur=(app[slot]&&app[slot].fen===fen)?app[slot].tb:null;
+  if(!cur){
+    return '<div class="card" style="margin-top:12px;border-color:#a855f73d"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">🧮 Tablebase</div><div class="dim small">'+
+      ((typeof navigator!=='undefined'&&navigator.onLine===false)?'offline':'looking it up…')+'</div></div>'+
+      '<div class="dim small" style="margin-top:4px">'+Tablebase.count(fen)+' pieces — this position is solved, not estimated.</div></div>';
+  }
+  const v=tbVerdict(cur,turnOf(fen));
+  const best=tbBestMoves(cur).slice(0,opts.max||6);
+  let h='<div class="card" style="margin-top:12px;border-color:#a855f73d;background:linear-gradient(160deg,rgba(168,85,247,.08),transparent 60%),var(--panel)">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:700">🧮 Tablebase</div><div class="dim small">'+Tablebase.count(fen)+'-piece · exact</div></div>';
+  if(v)h+='<div style="font-weight:800;margin-top:5px;color:'+v.col+'">'+esc(v.txt)+'</div>';
+  if(best.length){
+    h+='<div class="dim small" style="margin-top:7px;margin-bottom:3px">Every move, and what it really does:</div><div class="row" style="gap:4px;flex-wrap:wrap">';
+    best.forEach(function(m){
+      const col=tbIsWin(m.outcome)?'var(--green)':tbIsDraw(m.outcome)?'var(--amber)':'#f87171';
+      const tag=tbIsWin(m.outcome)?(m.dtm!=null?'#'+Math.abs(m.dtm):'wins'):tbIsDraw(m.outcome)?'draws':'loses';
+      h+='<span class="chip" style="border-color:'+col+'55;color:'+col+'">'+esc(m.san||m.uci)+' <span style="opacity:.75">'+tag+'</span></span>';
+    });
+    h+='</div>';
+  }
+  return h+'</div>';
 }
 /* ===================== Blindfold interactive trainer ===================== */
 function bftRandSq(){return String.fromCharCode(97+Math.floor(Math.random()*8))+(1+Math.floor(Math.random()*8));}
@@ -12353,12 +12829,17 @@ function viewPlay(){
   if(app.careerBanter&&app.careerOpp&&app.playStatus!=='over')rail+='<div class="note" style="border-color:#a855f73d;background:#a855f714;color:#e9d5ff">💬 <b>'+esc(app.careerBanter.who)+':</b> “'+esc(app.careerBanter.line)+'”</div>';
   if(app.engineErr)rail+='<div class="note" style="border-color:#7f1d1d66;background:#7f1d1d22;color:#fecaca">Couldn’t load Stockfish (it needs internet on first use). Opening training still works without it.</div>';
   const noticeRail='<div class="noticerail">'+rail+'</div>';
+  // Once the board is down to seven men the engine's opinion stops being the
+  // best available answer, so ask for the real one.
+  if(live)tbRequest(boardFen,'tb');
+  const tbHtml=live?tbPanel(boardFen,{slot:'tb',max:6}):'';
   h+='<div class="layout"><div class="boardwrap">'+topStrip+'<div style="height:7px"></div>'+renderBoard(boardFen,orient,{sel:app.playSel,last:blind?null:lastSq,hint:blind?null:(live?app.playHint:null),premoves:(app.playStatus==='engine'?app.playPremoves:null),interactive,hidePieces:blind})+'<div style="height:7px"></div>'+botStrip+navbar+noticeRail+'</div>'+
     '<div>'+
     (openingLine?'<div class="card" style="padding:9px 12px;margin-bottom:12px">'+openingLine+(inBook?'<div class="dim small" style="margin-top:4px">Engine is still in <b>'+esc(app.playBook.name)+'</b> theory.</div>':'')+'</div>':'')+
     '<div class="card">'+evalHtml+'<div style="margin-top:'+(evalHtml?'10px':'0')+'">'+status+'</div>'+
       (app.drawMsg?'<div class="dim small" style="margin-top:6px">'+esc(app.drawMsg)+'</div>':'')+
       (!live?'<div class="row" style="margin-top:10px"><button class="btn primary sm" data-act="plast">▶▶ Jump to live</button></div>':'')+'</div>'+
+    tbHtml+
     '<div class="card" style="margin-top:12px"><div class="l" style="text-transform:uppercase;font-size:11px;letter-spacing:.08em;color:var(--muted)">Moves</div><div class="moves" style="margin-top:6px;line-height:2.1">'+playMoveList()+'</div></div>'+
     '<div class="card" style="margin-top:12px"><div class="row"><button class="btn sec sm" data-act="phint" '+((interactive&&(!app.careerOpp||(app.careerHintsLeft||0)>0))?'':'disabled')+'>'+(app.careerOpp?('💡 Tactic ('+(app.careerHintsLeft||0)+')'):'💡 Hint')+'</button><button class="btn sec sm" data-act="pundo" '+(app.playStack.length>1?'':'disabled')+'>↶ Take back</button><button class="btn ghost sm" data-act="pflip">⇅ Flip</button><button class="btn '+(app.tiltEval?'ghost':(store.settings.showEval?'primary':'ghost'))+' sm" data-act="toggleeval" title="'+(app.tiltEval?'On tilt — the eval bar is locked this game':'Show/hide the engine evaluation')+'"'+(app.tiltEval?' disabled':'')+'>'+(app.tiltEval?'😖 Tilt':'📊 Eval')+'</button><button class="btn '+(app.blindfold?'primary':'ghost')+' sm" data-act="pblind">🙈 Blindfold</button>'+(app.blindfold?'<button class="btn ghost sm" data-act="ppeek">'+(app.peek?'🙈 Hide':'👁 Peek')+'</button>':'')+'</div>'+(app.blindfold?'<div class="dim small" style="margin-top:6px">🙈 Blindfold on — pieces hidden. Visualise the position; tap squares to move. Use 👁 Peek if you get stuck.</div>':'')+
     '<div class="row" style="margin-top:8px"><button class="btn sec sm" data-act="pdraw" '+(app.playStatus==='play'?'':'disabled')+'>½ Offer draw</button><button class="btn danger sm" data-act="presign" '+((app.playStatus==='play'||app.playStatus==='engine')?'':'disabled')+'>⚑ Resign</button><button class="btn ghost sm" data-act="ppgn" '+(app.playMoves.length?'':'disabled')+'>'+(app.pgnCopied?'✓ Copied':'⧉ Copy PGN')+'</button></div>'+
@@ -12374,6 +12855,236 @@ function viewPlay(){
 const PUZZLES=(typeof window!=='undefined'&&window.__PUZZLES)?window.__PUZZLES:[];
 const PZ_BANDS=[[0,999,'Beginner'],[1000,1199,'Easy'],[1200,1399,'Intermediate'],[1400,1599,'Tough'],[1600,1799,'Hard'],[1800,1999,'Very hard'],[2000,2199,'Expert'],[2200,9999,'Master']];
 const PZ_THEMES=[['mateIn2','Mate in 2'],['mateIn3','Mate in 3'],['mate','Mating attack'],['promotion','Promotion'],['endgame','Endgame']];
+/* =========================================================================
+   TACTICAL MOTIFS
+
+   The bundled Lichess set carries six tags — mate, mateIn1/2/3, endgame and
+   promotion — and 9,291 of its 25,000 puzzles carry none at all. The motifs
+   people actually want to drill (fork, pin, skewer, discovered attack, back
+   rank, hanging piece) were dropped when the set was built.
+
+   They do not need to be downloaded. A motif is a fact about the position and
+   the solution, so it is read off the board here with the rules engine that is
+   already bundled: no new data, no network, nothing to re-fetch, and it works
+   in the fully offline build like everything else.
+
+   Two rules keep the tagging honest. A motif is only reported if the key move
+   is what brings it about — a rook that already shared a file with two enemy
+   pieces before anyone moved is not what anybody means by a pin — and the
+   set's own tags always win where they exist. Detection costs about 0.8ms per
+   puzzle, which is why filtering samples rather than scanning all 25,000.
+   ========================================================================= */
+const MOTIFS=[
+  {k:'fork',e:'🍴',n:'Fork',d:'One move, two targets.'},
+  {k:'pin',e:'📌',n:'Pin',d:'A piece that dare not move.'},
+  {k:'skewer',e:'🍢',n:'Skewer',d:'Hit the big one, take what is behind it.'},
+  {k:'discovered',e:'🎭',n:'Discovered attack',d:'Move one piece, unleash another.'},
+  {k:'doubleCheck',e:'‼️',n:'Double check',d:'Two checkers — only the king may move.'},
+  {k:'hanging',e:'🎁',n:'Hanging piece',d:'Something is simply undefended.'},
+  {k:'sacrifice',e:'💥',n:'Sacrifice',d:'Give material now, collect later.'},
+  {k:'backRank',e:'🚪',n:'Back-rank mate',d:'Walled in by its own pawns.',tag:'mate'},
+  {k:'smothered',e:'🐴',n:'Smothered mate',d:'Mated by a knight, hemmed in by friends.',tag:'mate'},
+  {k:'quiet',e:'🤫',n:'Quiet move',d:'No check, no capture — and winning.'},
+  {k:'advancedPawn',e:'♟️',n:'Advanced pawn',d:'A pawn deep in enemy ground.'}
+];
+const MOTIF_BY={};MOTIFS.forEach(function(m){MOTIF_BY[m.k]=m;});
+function motifLabel(k){var m=MOTIF_BY[k];if(m)return m.e+' '+m.n;
+  var t=PZ_THEMES.find(function(x){return x[0]===k;});return t?t[1]:k;}
+const MV={p:1,n:3,b:3,r:5,q:9,k:100};
+const ALLSQ=[];for(let f=0;f<8;f++)for(let r=0;r<8;r++)ALLSQ.push('abcdefgh'[f]+(r+1));
+const DIR_R=[[1,0],[-1,0],[0,1],[0,-1]],DIR_B=[[1,1],[1,-1],[-1,1],[-1,-1]];
+const _f=sq=>'abcdefgh'.indexOf(sq[0]), _r=sq=>(+sq[1])-1;
+const _sq=(f,r)=>'abcdefgh'[f]+(r+1);
+function between(a,b){
+  const df=Math.sign(_f(b)-_f(a)),dr=Math.sign(_r(b)-_r(a));
+  const adf=Math.abs(_f(b)-_f(a)),adr=Math.abs(_r(b)-_r(a));
+  if(!(df===0||dr===0||adf===adr))return [];
+  const out=[];let f=_f(a)+df,r=_r(a)+dr;
+  while(f!==_f(b)||r!==_r(b)){out.push(_sq(f,r));f+=df;r+=dr;}
+  return out;
+}
+function sliderDirs(t){return t==='q'?DIR_R.concat(DIR_B):t==='r'?DIR_R:t==='b'?DIR_B:null;}
+
+/* our piece on `sq` attacks two or more things worth taking */
+function forkAt(ch,sq,us){
+  const p=ch.get(sq);if(!p)return false;
+  const them=us==='w'?'b':'w';let hits=0;
+  for(const t of ALLSQ){
+    const q=ch.get(t);if(!q||q.color!==them)continue;
+    if(!ch.attackers(t,us).includes(sq))continue;
+    if(q.type==='k'){hits++;continue;}
+    if(MV[q.type]>=MV[p.type]||ch.attackers(t,them).length===0)hits++;
+  }
+  return hits>=2;
+}
+/* The same geometry tells you both: what stands in front decides which it is.
+   Returns every alignment as a key, so the caller can ask the only question
+   that matters for a puzzle — which of these did THIS move create? A rook that
+   happened to share a file with two enemy pieces before anyone moved is not
+   what anybody means by a pin. */
+function pinSkewerSet(ch,us){
+  const them=us==='w'?'b':'w';const out=new Set();
+  for(const sq of ALLSQ){
+    const p=ch.get(sq);if(!p||p.color!==us)continue;
+    const dirs=sliderDirs(p.type);if(!dirs)continue;
+    for(const d of dirs){
+      let f=_f(sq)+d[0],r=_r(sq)+d[1],front=null,frontSq=null;
+      while(f>=0&&f<8&&r>=0&&r<8){
+        const s2=_sq(f,r),q=ch.get(s2);
+        if(q){
+          if(!front){if(q.color!==them)break;front=q;frontSq=s2;}
+          else{
+            if(q.color===them){
+              let kind=null;
+              if(q.type==='k')kind='pin';                  // absolute pin
+              else if(front.type==='k')kind='skewer';       // check, and win what is behind
+              else if(MV[q.type]>MV[front.type])kind='pin';
+              // a skewer is only worth the name if what is behind is worth
+              // taking — a queen with a loose pawn behind it is just a line
+              else if(MV[front.type]>MV[q.type]&&MV[q.type]>=3)kind='skewer';
+              if(kind)out.add(kind+'|'+sq+'|'+frontSq+'|'+s2);
+            }
+            break;
+          }
+        }
+        f+=d[0];r+=d[1];
+      }
+    }
+  }
+  return out;
+}
+/* a piece that did not move now attacks something, because the mover stepped
+   off the line between them */
+function discovered(before,after,mv,us){
+  const them=us==='w'?'b':'w';
+  for(const t of ALLSQ){
+    const q=after.get(t);if(!q||q.color!==them)continue;
+    const had=new Set(before.attackers(t,us));
+    for(const s of after.attackers(t,us)){
+      if(s===mv.to||had.has(s))continue;
+      const p=after.get(s);if(!p||!sliderDirs(p.type))continue;
+      if(between(s,t).includes(mv.from))return true;
+    }
+  }
+  return false;
+}
+function sacrifice(before,after,mv,us){
+  const them=us==='w'?'b':'w';
+  const moved=after.get(mv.to);if(!moved)return false;
+  const att=after.attackers(mv.to,them);if(!att.length)return false;
+  const gained=mv.captured?MV[mv.captured]:0;
+  const cheapest=Math.min.apply(null,att.map(s=>{const p=after.get(s);return p?MV[p.type]:100;}));
+  const defended=after.attackers(mv.to,us).length>0;
+  return gained+(defended?cheapest:0)<MV[moved.type];
+}
+function backRankMate(ch){
+  const them=ch.turn();                        // the mated side is the one to move
+  const us=them==='w'?'b':'w';                 // the side that gave mate
+  let ksq=null;for(const s of ALLSQ){const p=ch.get(s);if(p&&p.type==='k'&&p.color===them)ksq=s;}
+  if(!ksq)return false;
+  const home=them==='w'?1:8;if(+ksq[1]!==home)return false;
+  // and the mate must come down the rank, from a rook or a queen
+  const checkers=ch.attackers(ksq,us);
+  if(!checkers.some(function(s){const q=ch.get(s);return q&&(q.type==='r'||q.type==='q')&&+s[1]===home;}))return false;
+  const fwd=them==='w'?1:-1;const f=_f(ksq),r=_r(ksq);
+  let blocked=0,any=0;
+  for(const df of [-1,0,1]){
+    const nf=f+df,nr=r+fwd;if(nf<0||nf>7||nr<0||nr>7)continue;
+    any++;const q=ch.get(_sq(nf,nr));
+    if(q&&q.color===them)blocked++;
+  }
+  return any>0&&blocked===any;
+}
+function smotheredMate(ch,lastMv){
+  if(!lastMv||lastMv.piece!=='n')return false;
+  const us=ch.turn()==='w'?'b':'w',them=us==='w'?'b':'w';
+  let ksq=null;for(const s of ALLSQ){const p=ch.get(s);if(p&&p.type==='k'&&p.color===them)ksq=s;}
+  if(!ksq)return false;
+  const f=_f(ksq),r=_r(ksq);
+  for(const df of [-1,0,1])for(const dr of [-1,0,1]){
+    if(!df&&!dr)continue;
+    const nf=f+df,nr=r+dr;if(nf<0||nf>7||nr<0||nr>7)continue;
+    const q=ch.get(_sq(nf,nr));
+    if(!q||q.color!==them)return false;          // an empty or enemy square: not smothered
+  }
+  return true;
+}
+function motifsOf(fen,moves){
+  const out=new Set();
+  if(!fen||!moves||!moves.length)return [];
+  let ch;try{ch=new Chess(fen);}catch(e){return [];}
+  const us=ch.turn(),them=us==='w'?'b':'w';
+  const before=new Chess(fen);
+  const u=moves[0];
+  let mv;try{mv=ch.move({from:u.slice(0,2),to:u.slice(2,4),promotion:u[4]||'q'});}catch(e){return [];}
+  if(!mv)return [];
+  // --- the key move itself ---
+  if(mv.captured&&before.attackers(mv.to,them).length===0)out.add('hanging');
+  if(forkAt(ch,mv.to,us))out.add('fork');
+  const had=pinSkewerSet(before,us);
+  for(const k of pinSkewerSet(ch,us))if(!had.has(k))out.add(k.split('|')[0]);
+  if(discovered(before,ch,mv,us))out.add('discovered');
+  if(ch.isCheck()){const ks=kingSq(ch,them);if(ks&&ch.attackers(ks,us).length>=2)out.add('doubleCheck');}
+  if(sacrifice(before,ch,mv,us))out.add('sacrifice');
+  if(!mv.captured&&!ch.isCheck()&&!mv.promotion&&moves.length>=3)out.add('quiet');
+  if(mv.promotion)out.add('promotion');
+  if(mv.piece==='p'&&((us==='w'&&+mv.to[1]>=6)||(us==='b'&&+mv.to[1]<=3)))out.add('advancedPawn');
+  // --- how the line ends ---
+  let last=mv;
+  for(let i=1;i<moves.length;i++){
+    const m=moves[i];
+    let r;try{r=ch.move({from:m.slice(0,2),to:m.slice(2,4),promotion:m[4]||'q'});}catch(e){break;}
+    if(!r)break;last=r;
+  }
+  if(ch.isCheckmate()){
+    out.add('mate');
+    const plies=Math.ceil(moves.length/2);
+    if(plies<=3)out.add('mateIn'+plies);
+    if(backRankMate(ch))out.add('backRank');
+    if(smotheredMate(ch,last))out.add('smothered');
+  }
+  if(pieceCount(ch)<=10)out.add('endgame');
+  return Array.from(out);
+}
+function kingSq(ch,color){for(const s of ALLSQ){const p=ch.get(s);if(p&&p.type==='k'&&p.color===color)return s;}return null;}
+function pieceCount(ch){let n=0;for(const s of ALLSQ)if(ch.get(s))n++;return n;}
+/* Detection is memoised per puzzle: filtering asks the same questions of the
+   same puzzles repeatedly, and 0.8ms adds up. */
+const _motifCache=new Map();
+function pzMotifs(i){
+  if(_motifCache.has(i))return _motifCache.get(i);
+  const p=PUZZLES[i];let m=[];
+  if(p){
+    m=motifsOf(p[0],p[1].split(' '));
+    (p[3]||[]).forEach(function(t){if(m.indexOf(t)<0)m.push(t);});  // the set's own tags win
+  }
+  _motifCache.set(i,m);
+  return m;
+}
+/* Find a puzzle with this motif without testing all 25,000. Walk the pool in a
+   random order, stop at the first unseen match, and give up after a budget so
+   a rare motif cannot lock the interface up. Motifs that can only occur in a
+   mate are looked for among the mates, which turns a needle into a haystack
+   worth searching. */
+function pzMotifPick(key,budget){
+  budget=budget||1400;
+  const narrow=(MOTIF_BY[key]||{}).tag;
+  const cand=[];
+  for(let i=0;i<PUZZLES.length;i++){
+    if(narrow&&(PUZZLES[i][3]||[]).indexOf(narrow)<0)continue;
+    cand.push(i);
+  }
+  let tried=0,seenMatch=null;
+  for(let n=cand.length-1;n>0&&tried<budget;n--){
+    const j=Math.floor(Math.random()*(n+1)),t=cand[j];cand[j]=cand[n];cand[n]=t;
+    tried++;
+    if(pzMotifs(t).indexOf(key)<0)continue;
+    if(!app.pzSeen.has(t))return t;
+    if(seenMatch==null)seenMatch=t;
+  }
+  return seenMatch;
+}
+
 function pzBand(r){for(let i=0;i<PZ_BANDS.length;i++)if(r>=PZ_BANDS[i][0]&&r<=PZ_BANDS[i][1])return i;return 0;}
 function pzAt(i){const p=PUZZLES[i];return p?{idx:i,fen:p[0],moves:p[1].split(' '),rating:p[2],themes:p[3]||[],last:p[4]||null}:null;}
 function pzPool(){const f=app.pzFilter;const out=[];
@@ -12384,10 +13095,17 @@ function pzPool(){const f=app.pzFilter;const out=[];
   return pool.length?pool:PUZZLES.map((_,i)=>i);
 }
 function pzNext(idx){if(!PUZZLES.length){app.view='puzzles';app.pz=null;render();return;}
+  app.pzMiss=null;
+  if(idx==null&&app.pzFilter&&app.pzFilter.type==='motif'){
+    idx=pzMotifPick(app.pzFilter.motif);
+    if(idx==null){                                   // nothing found inside the budget
+      app.pzMiss=app.pzFilter.motif;app.pzFilter={type:'auto'};
+    }
+  }
   if(idx==null){const pool=pzPool();const fresh=pool.filter(i=>!app.pzSeen.has(i));const arr=fresh.length?fresh:pool;idx=arr[Math.floor(Math.random()*arr.length)];}
   const p=pzAt(idx);app.pzSeen.add(idx);if(app.pzSeen.size>6000)app.pzSeen=new Set([idx]);
   app.view='puzzles';app.rushResult=null;
-  app.pz={idx,fen:p.fen,moves:p.moves,rating:p.rating,themes:p.themes,step:0,fenNow:p.fen,side:turnOf(p.fen),sel:null,last:p.last?{from:p.last.slice(0,2),to:p.last.slice(2,4)}:null,wrongMove:null,clean:true,status:'solving',hintSq:null,hintTo:null,hintLevel:0,delta:0};
+  app.pz={idx,fen:p.fen,moves:p.moves,rating:p.rating,themes:pzMotifs(idx),step:0,fenNow:p.fen,side:turnOf(p.fen),sel:null,last:p.last?{from:p.last.slice(0,2),to:p.last.slice(2,4)}:null,wrongMove:null,clean:true,status:'solving',hintSq:null,hintTo:null,hintLevel:0,delta:0};
   render();
 }
 function pzApplyExpected(){const P=app.pz;const u=P.moves[P.step];if(!u)return null;const m=tryFromTo(P.fenNow,u.slice(0,2),u.slice(2,4),u[4]||'q');if(!m){if(P.status==='solving')P.status='solved';return null;}P.fenNow=m.fen;P.last={from:u.slice(0,2),to:u.slice(2,4)};P.step++;sfxSan(m.san);return m;}
@@ -12430,10 +13148,16 @@ function viewPuzzles(){
     h+='<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div class="row" style="gap:14px"><span class="chip green">Solved '+r.solved+'</span><span class="chip">Strikes '+'❌'.repeat(r.strikes)+'✓'.repeat(Math.max(0,3-r.strikes))+'</span></div><div class="row" style="align-items:center;gap:8px"><span class="dim small">Time</span><span id="rushclock" class="clock" style="min-width:62px">'+Math.max(0,Math.ceil((r.end-Date.now())/1000))+'s</span><button class="btn ghost sm" data-act="rushend">End</button></div></div></div>';
   } else {
     const bandSel='<select data-pzfilter="band">'+PZ_BANDS.map((b,i)=>'<option value="'+i+'"'+(f.type==='band'&&f.band===i?' selected':'')+'>'+b[2]+'</option>').join('')+'</select>';
-    const themeSel='<select data-pzfilter="theme"><option value="">Any theme</option>'+PZ_THEMES.map(t=>'<option value="'+t[0]+'"'+(f.type==='theme'&&f.theme===t[0]?' selected':'')+'>'+t[1]+'</option>').join('')+'</select>';
+    const themeSel='<select data-pzfilter="theme"><option value="">Any theme</option>'+
+      '<optgroup label="Tactical motif">'+MOTIFS.map(m=>'<option value="m:'+m.k+'"'+(f.type==='motif'&&f.motif===m.k?' selected':'')+'>'+m.e+' '+m.n+'</option>').join('')+'</optgroup>'+
+      '<optgroup label="Kind of puzzle">'+PZ_THEMES.map(t=>'<option value="'+t[0]+'"'+(f.type==='theme'&&f.theme===t[0]?' selected':'')+'>'+t[1]+'</option>').join('')+'</optgroup>'+
+      '</select>';
     h+='<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">'+
       '<div class="row" style="align-items:center;gap:8px"><span class="dim small">Difficulty</span><button class="btn '+(f.type==='auto'?'primary':'sec')+' sm" data-act="pzauto">Auto (near my rating)</button>'+bandSel+themeSel+'</div>'+
-      '<div class="row"><button class="btn sec sm" data-act="pzdaily">📅 Daily</button><button class="btn sec sm" data-act="rushstart">⚡ Puzzle Rush</button></div></div></div>';
+      '<div class="row"><button class="btn sec sm" data-act="pzdaily">📅 Daily</button><button class="btn sec sm" data-act="rushstart">⚡ Puzzle Rush</button></div></div>'+
+      (f.type==='motif'&&MOTIF_BY[f.motif]?'<div class="dim small" style="margin-top:7px">'+MOTIF_BY[f.motif].e+' <b>'+esc(MOTIF_BY[f.motif].n)+'</b> — '+esc(MOTIF_BY[f.motif].d)+' Motifs are worked out from the position as you go, so this reaches puzzles the set never tagged.</div>':'')+
+      '</div>';
+    if(app.pzMiss)h+='<div class="note" style="margin-bottom:12px;border-color:#f59e0b3d;background:#f59e0b14;color:#fde68a">🔎 Couldn’t find a fresh <b>'+esc(motifLabel(app.pzMiss))+'</b> in the set — here is one near your rating instead.</div>';
   }
   if(app.rushResult!=null)h+='<div class="note" style="margin-bottom:12px">⚡ Puzzle Rush finished — you solved <b>'+app.rushResult+'</b> puzzles!</div>';
   if(!P){h+='<div class="center" style="min-height:auto;padding:20px"><button class="btn primary" data-act="pznext">Start solving →</button></div>';return h;}
@@ -12453,7 +13177,10 @@ function viewPuzzles(){
       ((P.status==='solved'||P.status==='shown')&&!app.rush?'<button class="btn primary sm" data-act="pznext">Next puzzle →</button>':'')+
       (app.rush&&(P.status==='solved'||P.status==='failed')?'<span class="dim small" style="align-self:center">next…</span>':'')+
       '</div>'+
-      ((P.status==='solved'||P.status==='shown'||P.status==='failed')?'<div class="dim small" style="margin-top:8px">Rating '+P.rating+(P.themes.length?' · '+P.themes.map(t=>(PZ_THEMES.find(x=>x[0]===t)||[,t])[1]).join(', '):'')+'</div>':'')+
+      ((P.status==='solved'||P.status==='shown'||P.status==='failed')?'<div style="margin-top:8px"><span class="dim small">Rating '+P.rating+'</span>'+
+        (P.themes.length?'<div class="row" style="gap:4px;flex-wrap:wrap;margin-top:5px">'+P.themes.map(function(t){var m=MOTIF_BY[t];
+          return '<button class="chip'+(m?' brand':'')+'" data-act="pzmotif" data-val="'+t+'"'+(m?' title="'+esc(m.d)+' — tap for more like this"':'')+' style="cursor:pointer">'+esc(motifLabel(t))+'</button>';}).join('')+'</div>':'')+
+        '</div>':'')+
     '</div>'+
     (P.status!=='solving'?'<div class="card" style="margin-top:12px"><a href="https://lichess.org/training" target="_blank" class="dim small">Puzzles from the Lichess open database (CC0)</a></div>':'')+
     '</div></div>';

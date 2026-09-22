@@ -11,6 +11,17 @@ it has loaded once it works with no internet at all.
 
 ---
 
+## First run
+
+Thirty-odd screens is a lot to be dropped into. The first time you open it,
+three questions — how much chess you play, what you want out of it, and how the
+board should look — set the engine strength, the time control, the puzzle
+difficulty and the career pace, and land you on the screen that matches what
+you said. Skip it and nothing at all is changed. It runs once, and *Settings →
+Run the setup questions again* puts you back through it.
+
+---
+
 ## Connecting your Chess.com account
 
 The tracker can read your real games. Chess.com's public API has **no login** —
@@ -112,6 +123,67 @@ move on their clock and two or three seconds of your life.
 
 ---
 
+## Training by what a puzzle teaches
+
+The bundled Lichess set carries six tags — mate, mate-in-1/2/3, endgame and
+promotion — and 9,291 of its 25,000 puzzles carry none at all. The motifs
+people actually want to drill were dropped when the set was built.
+
+They did not need to be downloaded. A motif is a fact about the position and
+the solution, so the app reads it off the board with the rules engine it
+already bundles: **fork, pin, skewer, discovered attack, double check, hanging
+piece, sacrifice, back-rank mate, smothered mate, quiet move, advanced pawn**.
+No new data, no network, and it works in the fully offline build like
+everything else. Pick one from the theme menu, or tap a motif under a puzzle
+you have just solved to get more of the same.
+
+Two rules keep the tagging honest. A motif is only reported when the key move
+is what brings it about — a rook that already shared a file with two enemy
+pieces before anyone moved is not what anybody means by a pin — and the set's
+own tags always win where they exist. Detection costs about 0.8 ms per puzzle,
+so filtering samples the set rather than scanning all 25,000, narrowing to the
+mates first for the motifs that can only happen in one. Sampled over 1,500
+puzzles, 948 carried a tag before and 1,397 do now.
+
+---
+
+## Exact endgames, and what people really play
+
+Two optional lookups against Lichess's free, key-less public endpoints. Both
+are strictly enhancements: nothing depends on either, every caller handles a
+null answer, each has a switch in Settings, and with the radio off the app
+behaves exactly as it did before. One request at a time, everything cached.
+
+**Tablebase.** With seven men or fewer on the board, an engine gives you an
+opinion and the Syzygy tables give you the answer. The play view and the
+opening explorer show the verdict — *White wins — mate in 23* — and then every
+legal move colour-coded by what it actually does: wins, draws, or throws it
+away. For an endgame drill that is a different thing from an evaluation: not
+"the engine likes Kf6" but "Kf6 is the only move that does not give away the
+win". A cursed win is called what it really is — drawn by the fifty-move rule.
+
+**Opening database.** The repertoire tree says what this app thinks you should
+play; the database says what two million games actually did. Every position in
+the explorer shows how often each move is played, how it scores as a
+white/draw/black bar, the average rating of the players who chose it, and the
+notable games it came from — switchable between **masters** (over-the-board,
+2200+) and **online players**, which is where you find out that the move
+nobody recommends scores well under 1800 because the refutation is hard to
+find. Every move in the table is playable straight off it.
+
+---
+
+## Arrows on the board
+
+Right-drag (or long-press and drag) draws an arrow; right-click circles a
+square. Plain is green, **shift** red, **alt** blue, **ctrl** yellow, so a plan
+and a threat can sit on the board at once. Drawing the same shape again rubs it
+out; drawing it in another colour recolours it. A knight's arrow bends along
+the move rather than cutting across the diagonal, the shape follows your
+pointer as you drag it, and a left-click clears the board.
+
+---
+
 ## Automation
 
 A career has a lot of small obvious decisions in it — claim the daily reward,
@@ -188,6 +260,7 @@ next refresh.
 | `visual-check.mjs` | Boots the real app in headless Chromium, screenshots key screens and reports page errors. |
 | `engine-check.mjs` | Downloads the real Stockfish and checks the evaluation against positions whose answer is known. |
 | `validate-strength.mjs` | The real-life strength model, the human clock, career automation, the dashboard, and that the board does not move. |
+| `validate-motifs.mjs` | The motif detector against positions whose answer is known, the tablebase's reading of the API, the opening database, board annotations and the first-run setup. |
 
 ## Build it yourself
 

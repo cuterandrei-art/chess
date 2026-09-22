@@ -189,7 +189,7 @@ ok(X.liveArrows().length===0,'and nothing at all draws nothing');
 const bh=X.renderBoard(new Chess().fen(),'white',{interactive:false,arrows:[{from:'e2',to:'e4',col:'#22c55e'}]});
 ok(/<svg/.test(bh)&&/#22c55e/.test(bh),'the board draws the arrow it is given');
 ok(X.renderBoard(new Chess().fen(),'white',{interactive:false}).indexOf('eah0')<0,'and draws none when given none');
-ok(X.renderBoard(new Chess().fen(),'white',{interactive:false,arrows:[{from:'zz',to:'e4'}]}).indexOf('<svg')<0,
+ok(X.renderBoard(new Chess().fen(),'white',{interactive:false,arrows:[{from:'zz',to:'e4'}]}).indexOf('eah0')<0,
   'a nonsense square is dropped rather than drawn wrong');
 
 /* the analyser can be forced past the global eval setting, which is what the switches rely on */

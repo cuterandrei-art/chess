@@ -54,6 +54,15 @@ ok(PUZZLES.length >= 20000, 'puzzle set present (' + PUZZLES.length + ')');
 new Function(script)(); // 2) boots without throwing
 ok(true, 'app boots');
 
+// A fresh visitor now lands on the first-run questions, so dismiss them before
+// driving the rest — and check that the skip really does get you out.
+{
+  const skip = document.querySelector('[data-act="onbskip"]');
+  ok(!!skip, 'a first-time visitor is met with the setup questions');
+  skip.click();
+  ok(!document.querySelector('[data-act="onbskip"]'), 'and skipping them gets you into the app');
+}
+
 const $ = (s) => document.querySelector(s), $$ = (s) => [...document.querySelectorAll(s)];
 const txt = () => document.getElementById('app').textContent;
 const clickAct = (a, val) => { const b = $$('[data-act="'+a+'"]').find(b => val==null || b.dataset.val===val); if(!b) throw new Error('no button '+a+(val?('='+val):'')); b.click(); };

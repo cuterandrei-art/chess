@@ -68,6 +68,7 @@ ok(hasApp, 'the app renders its interface');
 const click = async (sel) => { await page.evaluate(s => {
   const b = [...document.querySelectorAll(s)].find(x => x.offsetParent !== null); if (b) b.click();
 }, sel); await page.waitForTimeout(700); };
+await click('[data-act="onbskip"]');          // past the first-run questions
 await click('[data-act="nav"][data-val="puzzles"]');
 await click('[data-act="pznext"]');
 
