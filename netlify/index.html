@@ -4447,7 +4447,7 @@ function checkTitles(c){const got=[];const peak=titlePeak(c);
     c.titles.push(d.t);got.push(d.t);
   }
   return got;}
-const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},onboarded:false,settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',blunderWarn:true,srsSkip:true,tbOn:true,expOn:true,expDb:'masters',voiceOn:false,voiceName:'',voiceRate:1,liveEval:true,liveHints:true},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},myGames:[],myGamesMeta:null,ccProfile:null,ccAccount:null,daily:null,brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null,auto:null}};
+const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},onboarded:false,settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',blunderWarn:true,srsSkip:true,tbOn:true,expOn:true,expDb:'masters',voiceOn:false,voiceName:'',voiceRate:1,liveEval:true,liveHints:true},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},myGames:[],myGamesMeta:null,ccProfile:null,ccAccount:null,daily:null,brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null,auto:null,moments:[]}};
 function freshCareer(){return JSON.parse(JSON.stringify(DEF.career));}
 /* Migrate saved career data: the old ladder (with `beaten`/`results`) is reset
    to the new FIDE structure; new-format saves are merged onto fresh defaults. */
@@ -4457,6 +4457,65 @@ try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repert
 function rebuildOpenings(){const cust=(store.custom||[]).map(d=>{try{return buildOpening(d);}catch(e){return null;}}).filter(Boolean);BUILT=BASE.concat(cust);byId=new Map(BUILT.map(o=>[o.id,o]));}
 rebuildOpenings();
 function save(){localStorage.setItem(LS,JSON.stringify(store));}
+/* ---------------------------------------------------------------------------
+   Restoring a backup.
+
+   Export writes the whole store. For a long time import read back four fields
+   of it — repertoire, review schedule, settings, stats — and silently left
+   everything else alone, which on the machine you exported from looks like it
+   worked, because those fields still hold their old values. Restore the same
+   file onto a new phone and your career, your puzzle rating, your studies,
+   your brilliancies and your imported games were all quietly gone, under the
+   word "Progress imported."
+
+   This app has no account and no server: a backup file is the only way to
+   change device or survive a cleared cache, so it has to bring back all of it.
+   The load path at the top of the file is the authority on what a saved store
+   looks like, and this goes through the same doors — including the career
+   migration — so a file from an older version restores too.
+
+   It also says what it actually restored, rather than claiming success.
+   --------------------------------------------------------------------------- */
+function restoreBackup(text){
+  var d;
+  try{d=JSON.parse(text);}catch(e){return {ok:false,error:'That file isn\u2019t readable \u2014 it should be the .json this app exported.'};}
+  if(!d||typeof d!=='object'||Array.isArray(d))
+    return {ok:false,error:'That file isn\u2019t readable \u2014 it should be the .json this app exported.'};
+  var known=['repertoire','srs','custom','courseProgress','settings','stats','puzzle','studies',
+             'myGames','myGamesMeta','ccProfile','ccAccount','daily','brilliancies','career','onboarded','quests'];
+  var has=known.filter(function(k){return d[k]!==undefined;});
+  if(!has.length)return {ok:false,error:'That file has no progress in it \u2014 it should be the .json this app exported.'};
+  store.repertoire=d.repertoire||[];
+  store.srs=d.srs||{};
+  store.custom=d.custom||[];
+  store.courseProgress=d.courseProgress||{};
+  store.settings=Object.assign({},DEF.settings,d.settings);
+  store.stats=Object.assign({},DEF.stats,d.stats);
+  store.puzzle=Object.assign({},DEF.puzzle,d.puzzle);
+  store.studies=d.studies||[];
+  store.myGames=d.myGames||[];
+  store.myGamesMeta=d.myGamesMeta||null;
+  store.ccProfile=d.ccProfile||null;
+  store.ccAccount=d.ccAccount||null;
+  store.daily=d.daily||null;
+  store.brilliancies=d.brilliancies||[];
+  store.onboarded=!!d.onboarded;
+  store.career=migrateCareer(d.career);
+  if(d.quests)store.quests=d.quests;
+  rebuildOpenings();                      // custom openings have to be rebuilt to be usable
+  var c=store.career;
+  var bits=[];
+  if(c&&c.setup)bits.push('\ud83c\udfc6 '+(c.name||'your career')+' \u2014 '+(c.provisional?'unrated':(c.rating||'unrated'))+
+    ((c.titles||[]).length?', '+c.titles.join('/'):'')+', week '+(c.weeks||0));
+  if(store.repertoire.length)bits.push('\ud83d\udcd6 '+store.repertoire.length+' opening'+(store.repertoire.length===1?'':'s'));
+  if(store.puzzle&&(store.puzzle.solved||store.puzzle.failed))bits.push('\ud83e\udde9 puzzle rating '+store.puzzle.rating);
+  if(store.studies.length)bits.push('\ud83d\udcda '+store.studies.length+' stud'+(store.studies.length===1?'y':'ies'));
+  if(store.myGames.length)bits.push('\u265f\ufe0f '+store.myGames.length+' imported game'+(store.myGames.length===1?'':'s'));
+  if(store.brilliancies.length)bits.push('\ud83d\udc8e '+store.brilliancies.length+' brillianc'+(store.brilliancies.length===1?'y':'ies'));
+  return {ok:true,fields:has,
+    summary:'Restored:\n\n'+(bits.length?bits.join('\n'):'settings and progress')+'\n\nEverything in that file is back.'};
+}
+
 function dayKey(ts){const d=new Date(ts);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 /* Daily activity streak — any exercise (train / puzzle / play) counts. */
 function markActiveDay(){const s=store.stats;if(!s.activeDays)s.activeDays={};const k=dayKey(Date.now());if(!s.activeDays[k]){s.activeDays[k]=1;s.dayBest=Math.max(s.dayBest||0,dayStreak());save();}}
@@ -8423,6 +8482,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='onbback'){if(app.onb&&app.onb.step>0){app.onb.step--;render();}}
   else if(act==='onbskip')onbFinish(true);
   else if(act==='onbredo')onbStart();
+  else if(act==='momentsall'){app.momentsAll=!app.momentsAll;render();}
   else if(act==='expmove'){exMakeMove(val.slice(0,2),val.slice(2,4),val[4]||'q');}
   else if(act==='explay'){const o=byId.get(app.exId);const cur=exCurrent();startPlay(cur.fen,o.side==='white'?'w':'b',o.id,o.name,{tc:tcById(store.settings.tcId||'unlimited'),book:o,bookNode:cur});}
   else if(act==='pnew'){if(app.c960){const g=c960Start();startPlay(g.fen,app.playSide||'w',null,'🎲 Chess960 · vs engine',{tc:app.tc,c960:g.state});}else startPlay(app._playStartFen||new Chess().fen(),app.playSide||'w',app.playOpening||null,app.playTitle||'Free game',{tc:app.tc,bookId:(app.playBook?app.playBook.id:null)});}
@@ -8597,7 +8657,12 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='skip'||act==='next')nextLine();
   else if(act==='trainagain')startTraining(app.target,app.mode);
   else if(act==='reset')uiConfirm('Reset all training progress and statistics?',function(){store.srs={};store.stats=JSON.parse(JSON.stringify(DEF.stats));save();});
-  else if(act==='export'){const blob=new Blob([JSON.stringify(store,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='opening-trainer-backup.json';link.click();URL.revokeObjectURL(url);}
+  else if(act==='export'){
+    // Stamp it, and name it after the day, so a folder of backups is readable.
+    const out=Object.assign({_app:'chess-career',_saved:new Date().toISOString()},store);
+    const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;
+    link.download='chess-career-backup-'+dayKey(Date.now())+'.json';link.click();URL.revokeObjectURL(url);}
   else if(act==='import'){document.getElementById('importfile').click();}
   /* puzzles */
   else if(act==='pznext')pzNext();
@@ -8661,7 +8726,9 @@ document.getElementById('app').addEventListener('change',e=>{
     save();render();return;
   }
   if(e.target.id==='importfile'){const f=e.target.files[0];if(!f)return;const r=new FileReader();
-    r.onload=()=>{try{const d=JSON.parse(r.result);store.repertoire=d.repertoire||[];store.srs=d.srs||{};store.settings=Object.assign({},DEF.settings,d.settings);store.stats=Object.assign({},DEF.stats,d.stats);save();render();alert('Progress imported.');}catch(err){alert('Could not read that file.');}};
+    r.onload=()=>{const res=restoreBackup(r.result);
+      if(!res.ok){alert(res.error);return;}
+      save();render();alert(res.summary);};
     r.readAsText(f);}
 });
 document.getElementById('app').addEventListener('input',e=>{const ds=e.target.dataset&&e.target.dataset.setting;if(ds==='boardSize'){store.settings.boardSize=+e.target.value;document.body.style.setProperty('--bw',store.settings.boardSize+'px');}});
@@ -9158,7 +9225,7 @@ function fallbackCopy(text,done){try{const ta=document.createElement('textarea')
 function startPlay(fen,side,openingId,title,opts){opts=opts||{};
   app.view='play';app.playFen=fen;app._playStartFen=fen;app.playSide=side;app.playOpening=openingId||null;
   app.playTitle=title||'Free game';app.playFlip=false;app.playStack=[fen];app.playMoves=[];app.playView=0;app.playLast=null;app.playSel=null;app.careerBanter=null;app.careerReaction=null;
-  app.playHint=null;app.playEval=null;app.playResult=null;app.engineErr=false;app.drawMsg=null;app.blunderNote=null;app.coachNote=null;app.whyNot=null;app.oppDraw=null;app.oppSaid=null;app._oppLost=0;app._drawCd=0;app.pgnCopied=false;app.playPremoves=[];app.blindfold=!!opts.blindfold;app.peek=false;app.careerOpp=opts.careerOpp||null;app.careerElo=opts.careerElo||null;app.careerScored=false;app.careerDelta=0;app.careerTour=!!opts.careerTour;app.careerRoundOpp=opts.roundOpp||null;app.careerOneoff=opts.oneoff||null;app.c960=opts.c960||null;app.endgame=opts.endgame||null;app.playBot=opts.bot||null;app.tiltEval=false;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=!!(opts.league);app.careerHintsLeft=opts.careerOpp?careerHintAllowance():0;app._fxKey=null;app._lastEvalCp=null;app._engOutOfBook=false;app._engRetry=0;
+  app.playHint=null;app.playEval=null;app.playResult=null;app.careerStory=null;app.engineErr=false;app.drawMsg=null;app.blunderNote=null;app.coachNote=null;app.whyNot=null;app.oppDraw=null;app.oppSaid=null;app._oppLost=0;app._drawCd=0;app.pgnCopied=false;app.playPremoves=[];app.blindfold=!!opts.blindfold;app.peek=false;app.careerOpp=opts.careerOpp||null;app.careerElo=opts.careerElo||null;app.careerScored=false;app.careerDelta=0;app.careerTour=!!opts.careerTour;app.careerRoundOpp=opts.roundOpp||null;app.careerOneoff=opts.oneoff||null;app.c960=opts.c960||null;app.endgame=opts.endgame||null;app.playBot=opts.bot||null;app.tiltEval=false;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=!!(opts.league);app.careerHintsLeft=opts.careerOpp?careerHintAllowance():0;app._fxKey=null;app._lastEvalCp=null;app._engOutOfBook=false;app._engRetry=0;app._evLow=null;app._evHigh=null;
   app.playBook=opts.bookId?byId.get(opts.bookId):(opts.book||null);
   app.playBookNode=opts.bookNode||(app.playBook?app.playBook.root:null);
   const tc=opts.tc||tcById((opts.tcId)||'unlimited');app.tc=tc;
@@ -9262,7 +9329,7 @@ async function engineMove(){app.playStatus='engine';render();
       setTimeout(function(){playEngineBest(best,eng,plan,thinkFen);},hold);return;
     }
     playEngineBest(best,eng,plan,thinkFen);
-  },(t,v)=>{app.playEval={t:t,v:v,stm:turnOf(thinkFen)};});
+  },(t,v)=>{app.playEval={t:t,v:v,stm:turnOf(thinkFen)};noteSwing(app.playEval);});
 }
 /* Put the opponent's chosen move on the board, settle their clock and hand the
    turn back. Split out of engineMove so the move can be held until the think
@@ -9324,7 +9391,7 @@ const COACH_TYPES=[
   {spec:'Endgame guru',salary:60,emoji:'♜',desc:'smaller rating losses'},
 ];
 const SPONSOR_NAMES=['ChessGear','NeoBoard','Gambit Wear','Knightly Foods','Zugzwang Energy','OpenFile Tech','BlitzCola','Endgame Apparel','64 Squares','Caïssa Coffee'];
-function lifeInit(c){if(c.age==null)c.age=16;if(c.pace==null)c.pace=1;if(c.weeks==null)c.weeks=0;if(c.energy==null)c.energy=100;if(c.form==null)c.form=0;if(c.tilt==null)c.tilt=0;if(c.fame==null)c.fame=0;if(c.fans==null)c.fans=0;if(c.reputation==null)c.reputation=50;if(!c.coaches)c.coaches=[];if(c.prep==null)c.prep=0;if(!c.h2h)c.h2h={};if(c.sponsor===undefined)c.sponsor=null;if(c.objective===undefined)c.objective=null;if(c.retired==null)c.retired=false;if(c.pressPending===undefined)c.pressPending=null;if(c.rival===undefined)c.rival=null;if(!c.achievements)c.achievements=[];if(!c.news)c.news=[];if(c.preppedOpening===undefined)c.preppedOpening=null;if(c.tacticsTrained==null)c.tacticsTrained=0;if(c.xp==null)c.xp=0;if(!c.perks)c.perks={};if(Array.isArray(c.perks)){var _pm={};c.perks.forEach(function(_k){_pm[_k]=1;});c.perks=_pm;}if(c.season==null)c.season=Math.floor((c.weeks||0)/52)+1;if(!c.prepUsage)c.prepUsage={};if(c.protege===undefined)c.protege=null;if(c.winStreak==null)c.winStreak=0;if(c.bestWinStreak==null)c.bestWinStreak=0;if(c.unbeaten==null)c.unbeaten=0;if(c.weeksAtNo1==null)c.weeksAtNo1=0;if(c.noveltyCharge==null)c.noveltyCharge=1;if(c.noveltyArmed==null)c.noveltyArmed=false;if(c.noveltyCd==null)c.noveltyCd=0;if(!c.theory)c.theory={};if(c.refuted===undefined)c.refuted=null;if(c.trendy===undefined)c.trendy=null;if(c.youngGun===undefined)c.youngGun=null;if(c.scandal===undefined)c.scandal=null;if(c.subs==null)c.subs=0;if(c.collabCd==null)c.collabCd=0;if(!c.assets)c.assets=[];if(c.club===undefined)c.club=null;if(!c.books)c.books=[];if(c.backer===undefined)c.backer=null;if(c.fedCd==null)c.fedCd=0;if(c.broadcasts==null)c.broadcasts=0;if(c.academy===undefined)c.academy=null;if(c.gmsMade==null)c.gmsMade=0;if(!c.legendsBeaten)c.legendsBeaten=[];if(c.injury===undefined)c.injury=null;if(c.burnout==null)c.burnout=0;if(c.calendar===undefined)c.calendar=null;if(!c.calDone)c.calDone=[];if(c.transferred==null)c.transferred=false;if(c.dilemma===undefined)c.dilemma=null;if(c.mercDeeds==null)c.mercDeeds=0;if(c.heroDeeds==null)c.heroDeeds=0;if(c.lastBonusDay===undefined)c.lastBonusDay=null;if(c.skillPts==null)c.skillPts=0;if(c.lvlSeen==null)c.lvlSeen=charLevel(c);if(!c.circuit)c.circuit={pts:0,season:c.season||1};if(!c.social)c.social={followers:0,verified:false,posts:0,cd:0};if(!c.classicsStudied)c.classicsStudied=[];if(!c.roadDone)c.roadDone=[];if(!c.feed)c.feed=[];if(c.arc===undefined)c.arc=null;if(!c.arcsDone)c.arcsDone=[];if(!c.arcBadges)c.arcBadges=[];if(!c.home)c.home='hostel';if(c.health==null)c.health=100;if(c.mood==null)c.mood=62;if(c.day==null)c.day=0;if(!c.dayLog)c.dayLog=[];if(!c.weekLog)c.weekLog=[];if(c.debt==null)c.debt=0;if(c.lifeWeeks==null)c.lifeWeeks=0;if(!c.seasonStart)c.seasonStart=seasonSnapshot(c);if(c.seasonReview===undefined)c.seasonReview=null;if(!c.avatar)c.avatar=avatarDefaults(c);if(!c.avatarStyle)c.avatarStyle='char';if(c.simuls==null)c.simuls=0;if(c.simulPerfect==null)c.simulPerfect=0;parkInit(c);autoInit(c);if(!c._seed){c.money=(c.money||0)+1500;c._seed=true;}}
+function lifeInit(c){if(c.age==null)c.age=16;if(c.pace==null)c.pace=1;if(c.weeks==null)c.weeks=0;if(c.energy==null)c.energy=100;if(c.form==null)c.form=0;if(c.tilt==null)c.tilt=0;if(c.fame==null)c.fame=0;if(c.fans==null)c.fans=0;if(c.reputation==null)c.reputation=50;if(!c.coaches)c.coaches=[];if(c.prep==null)c.prep=0;if(!c.h2h)c.h2h={};if(c.sponsor===undefined)c.sponsor=null;if(c.objective===undefined)c.objective=null;if(c.retired==null)c.retired=false;if(c.pressPending===undefined)c.pressPending=null;if(c.rival===undefined)c.rival=null;if(!c.achievements)c.achievements=[];if(!c.news)c.news=[];if(c.preppedOpening===undefined)c.preppedOpening=null;if(c.tacticsTrained==null)c.tacticsTrained=0;if(c.xp==null)c.xp=0;if(!c.perks)c.perks={};if(Array.isArray(c.perks)){var _pm={};c.perks.forEach(function(_k){_pm[_k]=1;});c.perks=_pm;}if(c.season==null)c.season=Math.floor((c.weeks||0)/52)+1;if(!c.prepUsage)c.prepUsage={};if(c.protege===undefined)c.protege=null;if(c.winStreak==null)c.winStreak=0;if(c.bestWinStreak==null)c.bestWinStreak=0;if(c.unbeaten==null)c.unbeaten=0;if(c.weeksAtNo1==null)c.weeksAtNo1=0;if(c.noveltyCharge==null)c.noveltyCharge=1;if(c.noveltyArmed==null)c.noveltyArmed=false;if(c.noveltyCd==null)c.noveltyCd=0;if(!c.theory)c.theory={};if(c.refuted===undefined)c.refuted=null;if(c.trendy===undefined)c.trendy=null;if(c.youngGun===undefined)c.youngGun=null;if(c.scandal===undefined)c.scandal=null;if(c.subs==null)c.subs=0;if(c.collabCd==null)c.collabCd=0;if(!c.assets)c.assets=[];if(c.club===undefined)c.club=null;if(!c.books)c.books=[];if(c.backer===undefined)c.backer=null;if(c.fedCd==null)c.fedCd=0;if(c.broadcasts==null)c.broadcasts=0;if(c.academy===undefined)c.academy=null;if(c.gmsMade==null)c.gmsMade=0;if(!c.legendsBeaten)c.legendsBeaten=[];if(c.injury===undefined)c.injury=null;if(c.burnout==null)c.burnout=0;if(c.calendar===undefined)c.calendar=null;if(!c.calDone)c.calDone=[];if(c.transferred==null)c.transferred=false;if(c.dilemma===undefined)c.dilemma=null;if(c.mercDeeds==null)c.mercDeeds=0;if(c.heroDeeds==null)c.heroDeeds=0;if(c.lastBonusDay===undefined)c.lastBonusDay=null;if(c.skillPts==null)c.skillPts=0;if(c.lvlSeen==null)c.lvlSeen=charLevel(c);if(!c.circuit)c.circuit={pts:0,season:c.season||1};if(!c.social)c.social={followers:0,verified:false,posts:0,cd:0};if(!c.classicsStudied)c.classicsStudied=[];if(!c.roadDone)c.roadDone=[];if(!c.feed)c.feed=[];if(c.arc===undefined)c.arc=null;if(!c.arcsDone)c.arcsDone=[];if(!c.arcBadges)c.arcBadges=[];if(!c.home)c.home='hostel';if(c.health==null)c.health=100;if(c.mood==null)c.mood=62;if(c.day==null)c.day=0;if(!c.dayLog)c.dayLog=[];if(!c.weekLog)c.weekLog=[];if(c.debt==null)c.debt=0;if(c.lifeWeeks==null)c.lifeWeeks=0;if(!c.seasonStart)c.seasonStart=seasonSnapshot(c);if(c.seasonReview===undefined)c.seasonReview=null;if(!c.avatar)c.avatar=avatarDefaults(c);if(!c.avatarStyle)c.avatarStyle='char';if(c.simuls==null)c.simuls=0;if(c.simulPerfect==null)c.simulPerfect=0;if(!c.moments)c.moments=[];parkInit(c);autoInit(c);if(!c._seed){c.money=(c.money||0)+1500;c._seed=true;}}
 function maxEnergy(c){var base=c.age>=38?Math.max(72,100-Math.round((c.age-38)*2.5)):100;var e=base+(hasAsset(c,'gym')?8:0)+(hasAsset(c,'house')?12:0);e+=Math.round(((c.health==null?100:c.health)-75)/6);if(c.injury)e-=(c.injury.sev||1)*10;return Math.max(40,e);}
 function hasCoach(c,spec){return (c.coaches||[]).some(function(x){return x.spec===spec;});}
 function cbar(v,max,color){var p=Math.max(0,Math.min(100,v/max*100));return '<div style="height:7px;background:#1e293b;border-radius:5px;overflow:hidden;margin-top:3px"><i style="display:block;height:100%;width:'+p+'%;background:'+color+'"></i></div>';}
@@ -11262,6 +11329,7 @@ function careerTabContent(c,tab){
     h+=careerStreamPanel(c);
     h+=careerPublishPanel(c);
   } else if(tab==='legacy'){
+    h+=careerMomentsPanel(c);
     h+=careerNewsPanel(c);
     h+=careerArcHistory(c);
     h+=careerLegacyPanel(c);
@@ -11350,8 +11418,10 @@ function dashAlerts(c){
 function dashNow(c){
   if(c.tour){
     var tr=c.tour,done=tr.round>=tr.rounds;
+    const st=done?null:tourStakes(c,tr);
     return {icon:tr.emoji||'🏟️',title:esc(tr.name),
-      sub:done?'All rounds played — collect your result.':('Round '+(tr.round+1)+' of '+tr.rounds+' · '+fmtLabel(tr.format||'classical')+' '+(FORMAT_TC[tr.format||'classical']||'')+' · you have '+fmtScore(tr.score||0)+'/'+tr.round),
+      sub:done?'All rounds played — collect your result.'
+              :(st?esc(st.head):('Round '+(tr.round+1)+' of '+tr.rounds+' · '+fmtLabel(tr.format||'classical')+' '+(FORMAT_TC[tr.format||'classical']||''))),
       btn:done?null:{act:'careertab',val:'play',label:'▶ Go to the round'}};
   }
   var bills=lifeCosts(c,1),day=(c.day||0);
@@ -11812,6 +11882,7 @@ function careerTourView(c){
       '<div style="font-weight:800;font-size:17px">'+tr.emoji+' '+esc(tr.name)+'</div>'+
       '<div class="dim small">'+(done<total?'Round '+(done+1)+' of '+total:'Final round complete')+' · field avg '+tr.avg+(tr.normEligible?' · norm-eligible':'')+'</div></div>'+
       '<div style="text-align:right"><div style="font-weight:800;font-size:17px">'+fmtScore(scoreTot)+' / '+done+'</div><div class="dim small">live perf '+liveTpr+'</div></div></div>';
+  h+=tourStakesCard(c,tr);
   if(tr.normEligible)h+=normTracker(tr,c);
   h+='<div style="margin-top:10px">';
   tr.field.forEach((o,i)=>{
@@ -11834,6 +11905,62 @@ function careerTourView(c){
     '<div class="dim small">'+(done<total?'Win games to climb; a strong run can secure a norm. <span style="color:'+(conditionMod(c)>=0?'#86efac':'#fda4af')+'">You’re '+conditionNote(c).t+' ('+(conditionMod(c)>=0?'+':'')+conditionMod(c)+' Elo when simulating).</span>':'Tournament complete — your results are being finalised.')+'</div>'+
     '<div class="row" style="gap:6px">'+(done<total?'<button class="btn sec sm" data-act="simround" title="Auto-resolve this game from your rating &amp; current condition">⚡ Simulate</button><button class="btn ghost sm" data-act="simtour" title="Simulate the rest of the event">⏩ Sim to end</button>':'')+'<button class="btn ghost sm" data-act="careerwithdraw">Withdraw</button></div></div></div>';
   return h;
+}
+/* ---------------------------------------------------------------------------
+   What this round is actually worth.
+
+   The tournament screen has always shown the standings and the norm tracker,
+   and never once said the thing a player in that chair would be thinking:
+   win this and you win the tournament. A draw is enough. You are a point off
+   with two to play. It is all sitting in numbers the app already has — the
+   crosstable, the score, the rounds left — and saying it out loud is the
+   difference between playing round seven of nine and playing for something.
+   --------------------------------------------------------------------------- */
+function tourStakes(c,tr){
+  if(!tr||!tr.standings||!tr.standings.length)return null;
+  if(tr.kind==='simul')return null;
+  const left=tr.rounds-tr.round;
+  if(left<=0)return null;
+  const S=standingsSorted(tr);
+  const me=S.filter(function(p){return p.you;})[0];
+  if(!me)return null;
+  const rivals=S.filter(function(p){return !p.you;});
+  const lead=rivals.length?rivals[0].score:0;         // best score among the rest
+  const rank=S.indexOf(me)+1;
+  const gap=Math.round((me.score-lead)*2)/2;          // + = you are ahead
+  const ev=esc(tr.name);
+  const final=left===1;
+  let head,sub,tone='var(--brand2)';
+  if(me.score+left<lead){
+    head='Out of the running for first.';
+    sub='Play for the rating, the performance and whatever norm is still live.';
+    tone='var(--muted)';
+  } else if(me.score>lead+left){
+    // nobody left in the field can even draw level with you
+    head='First place is already yours.';
+    sub='Nobody can catch you now. Play the rest for the performance rating.';
+    tone='var(--green)';
+  } else if(final){
+    // one round left, so the most anyone else can add is a point
+    if(gap===1){head='A draw wins '+ev+' outright.';sub='And even a defeat leaves you at worst joint first.';tone='var(--green)';}
+    else if(gap===0.5){head='Win and '+ev+' is yours.';sub='A draw would leave you sharing first at best — only the full point settles it.';tone='var(--green)';}
+    else if(gap===0){head='Win and you win '+ev+'.';sub='Level at the top going into the last round. This is the game.';tone='var(--amber)';}
+    else if(gap===-0.5){head='Only a win will do.';sub='Half a point behind with one to play — a win puts you level at worst, and first if the leader slips.';tone='var(--amber)';}
+    else {head='You need a win, and some help.';sub=fmtScore(Math.abs(gap))+' behind with one round left — win, and hope the leader drops something.';tone='var(--amber)';}
+  } else {
+    if(gap>0){head='You lead by '+fmtScore(gap)+' with '+left+' to play.';sub='Rank '+ordinal(rank)+' of '+S.length+'. Hold your nerve and it is yours.';tone='var(--green)';}
+    else if(gap===0){head='Level at the top with '+left+' to play.';sub='Rank '+ordinal(rank)+' of '+S.length+'. Anything you drop now, somebody takes.';}
+    else {head=fmtScore(Math.abs(gap))+' off the lead with '+left+' to play.';sub='Rank '+ordinal(rank)+' of '+S.length+'. Still catchable — you need '+(Math.abs(gap)>=left?'every point from here.':'a win and a slip from the leader.');tone='var(--amber)';}
+  }
+  if(tr.champion&&me.score+left>=lead)sub+=' '+(tr.honor?('Win it and you are '+esc(tr.honor)+'.'):'A world title is on the line.');
+  return {head:head,sub:sub,tone:tone,rank:rank,of:S.length,gap:gap,left:left,final:final};
+}
+function tourStakesCard(c,tr){
+  const st=tourStakes(c,tr);
+  if(!st)return '';
+  return '<div style="margin-top:10px;padding:9px 12px;border-radius:9px;border:1px solid '+st.tone+'44;background:linear-gradient(120deg,rgba(255,255,255,.035),transparent)">'+
+    '<div style="font-weight:800;color:'+st.tone+'">'+(st.final?'⏳ Final round — ':'')+esc(st.head)+'</div>'+
+    '<div class="dim small" style="margin-top:2px">'+esc(st.sub)+'</div></div>';
 }
 function normTracker(tr,c){
   const fieldAvg=Math.round(tr.field.reduce((s,o)=>s+o.rating,0)/tr.field.length);
@@ -12104,10 +12231,127 @@ function careerEconomy(c){const money=c.money||0;
     '<div class="dim small" style="margin-top:4px">Prize money is paid out by your tournament finishes — bigger events and higher places pay more. Hire coaches and sign sponsors above to spend and earn between events.</div>';
   if(c.nemesis)h+='<div class="row" style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);align-items:center;gap:6px;flex-wrap:wrap"><span class="chip" style="background:#7f1d1d44;border-color:#7f1d1d">😠 Nemesis: '+esc(c.nemesis.name)+' '+(c.nemesis.flag||'')+' ('+c.nemesis.rating+')</span><span class="dim small">Beat them in an event to settle the score.</span></div>';
   return h+'</div>';}
+/* =========================================================================
+   HOW THE GAME WENT, NOT JUST HOW IT ENDED
+
+   A career result has always been 1, ½ or 0. But the win you scraped out of a
+   lost position and the win you got in twenty moves are not the same evening,
+   and a career made of identical points is a spreadsheet. The engine is
+   already evaluating every position while you play, so the shape of the game
+   is there for free: remember how bad it got and how good it got, and the
+   result can be told properly afterwards.
+   ========================================================================= */
+/* The worst and best it ever looked for you, in centipawns. */
+function noteSwing(ev){
+  if(!ev||!app.careerOpp||ev.t!=='cp')return;
+  const white=ev.stm==='w'?1:-1;
+  const cp=ev.v*white*(app.playSide==='w'?1:-1);        // + is good for you
+  if(app._evLow==null||cp<app._evLow)app._evLow=cp;
+  if(app._evHigh==null||cp>app._evHigh)app._evHigh=cp;
+}
+/* One line about the manner of it, and what that does to your head.
+   Pure, given the game state it is handed — so it can be tested. */
+function gameStory(o){
+  const score=o.score,plies=o.plies||0,low=o.low,high=o.high,res=o.result||'';
+  const lost=(low!=null&&low<=-300),winning=(high!=null&&high>=300);
+  const onTime=/on time/i.test(res);
+  if(score===1){
+    if(lost)return {k:'comeback',e:'🧗',t:'You were dead lost, and you won it anyway.',mood:9,tilt:-8,fame:0.6,big:true};
+    if(onTime)return {k:'flagwin',e:'⏱️',t:'Won on the clock — not pretty, but it counts.',mood:3,tilt:0};
+    if(plies<=44)return {k:'crush',e:'💥',t:'Over in '+Math.ceil(plies/2)+' moves. Never a contest.',mood:6,tilt:-3,fame:0.4,big:true};
+    if(plies>=140)return {k:'grind',e:'🪨',t:Math.ceil(plies/2)+' moves. You simply refused to let it go.',mood:5,tilt:-4,big:true};
+    return {k:'win',e:'✅',t:'A clean, professional win.',mood:4,tilt:-3};
+  }
+  if(score===0){
+    if(winning)return {k:'collapse',e:'😵',t:'You had that won, and let it slip.',mood:-9,tilt:15,big:true};
+    if(onTime)return {k:'flagloss',e:'⏱️',t:'The flag fell with a playable position. That one will sting.',mood:-7,tilt:12,big:true};
+    if(plies<=44)return {k:'blown',e:'🪓',t:'Blown off the board in '+Math.ceil(plies/2)+' moves.',mood:-8,tilt:10};
+    return {k:'loss',e:'❌',t:'Outplayed. It happens.',mood:-5,tilt:7};
+  }
+  if(lost)return {k:'escape',e:'🛡️',t:'You held a position you had no business holding.',mood:6,tilt:-6,big:true};
+  if(winning)return {k:'spilled',e:'😒',t:'A full point turned into a half. You know it, too.',mood:-6,tilt:9,big:true};
+  if(plies>=140)return {k:'marathon',e:'🕊️',t:Math.ceil(plies/2)+' moves, and neither of you would blink.',mood:2,tilt:0};
+  return {k:'draw',e:'🤝',t:'A correct, unremarkable draw.',mood:0,tilt:1};
+}
+/* =========================================================================
+   MOMENTS — the career remembering itself
+
+   You do not tell people your rating graph. You tell them about the time you
+   beat a grandmaster, or won the last round to take the title. Those are all
+   detectable from what already happens, so they are collected automatically:
+   nothing to manage, nothing to click, just a shelf that fills up as you play.
+   ========================================================================= */
+const MOMENT_CAP=60;
+function recordMoment(c,kind,e,text,opts){
+  opts=opts||{};
+  if(!c.moments)c.moments=[];
+  // a "first" is only a first once
+  if(opts.once&&c.moments.some(function(m){return m.k===kind;}))return null;
+  const m={k:kind,e:e,t:text,w:c.weeks||0,s:c.season||1,d:Date.now(),big:!!opts.big};
+  c.moments.unshift(m);
+  if(c.moments.length>MOMENT_CAP)c.moments.length=MOMENT_CAP;
+  // Deliberately NOT pushed into the news feed. Titles, norms and tournament
+  // wins already announce themselves there through their own code, and a shelf
+  // that repeats the column next to it is worth less than either of them. A
+  // toast marks the big ones as they land; the shelf is where they live.
+  if(opts.news)pushNews(c,e,text);
+  if(opts.big)toastAdd(e+' '+text);
+  return m;
+}
+/* Everything worth remembering about one game. */
+function momentsFromGame(c,o){
+  const score=o.score,opp=o.opp||{},story=o.story;
+  const myR=o.myRating||1200,gap=(opp.rating||0)-myR;
+  if(score===1){
+    if(opp.title==='GM')recordMoment(c,'firstGM','👑','Your first win over a Grandmaster — '+(opp.name||'a GM')+'.',{once:true,big:true});
+    else if(opp.title==='IM')recordMoment(c,'firstIM','🎖️','Your first win over an International Master — '+(opp.name||'an IM')+'.',{once:true,big:true});
+    else if(opp.title)recordMoment(c,'firstTitled','⭐','Your first win over a titled player — '+opp.title+' '+(opp.name||'')+'.',{once:true,big:true});
+    if(gap>=300)recordMoment(c,'giant','🗡️','Giant-killing: you beat '+(opp.name||'someone')+', rated '+Math.round(gap)+' above you.',{big:true});
+    else if(gap>=150)recordMoment(c,'upset','⚡','You beat '+(opp.name||'someone')+', '+Math.round(gap)+' points above you.',{});
+    if(c.rival&&opp.name===c.rival.name)recordMoment(c,'rival','🤺','You beat your rival '+opp.name+'.',{big:true});
+  }
+  if(story&&story.big)recordMoment(c,story.k,story.e,story.t+(opp.name?' ('+opp.name+')':''),{});
+}
+function momentsFromFinish(c,f){
+  if(!f)return;
+  if(f.place===1)recordMoment(c,'tourwin','🏆','You won '+f.name+'.',{big:true});
+  else if(f.place===2||f.place===3)recordMoment(c,'podium','🥈',ordinal(f.place)+' at '+f.name+'.',{});
+  (f.norms||[]).forEach(function(n){recordMoment(c,'norm','📜',n+' at '+f.name+'.',{big:true});});
+  (f.newTitles||[]).forEach(function(t){recordMoment(c,'title','👑','You became '+(TITLE_DEFS.filter(function(d){return d.t===t;})[0]||{name:t}).name+' ('+t+').',{big:true});});
+  (f.honors||[]).forEach(function(h){recordMoment(c,'honour','🌟',h+'.',{big:true});});
+  if(f.published)recordMoment(c,'published','📈','You earned a published rating: '+f.rating+'.',{once:true,big:true});
+}
+function careerMomentsPanel(c){
+  const ms=c.moments||[];
+  let h='<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">🎞️ Moments</div><div class="dim small">'+ms.length+' kept</div></div>'+
+    '<div class="dim small" style="margin-top:3px">The bits you would actually tell someone about. Collected as they happen — there is nothing here to manage.</div>';
+  if(!ms.length)return h+'<div class="dim small" style="margin-top:8px">Nothing yet. Beat somebody you had no right to beat.</div></div>';
+  h+='<div style="margin-top:7px">'+ms.slice(0,app.momentsAll?MOMENT_CAP:12).map(function(m){
+    return '<div class="row" style="gap:9px;align-items:flex-start;padding:6px 0;border-top:1px solid var(--border)">'+
+      '<span style="font-size:17px;line-height:1.2;flex:0 0 auto">'+m.e+'</span>'+
+      '<span class="small" style="flex:1;min-width:0'+(m.big?';font-weight:600':'')+'">'+esc(m.t)+'</span>'+
+      '<span class="dim" style="font-size:10px;flex:0 0 auto;white-space:nowrap">S'+(m.s||1)+' · wk '+(m.w||0)+'</span></div>';
+  }).join('')+'</div>';
+  if(ms.length>12)h+='<div class="row" style="margin-top:8px"><button class="btn ghost sm" data-act="momentsall">'+(app.momentsAll?'Show fewer':'Show all '+ms.length)+'</button></div>';
+  return h+'</div>';
+}
 function careerResult(score){
   if(!app.careerOpp||app.careerScored)return;app.careerScored=true;
   const c=store.career;
   lifeAfterGame(score);
+  // How it went, not just how it ended: this colours your mood and your tilt,
+  // and the memorable ones end up on the shelf in Legacy.
+  const _fmt=(c.tour&&c.tour.format)||app.careerOneoff||'classical';
+  const _opp=app.careerRoundOpp||(c.tour&&c.tour.field&&c.tour.field[c.tour.round])||null;
+  app.careerStory=gameStory({score:score,plies:(app.playMoves||[]).length,
+    low:app._evLow,high:app._evHigh,result:app.playResult||''});
+  if(app.careerStory&&!app.parkBet){
+    const st=app.careerStory;
+    c.mood=Math.max(0,Math.min(100,(c.mood==null?62:c.mood)+(st.mood||0)));
+    c.tilt=Math.max(0,Math.min(100,(c.tilt||0)+(st.tilt||0)));
+    if(st.fame)c.fame=Math.min(100,(c.fame||0)+st.fame);
+    if(_opp)momentsFromGame(c,{score:score,opp:_opp,story:st,myRating:youRating(c,_fmt)||c.rating||1200});
+  }
   if(app.careerRoundOpp)app.careerReaction=oppReaction(c,app.careerRoundOpp,score);
   if(app.parkBet){parkResult(score);save();return;}
   if(app.careerOneoff){
@@ -12120,6 +12364,7 @@ function careerResult(score){
     const res=score===1?'beat':score===0?'lost to':'drew with';
     c.history=c.history||[];c.history.unshift({name:'Challenge: '+res+' '+opp.name,emoji:'🎯',score:score,rounds:1,avg:opp.rating,tpr:opp.rating,norms:[],date:Date.now(),format:fmt,oneoff:true});
     app.careerFinish={name:'One-off vs '+opp.name,emoji:'🎯',score:score,rounds:1,avg:opp.rating,tpr:opp.rating,norms:[],newTitles:newTitles,honors:[],published:false,rating:youRating(c,fmt),place:null,format:fmt,oneoff:true};
+    momentsFromFinish(c,app.careerFinish);
     if(app.careerLeague){leagueResult(score);app.careerLeague=false;}
     if(app.careerLegend){var ln=app.careerLegend;if(score===1){c.legendsBeaten=c.legendsBeaten||[];if(c.legendsBeaten.indexOf(ln)<0)c.legendsBeaten.push(ln);c.fame=Math.min(100,c.fame+8);addXp(c,60);unlockAch(c,'legendslayer');pushNews(c,'🎭','You BEAT '+ln+' in an exhibition — a result for the history books!');toastAdd('🎭 You beat '+ln+'!');}else{c.fame=Math.min(100,c.fame+2);pushNews(c,'🎭','You played an exhibition game against '+ln+'.');}app.careerLegend=null;}
     checkAchievements(c);markActiveDay();save();return;
@@ -12191,6 +12436,7 @@ function finalizeTournament(c){
   pushFeed(c,won1st?'🏆':'📋',esc(c.name||'You')+(won1st?' WINS ':' finishes '+ordinal(place)+' at ')+esc(tr.name)+' with '+fmtScore(scoreTot)+'/'+games+' (TPR '+tpr+').','you');
   gainedNorms.forEach(function(k){pushFeed(c,'📜',esc(c.name||'You')+' scores a '+k+' norm at '+esc(tr.name)+'.','you');});
   app.careerFinish={name:tr.name,emoji:tr.emoji,score:scoreTot,rounds:games,avg:avgOpp,tpr:tpr,norms:gainedNorms,newTitles:newTitles,honors:gainedHonors,published:published,rating:youRating(c,fmt),place:place,format:fmt};
+  momentsFromFinish(c,app.careerFinish);      // the event is over: keep what was worth keeping
   lifeAfterEvent(tr,place,games);
   c.calDone=c.calDone||[];if(c.calDone.indexOf(tr.id)<0)c.calDone.push(tr.id);
   c.tour=null;
@@ -12798,7 +13044,7 @@ function viewPlay(){
   const evalHtml=(ev&&live&&store.settings.showEval&&!app.tiltEval)?'<div class="row" style="justify-content:space-between;margin-bottom:5px"><span class="dim small">Evaluation</span><span class="small" style="font-weight:800">'+esc(evalLabel(ev))+'</span></div><div class="evalbar"><i style="width:'+evalPct(ev.t,ev.v,ev.stm)+'%"></i></div>':'';
   let status;
   if(!live)status='<div style="font-weight:800;color:var(--amber)">⏪ Reviewing — move '+app.playView+' of '+lastIdx+'</div>';
-  else if(app.playStatus==='over'){var rk=resultKind(app.playResult);var rc=rk==='win'?'var(--green)':rk==='loss'?'#f87171':'var(--muted)';var re=rk==='win'?'🎉':rk==='loss'?'😞':'🤝';status='<div class="card" style="border-color:'+rc+';text-align:center;padding:14px 12px"><div style="font-size:30px;line-height:1">'+re+'</div><div style="font-weight:800;font-size:16px;color:'+rc+';margin-top:4px">'+esc(app.playResult||'Game over')+'</div>'+'<div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap;margin-top:11px">'+((app.playMoves&&app.playMoves.length)?'<button class="btn sec sm" data-act="revplay">🔬 Review game</button>':'')+(!app.careerOpp?'<button class="btn primary sm" data-act="prematch">↻ Rematch</button><button class="btn sec sm" data-act="nav" data-val="play">New game</button>':'')+'</div>'+'</div>'+((app.oppSaid)?'<div class="note" style="margin-top:8px;border-color:#f59e0b3d;background:#f59e0b14;color:#fde68a">🤝 <b>'+esc((app.careerRoundOpp&&app.careerRoundOpp.name)||'Your opponent')+':</b> “'+esc(app.oppSaid)+'”</div>':'')+((app.careerOpp&&app.careerReaction)?'<div class="note" style="margin-top:8px;border-color:#a855f73d;background:#a855f714;color:#e9d5ff">💬 <b>'+esc(app.careerReaction.who)+':</b> “'+esc(app.careerReaction.line)+'”</div>':'')+(app.careerOpp?careerPlayFooter():'')+(app.endgame?endgameVerdict():'');}
+  else if(app.playStatus==='over'){var rk=resultKind(app.playResult);var rc=rk==='win'?'var(--green)':rk==='loss'?'#f87171':'var(--muted)';var re=rk==='win'?'🎉':rk==='loss'?'😞':'🤝';status='<div class="card" style="border-color:'+rc+';text-align:center;padding:14px 12px"><div style="font-size:30px;line-height:1">'+re+'</div><div style="font-weight:800;font-size:16px;color:'+rc+';margin-top:4px">'+esc(app.playResult||'Game over')+'</div>'+(app.careerOpp&&app.careerStory?'<div class="dim small" style="margin-top:6px">'+app.careerStory.e+' '+esc(app.careerStory.t)+'</div>':'')+'<div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap;margin-top:11px">'+((app.playMoves&&app.playMoves.length)?'<button class="btn sec sm" data-act="revplay">🔬 Review game</button>':'')+(!app.careerOpp?'<button class="btn primary sm" data-act="prematch">↻ Rematch</button><button class="btn sec sm" data-act="nav" data-val="play">New game</button>':'')+'</div>'+'</div>'+((app.oppSaid)?'<div class="note" style="margin-top:8px;border-color:#f59e0b3d;background:#f59e0b14;color:#fde68a">🤝 <b>'+esc((app.careerRoundOpp&&app.careerRoundOpp.name)||'Your opponent')+':</b> “'+esc(app.oppSaid)+'”</div>':'')+((app.careerOpp&&app.careerReaction)?'<div class="note" style="margin-top:8px;border-color:#a855f73d;background:#a855f714;color:#e9d5ff">💬 <b>'+esc(app.careerReaction.who)+':</b> “'+esc(app.careerReaction.line)+'”</div>':'')+(app.careerOpp?careerPlayFooter():'')+(app.endgame?endgameVerdict():'');}
   else if(app.playStatus==='engine'){var pq=(app.playPremoves||[]).length;status='<div class="muted">Stockfish is thinking… '+(pq?'<span style="color:var(--brand2)">'+pq+' premove'+(pq>1?'s':'')+' queued</span> <span class="dim">· tap an empty square to cancel</span>':'<span class="dim">tap or drag to queue premoves</span>')+'</div>';}
   else{var _chk='';try{var _cc=new Chess(app.playFen);if(_cc.inCheck&&_cc.inCheck())_chk=' <span style="color:#f87171">— check!</span>';}catch(e){}status='<div style="font-weight:800;color:var(--brand2)">Your move ('+(app.playSide==='w'?'White':'Black')+').'+_chk+'</div>';}
   const interactive=live&&app.playStatus==='play'&&turnOf(app.playFen)===app.playSide;

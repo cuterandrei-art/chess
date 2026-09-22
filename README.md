@@ -184,6 +184,73 @@ pointer as you drag it, and a left-click clears the board.
 
 ---
 
+## Your backup really is a backup
+
+Everything lives in your browser — no account, no server — so the exported
+`.json` is the only way onto a new phone or back from a cleared cache. For a
+long time it did not work: export wrote the whole store, and import read back
+four fields of it and silently left the rest alone. On the machine you exported
+from that looks fine, because those fields still hold their old values. Restore
+the same file onto a new device and your career, your puzzle rating, your
+studies, your brilliancies and your imported games were gone, under the word
+*"Progress imported."*
+
+Restore now goes through the same doors as the normal load path, including the
+career migration, so an older file still works — and it tells you what it
+actually brought back rather than claiming success:
+
+> Restored:
+> 🏆 Testa — 2350, CM/FM, week 87 · 📖 3 openings · 🧩 puzzle rating 1880 …
+
+A file that is not one of ours is refused outright instead of being half
+applied over what you already have.
+
+---
+
+## What the round is worth
+
+The tournament screen has always shown the crosstable and the norm tracker, and
+never said the thing a player in that chair would be thinking. Now it does, in
+one line worked out from the standings and the rounds left:
+
+> **⏳ Final round — Win and you win Hastings Masters.**
+> Level at the top going into the last round. This is the game.
+
+A point clear with one to play and a draw wins it outright; half a point clear
+and only the full point settles it, because a draw gets caught. Two behind with
+one round left and it says you are out of it, because you are. The same line
+leads the dashboard while an event is running, so you can see what is at stake
+before you even open the tournament.
+
+---
+
+## Games that went differently
+
+A result used to be 1, ½ or 0, which makes a career out of identical points.
+The engine is already evaluating the position while you play, so the shape of
+the game costs nothing to keep: how bad it got, how good it got, how long it
+lasted, how it ended. Afterwards the game is told properly — *you were dead
+lost, and you won it anyway*; *you had that won, and let it slip*; *over in 19
+moves, never a contest*; *you held a position you had no business holding* —
+and it lands on your **mood** and your **tilt** accordingly. Stealing a win is
+worth more than a routine one; throwing a win away stings more than being
+outplayed. With no engine available it falls back to the length and the ending,
+and still says something true.
+
+---
+
+## Moments
+
+You do not tell people your rating graph. You tell them about the time you beat
+a grandmaster. Those are all detectable from what already happens, so the career
+keeps them by itself — your first win over a titled player, a giant-killing, the
+event you won, a norm, a title, beating your rival, and the games that went
+somewhere worth remembering. **Legacy → Moments** is the shelf they land on.
+There is nothing to manage and nothing to click: it fills up as you play, the
+big ones toast as they land, and a first is only a first once.
+
+---
+
 ## Automation
 
 A career has a lot of small obvious decisions in it — claim the daily reward,
@@ -261,6 +328,7 @@ next refresh.
 | `engine-check.mjs` | Downloads the real Stockfish and checks the evaluation against positions whose answer is known. |
 | `validate-strength.mjs` | The real-life strength model, the human clock, career automation, the dashboard, and that the board does not move. |
 | `validate-motifs.mjs` | The motif detector against positions whose answer is known, the tablebase's reading of the API, the opening database, board annotations and the first-run setup. |
+| `validate-moments.mjs` | What a round is worth, the manner of a result, and the moments a career keeps. |
 
 ## Build it yourself
 
