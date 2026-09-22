@@ -15,7 +15,11 @@ dom.window.__PUZZLES=[];
 let pass=0; const ok=(c,m)=>{if(!c)throw new Error('FAIL: '+m);pass++;console.log('  ✓ '+m);};
 const X=new Function(script+'\nreturn {store,app,lgUser,liveNormalise,tcLabel,liveDeadline,liveAgo,liveFetch,lgFens,liveOpen,liveOpenStored,liveCur,liveSeek,liveJump,liveWatching,livePollStop,livePollEnsure,livePollTick,liveEvalOn,liveHintsOn,liveAnalyse,liveArrows,liveLoadList,trkLivePanel,trkGamesList,viewLiveGame,viewTracker,liveReview,renderBoard,analysePos,LIVE_POLL_MS,TRK_TABS};')();
 const onlineFlag={v:true};
-Object.defineProperty(globalThis.navigator,'onLine',{get:()=>onlineFlag.v,configurable:true});
+// Node 21 gave globalThis a `navigator`; Node 20, which CI runs, has none, and
+// defining a property on `undefined` throws before a single check runs. Make
+// one where it is missing so the offline paths can be driven either way.
+const nav=(globalThis.navigator&&typeof globalThis.navigator==='object')?globalThis.navigator:(globalThis.navigator={});
+Object.defineProperty(nav,'onLine',{get:()=>onlineFlag.v,configurable:true});
 
 /* ================= reading what the API sends ================= */
 ok(X.lgUser('https://api.chess.com/pub/player/hikaru')==='hikaru','a player url yields the username');
