@@ -134,6 +134,11 @@ ok(/@media\(max-width:700px\)\{\.instbtn \.mlabel\{display:none\}\}/.test(html),
 ok(/\.menupanel\{[^}]*max-height:calc\(100vh - 170px\);overflow:auto/.test(html),
   'and the menu scrolls, so the last entries stay reachable above the bottom bar');
 ok(/installSheet\(\)/.test(script),'the steps render above everything else');
+// the welcome flow deliberately shows a bare header, so the button waits for it
+ok(/app\.view==='onboard'\?'<header class="top">/.test(script),
+  'the welcome screen replaces the whole top bar, so no install button competes with it');
+ok(/const chrome=app\.view==='onboard'\?[\s\S]{0,200}:head;/.test(script),
+  'and the normal bar — with the button on it — returns as soon as the welcome is done');
 const bundle=readFileSync('build/pwa-sw.html','utf8');
 ok(/__deferredInstall/.test(bundle),'the published bundle catches the offer early');
 ok(!/Install app/.test(bundle),'and no longer floats a second button of its own');
