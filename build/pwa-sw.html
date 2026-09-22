@@ -2,27 +2,13 @@
   if ('serviceWorker' in navigator) {
     addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
   }
-  (function () {
-    var deferred = null;
-    var btn = document.createElement('button');
-    btn.textContent = '\u2b07 Install app';
-    btn.style.cssText = 'position:fixed;right:14px;bottom:14px;z-index:99999;display:none;border:0;border-radius:12px;padding:12px 16px;font:700 14px Inter,system-ui,sans-serif;background:#1c84f5;color:#fff;box-shadow:0 10px 28px rgba(0,0,0,.45);cursor:pointer';
-    addEventListener('load', function () { document.body.appendChild(btn); });
-    window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; btn.style.display = 'block'; });
-    btn.addEventListener('click', function () { if (deferred) { deferred.prompt(); deferred.userChoice.then(function(){ deferred = null; btn.style.display = 'none'; }); } });
-    window.addEventListener('appinstalled', function () { btn.style.display = 'none'; });
-    // iOS Safari has no install prompt — show a one-time "Add to Home Screen" hint.
-    var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-    var standalone = window.navigator.standalone || matchMedia('(display-mode: standalone)').matches;
-    if (isIOS && !standalone && !localStorage.getItem('ot_ios_hint')) {
-      addEventListener('load', function () {
-        var t = document.createElement('div');
-        t.innerHTML = 'To install: tap <b>Share</b> then <b>Add to Home Screen</b>';
-        t.style.cssText = 'position:fixed;left:12px;right:12px;bottom:14px;z-index:99999;background:#0f172a;color:#e2e8f0;border:1px solid #1e293b;border-radius:12px;padding:12px 14px;font:600 13px Inter,system-ui,sans-serif;text-align:center;box-shadow:0 10px 28px rgba(0,0,0,.5)';
-        t.addEventListener('click', function () { t.remove(); localStorage.setItem('ot_ios_hint', '1'); });
-        document.body.appendChild(t);
-        setTimeout(function () { t.remove(); }, 10000);
-      });
-    }
-  })();
+  /* The browser can offer the install before the app's own script has run, and
+     the event is only usable if it was caught. So catch it here and leave it
+     where the in-app Install button looks for it — the button, the wording and
+     the per-browser fallbacks all live in the app itself. */
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    window.__deferredInstall = e;
+    try { window.dispatchEvent(new Event('installready')); } catch (err) {}
+  });
 </script>

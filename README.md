@@ -40,6 +40,26 @@ re-read and leaves games imported from Lichess untouched. Offline, the card
 says so, the buttons go quiet, and every number below it still works from the
 last sync.
 
+## Installing it — the button in the app
+
+The app carries its own **Install** button: in the top bar, in Settings, and in
+the **More** menu on a phone. Where the browser allows it, one press is a real
+install — Chrome and Edge on Windows, macOS and Linux, and Chrome on Android.
+The app keeps the `beforeinstallprompt` event the browser fires and replays it
+on that press.
+
+Not every browser can do that, and a button that silently does nothing is worse
+than no button, so the cases that cannot are told apart and given the real
+steps instead: Safari on iPhone and iPad has no prompt at all (Share → Add to
+Home Screen), desktop Safari uses File → Add to Dock, Firefox has no desktop
+install, and a page opened straight from a `file://` path cannot install itself
+under any browser — there it offers Chrome's *Create shortcut → Open as window*,
+which still gives an icon and its own window.
+
+For a one-press install you need the app served over https. Drop `netlify/`
+(or the built `ChessCareer-netlify.zip`) on https://app.netlify.com/drop, or
+switch GitHub Pages on — see below.
+
 ## Get it on your phone
 
 **Android app (recommended).** Every push builds an installable APK and attaches

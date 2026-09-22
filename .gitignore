@@ -11,3 +11,4 @@ app_project/android/**/build/
 app_project/android/.gradle/
 /tmp/
 .cache/
+ChessCareer-netlify.zip

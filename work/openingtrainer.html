@@ -29,10 +29,13 @@
   .menu{position:relative;margin-left:auto}
   .menubtn{cursor:pointer;display:flex;align-items:center;gap:7px;background:#16223b;border:1px solid var(--border);color:var(--text);font:inherit;font-weight:700;padding:9px 14px;border-radius:10px;-webkit-user-select:none;user-select:none}
   .menubtn .mlabel{color:var(--brand2)}
+  .instbtn{flex:0 0 auto;white-space:nowrap}
+  @media(max-width:700px){.instbtn .mlabel{display:none}}
+  .menupanel .instrow{grid-column:1/-1;background:var(--brand);color:#fff;font-weight:700}
   .menubtn .caret{margin-left:2px;color:var(--muted);font-size:11px;transition:transform .15s}
   .menubtn.open{background:#1d2b49;color:#fff}
   .menubtn.open .caret{transform:rotate(180deg)}
-  .menupanel{position:absolute;right:0;left:auto;top:calc(100% + 7px);z-index:60;background:var(--panel2,#111c33);border:1px solid var(--border);border-radius:12px;padding:6px;min-width:212px;max-width:calc(100vw - 20px);display:grid;grid-template-columns:1fr 1fr;gap:2px;box-shadow:0 14px 40px rgba(0,0,0,.5)}
+  .menupanel{position:absolute;right:0;left:auto;top:calc(100% + 7px);z-index:60;background:var(--panel2,#111c33);border:1px solid var(--border);border-radius:12px;padding:6px;min-width:212px;max-width:calc(100vw - 20px);display:grid;grid-template-columns:1fr 1fr;gap:2px;box-shadow:0 14px 40px rgba(0,0,0,.5);max-height:calc(100vh - 170px);overflow:auto;overscroll-behavior:contain}
   .menupanel button{background:transparent;border:0;color:var(--muted);font:inherit;font-weight:600;padding:10px 11px;border-radius:8px;cursor:pointer;text-align:left;width:100%}
   .menupanel button:hover{background:#16223b;color:var(--text)}
   .menupanel button.active{background:#1d2b49;color:#fff}
@@ -45,7 +48,7 @@
   .topnav button{background:transparent;border:0;color:var(--muted);font:inherit;font-weight:700;padding:8px 12px;border-radius:9px;cursor:pointer}
   .topnav button:hover{background:#16223b;color:var(--text)}
   .topnav button.active{background:#1d2b49;color:#fff}
-  .navright{display:flex;align-items:center;gap:8px;margin-left:auto}
+  .navright{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:nowrap}
   .botnav{position:fixed;left:0;right:0;bottom:0;z-index:70;display:flex;background:rgba(11,17,32,.95);backdrop-filter:blur(10px);border-top:1px solid var(--border);padding:4px 4px calc(4px + env(safe-area-inset-bottom))}
   .botnav button{flex:1;background:transparent;border:0;color:var(--dim);font:inherit;font-weight:600;font-size:10.5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border-radius:10px;-webkit-tap-highlight-color:transparent}
   .botnav button .bi{font-size:21px;line-height:1}
@@ -4525,7 +4528,7 @@ function delRep(id){store.repertoire=store.repertoire.filter(x=>x!==id);save();}
 /* ============================== app state ============================== */
 const app={view:'career',exId:null,exPath:[],exFlip:false,courseId:null,setupOpening:'',
   pz:null,pzSeen:new Set(),pzFilter:{type:'auto'},rush:null,
-  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,ccSyncing:false,ccSyncMsg:null,ccSyncErr:null,_ccAutoTried:false,drill:null,live:null,liveUser:null,liveList:null,liveLoading:false,liveErr:null,liveListAt:0,liveEv:null,liveBest:null,liveLines:[],liveEngErr:false,_liveKey:null,_livePollT:null,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
+  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,ccSyncing:false,ccSyncMsg:null,ccSyncErr:null,_ccAutoTried:false,drill:null,installOpen:false,installMsg:null,live:null,liveUser:null,liveList:null,liveLoading:false,liveErr:null,liveListAt:0,liveEv:null,liveBest:null,liveLines:[],liveEngErr:false,_liveKey:null,_livePollT:null,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
   confirm:null,
   review:null,studyId:null,studyChapter:0,studyPath:[],studyFlip:false,studyMsg:null,
 
@@ -4747,11 +4750,13 @@ function render(){
   const PRIMARY=[['career','🏆','Career'],['play','♟️','Play'],['puzzles','🧩','Puzzles'],['learn','📚','Learn']];
   const curP=primaryOf(cur);
   const topnav='<div class="topnav">'+PRIMARY.map(p=>'<button data-act="nav" data-val="'+p[0]+'" class="'+(curP===p[0]?'active':'')+'">'+p[1]+' '+p[2]+'</button>').join('')+'</div>';
-  const menuGrid=nav.map(v=>'<button data-act="nav" data-val="'+v+'" class="'+(app.view===v?'active':'')+'">'+navIcon(v)+' '+label(v)+'</button>').join('');
+  const menuGrid=(installStatus()==='installed'?'':'<button class="instrow" data-act="install">'+esc(installLabel())+'</button>')+
+    nav.map(v=>'<button data-act="nav" data-val="'+v+'" class="'+(app.view===v?'active':'')+'">'+navIcon(v)+' '+label(v)+'</button>').join('');
   const head='<header class="top"><div class="topin">'+
     '<button class="btn ghost sm" data-act="back" title="Back" style="margin-right:2px'+((app.navHist&&app.navHist.length)?'':';visibility:hidden')+'">←</button>'+
     '<div class="brand" data-act="nav" data-val="career"><span class="mark">♞</span>Chess<span style="color:var(--brand2)">Career</span></div>'+
     '<div class="navright">'+topnav+
+      (installStatus()==='installed'?'':'<button class="btn primary sm instbtn" data-act="install" title="Install Chess Career as an app" aria-label="Install the app">⬇<span class="mlabel" style="margin-left:5px">Install</span></button>')+
       '<div class="menu">'+
         '<button class="menubtn'+(app.menuOpen?' open':'')+'" data-act="menutoggle">☰ <span class="mlabel">More</span></button>'+
         (app.menuOpen?'<div class="menupanel">'+menuGrid+'</div>':'')+
@@ -4759,7 +4764,7 @@ function render(){
     '</div>'+
     '</div></header>'+
     '<nav class="botnav">'+PRIMARY.map(p=>'<button data-act="nav" data-val="'+p[0]+'" class="'+(curP===p[0]?'active':'')+'"><span class="bi">'+p[1]+'</span>'+p[2]+'</button>').join('')+'<button data-act="menutoggle" class="'+(app.menuOpen?'active':'')+'"><span class="bi">☰</span>More</button></nav>'+
-    (app.menuOpen?'<div class="menuscrim" data-act="menuclose"></div>':'');
+    (app.menuOpen?'<div class="menuscrim" data-act="menuclose"></div>':'')+installSheet();
   let body='';
   // A first-time visitor gets asked what they want before being shown all of it.
   if(onbNeeded()&&app.view!=='onboard'&&!app.onb){app.onb={step:0,level:null,goal:null,pieces:store.settings.pieces||'cburnett'};app.view='onboard';}
@@ -7353,6 +7358,166 @@ function viewDrill(){
   return h+'</div>';
 }
 
+/* ==================== INSTALLING THE APP ====================
+   Chrome and Edge fire `beforeinstallprompt` on a page they are willing to
+   install; we keep that event and fire it when the button is pressed, which is
+   a genuine one-tap install on a PC and on Android alike.
+
+   Not every browser can do that, and a button that silently does nothing is
+   worse than no button, so the ones that cannot are told apart and given the
+   real steps instead: Safari on iPhone and iPad has no prompt at all (Share →
+   Add to Home Screen), and a page opened straight from a file cannot install
+   itself under any browser, because installing needs a real address. */
+let _installEvt=null;
+function installCaptured(){
+  if(_installEvt)return _installEvt;
+  try{if(window.__deferredInstall){_installEvt=window.__deferredInstall;return _installEvt;}}catch(e){}
+  return null;
+}
+function installListen(){
+  try{
+    window.addEventListener('installready',function(){render();});   // caught before we booted
+    window.addEventListener('beforeinstallprompt',function(e){
+      e.preventDefault();_installEvt=e;
+      try{window.__deferredInstall=e;}catch(err){}
+      render();
+    });
+    window.addEventListener('appinstalled',function(){
+      _installEvt=null;
+      try{window.__deferredInstall=null;}catch(err){}
+      app.installMsg='Installed. Open it from your home screen or Start menu — it works offline.';
+      app.installOpen=false;render();
+    });
+  }catch(e){}
+}
+function installRunning(){                       // already launched as an app?
+  try{
+    if(navigator.standalone)return true;
+    if(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)return true;
+    if(window.matchMedia&&matchMedia('(display-mode: window-controls-overlay)').matches)return true;
+  }catch(e){}
+  return false;
+}
+function installIsIOS(){
+  try{
+    const ua=navigator.userAgent||'';
+    if(/iphone|ipad|ipod/i.test(ua))return true;
+    return /Mac/.test(navigator.platform||'')&&(navigator.maxTouchPoints||0)>1;   // iPadOS pretends to be a Mac
+  }catch(e){return false;}
+}
+function installProto(){try{return location.protocol;}catch(e){return '';}}
+/* What this browser, on this page, can actually do. */
+function installStatus(){
+  if(installRunning())return 'installed';
+  if(installCaptured())return 'ready';
+  if(installProto()==='file:')return 'file';
+  if(installIsIOS())return 'ios';
+  return 'manual';
+}
+function installBrowser(){
+  const ua=(function(){try{return navigator.userAgent||'';}catch(e){return '';}})();
+  if(/Edg\//.test(ua))return 'edge';
+  if(/OPR\//.test(ua))return 'opera';
+  if(/Firefox\//.test(ua))return 'firefox';
+  if(/Chrome\//.test(ua))return 'chrome';
+  if(/Safari\//.test(ua))return 'safari';
+  return 'other';
+}
+/* The steps, for the browsers that cannot do it in one press. */
+function installSteps(){
+  const st=installStatus(),b=installBrowser();
+  if(st==='installed')return {title:'Already installed',lines:['You are running the installed app right now.']};
+  if(st==='ios')return {title:'Add it to your Home Screen',
+    lines:['Tap the <b>Share</b> button at the bottom of Safari (the square with an arrow).',
+           'Scroll down and tap <b>Add to Home Screen</b>.',
+           'Tap <b>Add</b>. It gets its own icon and opens without Safari’s bars.'],
+    note:'iPhone and iPad have no one-tap install — Apple only offers this route, and only in Safari.'};
+  if(st==='file')return {title:'This copy is opened from a file',
+    lines:['A page opened straight from a file cannot install itself — a browser will only install something that has a real address.',
+           'You can still give it a window and an icon: in Chrome or Edge open the <b>⋮</b> menu → <b>Cast, save and share</b> → <b>Create shortcut…</b>, tick <b>Open as window</b>.',
+           'For a proper install with an icon, open the published copy of the app instead and press this button there.'],
+    note:'Everything works offline either way — this file contains the whole game.'};
+  if(b==='firefox')return {title:'Firefox cannot install web apps on a PC',
+    lines:['Firefox on the desktop has no install feature.',
+           'On Android: <b>⋮</b> → <b>Add to Home screen</b>.',
+           'On a PC, open this page in Chrome or Edge and the button here will install it in one press.']};
+  if(b==='safari')return {title:'Add it to your Dock',
+    lines:['In Safari on macOS: <b>File</b> → <b>Add to Dock…</b>.',
+           'It then opens in its own window, like any other app.']};
+  return {title:'Your browser has not offered it yet',
+    lines:['Chrome and Edge only offer the install after the page has fully loaded once. Reload the page and try again.',
+           'In Chrome or Edge you can also use <b>⋮</b> → <b>Cast, save and share</b> → <b>Install page as app</b>.',
+           'On Android: <b>⋮</b> → <b>Add to Home screen</b>.'],
+    note:'If this page is served over plain http rather than https, browsers refuse to install it.'};
+}
+/* The button itself. */
+async function installNow(){
+  const e=installCaptured();
+  if(!e){app.installOpen=true;app.installMsg=null;render();return;}
+  app.installMsg=null;
+  try{
+    e.prompt();
+    const r=await e.userChoice;
+    _installEvt=null;
+    try{window.__deferredInstall=null;}catch(err){}
+    app.installMsg=(r&&r.outcome==='accepted')
+      ? 'Installing — it will appear with your other apps in a moment.'
+      : 'Nothing installed. The button stays here if you change your mind.';
+  }catch(err){
+    // the offer is unusable — drop it, or the button would keep failing the
+    // same way, and show the route that does not need it
+    _installEvt=null;
+    try{window.__deferredInstall=null;}catch(e2){}
+    app.installMsg='The browser would not open the install dialog — here is how to do it by hand.';
+    app.installOpen=true;
+  }
+  render();
+}
+function installLabel(){
+  const st=installStatus();
+  if(st==='installed')return '✓ Installed';
+  if(st==='ready')return '⬇ Install the app';
+  if(st==='ios')return '⬇ Add to Home Screen';
+  return '⬇ How to install';
+}
+/* A card for Settings, and the same button wherever else it helps. */
+function installCard(){
+  const st=installStatus(),msg=app.installMsg;
+  const blurb=st==='installed'
+    ? 'You are running the installed app. It opens from your home screen or Start menu and works with no internet.'
+    : st==='ready'
+      ? 'One press puts it on this device — its own icon, its own window, and it keeps working offline.'
+      : st==='ios'
+        ? 'On iPhone and iPad it is added from Safari’s Share menu. Press for the exact steps.'
+        : st==='file'
+          ? 'This copy was opened from a file, so it cannot install itself. Press to see what to do instead.'
+          : 'Your browser has not offered an install for this page. Press to see how to do it by hand.';
+  return '<div class="card" style="margin-bottom:12px'+(st==='ready'?';border-color:var(--brand)':'')+'">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">'+
+      '<div style="min-width:0;flex:1"><div style="font-weight:700">📲 Install Chess Career</div>'+
+        '<div class="dim small">'+blurb+'</div></div>'+
+      (st==='installed'?'<span class="chip green" style="flex:0 0 auto">✓ Installed</span>'
+        :'<button class="btn '+(st==='ready'?'primary':'sec')+' sm" style="flex:0 0 auto" data-act="install">'+installLabel()+'</button>')+
+    '</div>'+
+    (msg?'<div class="note" style="margin-top:9px">'+esc(msg)+'</div>':'')+
+    '</div>';
+}
+/* The steps, shown when one press cannot do it. */
+function installSheet(){
+  if(!app.installOpen)return '';
+  const s=installSteps();
+  return '<div class="menuscrim" data-act="installclose" style="z-index:998"></div>'+
+    '<div class="card" style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:999;width:min(460px,calc(100vw - 28px));max-height:80vh;overflow:auto">'+
+      '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">'+
+        '<div style="font-weight:700">📲 '+esc(s.title)+'</div>'+
+        '<button class="btn ghost sm" data-act="installclose">✕</button></div>'+
+      '<ol style="margin:0 0 4px 18px;padding:0;line-height:1.6" class="small">'+
+        s.lines.map(l=>'<li style="margin-bottom:5px">'+l+'</li>').join('')+'</ol>'+
+      (s.note?'<div class="dim small" style="margin-top:8px">'+esc(s.note)+'</div>':'')+
+      '<div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn sec sm" data-act="installclose">Got it</button></div>'+
+    '</div>';
+}
+
 /* ---- the voice itself ---- */
 const Voice={
   ok:function(){try{return typeof window!=='undefined'&&!!window.speechSynthesis&&typeof window.SpeechSynthesisUtterance==='function';}catch(e){return false;}},
@@ -8090,6 +8255,7 @@ function rowSet(label,hint,control){return '<div class="row" style="justify-cont
 function viewSettings(){
   const lvl='<select data-setting="level">'+LEVELS.map((l,i)=>'<option value="'+i+'"'+(store.settings.level===i?' selected':'')+'>'+l.label+'</option>').join('')+'</select>';
   return '<div style="max-width:660px;margin:0 auto"><h1>Settings</h1><div class="muted small" style="margin-bottom:16px">Preferences and progress are saved in your browser.</div>'+
+    installCard()+
     '<div class="card"><div style="font-weight:700;margin-bottom:2px">Board &amp; pieces</div>'+
     rowSet('Piece set','Choose how the pieces look (loads on first use; cached after).',selOpt('pieces',PIECE_SETS))+
     rowSet('Board theme','Square colours.',selOpt('theme',THEMES))+
@@ -8402,6 +8568,8 @@ document.getElementById('app').addEventListener('click',e=>{
   const sqEl=e.target.closest('[data-sq]');if(sqEl){boardClick(sqEl.dataset.sq);return;}
   const a=e.target.closest('[data-act]');if(!a)return;
   const act=a.dataset.act,val=a.dataset.val,mode=a.dataset.mode,idx=a.dataset.idx;
+  if(act==='install'){app.menuOpen=false;installNow();return;}
+  if(act==='installclose'){app.installOpen=false;render();return;}
   if(act==='menutoggle'){app.menuOpen=!app.menuOpen;render();return;}
   if(act==='menuclose'){app.menuOpen=false;render();return;}
   app.menuOpen=false;
@@ -13854,6 +14022,7 @@ function viewStudyOpen(){
 /* The connect card reports whether you are online, so it must be told. */
 window.addEventListener('online',function(){app._ccAutoTried=false;render();});
 window.addEventListener('offline',function(){render();});
+installListen();
 window.addEventListener('keydown',e=>{
   if(e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;
   if(app.view==='explore'){
