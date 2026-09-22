@@ -129,6 +129,9 @@
   @media(max-width:360px){.dashmeters{grid-template-columns:repeat(2,1fr)}}
   .dashmeter .dim{overflow:hidden;text-overflow:ellipsis}
   .dashmeter{min-width:0}
+  /* the draw: pots side by side, wrapping to a column on a phone */
+  .drawpots{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:7px;margin-top:9px}
+  .drawpot{border:1px solid var(--border);border-radius:9px;padding:7px 9px;background:rgba(255,255,255,.02);min-width:0}
   .dashnow{display:flex;align-items:center;gap:10px;margin-top:10px;padding:9px 11px;border:1px solid var(--border);border-radius:11px;background:rgba(255,255,255,.025);flex-wrap:wrap}
   .dashnow .dashtxt{min-width:0;flex:1 1 150px}
   .dashnow .dashtxt .t{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -8483,6 +8486,8 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='onbskip')onbFinish(true);
   else if(act==='onbredo')onbStart();
   else if(act==='momentsall'){app.momentsAll=!app.momentsAll;render();}
+  else if(act==='drawnext'){var _dt=store.career.tour;if(_dt){_dt.drawn=Math.min(_dt.rounds,drawRevealed(_dt)+1);save();render();}}
+  else if(act==='drawall'){var _da=store.career.tour;if(_da){finishDraw(_da);save();render();}}
   else if(act==='expmove'){exMakeMove(val.slice(0,2),val.slice(2,4),val[4]||'q');}
   else if(act==='explay'){const o=byId.get(app.exId);const cur=exCurrent();startPlay(cur.fen,o.side==='white'?'w':'b',o.id,o.name,{tc:tcById(store.settings.tcId||'unlimited'),book:o,bookNode:cur});}
   else if(act==='pnew'){if(app.c960){const g=c960Start();startPlay(g.fen,app.playSide||'w',null,'🎲 Chess960 · vs engine',{tc:app.tc,c960:g.state});}else startPlay(app._playStartFen||new Chess().fen(),app.playSide||'w',app.playOpening||null,app.playTitle||'Free game',{tc:app.tc,bookId:(app.playBook?app.playBook.id:null)});}
@@ -10905,7 +10910,7 @@ function claimDaily(){var c=store.career;lifeInit(c);if(!dailyAvailable(c))retur
 function careerDailyPanel(c){if(!dailyAvailable(c))return '';var b=dailyBonusAmt(dayStreak());
   return '<div class="card" style="margin-bottom:12px;border-color:#22c55e;background:linear-gradient(90deg,rgba(34,197,94,.12),transparent)"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-weight:700">📅 Daily reward ready! <span class="dim small">'+b.streak+'-day streak · +💰'+b.amt+(b.xp?' &amp; +'+b.xp+' XP':'')+'</span></span><button class="btn primary sm" data-act="claimdaily">Claim</button></div></div>';}
 /* ===== Simulate a tournament game from the ratings instead of playing it out ===== */
-function _simRound(c){var tr=c.tour;var opp=tr.field[tr.round];var myr=(youRating(c,tr.format||'classical')||(c.rating||1400))+conditionMod(c);
+function _simRound(c){var tr=c.tour;finishDraw(tr);var opp=tr.field[tr.round];var myr=(youRating(c,tr.format||'classical')||(c.rating||1400))+conditionMod(c);
   var E=1/(1+Math.pow(10,(opp.rating-myr)/400)),score=_simScore(c,E);
   app.careerFinish=null;app.careerOpp='tour';app.careerScored=false;app.careerTour=true;app.careerOneoff=null;app.careerRoundOpp=opp;app.careerElo=opp.rating;app.playMoves=[];app.c960=null;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=false;
   careerResult(score);}
@@ -11873,6 +11878,48 @@ function matchScoreStrip(tr){
       '<div style="text-align:center;flex:1;min-width:0"><div class="dim small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(shortName)+'</div><div style="font-weight:800;font-size:26px">'+fmtScore(opp)+'</div></div>'+
     '</div><div class="small" style="text-align:center;margin-top:7px">'+status+'</div></div>';
 }
+/* The ceremony. Pots on the left, your fixtures filling in on the right, one
+   ball at a time — or all at once for anyone who would rather just play. */
+const POT_LABEL={1:{n:'Pot 1',d:'Seeded. The ones who can beat you.',c:'#f43f5e'},
+                 2:{n:'Pot 2',d:'Strong. Expect a game.',c:'#f59e0b'},
+                 3:{n:'Pot 3',d:'Even money on a good day.',c:'#38bdf8'},
+                 4:{n:'Pot 4',d:'You are expected to win these.',c:'#22c55e'}};
+function tourDrawPanel(c,tr){
+  if(!tr||tr.kind==='match'||tr.kind==='simul')return '';
+  const pots=tourPots(tr);
+  if(!pots.length)return '';
+  const done=drawComplete(tr),shown=drawRevealed(tr);
+  let h='<div class="card" style="margin-bottom:12px;border-color:#a855f755;background:linear-gradient(150deg,rgba(168,85,247,.09),transparent 62%),var(--panel)">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<div style="font-weight:800">🎱 The draw — '+esc(tr.name)+'</div>'+
+      '<div class="dim small">'+(done?'all '+tr.rounds+' rounds drawn':shown+' of '+tr.rounds+' drawn')+'</div></div>';
+  if(!done)h+='<div class="dim small" style="margin-top:3px">The field is seeded into pots. Your fixtures come out one at a time — and the order is not the rating order, so round one might be the top seed.</div>';
+  // the pots
+  h+='<div class="drawpots">'+pots.map(function(g){
+    const L=POT_LABEL[g.pot]||{n:'Pot '+g.pot,d:'',c:'var(--muted)'};
+    return '<div class="drawpot" style="border-color:'+L.c+'55">'+
+      '<div style="font-weight:800;font-size:11px;color:'+L.c+'">'+L.n+'</div>'+
+      '<div class="dim" style="font-size:10px;margin-bottom:4px">'+esc(L.d)+'</div>'+
+      g.players.map(function(o){
+        const drawnAt=tr.field.indexOf(o);
+        const out=drawnAt>=0&&drawnAt<shown;
+        return '<div class="small" style="padding:1px 0;opacity:'+(out?'.45':'1')+'">'+
+          (o.title?'<b style="color:var(--brand2)">'+o.title+'</b> ':'')+esc(short(o.name))+
+          ' <span class="dim">'+o.rating+'</span>'+(out?' <span class="dim" style="font-size:9px">R'+(drawnAt+1)+'</span>':'')+'</div>';
+      }).join('')+'</div>';
+  }).join('')+'</div>';
+  // your fixtures as they come out
+  h+='<div class="dim small" style="margin:9px 0 4px;text-transform:uppercase;font-size:10px;letter-spacing:.08em">Your fixtures</div>'+
+    '<div class="row" style="gap:4px;flex-wrap:wrap">'+tr.field.map(function(o,i){
+      if(i>=shown)return '<span class="chip" style="opacity:.45">R'+(i+1)+' · —</span>';
+      const L=POT_LABEL[o.pot||1]||{c:'var(--muted)'};
+      return '<span class="chip" style="border-color:'+L.c+'66;color:'+L.c+'" title="Pot '+(o.pot||1)+' · '+esc(o.name)+' ('+o.rating+')">R'+(i+1)+' · '+(o.title?o.title+' ':'')+esc(short(o.name))+' '+o.rating+'</span>';
+    }).join('')+'</div>';
+  if(!done)h+='<div class="row" style="gap:6px;margin-top:10px">'+
+    '<button class="btn primary sm" data-act="drawnext">🎱 Draw round '+(shown+1)+'</button>'+
+    '<button class="btn sec sm" data-act="drawall">Draw them all</button></div>';
+  return h+'</div>';
+}
 function careerTourView(c){
   const tr=c.tour,done=tr.round,total=tr.rounds;
   const scoreTot=tr.results.reduce((s,r)=>s+r.score,0);
@@ -11883,10 +11930,18 @@ function careerTourView(c){
       '<div class="dim small">'+(done<total?'Round '+(done+1)+' of '+total:'Final round complete')+' · field avg '+tr.avg+(tr.normEligible?' · norm-eligible':'')+'</div></div>'+
       '<div style="text-align:right"><div style="font-weight:800;font-size:17px">'+fmtScore(scoreTot)+' / '+done+'</div><div class="dim small">live perf '+liveTpr+'</div></div></div>';
   h+=tourStakesCard(c,tr);
+  h=tourDrawPanel(c,tr)+h;
   if(tr.normEligible)h+=normTracker(tr,c);
   h+='<div style="margin-top:10px">';
+  const _shown=drawRevealed(tr);
   tr.field.forEach((o,i)=>{
     const played=i<done,r=tr.results[i],cur=i===done&&done<total;
+    if(i>=_shown){                       // not out of the pot yet
+      h+='<div style="display:flex;align-items:center;gap:9px;padding:8px 2px;border-top:1px solid var(--border);opacity:.5">'+
+        '<div class="dim small" style="width:26px">R'+(i+1)+'</div>'+
+        '<div class="dim small" style="flex:1">🎱 To be drawn</div></div>';
+      return;
+    }
     let res='<span class="dim small">—</span>';
     if(played)res=(r.score===1?'<b style="color:var(--green)">1</b>':r.score===0?'<b style="color:#f87171">0</b>':'<b class="dim">½</b>')+(r.delta!=null&&r.delta!==0?' <span class="dim small">'+(r.delta>0?'+':'')+r.delta+'</span>':'');
     else if(cur)res='<button class="btn primary sm" data-act="careerplay">Play ▸</button>';
@@ -11931,6 +11986,16 @@ function tourStakes(c,tr){
   const ev=esc(tr.name);
   const final=left===1;
   let head,sub,tone='var(--brand2)';
+  if(!tr.round){
+    // Before a move has been played everybody is on nothing, so the crosstable
+    // has nothing to say yet. What it can say is where you are seeded.
+    const byRating=tr.standings.slice().sort(function(a,b){return b.rating-a.rating;});
+    const seed=byRating.findIndex(function(p){return p.you;})+1;
+    head=tr.rounds+' rounds, and everybody starts on nothing.';
+    sub=(seed>0?'You are the '+ordinal(seed)+' seed of '+tr.standings.length+'. ':'')+
+        'Anything better than that is a good week.';
+    return {head:head,sub:sub,tone:'var(--brand2)',rank:seed,of:tr.standings.length,gap:0,left:left,final:false,start:true};
+  }
   if(me.score+left<lead){
     head='Out of the running for first.';
     sub='Play for the rating, the performance and whatever norm is still live.';
@@ -12129,14 +12194,80 @@ function makeField(t){
     for(let i=0;i<t.rounds;i++)arr.push({name:ch.name,rating:cr,title:'GM',fed:ch.fed,flag:ch.flag,style:'universal'});
     return arr;
   }
-  const field=[];
+  const players=[];
   for(let i=0;i<t.rounds;i++){
     let r=Math.round(t.avg+gauss()*t.spread);r=Math.max(800,Math.min(2850,r));
-    const fed=t.natChamp?{c:store.career.fed,f:store.career.flag}:randFed();field.push({name:t.creator?pick(STREAMERS):randName(),rating:r,title:titleByRating(r),fed:fed.c,flag:fed.f,style:pickStyle()});
+    const fed=t.natChamp?{c:store.career.fed,f:store.career.flag}:randFed();players.push({name:t.creator?pick(STREAMERS):randName(),rating:r,title:titleByRating(r),fed:fed.c,flag:fed.f,style:pickStyle()});
   }
-  field.sort((a,b)=>a.rating-b.rating); // gentle ramp: easier boards first
+  return drawFixtures(players,t.rounds);
+}
+/* ---------------------------------------------------------------------------
+   THE DRAW
+
+   Every event used to be the same escalator: the field was sorted by rating
+   and handed to you weakest first, so round one was always a warm-up and the
+   last round always the hardest game of the week. You knew the shape of a
+   tournament before you entered it.
+
+   So it is drawn instead, the way European football does it. The field is
+   seeded into pots — Pot 1 the dangerous ones, the last pot the ones you are
+   expected to beat — and your fixture list is drawn one round at a time from a
+   shuffled plan. You still face a balanced spread of pots, so an event is
+   never a walkover or a massacre; what you do not know is the order. Round one
+   might be the top seed.
+   --------------------------------------------------------------------------- */
+const POT_MAX=4;
+/* How many fixtures come out of each pot, and in what order the pots are
+   pulled. Balanced by construction, shuffled on purpose. */
+function drawPlan(rounds){
+  const potCount=Math.max(1,Math.min(POT_MAX,rounds));
+  const base=Math.floor(rounds/potCount);
+  const counts=new Array(potCount).fill(base);
+  // the spare fixtures go to pots chosen at random, not always the top one
+  const spare=rounds-base*potCount;
+  const idx=shuffle(counts.map(function(_,i){return i;}));
+  for(let i=0;i<spare;i++)counts[idx[i]]++;
+  const order=[];
+  counts.forEach(function(n,pot){for(let i=0;i<n;i++)order.push(pot);});
+  return {potCount:potCount,counts:counts,order:shuffle(order)};
+}
+/* Seed, pot, draw. Returns the field in the order you will actually play it,
+   each opponent tagged with the pot they came out of. */
+function drawFixtures(players,rounds){
+  const plan=drawPlan(rounds);
+  const seeded=players.slice().sort(function(a,b){return b.rating-a.rating;});  // Pot 1 first
+  const pots=[];let k=0;
+  plan.counts.forEach(function(n){pots.push(seeded.slice(k,k+n));k+=n;});
+  const field=[];
+  plan.order.forEach(function(p){
+    const pot=pots[p];
+    if(!pot.length)return;
+    const who=pot.splice(Math.floor(Math.random()*pot.length),1)[0];
+    who.pot=p+1;
+    field.push(who);
+  });
   return field;
 }
+/* The pots as drawn, rebuilt from the field so there is no second copy of the
+   truth to keep in step. */
+function tourPots(tr){
+  if(!tr||!tr.field)return [];
+  const by={};
+  tr.field.forEach(function(o){const p=o.pot||1;(by[p]=by[p]||[]).push(o);});
+  return Object.keys(by).sort().map(function(p){
+    return {pot:+p,players:by[p].slice().sort(function(a,b){return b.rating-a.rating;})};
+  });
+}
+/* How much of your own draw you have watched. An event saved before there was
+   a draw counts as fully revealed, so an old career opens where it left off. */
+function drawRevealed(tr){
+  if(!tr)return 0;
+  if(tr.drawn==null)return tr.rounds||0;
+  return Math.max(0,Math.min(tr.rounds||0,tr.drawn));
+}
+function drawComplete(tr){return drawRevealed(tr)>=(tr&&tr.rounds||0);}
+/* Nothing is ever blocked by the ceremony: starting a round finishes it. */
+function finishDraw(tr){if(tr)tr.drawn=tr.rounds||0;}
 /* ===== Spectator: watch two leaderboard players play, simulated at their
    real ratings (engine vs engine). ===== */
 function specLvl(rating){return rating>=1320?{elo:rating,skill:20,mt:550}:{elo:0,skill:Math.max(0,Math.min(9,Math.round((rating-700)/80))),mt:350};}
@@ -12169,7 +12300,7 @@ function joinTournament(id){
   const t=TOURNAMENTS.find(x=>x.id===id),c=store.career;if(!t||c.tour)return;
   if(tourLocked(t,c))return;
   app.careerFinish=null;
-  c.tour={id:t.id,name:t.name,emoji:t.emoji,rounds:t.rounds,round:0,field:makeField(t),results:[],normEligible:!!t.norm,avg:t.avg,tier:t.tier,format:eventFormat(t),champion:!!t.champion,honor:t.honor||null,kind:t.kind||'swiss',var960:!!t.var960,started:Date.now()};
+  c.tour={id:t.id,name:t.name,emoji:t.emoji,rounds:t.rounds,round:0,field:makeField(t),results:[],normEligible:!!t.norm,avg:t.avg,tier:t.tier,format:eventFormat(t),champion:!!t.champion,honor:t.honor||null,kind:t.kind||'swiss',var960:!!t.var960,started:Date.now(),drawn:0};
   if(c.tour.kind!=='match'){
     const pool=c.tour.field.map((o,i)=>({id:'p'+i,name:o.name,rating:o.rating,title:o.title,flag:o.flag,score:0,you:false}));
     pool.push({id:'__you',name:c.name,rating:youRating(c,c.tour.format)||(c.rating||1400),title:bestTitle(c),flag:c.flag,score:0,you:true});
@@ -12188,6 +12319,8 @@ function applyCareerCondition(){var c=store.career;if(!c||!c.setup)return;lifeIn
    that exact line, your mastery of it becomes an in-game edge. */
 function oppBookEdge(opp,side){var c=store.career;var oppColor=side==='w'?'b':'w';var id=oppOpenings(opp.name)[oppColor];var o=id?byId.get(id):null;if(!o)return null;var edge=inRep(o.id)?(progress(o,store.srs).mastery||0)*theoryMod(c,o.id):0;return {book:o,bookNode:o.root,id:o.id,studyEdge:Math.max(0,Math.min(1,edge))};}
 function playTourRound(){
+  // starting a round finishes the draw — the ceremony never blocks the chess
+  if(store.career.tour)finishDraw(store.career.tour);
   const c=store.career;if(!c.tour)return;const tr=c.tour;if(tr.round>=tr.rounds)return;
   app.careerFinish=null;
   const opp=tr.field[tr.round],side=Math.random()<0.5?'w':'b';

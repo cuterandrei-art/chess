@@ -207,6 +207,32 @@ applied over what you already have.
 
 ---
 
+## The draw
+
+Every event used to be the same escalator. The field was generated, sorted by
+rating and handed to you weakest first, so round one was always a warm-up and
+the last round was always the hardest game of the week. You knew the shape of a
+tournament before you entered it.
+
+It is drawn now, the way European football does it. The field is seeded into
+**pots** — Pot 1 the ones who can beat you, Pot 4 the ones you are expected to
+beat — and your fixture list is drawn one round at a time from a shuffled plan.
+You still face a balanced spread, so an event is never a walkover or a
+massacre; what you no longer know is the order. Round one might be the top
+seed.
+
+The draw is a small ceremony when you enter an event: the pots are laid out and
+your fixtures come out one ball at a time, or all at once for anyone who would
+rather just play. It never blocks anything — pressing **Play** finishes the
+draw itself. Over 600 nine-round draws, the weakest-to-strongest order that
+used to be guaranteed now turns up twice, your first opponent comes out of all
+four pots about equally often, and no two events are drawn the same way.
+
+The World Championship match is not drawn, for the obvious reason that there is
+only one opponent.
+
+---
+
 ## What the round is worth
 
 The tournament screen has always shown the crosstable and the norm tracker, and
@@ -328,7 +354,7 @@ next refresh.
 | `engine-check.mjs` | Downloads the real Stockfish and checks the evaluation against positions whose answer is known. |
 | `validate-strength.mjs` | The real-life strength model, the human clock, career automation, the dashboard, and that the board does not move. |
 | `validate-motifs.mjs` | The motif detector against positions whose answer is known, the tablebase's reading of the API, the opening database, board annotations and the first-run setup. |
-| `validate-moments.mjs` | What a round is worth, the manner of a result, and the moments a career keeps. |
+| `validate-moments.mjs` | The tournament draw, what a round is worth, the manner of a result, and the moments a career keeps. |
 
 ## Build it yourself
 

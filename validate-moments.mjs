@@ -23,7 +23,8 @@ dom.window.__PUZZLES=[];
 
 let pass=0; const ok=(c,m)=>{if(!c)throw new Error('FAIL: '+m);pass++;console.log('  ✓ '+m);};
 const X=new Function(script+'\nreturn {store,app,tourStakes,tourStakesCard,gameStory,noteSwing,recordMoment,momentsFromGame,'+
-  'momentsFromFinish,careerMomentsPanel,MOMENT_CAP,lifeInit,careerTabContent,fmtScore};')();
+  'momentsFromFinish,careerMomentsPanel,MOMENT_CAP,lifeInit,careerTabContent,fmtScore,'+
+  'drawPlan,drawFixtures,tourPots,drawRevealed,drawComplete,finishDraw,tourDrawPanel,makeField,POT_MAX};')();
 
 /* ===================== what this round is worth ===================== */
 const board=(round,rounds,mine,others,extra)=>Object.assign(
@@ -131,5 +132,90 @@ ok(/Moments/.test(X.careerMomentsPanel(c))&&/Hastings/.test(X.careerMomentsPanel
 c.moments=[];
 ok(/Nothing yet/.test(X.careerMomentsPanel(c)),'and says so honestly when it is empty');
 ok(/Moments/.test(X.careerTabContent(c,'legacy')),'it lives in Legacy, with the rest of the story');
+
+
+/* ===================== the draw ===================== */
+/* Every event used to be the same escalator — the field sorted by rating and
+   handed over weakest first. It is drawn from seeded pots now, so the checks
+   are about balance (an event is never a walkover or a massacre) and about
+   the order genuinely not being the rating order. */
+const seedField=(n)=>Array.from({length:n},(_,i)=>({name:'P'+i,rating:2500-i*40}));
+
+for (const rounds of [1,2,3,5,6,7,9,11,13,14]) {
+  const f=X.drawFixtures(seedField(rounds),rounds);
+  if(f.length!==rounds)throw new Error('FAIL: '+rounds+' rounds drew '+f.length+' fixtures');
+  if(new Set(f.map(o=>o.name)).size!==rounds)throw new Error('FAIL: an opponent was drawn twice at '+rounds+' rounds');
+  const counts={}; f.forEach(o=>counts[o.pot]=(counts[o.pot]||0)+1);
+  const vals=Object.values(counts);
+  if(Math.max(...vals)-Math.min(...vals)>1)throw new Error('FAIL: lopsided pots at '+rounds+' rounds: '+JSON.stringify(counts));
+  if(Object.keys(counts).length!==Math.min(X.POT_MAX,rounds))throw new Error('FAIL: wrong pot count at '+rounds+' rounds');
+}
+pass++; console.log('  ✓ every event length draws a full, balanced field with nobody twice');
+
+/* seeding: Pot 1 really is the dangerous end */
+{
+  const f=X.drawFixtures(seedField(12),12);
+  const avg=p=>{const g=f.filter(o=>o.pot===p);return g.reduce((s,o)=>s+o.rating,0)/g.length;};
+  ok(avg(1)>avg(2)&&avg(2)>avg(3)&&avg(3)>avg(4),'the pots are seeded by strength, Pot 1 downwards');
+}
+
+/* the whole point: the order is not the rating order */
+{
+  const N=600,R=9;let ascending=0,firstIsWeakest=0;const firstPots={};
+  for(let i=0;i<N;i++){
+    const f=X.drawFixtures(seedField(R),R);
+    if(f.every((o,j)=>j===0||o.rating>=f[j-1].rating))ascending++;
+    if(f[0].rating===Math.min(...f.map(o=>o.rating)))firstIsWeakest++;
+    firstPots[f[0].pot]=(firstPots[f[0].pot]||0)+1;
+  }
+  ok(ascending<=2,'a fixture list ordered weakest-to-strongest is now a fluke, not the rule ('+ascending+'/'+N+')');
+  ok(firstIsWeakest<N*0.25,'round one is no longer reliably the easiest game ('+firstIsWeakest+'/'+N+')');
+  ok([1,2,3,4].every(p=>(firstPots[p]||0)>N*0.15),'and your first opponent can come out of any pot: '+JSON.stringify(firstPots));
+}
+{
+  const R=9,seen=new Set();
+  for(let i=0;i<300;i++)seen.add(X.drawFixtures(seedField(R),R).map(o=>o.name).join(','));
+  ok(seen.size>280,'two events are essentially never drawn the same way ('+seen.size+' orders in 300 draws)');
+}
+
+/* the plan behind it */
+{
+  const plan=X.drawPlan(9);
+  ok(plan.order.length===9&&plan.counts.reduce((a,b)=>a+b,0)===9,'the plan has exactly one fixture per round');
+  ok(plan.potCount===4&&X.drawPlan(2).potCount===2,'short events use fewer pots than long ones');
+  const flat=X.drawPlan(12).order;
+  ok(!flat.every((p,i)=>i===0||p>=flat[i-1]),'the pot order is shuffled, not walked in sequence');
+}
+
+/* the ceremony is presentation only — it can never block or lose the chess */
+{
+  const tr={name:'Open',rounds:7,round:0,field:X.drawFixtures(seedField(7),7),drawn:0};
+  ok(X.drawRevealed(tr)===0&&!X.drawComplete(tr),'a fresh event starts undrawn');
+  tr.drawn=3; ok(X.drawRevealed(tr)===3,'and reveals as far as you have drawn');
+  X.finishDraw(tr); ok(X.drawComplete(tr)&&tr.drawn===7,'finishing the draw reveals the lot');
+  tr.drawn=99; ok(X.drawRevealed(tr)===7,'it can never claim more fixtures than the event has');
+  const old={name:'Old',rounds:9,round:4,field:X.drawFixtures(seedField(9),9)};
+  ok(X.drawRevealed(old)===9&&X.drawComplete(old),'an event saved before there was a draw counts as fully drawn, so old careers open where they left off');
+  ok(/finishDraw\(store\.career\.tour\)/.test(script)&&/finishDraw\(tr\)/.test(script),'playing or simulating a round finishes the draw rather than refusing');
+}
+{
+  const tr={name:'Open',rounds:7,round:0,field:X.drawFixtures(seedField(7),7),drawn:0};
+  const pots=X.tourPots(tr);
+  ok(pots.length===4&&pots.every(g=>g.players.length>0),'the pots are rebuilt from the field, so there is no second copy to keep in step');
+  const html=X.tourDrawPanel(X.store.career,tr);
+  ok(/The draw/.test(html)&&/Pot 1/.test(html)&&/data-act="drawnext"/.test(html)&&/data-act="drawall"/.test(html),'the panel shows the pots and offers both ways through it');
+  X.finishDraw(tr);
+  ok(!/data-act="drawnext"/.test(X.tourDrawPanel(X.store.career,tr)),'and puts the buttons away once it is done');
+  ok(X.tourDrawPanel(X.store.career,{kind:'match',rounds:14,field:[]})===''
+     &&X.tourDrawPanel(X.store.career,{kind:'simul',rounds:6,field:[]})==='','a match and a simul are not drawn — there is nothing to draw');
+}
+
+/* the start of an event has nothing to say about a crosstable of zeroes */
+{
+  const st=X.tourStakes(X.store.career,{name:'Open',rounds:7,round:0,
+    standings:[{id:'__you',score:0,rating:2050,you:true}].concat([0,0,0].map((s,i)=>({id:'p'+i,score:0,rating:2400-i*100})))});
+  ok(st.start===true&&/everybody starts on nothing/.test(st.head),'before round one it talks about the seeding, not the standings');
+  ok(/seed of/.test(st.sub),'and tells you where you are seeded');
+}
 
 console.log('\n✅ career depth: '+pass+' checks passed');
