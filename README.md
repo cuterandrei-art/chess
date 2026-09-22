@@ -420,6 +420,41 @@ finished, and the end screen offers a second pass at just the ones you missed.
 A lifetime tally lives in `stats.drill`. With no engine available only the
 best move can be checked, and the drill says so rather than pretending.
 
+## Where your rating is heading
+
+The tracker's **Results** tab fits a straight line through your rated games,
+per time control, and says what it implies: *"at this rate 1300 is about 11
+days away — around October 2026"*. It names the time control carrying you and
+the one pulling the other way, with its score alongside.
+
+The honest part is the refusals. A line is only allowed to name a month when
+there are at least `TREND_MIN_GAMES` rated games, spread over at least
+`TREND_MIN_DAYS`, with an r² of at least `TREND_MIN_FIT` — otherwise it says
+"too early to call" and why (*only 8 rated games*, *all within 3 days*, *the
+results are too scattered to draw a line through*). A rating moving less than
+`TREND_FLAT` a month is called flat rather than a slow climb, and a milestone
+more than eighteen months out is reported as "over a year and a half away"
+instead of being dressed up with a date. A slide reads as a slide: *"at this
+rate you are down to 1400 in about 9 days"*, never as an arrival. The fit and
+the window it was measured over are printed under every row.
+
+## Watching a game back at its own speed
+
+Chess.com's PGNs carry a clock reading after every move, so the importer keeps
+them and the analysis board can replay a game at the pace it was played: you
+sit through the forty seconds burnt before the blunder, and watch the three
+moves rattled out afterwards. Both clocks tick, the side to move is
+highlighted, the move just played is labelled with what it cost, and an
+outlier — three times that player's median for the game, and at least eight
+seconds — is flagged.
+
+A think longer than `REPLAY_CAP` seconds is shortened, and the screen says so
+rather than hiding it; the clocks still show the real time. Speeds run ×1 to
+×8. Daily games have no pace worth watching and say so; games imported before
+the clocks were kept say that too, and point at syncing again — neither offers
+a button that would do nothing. Stepping or jumping by hand stops the replay,
+as does leaving the board.
+
 ## The engine
 
 One Stockfish worker serves six callers: the bot in a game, the hint button,

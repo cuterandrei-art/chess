@@ -4538,7 +4538,7 @@ function delRep(id){store.repertoire=store.repertoire.filter(x=>x!==id);save();}
 /* ============================== app state ============================== */
 const app={view:'career',exId:null,exPath:[],exFlip:false,courseId:null,setupOpening:'',
   pz:null,pzSeen:new Set(),pzFilter:{type:'auto'},rush:null,
-  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,ccSyncing:false,ccSyncMsg:null,ccSyncErr:null,_ccAutoTried:false,drill:null,installOpen:false,installMsg:null,live:null,liveUser:null,liveList:null,liveLoading:false,liveErr:null,liveListAt:0,liveEv:null,liveBest:null,liveLines:[],liveEngErr:false,_liveKey:null,_livePollT:null,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
+  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,ccSyncing:false,ccSyncMsg:null,ccSyncErr:null,_ccAutoTried:false,drill:null,installOpen:false,installMsg:null,replaySpeed:1,_replayTick:null,live:null,liveUser:null,liveList:null,liveLoading:false,liveErr:null,liveListAt:0,liveEv:null,liveBest:null,liveLines:[],liveEngErr:false,_liveKey:null,_livePollT:null,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
   confirm:null,
   review:null,studyId:null,studyChapter:0,studyPath:[],studyFlip:false,studyMsg:null,
 
@@ -4553,7 +4553,7 @@ function confirmOverlay(){if(!app.confirm)return '';
     '<div class="dim small" style="margin-bottom:15px;line-height:1.55">'+esc(app.confirm.msg)+'</div>'+
     '<div class="row" style="justify-content:flex-end;gap:8px"><button class="btn ghost sm" data-act="confirmno">Cancel</button><button class="btn danger sm" data-act="confirmyes">Confirm</button></div>'+
     '</div></div>';}
-function go(view){if(app.view&&app.view!==view){app.navHist=app.navHist||[];app.navHist.push(app.view);if(app.navHist.length>30)app.navHist.shift();}app.view=view;app.sel=null;stopClockTick();if(view!=='puzzles')stopRushTick();if(view!=='livegame'&&view!=='tracker')livePollStop();render();}
+function go(view){if(app.view&&app.view!==view){app.navHist=app.navHist||[];app.navHist.push(app.view);if(app.navHist.length>30)app.navHist.shift();}app.view=view;app.sel=null;stopClockTick();if(view!=='puzzles')stopRushTick();if(view!=='livegame'&&view!=='tracker')livePollStop();if(view!=='livegame')replayStop();render();}
 
 /* ============================== helpers =============================== */
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
@@ -5698,7 +5698,7 @@ async function impFetchChessCom(user,maxGames,onStep,sinceTs){
       const res=ccScore(me.result);
       const h=pgnHeaders(g.pgn);
       const all=pgnToSans(g.pgn);
-      const ts=gameTimeStats(g.pgn,color,g.time_control);
+      const ts=gameTimeStats(g.pgn,color,g.time_control),_ctc=ccTimeCtl(g.time_control);
       const acc=g.accuracies||null;
       out.push({src:'chesscom',moves:sans,color:color,result:res,tc:g.time_class||'',
         date:(g.end_time||0)*1000,opp:(them&&them.username)||'',
@@ -5709,7 +5709,11 @@ async function impFetchChessCom(user,maxGames,onStep,sinceTs){
         oppAcc:acc?(color==='w'?acc.black:acc.white):null,
         ecoName:(h.ECOUrl?String(h.ECOUrl).split('/').pop().replace(/-/g,' '):(h.ECO||null)),
         eco:h.ECO||null,url:g.url||null,
-        avgSec:ts?ts.avgSec:0,endSec:ts?ts.endSec:0,maxSec:ts?ts.maxSec:0,base:ts?ts.base:0});
+        avgSec:ts?ts.avgSec:0,endSec:ts?ts.endSec:0,maxSec:ts?ts.maxSec:0,base:ts?ts.base:0,
+        // every clock reading, so the game can be watched back at the speed it
+        // was played; whole seconds keep it small enough to store hundreds
+        clk:_ctc.daily?null:(function(){var c=pgnClocks(g.pgn);return c.length?c.map(function(x){return Math.round(x);}):null;})(),
+        inc:_ctc.inc||0});
     }
   }
   return out;
@@ -6518,6 +6522,7 @@ function viewTracker(){
         curves.map(function(k){const c=S.curve[k];
           return '<div style="margin-bottom:8px"><div class="dim small">'+esc(k)+' · '+c.first+' → <b style="color:var(--text)">'+c.last+'</b> ('+(c.delta>=0?'+':'')+c.delta+') · low '+c.min+' / high '+c.max+'</div>'+trkSpark(c.pts)+'</div>';
         }).join('')+'</div>';
+    h+=trkTrendCard(S);
     if(S.byLength)
       h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:5px">By game length</div>'+
         '<div class="dim small" style="margin-bottom:4px">Average '+S.len.avg+' moves · shortest '+S.len.min+' · longest '+S.len.max+'</div>'+
@@ -6864,6 +6869,8 @@ function liveOpenStored(i){
     side:g.color,flip:false,
     fens:b.fens,moves:b.moves,pos:0,follow:false,
     turn:turnOf(b.fens[0]),moveBy:0,lastActivity:g.date||0,tc:g.tcStr||'',
+    clk:g.clk||null,base:(g.base||ccTimeCtl(g.tcStr||'').base||0),inc:(g.inc!=null?g.inc:ccTimeCtl(g.tcStr||'').inc)||0,
+    tcDaily:ccTimeCtl(g.tcStr||'').daily,
     event:g.ecoName||'',rated:g.rated!==false,
     result:g.result===1?'won':g.result===0?'lost':'drew',
     reason:g.reason||'',myRating:g.myRating||0,oppRating:g.oppRating||0,
@@ -7087,6 +7094,7 @@ function viewLiveGame(){
     h+='<div class="dim small">The engine is off. Turn either switch on and it analyses whatever position is on the board.</div>';
   h+='</div>';
 
+  h+=replayPanel();
   // where we are in the game
   h+='<div class="card" style="margin-bottom:10px">'+
     '<div class="row" style="gap:6px;justify-content:center;flex-wrap:wrap">'+
@@ -7525,6 +7533,307 @@ function installSheet(){
         s.lines.map(l=>'<li style="margin-bottom:5px">'+l+'</li>').join('')+'</ol>'+
       (s.note?'<div class="dim small" style="margin-top:8px">'+esc(s.note)+'</div>':'')+
       '<div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn sec sm" data-act="installclose">Got it</button></div>'+
+    '</div>';
+}
+
+/* ================== WHERE YOUR RATING IS GOING ==================
+   A rating curve is a scatter, not a line. Fitting one is easy; the honest
+   part is refusing to name a date when the scatter does not support it, so
+   every projection carries how well the line actually fits and how long it
+   watched, and says "too early to call" rather than inventing a month. */
+const TREND_MIN_GAMES=15;     // below this, one bad night dominates the slope
+const TREND_MIN_DAYS=10;      // and a single session is not a trend
+const TREND_MIN_FIT=0.12;     // r²: under this the line explains almost nothing
+const TREND_FLAT=3;           // points per month we treat as going nowhere
+const TREND_MAX_DAYS=540;     // past a year and a half a straight line says nothing
+/* Least squares on (day, rating). */
+function trendFit(pts){
+  const n=(pts||[]).length;
+  if(n<2)return null;
+  const DAY=86400000,t0=pts[0].t;
+  const xs=[],ys=[];
+  for(let i=0;i<n;i++){
+    if(!pts[i]||!isFinite(pts[i].r)||!isFinite(pts[i].t))return null;
+    xs.push((pts[i].t-t0)/DAY);ys.push(pts[i].r);
+  }
+  let sx=0,sy=0;
+  for(let i=0;i<n;i++){sx+=xs[i];sy+=ys[i];}
+  const mx=sx/n,my=sy/n;
+  let sxy=0,sxx=0,syy=0;
+  for(let i=0;i<n;i++){const dx=xs[i]-mx,dy=ys[i]-my;sxy+=dx*dy;sxx+=dx*dx;syy+=dy*dy;}
+  if(sxx<=0)return null;                       // all played on one day
+  const slope=sxy/sxx;
+  return {n:n,slope:slope,perMonth:slope*30,intercept:my-slope*mx,
+    r2:syy>0?Math.max(0,Math.min(1,(sxy*sxy)/(sxx*syy))):0,
+    days:xs[n-1]-xs[0],first:ys[0],last:ys[n-1],t0:t0};
+}
+/* The next round hundred in the direction you are actually travelling. */
+function trendTarget(last,perMonth){
+  if(perMonth>0)return Math.floor(last/100)*100+100;
+  if(perMonth<0)return Math.ceil(last/100)*100-100;
+  return null;
+}
+function trendWhen(fit){
+  if(!fit)return null;
+  const target=trendTarget(fit.last,fit.perMonth);
+  if(target==null||Math.abs(fit.perMonth)<TREND_FLAT)return null;
+  const days=(target-fit.last)/fit.slope;
+  if(!isFinite(days)||days<=0)return null;
+  // a real but very slow climb is reported as slow, not dressed up with a month
+  return {target:target,days:Math.round(days),at:Date.now()+days*86400000,
+    tooFar:days>TREND_MAX_DAYS};
+}
+function trendMonth(ms){
+  try{return new Date(ms).toLocaleDateString(undefined,{month:'long',year:'numeric'});}
+  catch(e){return '';}
+}
+function trendAway(days){
+  if(days<14)return 'about '+Math.max(1,Math.round(days))+' days away';
+  if(days<70)return 'about '+Math.round(days/7)+' weeks away';
+  return 'about '+Math.round(days/30)+' months away';
+}
+/* One time control's verdict. */
+function trendOf(pts,scorePct){
+  const fit=trendFit(pts);
+  if(!fit)return null;
+  const solid=fit.n>=TREND_MIN_GAMES&&fit.days>=TREND_MIN_DAYS&&fit.r2>=TREND_MIN_FIT;
+  const flat=Math.abs(fit.perMonth)<TREND_FLAT;
+  return {fit:fit,solid:solid,flat:flat,pct:scorePct,
+    when:solid&&!flat?trendWhen(fit):null,
+    why:!solid?(fit.n<TREND_MIN_GAMES?'only '+fit.n+' rated games'
+              :fit.days<TREND_MIN_DAYS?'all within '+Math.max(1,Math.round(fit.days))+' days'
+              :'the results are too scattered to draw a line through'):null};
+}
+/* Every time control, plus which one is doing the work. */
+function ratingTrends(S){
+  if(!S||!S.curve)return null;
+  const out={by:{},best:null,worst:null,any:false};
+  Object.keys(S.curve).forEach(function(k){
+    const c=S.curve[k];
+    const cls=(S.byClass||[]).filter(function(b){return b.key===k;})[0];
+    const t=trendOf(c.pts,cls?cls.pct:null);
+    if(!t)return;
+    t.key=k;t.games=c.n;
+    out.by[k]=t;out.any=true;
+  });
+  const solid=Object.keys(out.by).map(k=>out.by[k]).filter(t=>t.solid);
+  if(solid.length){
+    solid.sort((a,b)=>b.fit.perMonth-a.fit.perMonth);
+    out.best=solid[0];
+    // a single time control that is falling is still the thing worth saying,
+    // so "worst" is about the direction, not about having something to compare to
+    const low=solid[solid.length-1];
+    if(low.fit.perMonth<0)out.worst=low;
+  }
+  return out;
+}
+function trkTrendCard(S){
+  const T=ratingTrends(S);
+  if(!T||!T.any)return '';
+  const row=function(t){
+    const f=t.fit,up=f.perMonth>0;
+    const col=t.flat?'var(--muted)':(up?'var(--green)':'#f87171');
+    const rate=(up?'+':'−')+Math.abs(Math.round(f.perMonth))+'/month';
+    let line;
+    if(!t.solid)line='<span class="dim">Too early to call — '+esc(t.why)+'.</span>';
+    else if(t.flat)line='<span class="dim">Flat. You are holding '+Math.round(f.last)+', not climbing.</span>';
+    else if(t.when&&t.when.tooFar)line='<span class="dim">Moving '+esc(rate)+', but at that pace <b>'+
+      t.when.target+'</b> is over a year and a half away — too far to put a month on.</span>';
+    else if(t.when)line=(up
+      ? 'At this rate <b>'+t.when.target+'</b> is '+esc(trendAway(t.when.days))
+      : 'At this rate you are down to <b>'+t.when.target+'</b> in '+esc(trendAway(t.when.days).replace(/^about /,'about ').replace(/ away$/,'')))+
+      ' — around <b>'+esc(trendMonth(t.when.at))+'</b>.';
+    else line='<span class="dim">Moving '+rate+', but not steadily enough to put a date on.</span>';
+    return '<div style="padding:9px 0;border-top:1px solid var(--border)">'+
+      '<div class="row" style="justify-content:space-between;align-items:baseline;gap:8px">'+
+        '<div class="small" style="font-weight:700">'+esc(t.key)+' <span class="dim" style="font-weight:600">'+t.games+' games</span></div>'+
+        '<div class="small" style="font-weight:800;color:'+col+'">'+Math.round(f.last)+' <span style="font-size:11px">'+esc(rate)+'</span></div>'+
+      '</div>'+
+      '<div class="small" style="margin-top:2px">'+line+'</div>'+
+      (t.solid?'<div class="dim small" style="font-size:10px;margin-top:2px">fit '+(Math.round(f.r2*100)/100)+
+        ' over '+Math.round(f.days)+' days</div>':'')+
+      '</div>';
+  };
+  const keys=Object.keys(T.by).sort((a,b)=>T.by[b].games-T.by[a].games);
+  let h='<div class="card" style="margin-bottom:12px">'+
+    '<div style="font-weight:700;margin-bottom:2px">📈 Where this is heading</div>'+
+    '<div class="dim small">A straight line through your rated games, per time control. It only names a month when the line actually fits.</div>'+
+    keys.map(k=>row(T.by[k])).join('');
+  if(T.best&&!T.best.flat&&T.best.fit.perMonth>0){
+    h+='<div class="note" style="margin-top:10px">🏆 <b>'+esc(T.best.key)+'</b> is carrying you'+
+      (T.best.pct!=null?' ('+T.best.pct+'% there)':'')+' — '+
+      (T.best.fit.perMonth>0?'+'+Math.round(T.best.fit.perMonth):Math.round(T.best.fit.perMonth))+' a month.'+
+      (T.worst&&T.worst.fit.perMonth<0?' <b>'+esc(T.worst.key)+'</b> is pulling the other way at '+
+        Math.round(T.worst.fit.perMonth)+' a month — play less of it, or work out why.':'')+'</div>';
+  } else if(T.worst&&T.worst.fit.perMonth<0){
+    h+='<div class="note" style="margin-top:10px;border-color:#7f1d1d;background:#7f1d1d22;color:#fca5a5">'+
+      '⚠️ Nothing is climbing, and <b>'+esc(T.worst.key)+'</b> is falling '+Math.abs(Math.round(T.worst.fit.perMonth))+' a month.</div>';
+  }
+  return h+'</div>';
+}
+
+/* ============ WATCHING A GAME BACK AT ITS OWN SPEED ============
+   Chess.com's PGNs carry a clock reading after every move, so a game can be
+   replayed at the pace it was actually played: you see the forty seconds burnt
+   before the blunder, and the three moves rattled out afterwards. Reading that
+   someone was "low on time" is not the same as sitting through it.
+
+   A long think is capped, because nobody wants to stare at a board for four
+   minutes, and the cap is stated rather than hidden. Daily games have no
+   clocks worth replaying, and games imported before this existed have no
+   readings stored, so both are told plainly instead of offering a dead button. */
+const REPLAY_CAP=12;                      // the longest real wait, in seconds
+const REPLAY_SPEEDS=[1,2,4,8];
+function replayable(L){
+  return !!(L&&L.clk&&L.clk.length>=4&&L.fens&&L.fens.length>2);
+}
+/* Seconds the mover spent on ply `ply` (1-based). */
+function replaySpent(L,ply){
+  const i=ply-1;
+  if(!L||!L.clk||i<0||i>=L.clk.length)return null;
+  const before=(i>=2)?L.clk[i-2]:(L.base||0);
+  if(!before)return null;
+  const s=before+(L.inc||0)-L.clk[i];
+  return (s>=0&&s<7200)?s:null;
+}
+/* What both clocks read once `pos` plies have been played. */
+function replayClocks(L,pos){
+  if(!L||!L.clk)return null;
+  let w=L.base||0,b=L.base||0;
+  const n=Math.min(pos,L.clk.length);
+  for(let i=0;i<n;i++){if(i%2===0)w=L.clk[i];else b=L.clk[i];}
+  return {w:w,b:b};
+}
+/* How long this player usually took, so an outlier can be called one. */
+function replayTypical(L,side){
+  if(!L||!L.clk)return null;
+  const v=[];
+  for(let ply=1;ply<=L.clk.length;ply++){
+    const isWhite=(ply%2===1);
+    if(side&&((side==='w')!==isWhite))continue;
+    const s=replaySpent(L,ply);
+    if(s!=null)v.push(s);
+  }
+  if(v.length<4)return null;
+  v.sort((a,b)=>a-b);
+  return v[Math.floor(v.length/2)];                // median: means are wrecked by one long think
+}
+function replayLong(L,ply){
+  const s=replaySpent(L,ply);
+  if(s==null)return false;
+  const med=replayTypical(L,(ply%2===1)?'w':'b');
+  return med!=null&&s>=Math.max(8,med*3);
+}
+function fmtSecs(s){
+  if(s==null)return '';
+  if(s<60)return (s<10?Math.round(s*10)/10:Math.round(s))+'s';
+  const m=Math.floor(s/60);
+  return m+':'+String(Math.round(s-m*60)).padStart(2,'0');
+}
+/* ---- running it ---- */
+function replayStop(){
+  const L=app.live;
+  if(L&&L.replay&&L.replay.t){clearTimeout(L.replay.t);}
+  if(L&&L.replay){L.replay=null;}
+  if(app._replayTick){clearInterval(app._replayTick);app._replayTick=null;}
+}
+function replayStart(){
+  const L=app.live;
+  if(!replayable(L))return;
+  replayStop();
+  if(L.pos>=L.fens.length-1)L.pos=0;                 // finished? start again
+  L.follow=false;
+  L.replay={speed:(app.replaySpeed||1),t:null,waitMs:0,since:0};
+  replaySchedule();
+  render();
+}
+function replayToggle(){
+  const L=app.live;
+  if(!L)return;
+  if(L.replay)replayStop();else replayStart();
+  render();
+}
+function replaySpeed(v){
+  app.replaySpeed=v;
+  const L=app.live;
+  if(L&&L.replay){L.replay.speed=v;replaySchedule();}
+  render();
+}
+/* Wait for as long as the next move took, then play it. */
+function replaySchedule(){
+  const L=app.live;
+  if(!L||!L.replay)return;
+  if(L.replay.t){clearTimeout(L.replay.t);L.replay.t=null;}
+  if(L.pos>=L.fens.length-1){replayStop();render();return;}
+  const next=L.pos+1;
+  const spent=replaySpent(L,next);
+  const real=(spent==null)?1:Math.min(REPLAY_CAP,Math.max(0.2,spent));
+  const ms=Math.round(real*1000/(L.replay.speed||1));
+  L.replay.waitMs=ms;L.replay.since=Date.now();L.replay.capped=(spent!=null&&spent>REPLAY_CAP);
+  L.replay.t=setTimeout(replayStep,ms);
+  // the clock has to be seen moving, or it is just a slideshow
+  if(app._replayTick)clearInterval(app._replayTick);
+  app._replayTick=setInterval(function(){
+    if(!app.live||!app.live.replay||app.view!=='livegame'){replayStop();return;}
+    render();
+  },200);
+}
+function replayStep(){
+  const L=app.live;
+  if(!L||!L.replay)return;
+  if(app.view!=='livegame'){replayStop();return;}
+  L.pos=Math.min(L.fens.length-1,L.pos+1);
+  app._liveKey=null;                                 // the engine re-reads the new position
+  replaySchedule();
+  render();
+}
+/* How far into the current think we are, for the ticking clock. */
+function replayElapsed(){
+  const L=app.live;
+  if(!L||!L.replay||!L.replay.since)return 0;
+  const realMs=Math.min(Date.now()-L.replay.since,L.replay.waitMs);
+  return realMs/1000*(L.replay.speed||1);            // back to game seconds
+}
+function replayPanel(){
+  const L=app.live;
+  if(!L||L.kind!=='game')return '';
+  if(!replayable(L)){
+    const why=(L.tcDaily)
+      ? 'Daily games are played over days, so there is no pace to watch back.'
+      : 'This game was imported before the clocks were kept. Sync your games again and it will have them.';
+    return '<div class="card" style="margin-bottom:10px"><div class="dim small">⏱ '+esc(why)+'</div></div>';
+  }
+  const running=!!L.replay;
+  const cl=replayClocks(L,L.pos);
+  const spent=L.pos>0?replaySpent(L,L.pos):null;
+  const longOne=L.pos>0&&replayLong(L,L.pos);
+  const mover=(L.pos%2===1)?'w':'b';                 // who played the move just shown
+  const toMove=(L.pos%2===0)?'w':'b';
+  const live=running?Math.max(0,(mover==='w'?cl.b:cl.w)-0):null;
+  const ticking=running?Math.max(0,((toMove==='w')?cl.w:cl.b)-replayElapsed()):null;
+  const clockBox=function(who,secs,isTurn){
+    return '<div style="flex:1;text-align:center;padding:7px 4px;border-radius:9px;'+
+      (isTurn?'background:#16223b;':'')+'">'+
+      '<div class="dim small" style="font-size:10px">'+esc(who)+'</div>'+
+      '<div style="font-weight:800;font-size:17px;font-variant-numeric:tabular-nums'+
+        (secs!=null&&secs<20?';color:#f87171':'')+'">'+esc(fmtSecs(secs))+'</div></div>';
+  };
+  return '<div class="card" style="margin-bottom:10px">'+
+    '<div class="row" style="gap:6px;align-items:stretch;margin-bottom:8px">'+
+      clockBox(esc(L.black),(running&&toMove==='b')?ticking:(cl?cl.b:null),toMove==='b')+
+      clockBox(esc(L.white),(running&&toMove==='w')?ticking:(cl?cl.w:null),toMove==='w')+
+    '</div>'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<div class="row" style="gap:6px;flex-wrap:wrap">'+
+        '<button class="btn '+(running?'sec':'primary')+' sm" data-act="replaytoggle">'+(running?'⏸ Pause':'▶ Watch it back')+'</button>'+
+        REPLAY_SPEEDS.map(function(v){
+          return '<button class="btn '+((app.replaySpeed||1)===v?'sec':'ghost')+' sm" data-act="replayspeed" data-val="'+v+'" style="padding:4px 8px">×'+v+'</button>';
+        }).join('')+
+      '</div>'+
+      (spent!=null?'<span class="small'+(longOne?'':' dim')+'"'+(longOne?' style="color:var(--amber);font-weight:700"':'')+'>'+
+        (longOne?'🐢 ':'')+'that move took '+esc(fmtSecs(spent))+'</span>':'')+
+    '</div>'+
+    (running&&L.replay.capped?'<div class="dim small" style="margin-top:6px">⏳ A think longer than '+REPLAY_CAP+'s is shortened to '+REPLAY_CAP+'s — the clock above still shows the real time.</div>':'')+
     '</div>';
 }
 
@@ -8776,8 +9085,10 @@ document.getElementById('app').addEventListener('click',e=>{
   }
   else if(act==='liveopen'){var _lg=(app.liveList||[])[parseInt(val,10)];if(_lg&&!_lg.variant)liveOpen(_lg);else render();}
   else if(act==='liveopenmine'){liveOpenStored(parseInt(val,10));}
-  else if(act==='liveseek'){liveSeek(parseInt(val,10));render();}
-  else if(act==='liveto'){liveJump(parseInt(val,10));render();}
+  else if(act==='replaytoggle'){replayToggle();return;}
+  else if(act==='replayspeed'){replaySpeed(parseInt(val,10)||1);return;}
+  else if(act==='liveseek'){replayStop();liveSeek(parseInt(val,10));render();}
+  else if(act==='liveto'){replayStop();liveJump(parseInt(val,10));render();}
   else if(act==='liveflip'){if(app.live)app.live.flip=!app.live.flip;render();}
   else if(act==='liveevaltog'){store.settings.liveEval=!liveEvalOn();app._liveKey=null;save();render();}
   else if(act==='livehinttog'){store.settings.liveHints=!liveHintsOn();app._liveKey=null;save();render();}
