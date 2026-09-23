@@ -4449,7 +4449,7 @@ function checkTitles(c){const got=[];const peak=titlePeak(c);
     c.titles.push(d.t);got.push(d.t);
   }
   return got;}
-const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},onboarded:false,settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',blunderWarn:true,srsSkip:true,tbOn:true,expOn:true,expDb:'masters',voiceOn:false,voiceName:'',voiceRate:1,liveEval:true,liveHints:true},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},myGames:[],myGamesMeta:null,ccProfile:null,ccAccount:null,daily:null,brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null,auto:null,moments:[]}};
+const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},onboarded:false,settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',blunderWarn:true,srsSkip:true,tbOn:true,expOn:true,expDb:'masters',voiceOn:false,voiceName:'',voiceRate:1,liveEval:true,liveHints:true},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null,miss:{}},myGames:[],myGamesMeta:null,ccProfile:null,ccAccount:null,daily:null,brilliancies:[],studies:[],quests:null,legacy:{peak:0,careers:0,hall:[]},career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null,auto:null,moments:[]}};
 function freshCareer(){return JSON.parse(JSON.stringify(DEF.career));}
 /* Migrate saved career data: the old ladder (with `beaten`/`results`) is reset
    to the new FIDE structure; new-format saves are merged onto fresh defaults. */
@@ -4459,7 +4459,11 @@ function migrateCareer(d){if(!d||typeof d!=='object'||('beaten'in d)||!('setup'i
    freshCareer() for a new career, the merges in restore(), the statistics
    reset — would be handed the state it was supposed to replace. */
 let store=JSON.parse(JSON.stringify(DEF));
-try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],courseProgress:d.courseProgress||{},settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],myGames:d.myGames||[],myGamesMeta:d.myGamesMeta||null,ccProfile:d.ccProfile||null,ccAccount:d.ccAccount||null,daily:d.daily||null,brilliancies:d.brilliancies||[],onboarded:!!d.onboarded,career:migrateCareer(d.career)};}catch(e){}
+try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],courseProgress:d.courseProgress||{},settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],myGames:d.myGames||[],myGamesMeta:d.myGamesMeta||null,ccProfile:d.ccProfile||null,ccAccount:d.ccAccount||null,daily:d.daily||null,brilliancies:d.brilliancies||[],onboarded:!!d.onboarded,career:migrateCareer(d.career),
+  /* These two were missing from the list, so every reload dropped them: the
+     daily quests regenerated and lost their progress, and the legacy that
+     drives New Game+ never survived a session. */
+  quests:d.quests||null,legacy:Object.assign({peak:0,careers:0,hall:[]},d.legacy||{})};}catch(e){}
 function rebuildOpenings(){const cust=(store.custom||[]).map(d=>{try{return buildOpening(d);}catch(e){return null;}}).filter(Boolean);BUILT=BASE.concat(cust);byId=new Map(BUILT.map(o=>[o.id,o]));}
 rebuildOpenings();
 function save(){localStorage.setItem(LS,JSON.stringify(store));}
@@ -4488,7 +4492,7 @@ function restoreBackup(text){
   if(!d||typeof d!=='object'||Array.isArray(d))
     return {ok:false,error:'That file isn\u2019t readable \u2014 it should be the .json this app exported.'};
   var known=['repertoire','srs','custom','courseProgress','settings','stats','puzzle','studies',
-             'myGames','myGamesMeta','ccProfile','ccAccount','daily','brilliancies','career','onboarded','quests'];
+             'myGames','myGamesMeta','ccProfile','ccAccount','daily','brilliancies','career','onboarded','quests','legacy'];
   var has=known.filter(function(k){return d[k]!==undefined;});
   if(!has.length)return {ok:false,error:'That file has no progress in it \u2014 it should be the .json this app exported.'};
   store.repertoire=d.repertoire||[];
@@ -4508,6 +4512,8 @@ function restoreBackup(text){
   store.onboarded=!!d.onboarded;
   store.career=migrateCareer(d.career);
   if(d.quests)store.quests=d.quests;
+  // the hall outlives careers, so a backup has to carry it too
+  if(d.legacy)store.legacy=Object.assign({peak:0,careers:0,hall:[]},d.legacy);
   rebuildOpenings();                      // custom openings have to be rebuilt to be usable
   var c=store.career;
   var bits=[];
@@ -4538,7 +4544,7 @@ function delRep(id){store.repertoire=store.repertoire.filter(x=>x!==id);save();}
 /* ============================== app state ============================== */
 const app={view:'career',exId:null,exPath:[],exFlip:false,courseId:null,setupOpening:'',
   pz:null,pzSeen:new Set(),pzFilter:{type:'auto'},rush:null,
-  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,ccSyncing:false,ccSyncMsg:null,ccSyncErr:null,_ccAutoTried:false,drill:null,installOpen:false,installMsg:null,trkF:null,trkQ:'',trkSort:'date',trkPage:0,trkMsg:null,cgQ:'',cgSort:'new',cgPage:0,cgMsg:null,playClk:[],replaySpeed:1,_replayTick:null,live:null,liveUser:null,liveList:null,liveLoading:false,liveErr:null,liveListAt:0,liveEv:null,liveBest:null,liveLines:[],liveEngErr:false,_liveKey:null,_livePollT:null,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
+  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,ccSyncing:false,ccSyncMsg:null,ccSyncErr:null,_ccAutoTried:false,drill:null,installOpen:false,installMsg:null,trkF:null,trkQ:'',trkSort:'date',trkPage:0,trkMsg:null,cgQ:'',cgSort:'new',cgPage:0,cgMsg:null,playClk:[],booth:null,magIdx:0,pzReview:null,pzGraduated:null,pzMissDone:false,_pzCount:0,replaySpeed:1,_replayTick:null,live:null,liveUser:null,liveList:null,liveLoading:false,liveErr:null,liveListAt:0,liveEv:null,liveBest:null,liveLines:[],liveEngErr:false,_liveKey:null,_livePollT:null,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
   confirm:null,
   review:null,studyId:null,studyChapter:0,studyPath:[],studyFlip:false,studyMsg:null,
 
@@ -4756,7 +4762,8 @@ function render(){
   const navIcon=v=>(NAV_META[v]?NAV_META[v][0]:'•');
   const cur=nav.indexOf(app.view)>=0?app.view:'dashboard';
   const LEARN_VIEWS=['learn','courses','clearn','train','library','build','explore','course','endgames','eglesson','classics','guess','blindfold','daily','masters','studies','review','brilliancy','report','import','tracker','dashboard','reptree'];
-  const primaryOf=v=>(v==='career'?'career':v==='play'?'play':v==='puzzles'?'puzzles':LEARN_VIEWS.indexOf(v)>=0?'learn':'');
+  const CAREER_VIEWS=['career','magazine','hall','player','livegame'];
+  const primaryOf=v=>(CAREER_VIEWS.indexOf(v)>=0?'career':v==='play'?'play':v==='puzzles'?'puzzles':LEARN_VIEWS.indexOf(v)>=0?'learn':'');
   const PRIMARY=[['career','🏆','Career'],['play','♟️','Play'],['puzzles','🧩','Puzzles'],['learn','📚','Learn']];
   const curP=primaryOf(cur);
   const topnav='<div class="topnav">'+PRIMARY.map(p=>'<button data-act="nav" data-val="'+p[0]+'" class="'+(curP===p[0]?'active':'')+'">'+p[1]+' '+p[2]+'</button>').join('')+'</div>';
@@ -4809,6 +4816,8 @@ function render(){
   else if(app.view==='clearn')body=viewCourseLearn();
   else if(app.view==='classics')body=viewClassics();
   else if(app.view==='guess')body=guessView();
+  else if(app.view==='magazine')body=viewMagazine();
+  else if(app.view==='hall')body=viewHall();
   else if(app.view==='settings')body=viewSettings();
   // The welcome gets the screen to itself: a navigation bar highlighting a
   // section you have not chosen yet is exactly the noise it exists to spare you.
@@ -9649,6 +9658,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='toastdismiss'){app.careerToast=null;render();}
   else if(act==='careertab'){app.careerTab=val;render();}
   else if(act==='careertitles'){app.careerTitlesOpen=!app.careerTitlesOpen;render();}
+  else if(act==='boothtoggle'){store.settings.boothOn=!boothOn();save();render();}
   else if(act==='presume')playResume();
   else if(act==='presumediscard')uiConfirm('Throw away the game you left unfinished?',function(){playDiscardSaved();});
   else if(act==='pback')playSeek(-1);
@@ -9727,6 +9737,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='impclear'){uiConfirm('Remove the imported games from this browser?',function(){store.myGames=[];store.myGamesMeta=null;app.imp=null;store.ccProfile=null;var _cl=ccAccount();if(_cl){_cl.lastGameTs=0;_cl.lastSync=0;}app.ccSyncMsg=null;app._ccAutoTried=false;save();});}
   else if(act==='impaddall'){var _pc=personalCourse();_pc.course.forEach(function(r){if(r.id&&!inRep(r.id))addRep(r.id);});save();render();}
   else if(act==='seasondismiss'){store.career.seasonReview=null;save();render();}
+  else if(act==='magissue'){app.magIdx=Math.max(0,parseInt(val,10)||0);render();}
   else if(act==='profile'){if(val)profileOpen(val);}
   else if(act==='specvs'){var _sp=buildWorld().filter(function(x){return x.id===val;})[0];if(_sp){var _fmt='classical';var _list=worldRanking(store.career,_fmt).filter(function(x){return !x.you&&x.id!==val;});var _o=_list[Math.floor(Math.random()*Math.min(12,_list.length))]||_list[0];if(_o)startSpectate({name:_sp.name,flag:_sp.flag,rating:wpRating(_sp,_fmt),real:_sp.real},_o);}}
   else if(act==='doday'){doDay(val);var _ac=store.career;if(_ac&&_ac.auto&&_ac.auto.week&&(_ac.day||0)>0&&!_ac.tour){autoRunWeek(_ac);save();render();}}
@@ -9768,7 +9779,8 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='pzhint')pzHint();
   else if(act==='pzretry'){const P=app.pz;if(P)pzNext(P.idx);}
   else if(act==='pzsolution')pzShowSolution();
-  else if(act==='pzauto'){app.pzFilter={type:'auto'};app.pz=null;render();}
+  else if(act==='pzauto'){app.pzFilter={type:'auto'};app.pz=null;app.pzMissDone=false;render();}
+  else if(act==='pzmiss'){app.pzFilter={type:'miss'};app.pzMissDone=false;app.pz=null;pzNext();}
   else if(act==='pzmotif'){if(MOTIF_BY[val]){app.pzFilter={type:'motif',motif:val};pzNext();}else{app.pzFilter={type:'theme',theme:val};pzNext();}}
   else if(act==='pzdaily')pzDaily();
   else if(act==='rushstart')rushStart();
@@ -10299,6 +10311,586 @@ function detectOpening(sans){let best=null;
 function advanceBook(from,to){if(app.playBookNode){const c=app.playBookNode.children.find(ch=>ch.from===from&&ch.to===to);app.playBookNode=c||null;}}
 function recomputeBook(){if(!app.playBook){app.playBookNode=null;return;}let node=app.playBook.root;
   for(const mv of app.playMoves){const c=node.children.find(ch=>ch.from===mv.from&&ch.to===mv.to);if(!c){node=null;break;}node=c;}app.playBookNode=node;}
+/* ================= THE COMMENTARY BOOTH =================
+   Every game you play in this career happens in total silence. Real chess
+   does not: there are two people upstairs with microphones, and half the
+   pleasure of a big game is listening to them argue about it.
+
+   So there are. A pair is drawn for each game — an analyst who tells you what
+   is happening and a host who gets excited about it — and they react to the
+   things that actually occur on the board: the opening you chose, the first
+   piece to come off, queens leaving, castling into opposite corners, a
+   sacrifice, a promotion, a long think, the flag creeping up.
+
+   One rule, and it matters: THE BOOTH NEVER READS THE ENGINE. Everything it
+   says comes from the move list, the piece count and the clocks — things you
+   can see by looking at the board yourself. If the eval bar is off, nothing
+   said up here can tell you whether you are winning, because the booth does
+   not know either. It is commentary, not a hint. */
+const BOOTH=[
+  {id:'frost', n:'Nadia Frost',  t:'GM', e:'🎙️', v:'dry',  d:'Retired grandmaster. Says the quiet part.'},
+  {id:'vale',  n:'Marco Vale',   t:'',   e:'📣', v:'hype', d:'Has never seen a boring game in his life.'},
+  {id:'okafor',n:'Dr Ada Okafor',t:'IM', e:'📐', v:'calm', d:'Counts things. Trusts structure over stories.'},
+  {id:'penrose',n:'Tom Penrose', t:'',   e:'🎩', v:'wry',  d:'Forty years in the press room. Amused by all of it.'},
+  {id:'sol',   n:'Sol Ibarra',   t:'GM', e:'🔥', v:'hype', d:'Attacking player. Wants blood on the board.'},
+  {id:'weir',  n:'Margaret Weir',t:'WGM',e:'📚', v:'dry',  d:'Wrote the book on the endgame you are about to reach.'}
+];
+const BOOTH_PAIRS=[['frost','vale'],['okafor','penrose'],['weir','sol'],['frost','penrose'],['okafor','vale']];
+const BOOTH_KEEP=40;          // lines kept for one game
+const BOOTH_SHOW=7;           // lines on screen
+const BOOTH_LONG=4;           // a think this many times the player's median is a long one
+function boothById(id){return BOOTH.filter(function(b){return b.id===id;})[0]||BOOTH[0];}
+function boothOn(){return store.settings.boothOn!==false;}
+/* The pair is drawn from the event's name, so the same tournament keeps the
+   same voices from round to round — a broadcast has a team, not a lottery. */
+function boothPair(seedText){
+  var h=0,s=String(seedText||'');
+  for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;
+  var p=BOOTH_PAIRS[h%BOOTH_PAIRS.length];
+  return [boothById(p[0]),boothById(p[1])];
+}
+/* ---- what happened, read off the board ---- */
+const BOOTH_VAL={p:1,n:3,b:3,r:5,q:9,k:0};
+function boothMaterial(fen){
+  const board=String(fen||'').split(' ')[0];
+  let w=0,b=0;
+  for(const ch of board){
+    if(ch==='/'||(ch>='1'&&ch<='8'))continue;
+    const v=BOOTH_VAL[ch.toLowerCase()]||0;
+    if(ch===ch.toUpperCase())w+=v;else b+=v;
+  }
+  return {w:w,b:b,diff:w-b};
+}
+function boothQueens(fen){
+  const board=String(fen||'').split(' ')[0];
+  let w=0,b=0;
+  for(const ch of board){if(ch==='Q')w++;else if(ch==='q')b++;}
+  return {w:w,b:b};
+}
+const BOOTH_PIECE={p:'pawn',n:'knight',b:'bishop',r:'rook',q:'queen'};
+/* Which piece left the board between two positions. */
+function boothCaptured(before,after){
+  const count=function(fen){
+    const o={};
+    for(const ch of String(fen||'').split(' ')[0]){
+      if(ch==='/'||(ch>='1'&&ch<='8'))continue;
+      o[ch]=(o[ch]||0)+1;
+    }
+    return o;
+  };
+  const a=count(before),b=count(after);
+  for(const k in a)if((b[k]||0)<a[k]){
+    // a promotion removes a pawn and adds a piece; the pawn is not a capture
+    if(k==='P'||k==='p'){
+      let promoted=false;
+      for(const j in b)if(j!==k&&(b[j]||0)>(a[j]||0))promoted=true;
+      if(promoted)continue;
+    }
+    return {code:k,piece:BOOTH_PIECE[k.toLowerCase()]||'piece',white:k===k.toUpperCase(),
+      value:BOOTH_VAL[k.toLowerCase()]||0};
+  }
+  return null;
+}
+/* Every fact worth saying about the move just played, most interesting first.
+   `st` carries what has already been said so nothing is announced twice. */
+function boothFacts(g,ply,st){
+  st=st||{};
+  const i=ply-1;
+  const moves=g.moves||[],stack=g.stack||[];
+  if(i<0||i>=moves.length)return [];
+  const san=String(moves[i].san||'');
+  const before=stack[i],after=stack[i+1];
+  const whiteMoved=(ply%2===1);
+  const mine=(whiteMoved===(g.side==='w'));
+  const out=[];
+  const moveNo=Math.ceil(ply/2);
+  const push=(k,w,extra)=>out.push(Object.assign({k:k,w:w,mine:mine,moveNo:moveNo,san:san},extra||{}));
+  if(/#/.test(san))push('mate',100);
+  if(/=/.test(san))push('promote',80,{to:(san.match(/=([QRBN])/)||[])[1]||'Q'});
+  const cap=(/x/.test(san)&&before&&after)?boothCaptured(before,after):null;
+  if(cap){
+    if(cap.value>=9)push('queentaken',75,{piece:cap.piece});
+    else if(cap.value>=5)push('bigcapture',55,{piece:cap.piece});
+    else if(!st.firstBlood)push('firstblood',45,{piece:cap.piece});
+  }
+  /* A sacrifice cannot be seen on the move that plays it — a capture always
+     wins material at the moment it is made. It shows up one move later, when
+     the piece is taken back and the player who started it is worse off. That
+     the move before was itself a capture is what separates "they gave that up"
+     from "they just lost a piece", which is a judgement only an engine could
+     make, and the booth does not get one. */
+  if(ply>=2&&stack[ply-2]&&stack[ply]&&moves[ply-2]&&/x/.test(String(moves[ply-2].san||''))){
+    const prevWhite=((ply-1)%2===1);
+    const d0=boothMaterial(stack[ply-2]).diff,d1=boothMaterial(stack[ply]).diff;
+    const gain=prevWhite?(d1-d0):(d0-d1);
+    if(gain<=-2)push('sac',70,{n:Math.abs(gain),san:String(moves[ply-2].san||''),
+      mine:(prevWhite===(g.side==='w'))});
+  }
+  if(before&&after){
+    const qb=boothQueens(before),qa=boothQueens(after);
+    if((qb.w+qb.b)>0&&(qa.w+qa.b)===0)push('queensoff',60);
+  }
+  if(/^O-O/.test(san)){
+    const long=/^O-O-O/.test(san);
+    if(st.castled&&st.castledLong!=null&&st.castledLong!==long)push('opposite',65,{long:long});
+    else push('castled',25,{long:long});
+  }
+  if(/\+/.test(san)&&!/#/.test(san)&&!st.firstCheck)push('firstcheck',35);
+  if(g.clk&&g.clk.length){
+    const spent=boothSpent(g,ply);
+    const typ=boothTypical(g,whiteMoved?'w':'b');
+    if(spent!=null&&typ!=null&&spent>=Math.max(20,typ*BOOTH_LONG))push('longthink',50,{secs:Math.round(spent)});
+    const left=g.clk[i];
+    if(g.base&&left!=null&&left<=g.base*0.08&&!st.scramble)push('scramble',58,{secs:Math.round(left)});
+  }
+  if(ply===80)push('move40',30);
+  if(before&&after){
+    const d=boothMaterial(after).diff;
+    const mineUp=(g.side==='w')?d:-d;
+    if(Math.abs(mineUp)>=3&&st.matSaid!==(mineUp>0?'up':'down'))
+      push(mineUp>0?'materialup':'materialdown',40,{n:Math.abs(mineUp)});
+  }
+  if(!st.opening&&ply>=6&&ply<=16){
+    let det=null;
+    try{det=detectOpening(moves.slice(0,ply).map(m=>m.san));}catch(e){}
+    if(det&&det.name)push('opening',34,{name:det.name});
+  }
+  if(ply>=12&&ply%14===0)push('quiet',10);
+  out.sort((a,b)=>b.w-a.w);
+  return out;
+}
+/* Seconds the mover spent, read from the clock the way the replay reads it. */
+function boothSpent(g,ply){
+  const i=ply-1;
+  if(!g.clk||i<0||i>=g.clk.length)return null;
+  const before=(i>=2)?g.clk[i-2]:(g.base||0);
+  if(!before)return null;
+  const s=before+(g.inc||0)-g.clk[i];
+  return (s>=0&&s<7200)?s:null;
+}
+function boothTypical(g,side){
+  if(!g.clk)return null;
+  const v=[];
+  for(let ply=1;ply<=g.clk.length;ply++){
+    if((ply%2===1)!==(side==='w'))continue;
+    const s=boothSpent(g,ply);
+    if(s!=null)v.push(s);
+  }
+  if(v.length<3)return null;
+  v.sort((a,b)=>a-b);
+  return v[Math.floor(v.length/2)];
+}
+/* ---- what they say about it ---- */
+const BOOTH_LINES={
+  intro:{
+    dry:['Today it is {me} against {opp}. On paper that is {gap}.',
+         'Board one, {event}: {me} against {opp}.',
+         'A rating of {oppR} across the table, and the player facing it knows what that means.'],
+    hype:['Here we go — {me} versus {opp}, and I have been waiting all week for this one!',
+          '{event}, and what a pairing to open with: {me} and {opp}.',
+          'Hands shaken. {me}, {opp}. Let us play some chess.'],
+    calm:['{me} ({meR}) against {opp} ({oppR}). {gap}.',
+          'A note before the clocks start: {gap}.',
+          '{event}. The numbers say {gap}; the numbers are not playing.'],
+    wry:['{me} and {opp}. I have seen worse pairings, and I have seen worse coffee.',
+         'Forty years I have done this, and I still like the first move best.',
+         '{opp} across the table. Someone is going to be unhappy in three hours.']},
+  opening:{
+    dry:['The {name}. Both of them have prepared this.',
+         '{name}. A serious choice — there is no place to hide in it.',
+         'This is the {name}, and it is not a resting position.'],
+    hype:['The {name}! Oh, we are getting a game today.',
+          'Straight into the {name} — nobody came here for a quiet afternoon.',
+          '{name}, and the theory goes about twenty moves deep. They both know it.'],
+    calm:['{name}. Statistically the most balanced thing either of them could have chosen.',
+          'We are in the {name}. Structure first, fireworks later, if at all.',
+          '{name} — the pawn structure decides this one, not the pieces.'],
+    wry:['The {name}. Everybody plays it, nobody understands it.',
+         'Ah, the {name}. My old enemy.',
+         '{name}. I once lost a rook in this, in front of my mother.']},
+  firstblood:{
+    dry:['First piece off the board on move {moveNo} — a {piece}.',
+         'There goes a {piece}. The position simplifies a shade.',
+         'A {piece} comes off. Now we find out what they are actually playing for.'],
+    hype:['First blood! A {piece} goes, and the tension breaks.',
+          'And the first piece comes off — a {piece} on move {moveNo}!',
+          'There it is. A {piece}. Now we are playing.'],
+    calm:['A {piece} is exchanged on move {moveNo}. Material is level again.',
+          'The first capture. Nothing is decided by it.',
+          'A {piece} off. Note how little the pawn structure changed.'],
+    wry:['A {piece} has left us. It had a good run.',
+         'The first capture, and the hall wakes up.',
+         'There goes a {piece}. Somebody upstairs will call that a breakthrough.']},
+  bigcapture:{
+    dry:['The {piece} goes, and that is a real concession from somebody.',
+         'A {piece} off the board on move {moveNo}. Heavy pieces do not grow back.',
+         'There goes a {piece}. The open lines it leaves are the story now.'],
+    hype:['The {piece} is gone! That changes everything about this position!',
+          'Oh, the {piece}! Somebody has made a decision here!',
+          'A {piece} off the board and the crowd can feel it.'],
+    calm:['A {piece} is traded on move {moveNo}. Five points of material, changing hands.',
+          'The {piece} leaves. Watch the open file it left behind.',
+          'A {piece} off. From here the endgame is a real possibility.'],
+    wry:['The {piece} has gone to a better place.',
+         'A {piece}! Now we will see who has been counting.',
+         'And there goes the {piece}. I hope that was intentional.']},
+  queentaken:{
+    dry:['The queen comes off. Everything about this position just changed.',
+         'A queen is taken on move {moveNo}. Somebody worked that out several moves ago.',
+         'The queen goes. Whoever calculated further is about to be right.'],
+    hype:['THE QUEEN! The queen is off the board!',
+          'A queen goes down on move {moveNo}! This is why we watch!',
+          'Oh my word — the queen! Sit up, everybody.'],
+    calm:['A queen is captured. Nine points, and the character of the game with it.',
+          'The queen leaves the board on move {moveNo}.',
+          'Queen off. Every plan either of them had is now a different plan.'],
+    wry:['The queen has been removed from the premises.',
+         'Well. That is one way to simplify.',
+         'A queen! I shall have to put my coffee down.']},
+  sac:{
+    dry:['That is a sacrifice — {n} points given up deliberately.',
+         'Material for something else. They will need to be right about this.',
+         'Down {n} on material, by choice. That is either preparation or optimism.'],
+    hype:['A SACRIFICE! {n} points, thrown on the fire!',
+          'Oh, they have given up material! Deliberately! On move {moveNo}!',
+          'That is a sac! Nobody plays that by accident!'],
+    calm:['{n} points of material, conceded. The compensation had better be structural.',
+          'A sacrifice on move {moveNo}. I count {n} points out.',
+          'Material down {n}. Now we see whether the initiative is worth it.'],
+    wry:['They have given away {n} points. Either brilliance or a long walk home.',
+         'A sacrifice! How romantic. How risky.',
+         'That is {n} points I would have liked to keep.']},
+  queensoff:{
+    dry:['Both queens are gone. This is an endgame now, whatever the move number says.',
+         'Queens off on move {moveNo}. Technique from here.',
+         'No queens left. The kings become pieces again.'],
+    hype:['Queens off! And suddenly this is a completely different fight!',
+          'Both queens gone on move {moveNo} — now it is about who can grind!',
+          'The queens have left the building!'],
+    calm:['Queens are off. Endgame principles apply from this move on.',
+          'No queens. King activity is now worth more than anything else on the board.',
+          'Queens traded. Count the pawns; they decide this.'],
+    wry:['Queens off. The romantics have left, the accountants have arrived.',
+         'And now the long part of the afternoon begins.',
+         'No queens. I shall order more coffee.']},
+  opposite:{
+    dry:['Castling on opposite wings. This becomes a race, and races are decided by a tempo.',
+         'Opposite-side castling — both of them will now attack the other king.',
+         'Kings in different corners. Nobody is drawing this by accident.'],
+    hype:['Opposite sides! Opposite sides! This is going to be a slugging match!',
+          'They have castled into different corners — it is a pawn-storm race now!',
+          'Oh, this is what we wanted. Opposite castling, and the gloves come off.'],
+    calm:['Opposite-wing castling. Whoever opens a file first is usually a tempo ahead.',
+          'Kings on opposite flanks. Count the pawn-storm tempi, not the pieces.',
+          'Opposite castling on move {moveNo}. Expect both pawn storms to arrive.'],
+    wry:['Opposite corners. Somebody is going to get mated, and it will be dramatic.',
+         'Kings apart. Draws are now technically illegal.',
+         'Opposite castling. My favourite kind of afternoon.']},
+  castled:{
+    dry:['King is safe, {long}.','Castling {long} on move {moveNo}. Development is done.',
+         'The king goes {long}. Now the middlegame.'],
+    hype:['King tucked away {long}!','Castles {long} — and now they can start thinking about the attack!',
+          'Safety first, {long}.'],
+    calm:['Castles {long}. Rooks connected, plan next.',
+          'King {long} on move {moveNo}. A normal, correct move.',
+          'Castling {long}. Note which rook that activates.'],
+    wry:['Castles {long}, like a sensible person.','King {long}. Very responsible.',
+         'And the king goes {long}, where it will pretend to be safe.']},
+  firstcheck:{
+    dry:['First check of the game.','A check — forcing, and forcing moves are where games are decided.',
+         'Check. Now the king has to answer.'],
+    hype:['CHECK! The first one of the game!','A check on move {moveNo} — the king is being asked questions!',
+          'Check! Something is happening!'],
+    calm:['The first check, on move {moveNo}. Note that it does not win anything by itself.',
+          'A check. Forcing, but forcing is not the same as strong.',
+          'Check. The reply is probably forced, which suits whoever calculated it.'],
+    wry:['A check! Always popular with the crowd.','Check. The cheap thrill of chess.',
+         'And a check, which the audience will enjoy more than the player.']},
+  promote:{
+    dry:['A pawn becomes a {to}. Eight ranks of work, finished.',
+         'Promotion on move {moveNo}. That pawn has been the whole plan.',
+         'The pawn promotes. A new {to} on the board.'],
+    hype:['PROMOTION! The pawn gets there! A new {to}!',
+          'It goes all the way! A {to} on move {moveNo}!',
+          'The pawn is home! And the crowd is on its feet!'],
+    calm:['Promotion to a {to}. The material balance shifts by eight points in one move.',
+          'A pawn reaches the eighth. This is what all the endgame technique was for.',
+          'New {to}. Everything before this was preparation for it.'],
+    wry:['The pawn has been promoted. It will be insufferable about it.',
+         'A new {to}! The little one made it.',
+         'Promotion. Somewhere a pawn is telling its grandchildren.']},
+  longthink:{
+    dry:['{secs} seconds on that one. They have found something, or they are worried.',
+         'A long think — {secs} seconds. This is the move they came here for.',
+         '{secs} seconds. Nobody spends that on a position they understand.'],
+    hype:['{secs} seconds! Look at the concentration! Something is brewing!',
+          'A huge think — {secs} seconds on move {moveNo}!',
+          'They have been sat there {secs} seconds. This is the moment.'],
+    calm:['{secs} seconds spent. Roughly four times their own average this game.',
+          'A {secs}-second think on move {moveNo}. Expensive, and possibly correct.',
+          '{secs} seconds. The clock will remember that later.'],
+    wry:['{secs} seconds. I have made worse decisions in less time.',
+         'A {secs}-second think. Either genius or indigestion.',
+         '{secs} seconds gone. The clock does not care how good the move is.']},
+  scramble:{
+    dry:['Under a minute and falling. From here it is hands, not heads.',
+         '{secs} seconds left. The quality of this game is about to drop.',
+         'The flag is in play now. Everything changes when the clock gets that low.'],
+    hype:['Look at the clock! {secs} seconds! This is a scramble!',
+          'The flag! We are into the flag now — anything can happen!',
+          '{secs} seconds on the clock and pieces flying!'],
+    calm:['{secs} seconds remaining. Expect the accuracy to fall by a class.',
+          'Time trouble. Statistically this is where most games are actually decided.',
+          '{secs} seconds. Increment is the only thing keeping this alive.'],
+    wry:['{secs} seconds. This is the part where chess becomes a sport.',
+         'The clock is now the strongest player on the board.',
+         '{secs} seconds left. I can barely watch, which is why I do this job.']},
+  move40:{
+    dry:['Move forty. The time control is made.',
+         'Forty moves played. Both of them get their time back now.',
+         'Move forty reached — and the hard part starts again.'],
+    hype:['Move forty! They have made the time control!',
+          'Forty moves! More time on the clock and the game is still alive!',
+          'And they are through to move forty!'],
+    calm:['Move forty. Note the clocks reset expectations, not the position.',
+          'Forty moves in. The endgame that follows is the one that counts.',
+          'Move forty, and the position is still unresolved.'],
+    wry:['Move forty. Everybody relaxes, then somebody blunders.',
+         'The time control. The most dangerous moment in classical chess.',
+         'Forty moves. Time for a cup of tea and a catastrophe.']},
+  materialup:{
+    dry:['Material favours {me} by {n} now.','A material edge of {n} to {me}.',
+         'That is {n} points more for {me} — and converting is a separate skill.'],
+    hype:['Material advantage to {me} — {n} points!','{n} points ahead for {me}, and that is real!',
+          'A clear material lead of {n} for {me}!'],
+    calm:['Material: {me} by {n}. Conversion, not celebration.',
+          'A lead of {n} points to {me}. Technique from here.',
+          '{n}-point material edge to {me}.'],
+    wry:['{n} up for {me}. Now comes the hard part — not losing it.',
+         '{n} points to {me}. Easy. Famously easy.',
+         'That is {n} more points of wood for {me} than for {opp}.']},
+  materialdown:{
+    dry:['{opp} is {n} up on material, and counting will not save {me}.',
+         'Material runs {n} against {me} now.',
+         'A deficit of {n} for {me}. That needs activity, and quickly.'],
+    hype:['{opp} is {n} ahead — something special is needed from {me}!',
+          '{n} points down for {me}, and this is the fight now!',
+          'Behind on material! Magic required from {me}!'],
+    calm:['{opp} by {n} points. Compensation required, not hope.',
+          'Material: {opp} by {n}. Complications are the only asset left to {me}.',
+          '{n} down for {me}. Simplification is now the enemy.'],
+    wry:['{n} behind for {me}. Time to make the position untidy.',
+         '{n} points down. Somebody should knock something over.',
+         '{opp} is {n} up, and looking far too comfortable about it.']},
+  quiet:{
+    dry:['Nothing forcing for a while now. Both of them are improving pieces.',
+         'A quiet stretch. This is where the game is actually being decided.',
+         'No contact yet. Manoeuvring.'],
+    hype:['They are circling each other! Something has to give!',
+          'Quiet — but you can feel it building!',
+          'Nothing yet. But look at the pieces gathering!'],
+    calm:['A manoeuvring phase. Watch the squares, not the moves.',
+          'No captures for several moves. Both are improving their worst piece.',
+          'Quiet play. The pawn structure has not changed in some time.'],
+    wry:['Nothing is happening, beautifully.',
+         'This is the part they do not show on the highlights.',
+         'A quiet spell. Excellent. I can finish my sandwich.']},
+  winmate:{
+    dry:['Checkmate — the point goes to {me}.','Mated. A clean finish from {me}.',
+         'That is mate. {opp} never got out of it.'],
+    hype:['CHECKMATE! And it is {me} who has done it!','Mate on the board! What a finish from {me}!',
+          'It is mate — a win in style for {me}!'],
+    calm:['Checkmate. Decisive, and the cleanest possible result.',
+          'Mate on move {moveNo}. No arguing with that.',
+          'Checkmate delivered — the win to {me}.'],
+    wry:['Mate. {opp} will want that one back.','Checkmate — the only truly polite way to end a game.',
+         'And mate. Somebody has a long journey home.']},
+  winres:{
+    dry:['{opp} resigns, and the point goes to {me}.','Resignation — it was under control for {me}.',
+         'That is the handshake, and the point to {me}.'],
+    hype:['{opp} resigns — the win goes to {me}!','The hand goes out, and the point is {me}\u2019s!',
+          'Resignation! A big result for {me}!'],
+    calm:['{opp} resigns on move {moveNo}. Correct — the position was beyond saving.',
+          'Resignation, and a clean conversion by {me}.','{opp} stops the clock. A point to {me}.'],
+    wry:['{opp} resigns, with dignity and obvious annoyance.',
+         'The handshake. Always awkward, always necessary.',
+         '{opp} has seen enough. Can you blame them?']},
+  lossmate:{
+    dry:['Checkmate. {opp} finishes it.','Mated — outplayed at the end.',
+         'That is mate against {me}.'],
+    hype:['Checkmate! {opp} lands it!','Mate on the board — {opp} takes it!',
+          'It is over! {opp} finds the mate!'],
+    calm:['Checkmate on move {moveNo}, and the point to {opp}.',
+          'Mate. Nothing to review about the result, plenty about the move before it.',
+          'Checkmate against {me}.'],
+    wry:['Mate. Well, that escalated.','Checkmate — one for {me} to study tonight.',
+         'And mate. Painful, but instructive — the two usually travel together.']},
+  lossres:{
+    dry:['Resignation from {me}, and {opp} takes it.','A resignation. There was nothing left for {me}.',
+         'That is the handshake. The point goes to {opp}.'],
+    hype:['Resignation from {me} — {opp} wins it!','The hand goes out, and {opp} has the point!',
+          'Resignation. The win goes to {opp}.'],
+    calm:['Resignation on move {moveNo} from {me}. Reasonable — the position was lost.',
+          'Resignation, converted cleanly by {opp}.','The clock stops, and the point goes to {opp}.'],
+    wry:['Resignation from {me}, and a reach for the coffee.','The handshake. On to the next one.',
+         'Enough seen by {me}, and who could argue.']},
+  flag:{
+    dry:['The flag falls. Decided by the clock, not the board.',
+         'Time. A playable position, and it goes on the clock.',
+         'Flagged. That one will hurt more than a loss on the board.'],
+    hype:['The flag! The flag is down! It is over on time!',
+          'Out of time! What a way to end it!',
+          'The clock wins it! Drama to the last second!'],
+    calm:['Loss on time. The position was still playable, which is the worst kind.',
+          'The flag falls on move {moveNo}. Clock management, not chess.',
+          'Time expired. A full point decided by a clock.'],
+    wry:['The flag. The cruellest piece in chess.',
+         'Out of time. The board was fine; the clock was not.',
+         'Flagged! Somebody should have moved faster and thought less.']},
+  draw:{
+    dry:['Drawn. Both of them will feel they had chances.',
+         'A draw. Correct, on balance.','That is the half. Neither of them found more.'],
+    hype:['A draw! And what a fight it was!','They split it! Honours even!',
+          'Drawn — after all that!'],
+    calm:['Draw agreed. A fair reflection of the position.',
+          'Half a point each on move {moveNo}.','A draw. The pawn structure was always going to say this.'],
+    wry:['A draw. The result nobody travels for.',
+         'Split. Everyone goes home mildly dissatisfied.',
+         'Drawn. The most honest result in chess, and the least fun.']}
+};
+function boothSay(voice,kind,vars,used){
+  const set=BOOTH_LINES[kind];
+  if(!set)return null;
+  const arr=set[voice]||set.dry;
+  if(!arr||!arr.length)return null;
+  // a phrase already used in this game is not used again while another is free
+  let pool=arr;
+  if(used){
+    const fresh=arr.filter(function(l){return !used[voice+'|'+kind+'|'+l];});
+    if(fresh.length)pool=fresh;
+  }
+  let s=pool[Math.floor(Math.random()*pool.length)];
+  if(used)used[voice+'|'+kind+'|'+s]=1;
+  for(const k in vars)s=s.split('{'+k+'}').join(vars[k]==null?'':String(vars[k]));
+  return s.replace(/\{[a-z]+\}/gi,'').replace(/\s{2,}/g,' ').trim();
+}
+/* Who speaks about what: the analyst takes the technical facts, the host the
+   loud ones, so the pair sounds like two people and not one person twice. */
+const BOOTH_HOST_KINDS={firstblood:1,queentaken:1,sac:1,promote:1,opposite:1,scramble:1,
+  winmate:1,lossmate:1,flag:1,move40:1};
+function boothSpeaker(pair,kind){
+  const hosty=!!BOOTH_HOST_KINDS[kind];
+  const host=pair.filter(function(p){return p.v==='hype'||p.v==='wry';})[0]||pair[1];
+  const analyst=pair.filter(function(p){return p.v==='dry'||p.v==='calm';})[0]||pair[0];
+  return hosty?host:analyst;
+}
+/* ---- the running log ---- */
+function boothInit(g){
+  const pair=boothPair((g&&g.event)||'');
+  app.booth={pair:[pair[0].id,pair[1].id],lines:[],st:{},ply:0,used:{}};
+  return app.booth;
+}
+function boothVars(g,f){
+  const c=store.career||{};
+  const me=(c.name||'You').split(' ').pop();
+  const opp=((g.oppName||'your opponent')+'').split(' ').pop();
+  const gap=(g.myRating&&g.oppRating)
+    ? (Math.abs(g.myRating-g.oppRating)<40?'about even'
+      :(g.myRating>g.oppRating?me+' by '+(g.myRating-g.oppRating):opp+' by '+(g.oppRating-g.myRating)))
+    : 'anybody’s guess';
+  // the derived words go on AFTER the raw fact, or a boolean ends up on screen
+  return Object.assign({me:me,opp:opp,gap:gap,event:g.event||'this event',
+    meR:g.myRating||'unrated',oppR:g.oppRating||'unrated'},f||{},
+    {long:(f&&f.long)?'queenside':'kingside'});
+}
+function boothAdd(g,kind,f){
+  const B=app.booth||boothInit(g);
+  const pair=[boothById(B.pair[0]),boothById(B.pair[1])];
+  const who=boothSpeaker(pair,kind);
+  if(!B.used)B.used={};
+  const line=boothSay(who.v,kind,boothVars(g,f),B.used);
+  if(!line)return null;
+  const top=B.lines[B.lines.length-1];
+  if(top&&top.line===line)return null;            // never the same sentence twice running
+  B.lines.push({who:who.n,e:who.e,v:who.v,line:line,ply:(f&&f.ply)||B.ply,kind:kind});
+  if(B.lines.length>BOOTH_KEEP)B.lines.shift();
+  return line;
+}
+/* The hook the board calls after every move, human or engine. */
+function boothMove(){
+  try{const g=boothGameOf();if(g)boothTick(g,(app.playMoves||[]).length);}catch(e){}
+}
+/* Called once per move played. Says at most one thing, about the most
+   interesting fact, and stays quiet when nothing happened. */
+function boothTick(g,ply){
+  if(!boothOn()||!g)return null;
+  const B=app.booth||boothInit(g);
+  if(ply<=B.ply)return null;
+  B.ply=ply;
+  if(ply===1&&!B.lines.length)boothAdd(g,'intro',{ply:0});
+  const facts=boothFacts(g,ply,B.st);
+  const f=facts[0];
+  if(!f)return null;
+  // remember what has been said so nothing is announced twice
+  if(f.k==='firstblood')B.st.firstBlood=true;
+  if(f.k==='firstcheck')B.st.firstCheck=true;
+  if(f.k==='scramble')B.st.scramble=true;
+  if(f.k==='opening')B.st.opening=true;
+  if(f.k==='materialup')B.st.matSaid='up';
+  if(f.k==='materialdown')B.st.matSaid='down';
+  if(/x/.test(String(f.san||'')))B.st.firstBlood=true;
+  if(/^O-O/.test(String(f.san||''))){B.st.castled=true;B.st.castledLong=/^O-O-O/.test(f.san);}
+  f.ply=ply;
+  return boothAdd(g,f.k,f);
+}
+/* The last word, once the result is in. */
+function boothFinish(g,score,reason){
+  if(!boothOn()||!g)return null;
+  const flag=/time/i.test(reason||'');
+  const mate=/checkmate|mate/i.test(reason||'');
+  const kind=flag?'flag'
+    :(score===1?(mate?'winmate':'winres')
+    :score===0?(mate?'lossmate':'lossres'):'draw');
+  return boothAdd(g,kind,{ply:(g.moves||[]).length,moveNo:Math.ceil((g.moves||[]).length/2)});
+}
+/* ---- on screen ---- */
+function boothGameOf(){
+  const opp=app.careerRoundOpp||app.playBot||null;
+  if(!opp)return null;
+  return {moves:app.playMoves||[],stack:app.playStack||[],side:app.playSide,
+    clk:app.playClk||null,base:(app.tc&&app.tc.base)||0,inc:(app.tc&&app.tc.inc)||0,
+    oppName:opp.name||'your opponent',oppRating:opp.rating||app.careerElo||0,
+    myRating:(store.career&&(youRating(store.career,app.careerOneoff||'classical')||store.career.rating))||0,
+    event:app.playTitle||''};
+}
+function boothPanel(){
+  const g=boothGameOf();
+  if(!g)return '';
+  if(!boothOn())
+    return '<div class="card" style="margin-top:12px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px">'+
+      '<span class="dim small">🎙️ The commentary booth is off.</span>'+
+      '<button class="btn ghost sm" data-act="boothtoggle">Turn it on</button></div></div>';
+  const B=app.booth;
+  const pair=B?[boothById(B.pair[0]),boothById(B.pair[1])]:boothPair(g.event);
+  const lines=(B&&B.lines||[]).slice(-BOOTH_SHOW);
+  return '<div class="card" style="margin-top:12px">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">'+
+      '<div style="min-width:0"><div style="font-weight:700">🎙️ In the booth</div>'+
+      '<div class="dim small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+
+        pair.map(function(p){return p.e+' '+esc((p.t?p.t+' ':'')+p.n);}).join(' · ')+'</div></div>'+
+      '<button class="btn ghost sm" data-act="boothtoggle" title="They only read the board, never the engine">Off</button>'+
+    '</div>'+
+    (lines.length
+      ? '<div style="max-height:190px;overflow:auto">'+lines.map(function(l){
+          return '<div style="padding:5px 0;border-top:1px solid var(--border);line-height:1.5">'+
+            '<span class="small" style="font-weight:700;color:var(--brand2)">'+l.e+' '+esc(l.who.split(' ').pop())+'</span>'+
+            '<span class="small" style="margin-left:6px">'+esc(l.line)+'</span></div>';
+        }).join('')+'</div>'
+      : '<div class="dim small">They are settling in. Make a move.</div>')+
+    '<div class="dim small" style="margin-top:6px;font-size:10px">They watch the board and the clocks — never the engine, so nothing said here tells you how you stand.</div>'+
+    '</div>';
+}
+
 /* ================= A GAME YOU CAN COME BACK TO =================
    A classical career round is 30+20 — up to two hours in the chair. Until now
    the board lived only in memory: reload the page, tap Career to check the
@@ -10328,6 +10920,7 @@ function playSnapshot(){
     tcId:(app.tc&&app.tc.id)||null,
     clock:app.clock?{w:Math.round(app.clock.w),b:Math.round(app.clock.b),inc:app.clock.inc}:null,
     clk:(app.playClk||[]).slice(),
+    booth:app.booth||null,
     blindfold:!!app.blindfold,c960:app.c960||null,endgame:app.endgame||null,bot:app.playBot||null,
     bookId:app.playBook?app.playBook.id:null,
     career:{opp:app.careerOpp||null,elo:app.careerElo||null,tour:!!app.careerTour,
@@ -10440,6 +11033,7 @@ function playResume(){
   recomputeBook();
   app.tc=g.tcId?tcById(g.tcId):(g.clock?{id:null,label:'',cat:'',base:0,inc:Math.round((g.clock.inc||0)/1000)}:tcById('unlimited'));
   app.playClk=Array.isArray(g.clk)?g.clk.slice():[];
+  app.booth=(g.booth&&g.booth.pair)?g.booth:null;
   app.clock=g.clock?{w:g.clock.w,b:g.clock.b,inc:g.clock.inc,lastTs:performance.now(),
     botSide:null,botRate:0,botBudget:0,botUsed:0,botFrom:null}:null;
   if(app.clock)Engine.load();
@@ -10487,6 +11081,7 @@ function startPlay(fen,side,openingId,title,opts){opts=opts||{};
   app.playBook=opts.bookId?byId.get(opts.bookId):(opts.book||null);
   app.playBookNode=opts.bookNode||(app.playBook?app.playBook.root:null);
   app.playClk=[];
+  app.booth=null;
   _resumeSig=null;                      // a new game replaces any saved one
   const tc=opts.tc||tcById((opts.tcId)||'unlimited');app.tc=tc;
   if(tc.base>0){app.clock={w:tc.base*1000,b:tc.base*1000,inc:tc.inc*1000,lastTs:performance.now(),
@@ -10532,7 +11127,7 @@ async function engineMove(){app.playStatus='engine';render();
     const kids=app.playBookNode.children;const pick=kids[Math.floor(Math.random()*kids.length)];
     const m=tryFromTo(app.playFen,pick.from,pick.to);
     if(m){await sleep(280);
-      app.playStack.push(m.fen);app.playMoves.push({from:pick.from,to:pick.to,san:m.san,book:true});playNoteClock();
+      app.playStack.push(m.fen);app.playMoves.push({from:pick.from,to:pick.to,san:m.san,book:true});playNoteClock();boothMove();
       app.playFen=m.fen;app.playLast={from:pick.from,to:pick.to};app.playSel=null;app.playView=app.playStack.length-1;
       app.playBookNode=pick;addIncrement(app.playSide==='w'?'b':'w');sfxSan(m.san);
       // still in theory; the next move off the book is the one they stop on
@@ -10609,7 +11204,7 @@ function playEngineBest(best,eng,plan,thinkFen){
     app._engRetry=0;
     settleBotClock(eng,plan);
     if(best&&best!=='(none)'){const m=tryFromTo(app.playFen,best.slice(0,2),best.slice(2,4),best[4]||'q');
-      if(m){if(app.c960)c960UpdateRights(eng,best.slice(0,2));app.playStack.push(m.fen);app.playMoves.push({from:best.slice(0,2),to:best.slice(2,4),san:m.san});app.playFen=m.fen;app.playLast={from:best.slice(0,2),to:best.slice(2,4)};app.playSel=null;app.playView=app.playStack.length-1;app.playBookNode=null;addIncrement(eng);playNoteClock();sfxSan(m.san);}}
+      if(m){if(app.c960)c960UpdateRights(eng,best.slice(0,2));app.playStack.push(m.fen);app.playMoves.push({from:best.slice(0,2),to:best.slice(2,4),san:m.san});app.playFen=m.fen;app.playLast={from:best.slice(0,2),to:best.slice(2,4)};app.playSel=null;app.playView=app.playStack.length-1;app.playBookNode=null;addIncrement(eng);playNoteClock();boothMove();sfxSan(m.san);}}
     if(!checkOver()){app.playStatus='play';oppAfterMove();}
     render();tryPremove();
 }
@@ -10625,7 +11220,7 @@ function playMove(from,to){
   markActiveDay();
   if(app.c960)c960UpdateRights(app.playSide,from);
   app.playStack.push(m.fen);app.playMoves.push({from,to,san:m.san});app.playFen=m.fen;app.playLast={from,to};app.playSel=null;app.playHint=null;app.playView=app.playStack.length-1;
-  advanceBook(from,to);addIncrement(app.playSide);playNoteClock();sfxSan(m.san);
+  advanceBook(from,to);addIncrement(app.playSide);playNoteClock();boothMove();sfxSan(m.san);
   if(store.settings.blunderWarn!==false){
     var _bl=vxCostOf(app.playStack[app.playStack.length-2]||app._playStartFen,m.san);
     app.blunderNote=(_bl&&_bl.net>=2)?('⚠️ That drops material — '+_bl.san+' wins the '+VX_NAME[_bl.captured]+'.'):null;
@@ -10862,7 +11457,7 @@ const CLUBS=['Knights of the Square Table','Rook & Roll CC','The En Passant Club
   'The Passed Pawns','Windmill CC','Battery Park Chess'];
 const CLUB_BOARDS=4;          // you and three team-mates
 const CLUB_SIZE=6;            // clubs in a division, so five matches a season
-const CLUB_DRAW_RATE=0.30;    // classical team chess draws a lot
+const CLUB_DRAW_RATE=0.30;    // between two equals; see bulDrawRate
 function clubDivRating(div){return [0,2350,2050,1750,1450][div]||1450;}
 function clubDivPrize(div,place){
   const base=[0,2600,1500,900,500][div]||500;
@@ -10872,10 +11467,13 @@ function clubDivPrize(div,place){
    their own slice rather than falling out of a coin flip. */
 function leagueSimBoard(mine,theirs){
   const e=1/(1+Math.pow(10,(theirs-mine)/400));
-  const pw=Math.max(0,Math.min(1-CLUB_DRAW_RATE,e-CLUB_DRAW_RATE/2));
+  // draws thin out as the boards get further apart, so the underdog on board
+  // four still has a chance and the favourite scores what its rating says
+  const d=bulDrawRate(e,CLUB_DRAW_RATE);
+  const pw=Math.max(0,Math.min(1-d,e-d/2));
   const r=Math.random();
   if(r<pw)return 1;
-  if(r<pw+CLUB_DRAW_RATE)return 0.5;
+  if(r<pw+d)return 0.5;
   return 0;
 }
 function leagueTeam(div,boards){
@@ -11293,8 +11891,148 @@ function pressChoose(k){var c=store.career;lifeInit(c);if(!c.pressPending)return
   else if(k==='confident'){c.fame=Math.min(100,c.fame+4);c.fans=Math.round(c.fans+(c.fame*3));app.careerToast='“I knew I’d win.” Fame +.';}
   else{c.fame=Math.min(100,c.fame+8);c.fans=Math.round(c.fans+(c.fame*8)+50);c.reputation=Math.max(0,c.reputation-12);app.careerToast='🔥 You called out a rival — the clip goes viral. Fans ++, respect −.';}
   c.pressPending=null;save();render();}
+/* ================= THE HALL =================
+   Retiring already wrote a full record of the career: peak rating, titles,
+   honours, earnings, years, the protégé you made, your all-time rank and a
+   written verdict on the whole thing. Then "Begin a new career" deleted it,
+   and all that crossed over was a single peak number used to size the New
+   Game+ bonus. Five careers in, the game could not tell you one thing about
+   the first four.
+
+   They are kept now. Every career you finish takes its place in the hall,
+   newest first, best marked, and the shelf outlives all of them. */
+const HALL_KEEP=24;
+function hallInit(){
+  if(!store.legacy)store.legacy={peak:0,careers:0,hall:[]};
+  if(!Array.isArray(store.legacy.hall))store.legacy.hall=[];
+  return store.legacy;
+}
+function hallList(){return hallInit().hall;}
+/* One finished career, as it will be remembered. */
+function hallEntry(c){
+  const f=c.hof||{};
+  return {name:c.name||'You',fed:c.fed||'FIDE',flag:c.flag||'',
+    peak:f.peak||c.peak||0,rating:f.rating!=null?f.rating:(c.rating||null),
+    titles:(f.titles||c.titles||[]).slice(),honors:(f.honors||c.honors||[]).slice(),
+    money:Math.round(f.money||c.money||0),age:Math.floor(f.age||c.age||0),
+    years:f.years!=null?f.years:Math.round((c.weeks||0)/52),
+    fans:Math.round(f.fans||c.fans||0),best:f.best||bestTitle(c)||'',
+    protege:f.protege||null,gmsMade:f.gmsMade||0,broadcasts:f.broadcasts||0,
+    allTime:f.allTime||null,verdict:f.verdict||null,persona:f.persona||null,
+    style:f.style||null,score:Math.round(legacyScore(c)),
+    games:c.played||0,won:c.won||0,drawn:c.drawn||0,lost:c.lost||0,
+    seasons:c.season||1,issues:(c.issues||[]).length,at:Date.now()};
+}
+function hallAdd(c){
+  const L=hallInit();
+  L.hall.unshift(hallEntry(c));
+  if(L.hall.length>HALL_KEEP)L.hall.length=HALL_KEEP;
+  return L.hall[0];
+}
+/* The best career you have had, by the same score the all-time list uses. */
+function hallBest(){
+  const H=hallList();
+  if(!H.length)return null;
+  return H.slice().sort(function(a,b){return (b.score||0)-(a.score||0)||(b.peak||0)-(a.peak||0);})[0];
+}
+function hallTotals(){
+  const H=hallList();
+  return {careers:H.length,
+    games:H.reduce(function(a,x){return a+(x.games||0);},0),
+    years:H.reduce(function(a,x){return a+(x.years||0);},0),
+    money:H.reduce(function(a,x){return a+(x.money||0);},0),
+    titles:H.reduce(function(a,x){return a+((x.titles||[]).length);},0),
+    honors:H.reduce(function(a,x){return a+((x.honors||[]).length);},0),
+    champions:H.filter(function(x){return (x.honors||[]).some(function(h){return /World Champion/.test(h);});}).length,
+    peak:H.reduce(function(a,x){return Math.max(a,x.peak||0);},0),
+    gms:H.reduce(function(a,x){return a+(x.gmsMade||0);},0)};
+}
+/* ---- on screen ---- */
+function hallRow(e,i,bestAt){
+  const v=e.verdict||{};
+  return '<div class="card" style="margin-bottom:9px'+(i===bestAt?';border-color:var(--amber)':'')+'">'+
+    '<div class="row" style="justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">'+
+      '<div style="min-width:0">'+
+        '<div style="font-weight:800">'+(v.emoji||'♟')+' '+esc((e.best?e.best+' ':'')+e.name)+
+          (i===bestAt?' <span class="chip amber" style="font-size:9px">BEST</span>':'')+'</div>'+
+        '<div class="dim small">'+esc(e.fed)+' '+(e.flag||'')+' · '+e.years+' season'+(e.years===1?'':'s')+
+          ' · retired at '+e.age+'</div>'+
+      '</div>'+
+      '<div style="text-align:right"><div style="font-weight:800;color:var(--brand2)">'+(e.peak||'—')+'</div>'+
+      '<div class="dim small">peak</div></div>'+
+    '</div>'+
+    (v.title?'<div class="small" style="margin-top:5px;font-weight:700">'+esc(v.title)+'</div>':'')+
+    (v.blurb?'<div class="dim small" style="margin-top:2px;line-height:1.55">'+esc(v.blurb)+'</div>':'')+
+    '<div class="dim small" style="margin-top:6px;line-height:1.6">'+
+      (e.games?'♟ '+e.games+' games ('+e.won+'–'+e.drawn+'–'+e.lost+'). ':'')+
+      '💰'+(e.money||0).toLocaleString()+' earned. '+
+      ((e.titles||[]).length?'🎖️ '+e.titles.join('/')+'. ':'')+
+      (e.fans?'👥 '+e.fans.toLocaleString()+' fans. ':'')+
+      (e.allTime?'🐐 all-time #'+e.allTime.toLocaleString()+'. ':'')+
+      (e.gmsMade?'🧑‍🎓 '+e.gmsMade+' GM'+(e.gmsMade>1?'s':'')+' developed. ':'')+
+      (e.issues?'📖 '+e.issues+' issue'+(e.issues===1?'':'s')+' written about it. ':'')+
+    '</div>'+
+    ((e.honors||[]).length?'<div style="margin-top:6px">'+e.honors.map(function(h){
+      return '<span class="chip green" style="margin:2px;font-size:10px">'+honorEmoji(h)+' '+esc(h)+'</span>';}).join('')+'</div>':'')+
+    (e.protege?'<div class="dim small" style="margin-top:5px">🧑‍🎓 Protégé '+esc(e.protege.name)+
+      ' reached '+e.protege.peak+'.</div>':'')+
+    (e.persona?'<div class="small" style="margin-top:4px;color:var(--brand2)">'+e.persona+'</div>':'')+
+    '</div>';
+}
+function viewHall(){
+  const H=hallList();
+  if(!H.length)
+    return msgCard('🏛️ The hall','No career has been completed yet. Retire one and it takes its place here, '+
+      'with everything it achieved, for as long as this browser remembers anything.',
+      '<button class="btn sec" data-act="nav" data-val="career">Back to the career</button>');
+  const T=hallTotals(),best=hallBest();
+  const bestAt=best?H.indexOf(best):-1;
+  const stat=function(l,v,col){return '<div style="flex:1;min-width:84px;text-align:center;padding:7px 3px">'+
+    '<div class="dim small" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em">'+l+'</div>'+
+    '<div style="font-weight:800;font-size:17px;white-space:nowrap'+(col?';color:'+col:'')+'">'+v+'</div></div>';};
+  return '<div style="max-width:760px;margin:0 auto">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">'+
+      '<h1 style="font-size:20px;margin:0">🏛️ The hall</h1>'+
+      '<button class="btn ghost sm" data-act="nav" data-val="career">← Career</button></div>'+
+    '<div class="card" style="margin-bottom:12px">'+
+      '<div class="dim small" style="margin-bottom:4px">Every career you have finished, and what it added up to.</div>'+
+      '<div class="row" style="flex-wrap:wrap">'+
+        stat('Careers',T.careers)+
+        stat('Best peak',T.peak||'—','var(--brand2)')+
+        stat('Games',T.games.toLocaleString())+
+        stat('Seasons',T.years)+
+        stat('Earned','💰'+T.money.toLocaleString(),'#fbbf24')+
+      '</div>'+
+      '<div class="dim small" style="margin-top:5px;line-height:1.6">'+
+        (T.titles?'🎖️ '+T.titles+' title'+(T.titles===1?'':'s')+' across all of them. ':'')+
+        (T.honors?'🏆 '+T.honors+' honour'+(T.honors===1?'':'s')+'. ':'')+
+        (T.champions?'👑 '+T.champions+' world '+(T.champions===1?'championship':'championships')+'. ':'')+
+        (T.gms?'🧑‍🎓 '+T.gms+' grandmaster'+(T.gms===1?'':'s')+' developed. ':'')+
+        (!T.titles&&!T.honors?'No titles yet. The hall keeps the quiet careers too.':'')+
+      '</div></div>'+
+    H.map(function(e,i){return hallRow(e,i,bestAt);}).join('')+
+    '<div class="dim small" style="text-align:center;margin-bottom:16px">The hall keeps the last '+HALL_KEEP+
+      ' careers. Everything here survives starting a new one.</div>'+
+    '</div>';
+}
+function hallCard(){
+  const H=hallList();
+  if(!H.length)return '';
+  const T=hallTotals(),b=hallBest();
+  return '<div class="card" style="margin-bottom:12px">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<div style="min-width:0"><div style="font-weight:700">🏛️ The hall</div>'+
+      '<div class="dim small">'+T.careers+' finished career'+(T.careers===1?'':'s')+
+        (b?' · best: '+esc(b.name)+' at '+b.peak:'')+'</div></div>'+
+      '<button class="btn sec sm" data-act="nav" data-val="hall">Open it</button>'+
+    '</div></div>';
+}
 function retireCareer(){var c=store.career;lifeInit(c);c.retired=true;c.hof={peak:c.peak,rating:c.rating,titles:(c.titles||[]).slice(),honors:(c.honors||[]).slice(),money:c.money,age:c.age,years:Math.round((c.weeks||0)/52),fans:c.fans,best:bestTitle(c),protege:c.protege?{name:c.protege.name,peak:c.protege.peak}:null,gmsMade:c.gmsMade||0,broadcasts:c.broadcasts||0,allTime:allTimeRank(c).rank,verdict:legacyVerdict(c),persona:personaChip(c),style:(playingStyle(c)||{}).key||null};
-  store.legacy={peak:Math.max((store.legacy&&store.legacy.peak)||0,c.peak||0,c.protege?(c.protege.peak-300):0),careers:((store.legacy&&store.legacy.careers)||0)+1};save();render();}
+  hallInit();
+  store.legacy.peak=Math.max(store.legacy.peak||0,c.peak||0,c.protege?(c.protege.peak-300):0);
+  store.legacy.careers=(store.legacy.careers||0)+1;
+  hallAdd(c);                       // and it stays there, whatever happens next
+  save();render();}
 function newCareer(){var leg=store.legacy;store.career=freshCareer();if(leg&&leg.peak>1200){store.career.xp=Math.min(90,Math.round((leg.peak-1200)/14));store.career.money=(store.career.money||0)+Math.min(4000,leg.careers*1200);}app.careerFinish=null;app.careerToast=(leg&&leg.peak>1200)?('🔄 New Game+ — your reputation precedes you (+'+store.career.xp+' XP head start).'):null;app.careerTour=false;app.careerOneoff=null;save();render();}
 /* ================= A LIFE, NOT A BUTTON =================
    Weeks used to pass in one click. Now a week is seven days and each day is
@@ -11646,19 +12384,358 @@ function seasonRollover(c){
   c.seasonStart=s1;
   pushNews(c,'🗓️','Season '+c.seasonReview.season+' is over — '+c.seasonReview.games+' games, '+c.seasonReview.won+' wins.');
   pushFeed(c,'🗓️','Season '+c.seasonReview.season+' ends. '+esc(c.name||'You')+': '+c.seasonReview.won+'W–'+c.seasonReview.lost+'L–'+c.seasonReview.drawn+'D.','you');
-  toastAdd('🗓️ Season '+c.seasonReview.season+' review is ready');
+  magPublish(c,c.seasonReview);
+  toastAdd('🗓️ Season '+c.seasonReview.season+' is over — the new issue is out');
 }
 function seasonMaybeRoll(c){
   var due=Math.floor((c.weeks||0)/52)+1;
   if(!c.seasonStart)c.seasonStart=seasonSnapshot(c);
   if(due>(c.season||1))seasonRollover(c);
 }
+/* ================= SIXTY-FOUR, THE MAGAZINE =================
+   A season ends and you get a scoreboard: games, wins, rating, money. Useful,
+   and about as stirring as a receipt. What a season actually leaves behind is
+   a story somebody else tells about you — a front page, a table, an interview
+   you half regret giving, and a letters page where a stranger in another
+   country has opinions about your opening choices.
+
+   So at the end of every season the game writes an issue. Everything in it is
+   real: the numbers come from the season snapshot, the world report from the
+   same world the leaderboard uses, the letters from your reputation, and the
+   interview questions from what actually happened to you. Issues are kept, so
+   a long career leaves a shelf of them. */
+const MAG_NAME='Sixty-Four';
+const MAG_KEEP=10;
+function magIssueNo(c){return (c&&c.season)||1;}
+/* ---- the front page ---- */
+function magFront(c,r){
+  const me=(c.name||'You'),sur=String(me).split(' ').pop();
+  const rd=(r.ratingFrom!=null&&r.ratingTo!=null)?(r.ratingTo-r.ratingFrom):null;
+  const score=r.games?((r.won+r.drawn*0.5)/r.games):0;
+  const pct=Math.round(score*100);
+  if(r.titles&&bestTitle(c))
+    return {head:sur+' is a '+magTitleName(bestTitle(c)),
+      stand:'A season that ends with letters in front of your name.',
+      body:'The title was confirmed after '+r.games+' games and '+r.norms+' norm'+(r.norms===1?'':'s')+
+        ' this season. '+sur+' finishes the year rated '+(r.ratingTo||'unrated')+
+        (rd!=null&&rd>0?', up '+rd+' points':'')+'. There is a longer road above this one, and it starts in the spring.'};
+  if(r.honors)
+    return {head:'Silverware for '+sur,
+      stand:r.honors+' honour'+(r.honors===1?'':'s')+' in a single season.',
+      body:'Whatever else the year contained — and it contained '+r.games+' games — it will be remembered for the trophy. '+
+        (r.best?'The high point was '+r.best.name+(r.best.place?', finishing '+ordinal(r.best.place):'')+'. ':'')+
+        'The circuit will arrive next season expecting a repeat, which is its own kind of pressure.'};
+  if(rd!=null&&rd>=60)
+    return {head:'The climb of '+sur,
+      stand:'Up '+rd+' points in a season, and not by accident.',
+      body:'A rating does not move that far on luck. '+r.games+' games, '+r.won+' of them won, '+pct+
+        '% overall, and a peak of '+(r.peakTo||r.ratingTo||'—')+'. '+
+        (r.bril?'There were '+r.bril+' games worth showing somebody. ':'')+
+        'The interesting question is whether the next hundred comes as easily as the last.'};
+  if(rd!=null&&rd<=-60)
+    return {head:'A hard year for '+sur,
+      stand:'Down '+Math.abs(rd)+' points, and no way to dress it up.',
+      body:'It happens to everybody who plays enough. '+r.games+' games, '+r.lost+' lost, '+pct+
+        '% in all. The rating is a lagging indicator of a problem that started earlier — '+
+        'somewhere in the preparation, the clock, or the hours kept. Next season is for fixing one of the three.'};
+  if(!r.games)
+    return {head:'A quiet season',
+      stand:sur+' played no rated chess this year.',
+      body:'Careers have years like this: illness, money, a house to move, a head that needed a rest. '+
+        'The rating sits where it sat. The board will still be there.'};
+  if(r.games>=40)
+    return {head:sur+' plays everybody',
+      stand:r.games+' games in one season is a working professional’s year.',
+      body:'W–D–L of '+r.won+'–'+r.drawn+'–'+r.lost+' at '+pct+'%, and a rating that finished at '+
+        (r.ratingTo||'unrated')+'. '+
+        'Volume like that is how ratings move slowly and reputations move fast. '+
+        (r.events?'Ten months, '+r.events+' events, and a lot of railway stations.':'')};
+  return {head:'A season of steady work for '+sur,
+    stand:r.games+' games, '+pct+'% and nothing broken.',
+    body:'Not every year is a turning point. '+r.won+' wins, '+r.drawn+' draws, '+r.lost+' defeats, '+
+      'and a rating that ends the season at '+(r.ratingTo||'unrated')+'. '+
+      (r.best?'The best of it was '+r.best.name+(r.best.place?' — '+ordinal(r.best.place):'')+'.':
+        'The work counts even when the table does not show it.')};
+}
+/* The long form of a title, from the ladder the career already defines. */
+function magTitleName(t){
+  for(const d of TITLE_DEFS)if(d.t===t)return d.name;
+  return t;
+}
+/* ---- the interview ---- */
+function magInterview(c,r){
+  const sur=String(c.name||'You').split(' ').pop();
+  const rd=(r.ratingFrom!=null&&r.ratingTo!=null)?(r.ratingTo-r.ratingFrom):null;
+  const st=playingStyle(c),style=st?st.name:null;
+  const qa=[];
+  if(r.best&&r.best.place===1)
+    qa.push({q:'You won '+r.best.name+'. When did you know?',
+      a:'Honestly? Two rounds before the end, and then I stopped sleeping. Knowing is worse than not knowing.'});
+  else if(r.best)
+    qa.push({q:'Your best result this season was '+r.best.name+(r.best.place?', '+ordinal(r.best.place):'')+'. Satisfied?',
+      a:'Satisfied is the wrong word. I played well for six rounds and badly for one, and the one is what I remember.'});
+  else
+    qa.push({q:'No result this season stands out. Does that bother you?',
+      a:'It bothers me more than a bad loss would. A bad loss you can study. A flat year you have to explain to yourself.'});
+  if(rd!=null&&rd>=40)
+    qa.push({q:'You are up '+rd+' points. What changed?',
+      a:'Nothing dramatic. I stopped playing the second game of an evening, and I started preparing the openings I actually get.'});
+  else if(rd!=null&&rd<=-40)
+    qa.push({q:'The rating went the wrong way. What is the diagnosis?',
+      a:'The clock. I know that is a boring answer, but I lost more points to the clock this year than to anybody’s preparation.'});
+  else
+    qa.push({q:'The rating barely moved. Plateau, or foundation?',
+      a:'Ask me in a year. It feels like the second. It always feels like the second.'});
+  if(c.rival&&c.rival.name){
+    const h=(c.h2h&&c.h2h[c.rival.name])||null;
+    qa.push({q:'And '+String(c.rival.name).split(' ').pop()+'?',
+      a:h?('We have played enough now that neither of us learns much from it. '+
+          (h.w>h.l?'I am ahead. I would rather not talk about it and stay ahead.':
+           h.l>h.w?'They are ahead. I am aware of the number, thank you.':
+           'Dead level, which is somehow worse than losing.')):
+        'We will play. Everybody keeps telling me we will play.'});
+  } else if(style){
+    qa.push({q:'People describe you as a '+style.toLowerCase()+'. Fair?',
+      a:'It is what the games say, so I can hardly argue. I did not choose it. You find out what you are by losing.'});
+  } else {
+    qa.push({q:'What are you working on?',
+      a:'Endgames, like everybody who has just thrown away a won position. Ask any player in this hall.'});
+  }
+  if((c.money||0)<400)
+    qa.push({q:'Is the money workable?',
+      a:'No. But it is workable enough, which is a different sentence and the one most of us live in.'});
+  else if(r.money>0)
+    qa.push({q:'A profitable season. Does that change anything?',
+      a:'It buys me the right to turn down one bad tournament. That is the whole luxury, and it is a real one.'});
+  else
+    qa.push({q:'Money?',
+      a:'Down this year. Chess pays in instalments and takes its rent monthly.'});
+  // four questions, and all four are asked — a cap of three silently dropped
+  // the money one every time, since it is always the last to be added
+  return qa.slice(0,4);
+}
+/* ---- around the world ---- */
+function magWorld(c){
+  const out=[];
+  let rank=[];
+  try{rank=worldRanking(c,'classical')||[];}catch(e){rank=[];}
+  const top=rank.filter(function(p){return !p.you;}).slice(0,5);
+  if(top.length){
+    const one=top[0];
+    out.push({e:'🌍',t:String(one.name).split(' ').pop()+' ends the season as world number one on '+
+      (one.rating||one.r||'—')+'.'});
+  }
+  const mine=rank.filter(function(p){return p.you;})[0];
+  const myIdx=rank.findIndex(function(p){return p.you;});
+  if(mine&&myIdx>=0)
+    out.push({e:'📈',t:'You finish the year ranked '+ordinal(myIdx+1)+' in the world.'});
+  if(c.rival&&c.rival.name){
+    let rr=null;try{rr=rivalRating(c);}catch(e){}
+    out.push({e:'🎯',t:rr
+      ? 'Your rival '+c.rival.name+' is rated '+rr+'. The circuit has noticed how often you two are drawn against each other.'
+      : 'Your rival '+c.rival.name+' is still out there. The circuit has noticed how often you two are drawn against each other.'});
+  }
+  if(c.youngGun&&c.youngGun.name)
+    out.push({e:'🐣',t:'A junior called '+esc(c.youngGun.name)+' has appeared out of nowhere and is beating people who should know better.'});
+  if((c.honors||[]).some(function(h){return /World Champion/.test(h);}))
+    out.push({e:'👑',t:'The world title is currently yours, which changes how every hall you walk into behaves.'});
+  if((c.weeksAtNo1||0)>0)
+    out.push({e:'🗓️',t:'You have now spent '+c.weeksAtNo1+' week'+(c.weeksAtNo1===1?'':'s')+' at number one.'});
+  return {notes:out,table:top.map(function(p,i){
+    return {rank:i+1,name:p.name,rating:p.rating||p.r||0,flag:p.flag||'',change:p.change||0};})};
+}
+/* ---- the letters page ---- */
+function magLetters(c,r){
+  const rep=(c.reputation==null?50:c.reputation),fame=c.fame||0;
+  const sur=String(c.name||'You').split(' ').pop();
+  const pool=[];
+  if(rep>=68)pool.push({from:'A reader in Reykjavík',t:'It is a pleasure to watch somebody win without making a performance of it. '+
+    'More of this and less of the theatrics elsewhere, please.'});
+  if(rep<=32)pool.push({from:'A reader in Buenos Aires',t:'I do not care how strong '+sur+' is. There is a way to behave at the board, '+
+    'and it is not that.'});
+  if(fame>=45)pool.push({from:'A reader in Delhi',t:'My daughter has a poster of '+sur+' on her wall. She is nine and has started '+
+    'analysing my games for me, which I did not ask for.'});
+  if(r.bril)pool.push({from:'A reader in Hamburg',t:'Whatever else happens this year, that combination was worth the subscription. '+
+    'I have shown it to everybody at my club, twice.'});
+  if(r.lost>r.won)pool.push({from:'A reader in Leeds',t:'A hard season is not a failed one. Ask anybody who has had ten of them. '+
+    'Chin up.'});
+  if((c.books||[]).length)pool.push({from:'A reader in Lyon',t:'I bought the book. It is better than most, and I say that as somebody '+
+    'who has bought a great many worse ones.'});
+  if((c.protege&&c.protege.name))pool.push({from:'A reader in Manila',t:'It says something about a player that they spend their own hours '+
+    'on somebody else’s games. Good luck to the pupil.'});
+  // the page is always full, so there are more unconditional letters than slots
+  pool.push({from:'A reader in Novi Sad',t:'Could the magazine please print fewer photographs and more endgames. '+
+    'Yours, as ever, in hope.'});
+  pool.push({from:'A reader in Cleveland',t:'Nobody writes about the travel. Three trains, a bus, a hall with no heating, '+
+    'and then you are expected to calculate.'});
+  pool.push({from:'A reader in Bergen',t:'I am forty-six and rated 1480. I will never be a master and I have never enjoyed '+
+    'a game more. Please tell the professionals this occasionally.'});
+  pool.push({from:'A reader in Córdoba',t:'The arbiter in round four was wrong, and I say that with respect. '+
+    'Somebody has to write these letters.'});
+  return pool.slice(0,3);
+}
+/* ---- what next ---- */
+function magNext(c,r){
+  const out=[];
+  const yr=youRating(c,'classical');
+  if(yr!=null){
+    const nextHundred=Math.floor(yr/100)*100+100;
+    out.push('The next round number is '+nextHundred+'. It is '+(nextHundred-yr)+' points away.');
+  }
+  // the ladder runs GM first, so the next rung up is the last one not yet held
+  const need=(function(){
+    const track=(c.gender==='women')?'women':'open';
+    const ladder=TITLE_DEFS.filter(function(d){return d.track===track||d.track==='open';});
+    for(let i=ladder.length-1;i>=0;i--){
+      const d=ladder[i];
+      if((c.titles||[]).indexOf(d.t)<0)return d;
+    }
+    return null;
+  })();
+  if(need)out.push('The next title on the ladder is '+need.t+' ('+need.name+'), which wants '+need.rating+
+    (need.normKind?' and three '+need.normKind+' norms':'')+'.');
+  if(c.objective&&c.objective.text)out.push('Your backer still wants: '+c.objective.text+'.');
+  if((c.burnout||0)>=50)out.push('You are close to burnt out. A season that starts tired ends badly.');
+  if((c.debt||0)>0)out.push('There is 💰'+c.debt+' of debt to clear before any of the rest of it matters.');
+  if(!out.length)out.push('Nothing is owed and nothing is overdue. Pick an event and go.');
+  return out;
+}
+/* ---- assemble one issue ---- */
+function magBuild(c,r){
+  if(!c||!r)return null;
+  // the issue number is the season it covers, so it does not depend on
+  // whether the season counter has already been advanced
+  return {no:r.season||magIssueNo(c),season:r.season,date:Date.now(),
+    front:magFront(c,r),numbers:{games:r.games,won:r.won,drawn:r.drawn,lost:r.lost,
+      ratingFrom:r.ratingFrom,ratingTo:r.ratingTo,peak:r.peakTo,money:Math.round(r.money||0),
+      events:r.events,titles:r.titles,norms:r.norms,honors:r.honors,bril:r.bril,
+      best:r.best?{name:r.best.name,place:r.best.place,emoji:r.best.emoji}:null},
+    interview:magInterview(c,r),world:magWorld(c),letters:magLetters(c,r),next:magNext(c,r),
+    who:{name:c.name||'You',title:bestTitle(c),flag:c.flag||'',age:Math.floor(c.age||16),
+      fed:c.fed||'FIDE',phase:careerPhase(c)}};
+}
+function magPublish(c,r){
+  const issue=magBuild(c,r);
+  if(!issue)return null;
+  if(!c.issues)c.issues=[];
+  c.issues.unshift(issue);
+  if(c.issues.length>MAG_KEEP)c.issues.length=MAG_KEEP;
+  return issue;
+}
+function magIssue(i){
+  const L=(store.career&&store.career.issues)||[];
+  const n=Math.max(0,Math.min(L.length-1,i||0));
+  return L[n]||null;
+}
+/* ---- the issue on screen ---- */
+function viewMagazine(){
+  const c=store.career;
+  const L=(c&&c.issues)||[];
+  if(!L.length)
+    return msgCard('📖 '+MAG_NAME,'No issue has been printed yet. One is written at the end of every season.',
+      '<button class="btn sec" data-act="nav" data-val="career">Back to the career</button>');
+  const idx=Math.max(0,Math.min(L.length-1,app.magIdx||0));
+  const m=L[idx];
+  const N=m.numbers,W=m.world;
+  const rd=(N.ratingFrom!=null&&N.ratingTo!=null)?(N.ratingTo-N.ratingFrom):null;
+  // wide enough for a W–D–L of three two-digit numbers without wrapping
+  const num=function(l,v,col){return '<div style="flex:1;min-width:86px;text-align:center;padding:7px 3px">'+
+    '<div class="dim small" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em">'+l+'</div>'+
+    '<div style="font-weight:800;font-size:17px;white-space:nowrap'+(col?';color:'+col:'')+'">'+v+'</div></div>';};
+  let h='<div style="max-width:760px;margin:0 auto">'+
+    /* masthead */
+    '<div class="card" style="margin-bottom:12px;border-color:var(--brand);background:linear-gradient(120deg,rgba(255,255,255,.05),transparent)">'+
+      '<div class="row" style="justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">'+
+        '<div><div style="font-weight:900;font-size:26px;letter-spacing:-.02em;line-height:1">'+MAG_NAME+'</div>'+
+        '<div class="dim small">Issue '+m.no+' · Season '+m.season+' · '+new Date(m.date).toLocaleDateString()+'</div></div>'+
+        '<button class="btn ghost sm" data-act="nav" data-val="career">← Career</button>'+
+      '</div>'+
+      (L.length>1?'<div class="row" style="gap:5px;flex-wrap:wrap;margin-top:8px">'+
+        L.map(function(x,i){return '<button class="btn '+(i===idx?'sec':'ghost')+' sm" data-act="magissue" data-val="'+i+'" style="padding:4px 8px;font-size:11px">#'+x.no+'</button>';}).join('')+
+        '</div>':'')+
+    '</div>'+
+    /* front page */
+    '<div class="card" style="margin-bottom:12px">'+
+      '<div style="font-weight:900;font-size:22px;line-height:1.18;letter-spacing:-.01em">'+esc(m.front.head)+'</div>'+
+      '<div style="font-weight:600;color:var(--brand2);margin-top:4px">'+esc(m.front.stand)+'</div>'+
+      '<div class="small" style="margin-top:8px;line-height:1.7">'+esc(m.front.body)+'</div>'+
+      '<div class="dim small" style="margin-top:8px">'+esc((m.who.title?m.who.title+' ':'')+m.who.name)+
+        ' · '+esc(m.who.fed)+' '+(m.who.flag||'')+' · age '+m.who.age+' · '+esc(m.who.phase)+'</div>'+
+    '</div>'+
+    /* the numbers */
+    '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:2px">The season in numbers</div>'+
+      '<div class="row" style="flex-wrap:wrap">'+
+        num('Games',N.games)+
+        num('W–D–L',N.won+'–'+N.drawn+'–'+N.lost)+
+        num('Rating',rd==null?'—':((rd>0?'+':'')+rd),rd>0?'var(--green)':rd<0?'#f87171':'')+
+        num('Peak',N.peak||'—','var(--brand2)')+
+        num('Money',(N.money>=0?'+':'−')+'💰'+Math.abs(N.money),N.money>=0?'#fbbf24':'#f87171')+
+      '</div>'+
+      '<div class="dim small" style="margin-top:6px;line-height:1.6">'+
+        (N.events?'🏟️ '+N.events+' event'+(N.events===1?'':'s')+'. ':'')+
+        (N.titles?'🎖️ '+N.titles+' title'+(N.titles===1?'':'s')+'. ':'')+
+        (N.norms?'📜 '+N.norms+' norm'+(N.norms===1?'':'s')+'. ':'')+
+        (N.honors?'🏆 '+N.honors+' honour'+(N.honors===1?'':'s')+'. ':'')+
+        (N.bril?'💎 '+N.bril+' brillianc'+(N.bril===1?'y':'ies')+'. ':'')+
+        (N.best?'Best result: '+(N.best.emoji||'🏟️')+' '+esc(N.best.name)+(N.best.place?' ('+ordinal(N.best.place)+')':'')+'.':'')+
+      '</div></div>'+
+    /* the interview */
+    '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:4px">🎤 The interview</div>'+
+      m.interview.map(function(x){
+        return '<div style="padding:7px 0;border-top:1px solid var(--border)">'+
+          '<div class="small" style="font-weight:700;color:var(--brand2)">'+esc(x.q)+'</div>'+
+          '<div class="small" style="margin-top:3px;line-height:1.65">“'+esc(x.a)+'”</div></div>';
+      }).join('')+'</div>'+
+    /* the world */
+    '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:4px">🌍 Around the world</div>'+
+      (W.notes.length?W.notes.map(function(n){
+        return '<div class="small" style="padding:3px 0;line-height:1.6">'+n.e+' '+n.t+'</div>';}).join('')
+        :'<div class="dim small">Quiet everywhere, for once.</div>')+
+      (W.table.length?'<div style="margin-top:7px;border-top:1px solid var(--border);padding-top:5px">'+
+        W.table.map(function(p){
+          return '<div style="display:flex;gap:8px;align-items:center;padding:2px 0">'+
+            '<span class="dim small" style="width:18px">'+p.rank+'</span>'+
+            '<span class="small" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+
+              esc(p.name)+' '+(p.flag||'')+'</span>'+
+            '<span class="small" style="font-weight:700">'+p.rating+'</span>'+
+            (p.change?'<span class="small" style="width:34px;text-align:right;color:'+(p.change>0?'var(--green)':'#f87171')+'">'+
+              (p.change>0?'+':'')+p.change+'</span>':'<span style="width:34px"></span>')+
+            '</div>';
+        }).join('')+'</div>':'')+
+    '</div>'+
+    /* letters */
+    '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:4px">✉️ Letters</div>'+
+      m.letters.map(function(l){
+        return '<div style="padding:7px 0;border-top:1px solid var(--border)">'+
+          '<div class="small" style="line-height:1.65">“'+esc(l.t)+'”</div>'+
+          '<div class="dim small" style="margin-top:2px">— '+esc(l.from)+'</div></div>';
+      }).join('')+'</div>'+
+    /* next season */
+    '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:4px">📅 Next season</div>'+
+      m.next.map(function(t){return '<div class="small" style="padding:3px 0;line-height:1.6">· '+esc(t)+'</div>';}).join('')+
+      '<div class="row" style="margin-top:9px"><button class="btn primary sm" data-act="nav" data-val="career">Get on with it ▸</button></div>'+
+    '</div>'+
+    '<div class="dim small" style="text-align:center;margin-bottom:16px">'+MAG_NAME+' · written at the end of every season · '+
+      L.length+' issue'+(L.length===1?'':'s')+' on the shelf</div>'+
+    '</div>';
+  return h;
+}
+function magShelfCard(c){
+  const L=(c&&c.issues)||[];
+  if(!L.length)return '';
+  return '<div class="card" style="margin-bottom:12px">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<div style="min-width:0"><div style="font-weight:700">📖 '+MAG_NAME+'</div>'+
+      '<div class="dim small">'+L.length+' issue'+(L.length===1?'':'s')+' — the seasons as somebody else told them</div></div>'+
+      '<button class="btn sec sm" data-act="nav" data-val="magazine">Read the latest</button>'+
+    '</div></div>';
+}
 function careerSeasonBanner(c){
   var r=c.seasonReview;if(!r)return '';
   var rd=(r.ratingFrom!=null&&r.ratingTo!=null)?(r.ratingTo-r.ratingFrom):null;
   var line=function(l,v,col){return '<div style="text-align:center;flex:1;min-width:66px"><div class="dim small">'+l+'</div><div style="font-weight:800;font-size:18px'+(col?';color:'+col:'')+'">'+v+'</div></div>';};
   return '<div class="card" style="margin-bottom:12px;border-color:#f59e0b;background:linear-gradient(120deg,rgba(245,158,11,.14),transparent)">'+
-    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:800">🗓️ Season '+r.season+' review</div><button class="btn ghost sm" data-act="seasondismiss">✕</button></div>'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:800">🗓️ Season '+r.season+' review</div><div class="row" style="gap:6px"><button class="btn sec sm" data-act="nav" data-val="magazine">📖 Read the issue</button><button class="btn ghost sm" data-act="seasondismiss">✕</button></div></div>'+
     '<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:9px">'+
       line('Games',r.games)+
       line('W–D–L',r.won+'–'+r.drawn+'–'+r.lost)+
@@ -11752,7 +12829,9 @@ function careerTeamPanel(c){
   return h+'</div></div>';}
 function careerPressPanel(c){if(!c.pressPending)return '';var p=c.pressPending;
   return '<div class="card" style="margin-bottom:12px;border-color:#7c5cff66"><div style="font-weight:700;margin-bottom:3px">🎤 Press conference — '+esc(p.event)+'</div><div class="dim small" style="margin-bottom:8px">You finished '+ordinal(p.place)+'. Give the reporters a quote:</div><div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sec sm" data-act="press" data-val="humble">🙏 Stay humble</button><button class="btn sec sm" data-act="press" data-val="confident">😎 Back yourself</button><button class="btn sec sm" data-act="press" data-val="spicy">🔥 Call out a rival</button></div></div>';}
-function careerHoF(c){var f=c.hof||{};var v=f.verdict||legacyVerdict(c);var pc=f.persona||personaChip(c);return '<div style="max-width:720px;margin:0 auto"><h1>🏁 Career complete</h1><div class="card" style="margin-bottom:12px;border-color:var(--brand);text-align:center"><div style="font-size:34px;line-height:1">'+v.emoji+'</div><div style="font-weight:800;font-size:20px;margin:5px 0">'+esc(v.title)+'</div><div class="dim small" style="line-height:1.55">'+esc(v.blurb)+'</div>'+(pc?'<div class="small" style="margin-top:8px;color:var(--brand2)">'+pc+'</div>':'')+'</div><div class="muted small" style="margin-bottom:12px">'+esc(c.name)+' retired at age '+Math.floor(f.age||c.age)+' after '+(f.years||0)+' seasons on the circuit.</div><div class="card"><div class="row" style="flex-wrap:wrap">'+stat('Peak rating',f.peak||c.peak||'—','var(--brand2)')+stat('Top title',f.best||'—','var(--amber)')+stat('Earnings','💰'+((f.money||0).toLocaleString()),'var(--green)')+stat('Fans',(f.fans||0).toLocaleString(),'var(--text)')+'</div>'+((f.honors&&f.honors.length)?'<div style="margin-top:10px">Honours: '+f.honors.map(function(hn){return '<span class="chip green" style="margin:2px">'+esc(hn)+'</span>';}).join('')+'</div>':'')+(f.protege?'<div class="dim small" style="margin-top:10px">🧑‍🎓 Your protégé '+esc(f.protege.name)+' reached '+f.protege.peak+(f.protege.peak>=2500?' — a Grandmaster you made.':'.')+'</div>':'')+(f.allTime?'<div class="dim small" style="margin-top:10px">🐐 All-time rank: #'+(f.allTime||0).toLocaleString()+(f.gmsMade?' · '+f.gmsMade+' GM'+(f.gmsMade>1?'s':'')+' developed':'')+(f.broadcasts?' · '+f.broadcasts+' broadcasts':'')+'</div>':'')+'<div class="row" style="margin-top:14px"><button class="btn primary" data-act="careernew">Begin a new career</button></div></div></div>';}
+function careerHoF(c){var f=c.hof||{};var v=f.verdict||legacyVerdict(c);var pc=f.persona||personaChip(c);return '<div style="max-width:720px;margin:0 auto"><h1>🏁 Career complete</h1><div class="card" style="margin-bottom:12px;border-color:var(--brand);text-align:center"><div style="font-size:34px;line-height:1">'+v.emoji+'</div><div style="font-weight:800;font-size:20px;margin:5px 0">'+esc(v.title)+'</div><div class="dim small" style="line-height:1.55">'+esc(v.blurb)+'</div>'+(pc?'<div class="small" style="margin-top:8px;color:var(--brand2)">'+pc+'</div>':'')+'</div><div class="muted small" style="margin-bottom:12px">'+esc(c.name)+' retired at age '+Math.floor(f.age||c.age)+' after '+(f.years||0)+' seasons on the circuit.</div><div class="card"><div class="row" style="flex-wrap:wrap">'+stat('Peak rating',f.peak||c.peak||'—','var(--brand2)')+stat('Top title',f.best||'—','var(--amber)')+stat('Earnings','💰'+((f.money||0).toLocaleString()),'var(--green)')+stat('Fans',(f.fans||0).toLocaleString(),'var(--text)')+'</div>'+((f.honors&&f.honors.length)?'<div style="margin-top:10px">Honours: '+f.honors.map(function(hn){return '<span class="chip green" style="margin:2px">'+esc(hn)+'</span>';}).join('')+'</div>':'')+(f.protege?'<div class="dim small" style="margin-top:10px">🧑‍🎓 Your protégé '+esc(f.protege.name)+' reached '+f.protege.peak+(f.protege.peak>=2500?' — a Grandmaster you made.':'.')+'</div>':'')+(f.allTime?'<div class="dim small" style="margin-top:10px">🐐 All-time rank: #'+(f.allTime||0).toLocaleString()+(f.gmsMade?' · '+f.gmsMade+' GM'+(f.gmsMade>1?'s':'')+' developed':'')+(f.broadcasts?' · '+f.broadcasts+' broadcasts':'')+'</div>':'')+'<div class="row" style="margin-top:14px;gap:8px;flex-wrap:wrap"><button class="btn primary" data-act="careernew">Begin a new career</button>'+
+    (hallList().length?'<button class="btn sec" data-act="nav" data-val="hall">🏛️ The hall ('+hallList().length+')</button>':'')+
+    '</div></div></div>';}
 /* ============ Career: achievements, rivalries, random life events, circuit news ============ */
 const ACHIEVEMENTS=[
   {k:'first',e:'♟',n:'First blood',d:'Play your first career game',test:function(c){return (c.played||0)>=1;}},
@@ -12588,8 +13667,26 @@ function _simScore(c,E){var st=playingStyle(c),sk=st?st.key:null,pw=Math.max(0,M
   var r=Math.random();return r<pw?1:(r<pw+drawBand?0.5:0);}
 function oppBanter(c,opp){if(!opp)return null;var who=(opp.name||'Opponent').split(' ').pop();
   var st=playingStyle(c),sk=st?st.key:null,isRival=!!(c.rival&&opp.name===c.rival.name),isNem=!!(c.nemesis&&opp.name===c.nemesis.name),lines;
+  /* Somebody you have sat opposite four times knows the score between you,
+     and says so. c.h2h[name].w counts YOUR wins over them. */
+  var _h=(c.h2h&&c.h2h[opp.name])||null;
+  var _n=_h?((_h.w||0)+(_h.l||0)+(_h.d||0)):0;
   if(isRival)lines=['Everyone’s watching this one — don’t choke.','I’ve been waiting to play you again.','Let’s settle who’s really better.'];
   else if(isNem)lines=['You again. I owe you one.','I haven’t forgotten last time.'];
+  else if(_n>=3&&_h.l>_h.w)lines=[
+    'I am '+_h.l+'–'+_h.w+' up on you. I do keep count.',
+    'Every time we play, the same thing happens. Let us do it again.',
+    _h.w===0?('We have played '+_n+' times and you have never beaten me.')
+             :('You have beaten me '+_h.w+' time'+(_h.w===1?'':'s')+' out of '+_n+'. I like those odds.')];
+  else if(_n>=3&&_h.w>_h.l)lines=[
+    'You are '+_h.w+'–'+_h.l+' up on me. That ends today.',
+    'I have been preparing for you specifically. For months.',
+    _h.l===0?('I have never taken a point off you. Everybody starts somewhere.')
+             :('You keep beating me. It is becoming a habit I would like to break.')];
+  else if(_n>=3)lines=[
+    'We are '+_h.w+'–'+_h.l+'–'+_h.d+' after '+_n+' games. Somebody has to break the tie.',
+    'Dead level, you and I. It is almost annoying.',
+    'Another one, then. Neither of us learns anything, and here we are.'];
   else if((c.fame||0)>=60&&Math.random()<0.45)lines=['Big crowd here to see you — no pressure.','The famous '+esc((c.name||'champ').split(' ').pop())+'. Let’s dance.'];
   else if((c.reputation==null?50:c.reputation)<=30&&Math.random()<0.45)lines=['Everyone wants me to beat you. Happy to oblige.'];
   else if(sk==='attacker')lines=['I’ve studied your attacks — I’m playing it safe today.','No cheap sacrifices on me; I’m staying solid.','I’ll trade down and smother your initiative.'];
@@ -12979,6 +14076,8 @@ function careerTabContent(c,tab){
     h+=careerStreamPanel(c);
     h+=careerPublishPanel(c);
   } else if(tab==='legacy'){
+    h+=magShelfCard(c);
+    h+=hallCard();
     h+=careerMomentsPanel(c);
     h+=careerNewsPanel(c);
     h+=careerArcHistory(c);
@@ -13606,6 +14705,7 @@ function careerTourView(c){
   });
   h+='</div>';
   h+=careerStandings(tr);
+  h+=tourBulletinCard(tr);
   h+='<div class="row" style="justify-content:space-between;align-items:center;margin-top:10px">'+
     '<div class="dim small">'+(done<total?'Win games to climb; a strong run can secure a norm. <span style="color:'+(conditionMod(c)>=0?'#86efac':'#fda4af')+'">You’re '+conditionNote(c).t+' ('+(conditionMod(c)>=0?'+':'')+conditionMod(c)+' Elo when simulating).</span>':'Tournament complete — your results are being finalised.')+'</div>'+
     '<div class="row" style="gap:6px">'+(done<total?'<button class="btn sec sm" data-act="simround" title="Auto-resolve this game from your rating &amp; current condition">⚡ Simulate</button><button class="btn ghost sm" data-act="simtour" title="Simulate the rest of the event">⏩ Sim to end</button>':'')+'<button class="btn ghost sm" data-act="careerwithdraw">Withdraw</button></div></div></div>';
@@ -13779,6 +14879,140 @@ function styleBonus(fen,uci,style){
     else if(style==='grinder'){if(!cap)b+=10;if(pawn&&!adv)b+=6;}
     return Math.max(-12,Math.min(46,b));
   }catch(e){return 0;}
+}
+/* ================= THE ROUND BULLETIN =================
+   You play your game, and the rest of the hall plays theirs. Until now the
+   field's scores simply grew: every player rolled a result against the event's
+   average, nobody played anybody, and a round could hand out any number of
+   points at all. The crosstable moved without ever being a crosstable.
+
+   Now the field is paired the way a Swiss really is — sorted by score, nearest
+   opponent they have not already met — every board is played, and the results
+   come back as a bulletin you read after your own game. One point per game, so
+   the table adds up, and the leader can lose. */
+/* The draw rate belongs between equals. Held at a flat 34% it ate the whole
+   remainder of a mismatch — a 2700 against a 2050 came out 66% win, 34% draw,
+   0% loss, so an upset was not unlikely but impossible, and the favourite's
+   expected score came out below what its rating says. Scaling the draws by how
+   close the two players are fixes both: the expectation matches Elo exactly,
+   draws peak between equals, and the underdog keeps a real chance. */
+const BUL_DRAW=0.34;           // the draw rate between two equal players
+function bulName(n){return String(n||'').split(' ').pop();}
+function tourMet(tr,a,b){
+  const k=tr.met||{};
+  return !!(k[a+'|'+b]||k[b+'|'+a]);
+}
+function tourNoteMet(tr,a,b){
+  if(!tr.met)tr.met={};
+  tr.met[a+'|'+b]=1;
+}
+/* One game between two rated players. */
+function bulDrawRate(e,base){return base*(1-Math.abs(2*e-1));}
+function bulSim(ra,rb){
+  const e=1/(1+Math.pow(10,((rb||1500)-(ra||1500))/400));
+  const d=bulDrawRate(e,BUL_DRAW);
+  const pw=Math.max(0,Math.min(1-d,e-d/2));
+  const r=Math.random();
+  if(r<pw)return 1;
+  if(r<pw+d)return 0.5;
+  return 0;
+}
+/* Swiss pairing for everybody not in your game. */
+function tourPairField(tr,myOppId){
+  const rest=(tr.standings||[]).filter(function(p){return !p.you&&p.id!==myOppId;});
+  rest.sort(function(a,b){return (b.score||0)-(a.score||0)||b.rating-a.rating;});
+  const used={},pairs=[];
+  for(let i=0;i<rest.length;i++){
+    const A=rest[i];
+    if(used[A.id])continue;
+    let j=-1;
+    for(let k=i+1;k<rest.length;k++)                 // nearest in score they have not met
+      if(!used[rest[k].id]&&!tourMet(tr,A.id,rest[k].id)){j=k;break;}
+    if(j<0)for(let k=i+1;k<rest.length;k++)if(!used[rest[k].id]){j=k;break;}
+    used[A.id]=1;
+    if(j<0){pairs.push({a:A,b:null});continue;}       // an odd field means somebody sits out
+    used[rest[j].id]=1;
+    pairs.push({a:A,b:rest[j]});
+  }
+  return pairs;
+}
+/* Play the round: your result is already in, the rest of the hall follows. */
+function tourPlayRound(tr,rIdx,myScore){
+  const myOppId='p'+rIdx;
+  const sortedBefore=standingsSorted(tr);
+  const leadBefore=sortedBefore.length
+    ? {id:sortedBefore[0].id,name:sortedBefore[0].name,score:sortedBefore[0].score||0,you:!!sortedBefore[0].you}
+    : null;
+  const boards=[];
+  (tr.standings||[]).forEach(function(p){
+    if(p.you)p.score=(p.score||0)+myScore;
+    else if(p.id===myOppId)p.score=(p.score||0)+(1-myScore);
+  });
+  tourPairField(tr,myOppId).forEach(function(pr){
+    if(!pr.b){
+      pr.a.score=(pr.a.score||0)+0.5;
+      boards.push({a:pr.a.name,ar:pr.a.rating,b:null,s:null,bye:true});
+      return;
+    }
+    const s=bulSim(pr.a.rating,pr.b.rating);
+    pr.a.score=(pr.a.score||0)+s;
+    pr.b.score=(pr.b.score||0)+(1-s);
+    tourNoteMet(tr,pr.a.id,pr.b.id);
+    boards.push({a:pr.a.name,ar:pr.a.rating,b:pr.b.name,br:pr.b.rating,s:s,
+      upset:(s===1&&pr.b.rating-pr.a.rating>=150)||(s===0&&pr.a.rating-pr.b.rating>=150)});
+  });
+  tourNoteMet(tr,'__you',myOppId);
+  const after=standingsSorted(tr);
+  const top=after.length?(after[0].score||0):0;
+  const leaders=after.filter(function(p){return (p.score||0)===top;});
+  const notes=[];
+  if(leadBefore&&!leadBefore.you){
+    const lb=after.filter(function(p){return p.id===leadBefore.id;})[0];
+    const gained=lb?((lb.score||0)-leadBefore.score):0;
+    if(gained===0)notes.push({e:'📉',t:bulName(leadBefore.name)+' led going into the round, and lost.'});
+    else if(gained===0.5&&leaders.length>1)notes.push({e:'🪢',t:bulName(leadBefore.name)+' only drew, and the lead is shared now.'});
+  }
+  if(leaders.length===1&&leaders[0].you)
+    notes.push({e:'👑',t:'You lead the tournament on '+fmtScore(top)+'.'});
+  else if(leaders.some(function(p){return p.you;}))
+    notes.push({e:'🤝',t:'You share the lead on '+fmtScore(top)+' with '+
+      leaders.filter(function(p){return !p.you;}).map(function(p){return bulName(p.name);}).join(' and ')+'.'});
+  else
+    notes.push({e:'📊',t:leaders.map(function(p){return bulName(p.name);}).join(' and ')+
+      ' lead'+(leaders.length>1?'':'s')+' on '+fmtScore(top)+'.'});
+  const perfect=after.filter(function(p){return (p.score||0)===rIdx+1;});
+  if(perfect.length===1&&perfect[0].you&&rIdx>=1)
+    notes.push({e:'💯',t:'You are the only player left on a perfect score.'});
+  const shock=boards.filter(function(b){return b.upset;})[0];
+  if(shock)notes.push({e:'😮',t:'A result nobody expected: '+
+    bulName(shock.s===1?shock.a:shock.b)+' beat '+bulName(shock.s===1?shock.b:shock.a)+'.'});
+  const bul={r:rIdx+1,boards:boards,notes:notes,mine:myScore};
+  if(!tr.bulletins)tr.bulletins=[];
+  tr.bulletins.push(bul);
+  if(tr.bulletins.length>14)tr.bulletins.shift();
+  return bul;
+}
+/* ---- on screen ---- */
+function tourBulletinCard(tr){
+  if(!tr||!tr.bulletins||!tr.bulletins.length)return '';
+  const bul=tr.bulletins[tr.bulletins.length-1];
+  const res=function(s){return s===1?'1–0':s===0?'0–1':'½–½';};
+  return '<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:7px">'+
+    '<div style="font-weight:700;font-size:12px;color:var(--brand2);margin-bottom:3px">📰 Round '+bul.r+' bulletin</div>'+
+    bul.notes.map(function(n){
+      return '<div class="small" style="padding:2px 0;line-height:1.5">'+n.e+' '+esc(n.t)+'</div>';
+    }).join('')+
+    (bul.boards.length
+      ? '<div style="margin-top:5px">'+bul.boards.map(function(b,i){
+          if(b.bye)return '<div class="dim small" style="padding:2px 0">— '+esc(b.a)+' sat out this round; half a point.</div>';
+          return '<div class="dim small" style="display:flex;gap:8px;padding:2px 0;align-items:center">'+
+            '<span style="width:54px;flex:0 0 auto">Board '+(i+2)+'</span>'+
+            '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'+
+              (b.upset?';color:var(--amber)':'')+'">'+esc(b.a)+' <b>'+res(b.s)+'</b> '+esc(b.b)+
+              (b.upset?' 😮':'')+'</span></div>';
+        }).join('')+'</div>'
+      : '')+
+    '</div>';
 }
 /* ---- tournament standings (the rest of the field plays each other too) ---- */
 function simRoundScore(E){const pw=Math.max(0,Math.min(1,E-0.18));const r=Math.random();return r<pw?1:(r<pw+0.36?0.5:0);}
@@ -14314,6 +15548,7 @@ function careerResult(score){
   // and the memorable ones end up on the shelf in Legacy.
   const _fmt=(c.tour&&c.tour.format)||app.careerOneoff||'classical';
   const _opp=app.careerRoundOpp||(c.tour&&c.tour.field&&c.tour.field[c.tour.round])||null;
+  boothFinish(boothGameOf(),score,app.playResult||'');
   app.careerStory=gameStory({score:score,plies:(app.playMoves||[]).length,
     low:app._evLow,high:app._evHigh,result:app.playResult||''});
   if(app.careerStory&&!app.parkBet){
@@ -14346,12 +15581,8 @@ function careerResult(score){
   app.careerDelta=delta;
   tr.results.push({name:opp.name,rating:opp.rating,title:opp.title,flag:opp.flag,score:score,delta:delta});
   archiveCareerGame(c,opp,score,fmt,tr.name,!!app.c960);pushRatingPoint(c);
-  // the rest of the field plays its round too, so the crosstable evolves
-  if(tr.standings){for(const p of tr.standings){
-    if(p.you){p.score=(p.score||0)+score;}
-    else if(p.id==='p'+rIdx){p.score=(p.score||0)+(1-score);}
-    else{const E=1/(1+Math.pow(10,(tr.avg-p.rating)/400));p.score=(p.score||0)+simRoundScore(E);}
-  }}
+  // the rest of the hall plays its round too — paired, so the table adds up
+  if(tr.standings)tourPlayRound(tr,rIdx,score);
   if(c.nemesis&&opp.name===c.nemesis.name&&score===1)c.nemesis=null;
   tr.round=(tr.round||0)+1;
   c.played=(c.played||0)+1;if(score===1)c.won=(c.won||0)+1;else if(score===0)c.lost=(c.lost||0)+1;else c.drawn=(c.drawn||0)+1;
@@ -15058,6 +16289,7 @@ function viewPlay(){
       (app.drawMsg?'<div class="dim small" style="margin-top:6px">'+esc(app.drawMsg)+'</div>':'')+
       (!live?'<div class="row" style="margin-top:10px"><button class="btn primary sm" data-act="plast">▶▶ Jump to live</button></div>':'')+'</div>'+
     tbHtml+
+    boothPanel()+
     '<div class="card" style="margin-top:12px"><div class="l" style="text-transform:uppercase;font-size:11px;letter-spacing:.08em;color:var(--muted)">Moves</div><div class="moves" style="margin-top:6px;line-height:2.1">'+playMoveList()+'</div></div>'+
     '<div class="card" style="margin-top:12px"><div class="row"><button class="btn sec sm" data-act="phint" '+((interactive&&(!app.careerOpp||(app.careerHintsLeft||0)>0))?'':'disabled')+'>'+(app.careerOpp?('💡 Tactic ('+(app.careerHintsLeft||0)+')'):'💡 Hint')+'</button><button class="btn sec sm" data-act="pundo" '+(app.playStack.length>1?'':'disabled')+'>↶ Take back</button><button class="btn ghost sm" data-act="pflip">⇅ Flip</button><button class="btn '+(app.tiltEval?'ghost':(store.settings.showEval?'primary':'ghost'))+' sm" data-act="toggleeval" title="'+(app.tiltEval?'On tilt — the eval bar is locked this game':'Show/hide the engine evaluation')+'"'+(app.tiltEval?' disabled':'')+'>'+(app.tiltEval?'😖 Tilt':'📊 Eval')+'</button><button class="btn '+(app.blindfold?'primary':'ghost')+' sm" data-act="pblind">🙈 Blindfold</button>'+(app.blindfold?'<button class="btn ghost sm" data-act="ppeek">'+(app.peek?'🙈 Hide':'👁 Peek')+'</button>':'')+'</div>'+(app.blindfold?'<div class="dim small" style="margin-top:6px">🙈 Blindfold on — pieces hidden. Visualise the position; tap squares to move. Use 👁 Peek if you get stuck.</div>':'')+
     '<div class="row" style="margin-top:8px"><button class="btn sec sm" data-act="pdraw" '+(app.playStatus==='play'?'':'disabled')+'>½ Offer draw</button><button class="btn danger sm" data-act="presign" '+((app.playStatus==='play'||app.playStatus==='engine')?'':'disabled')+'>⚑ Resign</button><button class="btn ghost sm" data-act="ppgn" '+(app.playMoves.length?'':'disabled')+'>'+(app.pgnCopied?'✓ Copied':'⧉ Copy PGN')+'</button></div>'+
@@ -15305,6 +16537,114 @@ function pzMotifPick(key,budget){
 
 function pzBand(r){for(let i=0;i<PZ_BANDS.length;i++)if(r>=PZ_BANDS[i][0]&&r<=PZ_BANDS[i][1])return i;return 0;}
 function pzAt(i){const p=PUZZLES[i];return p?{idx:i,fen:p[0],moves:p[1].split(' '),rating:p[2],themes:p[3]||[],last:p[4]||null}:null;}
+/* ================= THE MISTAKES COME BACK =================
+   This app is built on spaced repetition. Its whole opening trainer is a
+   scheduler: see a line, get it wrong, see it sooner. And then there are
+   25,000 tactics, and a puzzle you failed was simply gone — a counter went up
+   by one and the position was never shown to you again.
+
+   That is now the one place the repetition applies where it matters most. A
+   failed puzzle goes into a box; boxes come due after a day, three days, a
+   week, three weeks; solve it cleanly when it is due and it moves up a box,
+   miss it again and it drops to the bottom. Clear the top box and it has been
+   learned, and it leaves the queue for good.
+
+   It is offered, never forced: a card says how many are due, a button drills
+   exactly those, and in the ordinary "near my rating" mode one due mistake is
+   slipped in every few puzzles, always labelled as what it is. */
+const PZ_BOXES=[0,1,3,7,21];        // days until a box comes due again
+const PZ_INJECT_EVERY=4;            // in auto mode, one review per this many puzzles
+function pzMissStore(){
+  const st=store.puzzle;
+  if(!st.miss||typeof st.miss!=='object'||Array.isArray(st.miss))st.miss={};
+  return st.miss;
+}
+function pzMissDueAt(box,from){
+  const days=PZ_BOXES[Math.max(0,Math.min(PZ_BOXES.length-1,box))]||0;
+  return (from||Date.now())+days*86400000;
+}
+/* Failed it: into the bottom box, due immediately. */
+function pzMissAdd(idx){
+  if(idx==null||idx<0)return null;
+  const M=pzMissStore(),k=String(idx),now=Date.now();
+  const cur=M[k];
+  M[k]={box:0,due:pzMissDueAt(0,now),wrong:((cur&&cur.wrong)||0)+1,
+    seen:((cur&&cur.seen)||0),first:(cur&&cur.first)||now,at:now};
+  return M[k];
+}
+/* Solved it cleanly: up a box, or out of the queue altogether. */
+function pzMissPass(idx){
+  const M=pzMissStore(),k=String(idx),cur=M[k];
+  if(!cur)return null;
+  const box=(cur.box||0)+1;
+  cur.seen=(cur.seen||0)+1;
+  if(box>=PZ_BOXES.length){delete M[k];return {graduated:true,box:box,seen:cur.seen};}
+  cur.box=box;cur.due=pzMissDueAt(box,Date.now());cur.at=Date.now();
+  return cur;
+}
+function pzMissDue(now){
+  const M=pzMissStore(),t=now||Date.now(),out=[];
+  for(const k in M)if((M[k].due||0)<=t)out.push(+k);
+  return out;
+}
+function pzMissCount(){
+  const M=pzMissStore();
+  let n=0;for(const k in M)n++;
+  return n;
+}
+function pzMissNext(now){
+  const M=pzMissStore(),due=pzMissDue(now);
+  if(!due.length)return null;
+  // the one waiting longest, so nothing rots at the back of the queue
+  due.sort(function(a,b){return (M[String(a)].due||0)-(M[String(b)].due||0);});
+  return due[0];
+}
+/* When the set does not contain that index any more (a different build, a
+   trimmed file) the entry is dropped rather than served as a broken puzzle. */
+function pzMissValid(idx){
+  return idx!=null&&idx>=0&&typeof PUZZLES!=='undefined'&&idx<PUZZLES.length;
+}
+function pzMissPrune(){
+  const M=pzMissStore();
+  for(const k in M)if(!pzMissValid(+k))delete M[k];
+  return M;
+}
+function pzMissAgo(e){
+  if(!e||!e.at)return '';
+  const d=Math.round((Date.now()-e.at)/86400000);
+  if(d<=0)return 'earlier today';
+  if(d===1)return 'yesterday';
+  if(d<30)return d+' days ago';
+  const m=Math.round(d/30);
+  return m+' month'+(m===1?'':'s')+' ago';
+}
+/* ---- on screen ---- */
+function pzMissCard(){
+  pzMissPrune();
+  const total=pzMissCount();
+  if(!total)return '';
+  const due=pzMissDue().filter(pzMissValid).length;
+  const f=app.pzFilter||{};
+  return '<div class="card" style="margin-bottom:12px'+(due?';border-color:var(--amber)':'')+'">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<div style="min-width:0"><div style="font-weight:700">🔁 Your mistakes</div>'+
+      '<div class="dim small">'+total+' puzzle'+(total===1?'':'s')+' you have got wrong'+
+        (due?' · <b style="color:var(--amber)">'+due+' due now</b>':' · none due yet — the next is on its way')+'</div></div>'+
+      (due?'<button class="btn '+(f.type==='miss'?'sec':'primary')+' sm" data-act="pzmiss">'+
+        (f.type==='miss'?'Reviewing…':'Fix them ('+due+')')+'</button>':'')+
+    '</div>'+
+    (f.type==='miss'?'<div class="dim small" style="margin-top:6px">Working through the ones that are due. '+
+      'Solve one cleanly and it comes back later; miss it and it comes back sooner. '+
+      '<button class="btn ghost sm" data-act="pzauto" style="padding:3px 8px;font-size:11px">Back to fresh puzzles</button></div>':'')+
+    '</div>';
+}
+function pzReviewChip(){
+  if(!app.pz||!app.pzReview)return '';
+  const e=app.pzReview;
+  return '<div class="note" style="margin-bottom:10px;border-color:#f59e0b3d;background:#f59e0b14;color:#fde68a">'+
+    '🔁 <b>A mistake from before</b> — you got this one wrong '+esc(pzMissAgo(e))+
+    (e.wrong>1?', '+e.wrong+' times in all':'')+'. Box '+((e.box||0)+1)+' of '+PZ_BOXES.length+'.</div>';
+}
 function pzPool(){const f=app.pzFilter;const out=[];
   if(f.type==='band'){for(let i=0;i<PUZZLES.length;i++)if(pzBand(PUZZLES[i][2])===f.band)out.push(i);return out;}
   if(f.type==='theme'){for(let i=0;i<PUZZLES.length;i++)if((PUZZLES[i][3]||[]).includes(f.theme))out.push(i);return out;}
@@ -15320,7 +16660,22 @@ function pzNext(idx){if(!PUZZLES.length){app.view='puzzles';app.pz=null;render()
       app.pzMiss=app.pzFilter.motif;app.pzFilter={type:'auto'};
     }
   }
+  app.pzReview=null;
+  if(idx==null&&app.pzFilter&&app.pzFilter.type==='miss'){
+    const m=pzMissNext();
+    if(m!=null&&pzMissValid(m))idx=m;
+    else {app.pzFilter={type:'auto'};app.pzMissDone=true;}
+  }
+  if(idx==null){
+    // in the ordinary mode, one review every few puzzles — labelled as one
+    app._pzCount=(app._pzCount||0)+1;
+    if(app.pzFilter&&app.pzFilter.type==='auto'&&app._pzCount%PZ_INJECT_EVERY===0){
+      const m=pzMissNext();
+      if(m!=null&&pzMissValid(m))idx=m;
+    }
+  }
   if(idx==null){const pool=pzPool();const fresh=pool.filter(i=>!app.pzSeen.has(i));const arr=fresh.length?fresh:pool;idx=arr[Math.floor(Math.random()*arr.length)];}
+  {const e=pzMissStore()[String(idx)];if(e)app.pzReview=Object.assign({},e);}
   const p=pzAt(idx);app.pzSeen.add(idx);if(app.pzSeen.size>6000)app.pzSeen=new Set([idx]);
   app.view='puzzles';app.rushResult=null;
   app.pz={idx,fen:p.fen,moves:p.moves,rating:p.rating,themes:pzMotifs(idx),step:0,fenNow:p.fen,side:turnOf(p.fen),sel:null,last:p.last?{from:p.last.slice(0,2),to:p.last.slice(2,4)}:null,wrongMove:null,clean:true,status:'solving',hintSq:null,hintTo:null,hintLevel:0,delta:0};
@@ -15331,6 +16686,9 @@ function pzGrade(success){const P=app.pz,st=store.puzzle;const R=st.rating,Rp=P.
   const E=1/(1+Math.pow(10,(Rp-R)/400));const S=success?1:0;const K=32;
   let nR=Math.round(R+K*(S-E));nR=Math.max(400,Math.min(3000,nR));P.delta=nR-R;st.rating=nR;
   if(success){st.solved++;st.streak++;st.best=Math.max(st.best,st.streak);if(typeof questBump==='function')questBump('puzzle',1);}else{st.failed++;st.streak=0;}
+  // the position itself is remembered, so it can be put back in front of you
+  if(success)app.pzGraduated=pzMissPass(P.idx);
+  else {pzMissAdd(P.idx);app.pzGraduated=null;}
   // a tactic solved while you have a career keeps you in form (and every 10 sharpens prep)
   var car=store.career;if(success&&car&&car.setup&&!car.retired){lifeInit(car);car.form=Math.min(100,(car.form||0)+1);car.tacticsTrained=(car.tacticsTrained||0)+1;addXp(car,2);if(car.tacticsTrained%10===0){car.prep=(car.prep||0)+1;car.energy=Math.min(maxEnergy(car),car.energy+3);}if(car.objective&&car.objective.kind==='tactics'&&(car.tacticsTrained||0)>=car.objective.target)completeObjective(car);}
   st.last=Date.now();save();}
@@ -15376,9 +16734,14 @@ function viewPuzzles(){
       (f.type==='motif'&&MOTIF_BY[f.motif]?'<div class="dim small" style="margin-top:7px">'+MOTIF_BY[f.motif].e+' <b>'+esc(MOTIF_BY[f.motif].n)+'</b> — '+esc(MOTIF_BY[f.motif].d)+' Motifs are worked out from the position as you go, so this reaches puzzles the set never tagged.</div>':'')+
       '</div>';
     if(app.pzMiss)h+='<div class="note" style="margin-bottom:12px;border-color:#f59e0b3d;background:#f59e0b14;color:#fde68a">🔎 Couldn’t find a fresh <b>'+esc(motifLabel(app.pzMiss))+'</b> in the set — here is one near your rating instead.</div>';
+    h+=pzMissCard();
+    if(app.pzMissDone){h+='<div class="note" style="margin-bottom:12px">✅ That is every mistake that was due. The rest come back on their own schedule.</div>';}
   }
   if(app.rushResult!=null)h+='<div class="note" style="margin-bottom:12px">⚡ Puzzle Rush finished — you solved <b>'+app.rushResult+'</b> puzzles!</div>';
   if(!P){h+='<div class="center" style="min-height:auto;padding:20px"><button class="btn primary" data-act="pznext">Start solving →</button></div>';return h;}
+  h+=pzReviewChip();
+  if(app.pzGraduated&&app.pzGraduated.graduated)
+    h+='<div class="note" style="margin-bottom:10px;border-color:#14532d;background:#052e1655;color:#86efac">🎓 That one is learned — it has left the review queue for good.</div>';
   const orient=P.side==='w'?'white':'black';const playerTurn=turnOf(P.fenNow)===P.side;
   const interactive=P.status==='solving'&&playerTurn;
   let panel;

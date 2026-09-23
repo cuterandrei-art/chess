@@ -338,4 +338,37 @@ ok(/app\.booth=null;\n?\s*_resumeSig=null/.test(script),'a new game starts with 
 ok(/booth:app\.booth\|\|null,/.test(script),'and an interrupted game keeps the one it had');
 ok(/app\.booth=\(g\.booth&&g\.booth\.pair\)\?g\.booth:null;/.test(script),'restored on resume, if it looks like a booth');
 
+/* ================= AND THE OPPONENT REMEMBERS YOU =================
+   The pre-game line already knew about rivals and playing styles. It did not
+   know the one thing the two of you would both actually remember: the score
+   between you. */
+{
+  const OB=new Function(script+'\nreturn {store,app,oppBanter,freshCareer,lifeInit};')();
+  OB.store.career=OB.freshCareer();
+  const c=OB.store.career;OB.lifeInit(c);c.setup=true;c.name='Ada Marín';
+  const opp={name:'Tom Knox',rating:1533,id:'k'};
+  c.h2h={};
+  let b=OB.oppBanter(c,opp);
+  ok(b&&b.who==='Knox'&&b.line,'a stranger still says something');
+  ok(!/\d–\d/.test(b.line),'but nothing about a record that does not exist');
+  c.h2h={'Tom Knox':{w:0,l:4,d:0}};
+  const lines=new Set();
+  for(let i=0;i<40;i++)lines.add(OB.oppBanter(c,opp).line);
+  const all=[...lines].join(' | ');
+  ok(/4/.test(all),'somebody who has beaten you four times mentions it');
+  ok(/never beaten me|up on you|same thing happens/.test(all),'and says so like a person ('+[...lines][0]+')');
+  c.h2h={'Tom Knox':{w:5,l:1,d:0}};
+  const lines2=new Set();
+  for(let i=0;i<40;i++)lines2.add(OB.oppBanter(c,opp).line);
+  const all2=[...lines2].join(' | ');
+  ok(/5–1|ends today|preparing for you/.test(all2),'somebody you keep beating turns up with something to prove');
+  c.h2h={'Tom Knox':{w:2,l:2,d:2}};
+  const lines3=new Set();
+  for(let i=0;i<40;i++)lines3.add(OB.oppBanter(c,opp).line);
+  ok(/2–2–2|Dead level|break the tie/.test([...lines3].join(' | ')),'and a dead-level record is its own remark');
+  c.h2h={'Tom Knox':{w:1,l:1,d:0}};
+  ok(!/1–1/.test(OB.oppBanter(c,opp).line),'two games is not yet a history worth quoting');
+  ok(/c\.h2h\[opp\.name\]/.test(script),'the line reads the real head-to-head, not a guess');
+}
+
 console.log('\n✅ booth: '+pass+' checks passed');

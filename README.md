@@ -234,6 +234,121 @@ now, since everything downstream reads a default at some point.
 
 ---
 
+## Two people in the booth
+
+Every game in this career used to happen in silence. Real chess does not:
+there are two people upstairs with microphones, and half the pleasure of a big
+game is listening to them argue about it.
+
+There are six of them — an analyst who says what is happening and a host who
+gets excited about it — paired off, with the pair drawn from the event's name
+so a tournament keeps the same voices from round to round. They react to what
+actually occurs: the opening you chose, the first piece off the board, queens
+leaving, castling into opposite corners, material given up, a promotion, a
+long think, the flag creeping up, move forty, and how it ended. Around 230
+written lines across four voices, and a phrase is not reused while another is
+free.
+
+**The booth never reads the engine.** Everything it says comes from the move
+list, the piece count and the clocks — things you can see by looking at the
+board yourself. If the eval bar is off, nothing said up there can tell you how
+you stand, because they do not know either. It is commentary, not a hint, and
+the test asserts the whole section never touches `playEval`, the engine, or
+anything that formats an evaluation.
+
+That constraint has a nice consequence: a sacrifice cannot be seen on the move
+that plays it, because a capture always wins material at that moment. It shows
+up one move later, when the piece is taken back — and since telling a
+sacrifice from a blunder is a judgement only an engine could make, the lines
+are hedged to match what the booth can honestly know. *"Material for something
+else. They will need to be right about this."*
+
+Your opponent also says something before the game, and now knows the score
+between you: *"We have played four times and you have never beaten me."*
+
+## The rest of the hall
+
+You played your game and the field's scores simply grew: every other player
+rolled a result against the event's average, nobody played anybody, and a
+round could hand out any number of points. The crosstable moved without ever
+being a crosstable.
+
+The field is paired the way a Swiss really is — sorted by score, nearest
+opponent they have not already met, one sitting out when the number is odd —
+every board is played, and the results come back as a **bulletin** under the
+standings: board by board, plus who leads, whether the leader just lost, if
+you are the only one left on a perfect score, and any result nobody expected.
+One point per game, so the table adds up; three rounds of six players is nine
+points, and the test checks exactly that after every round.
+
+Fixing it turned up a modelling bug. The draw rate was flat, so it ate the
+whole remainder of a mismatch: a 2700 against a 2050 came out 66% win, 34%
+draw, **0% loss** — an upset was not unlikely but impossible — and the
+favourite's expected score sat below what its rating said. Draws now thin out
+as the gap widens, so a +400 favourite scores the 91% Elo predicts instead of
+85%, and a 600-point favourite loses about 2% of the time. The club league's
+board simulation had the identical flaw and the identical fix.
+
+## Sixty-Four, the magazine
+
+A season ended and you got a scoreboard: games, wins, rating, money. Useful,
+and about as stirring as a receipt.
+
+At every season rollover the game now writes an issue, and keeps the last ten.
+Each one has a masthead, a front page that leads on whatever the season was
+actually about — a title in full, silverware, a hundred points gained, a
+hundred lost, a year with no chess in it, a forty-game slog — the season in
+numbers, a four-part interview whose questions come from what happened to you
+and whose answers know your head-to-head with your rival, a world report off
+the same world the leaderboard uses with the real top five, a letters page
+that turns on your reputation and fame, and a page on what is within reach
+next. It is reachable from the season banner and from a shelf on the Legacy
+tab.
+
+Everything in it is real. Nothing is invented.
+
+## The hall
+
+Retiring already wrote a full record of the career — peak rating, titles,
+honours, earnings, years, the protégé you made, your all-time rank and a
+written verdict. Then *Begin a new career* deleted it, and all that crossed
+over was one peak number used to size the New Game+ bonus. Five careers in,
+the game could not tell you a single thing about the first four.
+
+They are kept now: the last 24 finished careers, newest first, the best of
+them marked, with totals across all of them — careers, best peak, games,
+seasons, everything earned, titles, world championships, grandmasters
+developed. It is on the Legacy tab and on the end-of-career screen, which is
+where you actually want it.
+
+Two pre-existing bugs came out of wiring it up, both on the same line. The
+boot loader rebuilds the saved store from an explicit list of keys, and that
+list was missing `legacy` — so the New Game+ bonus never survived a reload —
+and `quests`, so the daily quests regenerated on every refresh and lost their
+progress inside the same day. Both are carried now, both have defaults, and
+the backup file carries the hall too, since a hall that vanishes on refresh is
+not a hall.
+
+## The puzzles you get wrong come back
+
+This app is built on spaced repetition; its whole opening trainer is a
+scheduler. And then there were 25,000 tactics, where a failed puzzle was
+simply gone — a counter went up by one and the position was never shown to you
+again.
+
+A failed puzzle now goes into a box. Boxes come due after a day, three days, a
+week, three weeks; solve it cleanly when it is due and it moves up, miss it
+again and it drops to the bottom with the miss on its record. Clear the top
+box and it has been learned, and it leaves for good.
+
+It is offered, never forced. A card says how many mistakes are waiting and how
+many are due, with a button that drills exactly those; in the ordinary
+near-my-rating mode one due mistake is slipped in every fourth puzzle, always
+labelled — *"a mistake from before, you got this one wrong yesterday, box 2 of
+5"* — so a review is never mistaken for a new puzzle. An index the current
+puzzle file does not contain is pruned rather than served as a broken
+position.
+
 ## A game you can come back to
 
 A classical career round is 30+20 — up to two hours in the chair. The board
@@ -607,7 +722,7 @@ the engine can answer, and a game with one known blunder).
 
 ## Tests
 
-Thirty-nine suites, a little under four thousand checks.
+Forty-four suites, a little over four thousand checks, plus eight browser checks that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
@@ -616,6 +731,15 @@ parse test misses them and the app silently never boots. The other suites cover
 one system each (career pace, story arcs and the world feed, brilliancies, the
 park and simuls, the weekly life sim, avatars and backdrops, profiles, courses,
 endgames, and the rest).
+
+Career mode's newer systems have their own: `validate-booth.mjs` (what the
+commentators can and cannot know, the grammar guard that fills every line with
+the awkward name "You", and the constraint that the section never touches the
+engine), `validate-bulletin.mjs` (the Swiss pairing, and that a round hands out
+exactly one point per game), `validate-magazine.mjs` (every front-page branch
+and where each section's facts come from), `validate-hall.mjs` (what survives a
+new career, a reload and a backup) and `validate-pzmiss.mjs` (the box ladder,
+what is due and in what order, and a queue that outlives the puzzle set).
 
 Career mode has its own three on top of the rest: `validate-resume.mjs` (what
 gets written down, what it refuses to trust, and that a round only ever holds

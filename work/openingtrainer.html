@@ -13667,8 +13667,26 @@ function _simScore(c,E){var st=playingStyle(c),sk=st?st.key:null,pw=Math.max(0,M
   var r=Math.random();return r<pw?1:(r<pw+drawBand?0.5:0);}
 function oppBanter(c,opp){if(!opp)return null;var who=(opp.name||'Opponent').split(' ').pop();
   var st=playingStyle(c),sk=st?st.key:null,isRival=!!(c.rival&&opp.name===c.rival.name),isNem=!!(c.nemesis&&opp.name===c.nemesis.name),lines;
+  /* Somebody you have sat opposite four times knows the score between you,
+     and says so. c.h2h[name].w counts YOUR wins over them. */
+  var _h=(c.h2h&&c.h2h[opp.name])||null;
+  var _n=_h?((_h.w||0)+(_h.l||0)+(_h.d||0)):0;
   if(isRival)lines=['Everyone’s watching this one — don’t choke.','I’ve been waiting to play you again.','Let’s settle who’s really better.'];
   else if(isNem)lines=['You again. I owe you one.','I haven’t forgotten last time.'];
+  else if(_n>=3&&_h.l>_h.w)lines=[
+    'I am '+_h.l+'–'+_h.w+' up on you. I do keep count.',
+    'Every time we play, the same thing happens. Let us do it again.',
+    _h.w===0?('We have played '+_n+' times and you have never beaten me.')
+             :('You have beaten me '+_h.w+' time'+(_h.w===1?'':'s')+' out of '+_n+'. I like those odds.')];
+  else if(_n>=3&&_h.w>_h.l)lines=[
+    'You are '+_h.w+'–'+_h.l+' up on me. That ends today.',
+    'I have been preparing for you specifically. For months.',
+    _h.l===0?('I have never taken a point off you. Everybody starts somewhere.')
+             :('You keep beating me. It is becoming a habit I would like to break.')];
+  else if(_n>=3)lines=[
+    'We are '+_h.w+'–'+_h.l+'–'+_h.d+' after '+_n+' games. Somebody has to break the tie.',
+    'Dead level, you and I. It is almost annoying.',
+    'Another one, then. Neither of us learns anything, and here we are.'];
   else if((c.fame||0)>=60&&Math.random()<0.45)lines=['Big crowd here to see you — no pressure.','The famous '+esc((c.name||'champ').split(' ').pop())+'. Let’s dance.'];
   else if((c.reputation==null?50:c.reputation)<=30&&Math.random()<0.45)lines=['Everyone wants me to beat you. Happy to oblige.'];
   else if(sk==='attacker')lines=['I’ve studied your attacks — I’m playing it safe today.','No cheap sacrifices on me; I’m staying solid.','I’ll trade down and smother your initiative.'];
