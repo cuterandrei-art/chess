@@ -4449,7 +4449,7 @@ function checkTitles(c){const got=[];const peak=titlePeak(c);
     c.titles.push(d.t);got.push(d.t);
   }
   return got;}
-const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},onboarded:false,settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',blunderWarn:true,srsSkip:true,tbOn:true,expOn:true,expDb:'masters',voiceOn:false,voiceName:'',voiceRate:1,liveEval:true,liveHints:true},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},myGames:[],myGamesMeta:null,ccProfile:null,ccAccount:null,daily:null,brilliancies:[],studies:[],career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null,auto:null,moments:[]}};
+const DEF={repertoire:[],srs:{},custom:[],courseProgress:{},onboarded:false,settings:{newPer:8,pieces:'cburnett',theme:'brown',coords:true,level:2,sound:true,boardSize:520,tcId:'unlimited',appTheme:'lichess',accent:'blue',scene:'none',blunderWarn:true,srsSkip:true,tbOn:true,expOn:true,expDb:'masters',voiceOn:false,voiceName:'',voiceRate:1,liveEval:true,liveHints:true},stats:{byDay:{},correctByDay:{},total:0,correct:0,streak:0,best:0,last:null,activeDays:{},dayBest:0},puzzle:{rating:1200,solved:0,failed:0,streak:0,best:0,rush:0,last:null},myGames:[],myGamesMeta:null,ccProfile:null,ccAccount:null,daily:null,brilliancies:[],studies:[],quests:null,legacy:{peak:0,careers:0,hall:[]},career:{setup:false,name:'You',fed:'FIDE',flag:'♟',gender:'open',titleFormat:'classical',pace:1,rating:null,provisional:true,ratedGames:0,provScore:0,provOppSum:0,peak:0,ratingRapid:null,ratedRapid:0,peakRapid:0,ratingBlitz:null,ratedBlitz:0,peakBlitz:0,titles:[],norms:[],honors:[],tour:null,history:[],world:{},played:0,won:0,lost:0,drawn:0,money:0,coach:false,nemesis:null,age:16,weeks:0,retired:false,energy:100,form:0,tilt:0,fame:0,fans:0,reputation:50,coaches:[],sponsor:null,objective:null,prep:0,h2h:{},pressPending:null,canRetire:false,hof:null,rival:null,achievements:[],news:[],games:[],ratingHist:[],preppedOpening:null,tacticsTrained:0,xp:0,perks:[],season:1,prepUsage:{},protege:null,winStreak:0,bestWinStreak:0,unbeaten:0,weeksAtNo1:0,noveltyCharge:1,noveltyArmed:false,noveltyCd:0,theory:{},refuted:null,trendy:null,youngGun:null,scandal:null,subs:0,collabCd:0,assets:[],club:null,books:[],backer:null,fedCd:0,broadcasts:0,academy:null,gmsMade:0,legendsBeaten:[],injury:null,burnout:0,calendar:null,calDone:[],transferred:false,dilemma:null,mercDeeds:0,heroDeeds:0,lastBonusDay:null,skillPts:0,lvlSeen:1,circuit:null,social:null,classicsStudied:[],roadDone:[],feed:[],arc:null,arcsDone:[],arcBadges:[],park:null,simuls:0,simulPerfect:0,avatar:null,avatarStyle:'char',home:'hostel',health:100,mood:62,day:0,dayLog:[],weekLog:[],debt:0,bills:null,lifeWeeks:0,lastSimulPay:null,seasonStart:null,seasonReview:null,auto:null,moments:[]}};
 function freshCareer(){return JSON.parse(JSON.stringify(DEF.career));}
 /* Migrate saved career data: the old ladder (with `beaten`/`results`) is reset
    to the new FIDE structure; new-format saves are merged onto fresh defaults. */
@@ -4459,7 +4459,11 @@ function migrateCareer(d){if(!d||typeof d!=='object'||('beaten'in d)||!('setup'i
    freshCareer() for a new career, the merges in restore(), the statistics
    reset — would be handed the state it was supposed to replace. */
 let store=JSON.parse(JSON.stringify(DEF));
-try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],courseProgress:d.courseProgress||{},settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],myGames:d.myGames||[],myGamesMeta:d.myGamesMeta||null,ccProfile:d.ccProfile||null,ccAccount:d.ccAccount||null,daily:d.daily||null,brilliancies:d.brilliancies||[],onboarded:!!d.onboarded,career:migrateCareer(d.career)};}catch(e){}
+try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],courseProgress:d.courseProgress||{},settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],myGames:d.myGames||[],myGamesMeta:d.myGamesMeta||null,ccProfile:d.ccProfile||null,ccAccount:d.ccAccount||null,daily:d.daily||null,brilliancies:d.brilliancies||[],onboarded:!!d.onboarded,career:migrateCareer(d.career),
+  /* These two were missing from the list, so every reload dropped them: the
+     daily quests regenerated and lost their progress, and the legacy that
+     drives New Game+ never survived a session. */
+  quests:d.quests||null,legacy:Object.assign({peak:0,careers:0,hall:[]},d.legacy||{})};}catch(e){}
 function rebuildOpenings(){const cust=(store.custom||[]).map(d=>{try{return buildOpening(d);}catch(e){return null;}}).filter(Boolean);BUILT=BASE.concat(cust);byId=new Map(BUILT.map(o=>[o.id,o]));}
 rebuildOpenings();
 function save(){localStorage.setItem(LS,JSON.stringify(store));}
@@ -4488,7 +4492,7 @@ function restoreBackup(text){
   if(!d||typeof d!=='object'||Array.isArray(d))
     return {ok:false,error:'That file isn\u2019t readable \u2014 it should be the .json this app exported.'};
   var known=['repertoire','srs','custom','courseProgress','settings','stats','puzzle','studies',
-             'myGames','myGamesMeta','ccProfile','ccAccount','daily','brilliancies','career','onboarded','quests'];
+             'myGames','myGamesMeta','ccProfile','ccAccount','daily','brilliancies','career','onboarded','quests','legacy'];
   var has=known.filter(function(k){return d[k]!==undefined;});
   if(!has.length)return {ok:false,error:'That file has no progress in it \u2014 it should be the .json this app exported.'};
   store.repertoire=d.repertoire||[];
@@ -4508,6 +4512,8 @@ function restoreBackup(text){
   store.onboarded=!!d.onboarded;
   store.career=migrateCareer(d.career);
   if(d.quests)store.quests=d.quests;
+  // the hall outlives careers, so a backup has to carry it too
+  if(d.legacy)store.legacy=Object.assign({peak:0,careers:0,hall:[]},d.legacy);
   rebuildOpenings();                      // custom openings have to be rebuilt to be usable
   var c=store.career;
   var bits=[];
@@ -4756,7 +4762,7 @@ function render(){
   const navIcon=v=>(NAV_META[v]?NAV_META[v][0]:'•');
   const cur=nav.indexOf(app.view)>=0?app.view:'dashboard';
   const LEARN_VIEWS=['learn','courses','clearn','train','library','build','explore','course','endgames','eglesson','classics','guess','blindfold','daily','masters','studies','review','brilliancy','report','import','tracker','dashboard','reptree'];
-  const CAREER_VIEWS=['career','magazine','player','livegame'];
+  const CAREER_VIEWS=['career','magazine','hall','player','livegame'];
   const primaryOf=v=>(CAREER_VIEWS.indexOf(v)>=0?'career':v==='play'?'play':v==='puzzles'?'puzzles':LEARN_VIEWS.indexOf(v)>=0?'learn':'');
   const PRIMARY=[['career','🏆','Career'],['play','♟️','Play'],['puzzles','🧩','Puzzles'],['learn','📚','Learn']];
   const curP=primaryOf(cur);
@@ -4811,6 +4817,7 @@ function render(){
   else if(app.view==='classics')body=viewClassics();
   else if(app.view==='guess')body=guessView();
   else if(app.view==='magazine')body=viewMagazine();
+  else if(app.view==='hall')body=viewHall();
   else if(app.view==='settings')body=viewSettings();
   // The welcome gets the screen to itself: a navigation bar highlighting a
   // section you have not chosen yet is exactly the noise it exists to spare you.
@@ -11883,8 +11890,148 @@ function pressChoose(k){var c=store.career;lifeInit(c);if(!c.pressPending)return
   else if(k==='confident'){c.fame=Math.min(100,c.fame+4);c.fans=Math.round(c.fans+(c.fame*3));app.careerToast='“I knew I’d win.” Fame +.';}
   else{c.fame=Math.min(100,c.fame+8);c.fans=Math.round(c.fans+(c.fame*8)+50);c.reputation=Math.max(0,c.reputation-12);app.careerToast='🔥 You called out a rival — the clip goes viral. Fans ++, respect −.';}
   c.pressPending=null;save();render();}
+/* ================= THE HALL =================
+   Retiring already wrote a full record of the career: peak rating, titles,
+   honours, earnings, years, the protégé you made, your all-time rank and a
+   written verdict on the whole thing. Then "Begin a new career" deleted it,
+   and all that crossed over was a single peak number used to size the New
+   Game+ bonus. Five careers in, the game could not tell you one thing about
+   the first four.
+
+   They are kept now. Every career you finish takes its place in the hall,
+   newest first, best marked, and the shelf outlives all of them. */
+const HALL_KEEP=24;
+function hallInit(){
+  if(!store.legacy)store.legacy={peak:0,careers:0,hall:[]};
+  if(!Array.isArray(store.legacy.hall))store.legacy.hall=[];
+  return store.legacy;
+}
+function hallList(){return hallInit().hall;}
+/* One finished career, as it will be remembered. */
+function hallEntry(c){
+  const f=c.hof||{};
+  return {name:c.name||'You',fed:c.fed||'FIDE',flag:c.flag||'',
+    peak:f.peak||c.peak||0,rating:f.rating!=null?f.rating:(c.rating||null),
+    titles:(f.titles||c.titles||[]).slice(),honors:(f.honors||c.honors||[]).slice(),
+    money:Math.round(f.money||c.money||0),age:Math.floor(f.age||c.age||0),
+    years:f.years!=null?f.years:Math.round((c.weeks||0)/52),
+    fans:Math.round(f.fans||c.fans||0),best:f.best||bestTitle(c)||'',
+    protege:f.protege||null,gmsMade:f.gmsMade||0,broadcasts:f.broadcasts||0,
+    allTime:f.allTime||null,verdict:f.verdict||null,persona:f.persona||null,
+    style:f.style||null,score:Math.round(legacyScore(c)),
+    games:c.played||0,won:c.won||0,drawn:c.drawn||0,lost:c.lost||0,
+    seasons:c.season||1,issues:(c.issues||[]).length,at:Date.now()};
+}
+function hallAdd(c){
+  const L=hallInit();
+  L.hall.unshift(hallEntry(c));
+  if(L.hall.length>HALL_KEEP)L.hall.length=HALL_KEEP;
+  return L.hall[0];
+}
+/* The best career you have had, by the same score the all-time list uses. */
+function hallBest(){
+  const H=hallList();
+  if(!H.length)return null;
+  return H.slice().sort(function(a,b){return (b.score||0)-(a.score||0)||(b.peak||0)-(a.peak||0);})[0];
+}
+function hallTotals(){
+  const H=hallList();
+  return {careers:H.length,
+    games:H.reduce(function(a,x){return a+(x.games||0);},0),
+    years:H.reduce(function(a,x){return a+(x.years||0);},0),
+    money:H.reduce(function(a,x){return a+(x.money||0);},0),
+    titles:H.reduce(function(a,x){return a+((x.titles||[]).length);},0),
+    honors:H.reduce(function(a,x){return a+((x.honors||[]).length);},0),
+    champions:H.filter(function(x){return (x.honors||[]).some(function(h){return /World Champion/.test(h);});}).length,
+    peak:H.reduce(function(a,x){return Math.max(a,x.peak||0);},0),
+    gms:H.reduce(function(a,x){return a+(x.gmsMade||0);},0)};
+}
+/* ---- on screen ---- */
+function hallRow(e,i,bestAt){
+  const v=e.verdict||{};
+  return '<div class="card" style="margin-bottom:9px'+(i===bestAt?';border-color:var(--amber)':'')+'">'+
+    '<div class="row" style="justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">'+
+      '<div style="min-width:0">'+
+        '<div style="font-weight:800">'+(v.emoji||'♟')+' '+esc((e.best?e.best+' ':'')+e.name)+
+          (i===bestAt?' <span class="chip amber" style="font-size:9px">BEST</span>':'')+'</div>'+
+        '<div class="dim small">'+esc(e.fed)+' '+(e.flag||'')+' · '+e.years+' season'+(e.years===1?'':'s')+
+          ' · retired at '+e.age+'</div>'+
+      '</div>'+
+      '<div style="text-align:right"><div style="font-weight:800;color:var(--brand2)">'+(e.peak||'—')+'</div>'+
+      '<div class="dim small">peak</div></div>'+
+    '</div>'+
+    (v.title?'<div class="small" style="margin-top:5px;font-weight:700">'+esc(v.title)+'</div>':'')+
+    (v.blurb?'<div class="dim small" style="margin-top:2px;line-height:1.55">'+esc(v.blurb)+'</div>':'')+
+    '<div class="dim small" style="margin-top:6px;line-height:1.6">'+
+      (e.games?'♟ '+e.games+' games ('+e.won+'–'+e.drawn+'–'+e.lost+'). ':'')+
+      '💰'+(e.money||0).toLocaleString()+' earned. '+
+      ((e.titles||[]).length?'🎖️ '+e.titles.join('/')+'. ':'')+
+      (e.fans?'👥 '+e.fans.toLocaleString()+' fans. ':'')+
+      (e.allTime?'🐐 all-time #'+e.allTime.toLocaleString()+'. ':'')+
+      (e.gmsMade?'🧑‍🎓 '+e.gmsMade+' GM'+(e.gmsMade>1?'s':'')+' developed. ':'')+
+      (e.issues?'📖 '+e.issues+' issue'+(e.issues===1?'':'s')+' written about it. ':'')+
+    '</div>'+
+    ((e.honors||[]).length?'<div style="margin-top:6px">'+e.honors.map(function(h){
+      return '<span class="chip green" style="margin:2px;font-size:10px">'+honorEmoji(h)+' '+esc(h)+'</span>';}).join('')+'</div>':'')+
+    (e.protege?'<div class="dim small" style="margin-top:5px">🧑‍🎓 Protégé '+esc(e.protege.name)+
+      ' reached '+e.protege.peak+'.</div>':'')+
+    (e.persona?'<div class="small" style="margin-top:4px;color:var(--brand2)">'+e.persona+'</div>':'')+
+    '</div>';
+}
+function viewHall(){
+  const H=hallList();
+  if(!H.length)
+    return msgCard('🏛️ The hall','No career has been completed yet. Retire one and it takes its place here, '+
+      'with everything it achieved, for as long as this browser remembers anything.',
+      '<button class="btn sec" data-act="nav" data-val="career">Back to the career</button>');
+  const T=hallTotals(),best=hallBest();
+  const bestAt=best?H.indexOf(best):-1;
+  const stat=function(l,v,col){return '<div style="flex:1;min-width:84px;text-align:center;padding:7px 3px">'+
+    '<div class="dim small" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em">'+l+'</div>'+
+    '<div style="font-weight:800;font-size:17px;white-space:nowrap'+(col?';color:'+col:'')+'">'+v+'</div></div>';};
+  return '<div style="max-width:760px;margin:0 auto">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">'+
+      '<h1 style="font-size:20px;margin:0">🏛️ The hall</h1>'+
+      '<button class="btn ghost sm" data-act="nav" data-val="career">← Career</button></div>'+
+    '<div class="card" style="margin-bottom:12px">'+
+      '<div class="dim small" style="margin-bottom:4px">Every career you have finished, and what it added up to.</div>'+
+      '<div class="row" style="flex-wrap:wrap">'+
+        stat('Careers',T.careers)+
+        stat('Best peak',T.peak||'—','var(--brand2)')+
+        stat('Games',T.games.toLocaleString())+
+        stat('Seasons',T.years)+
+        stat('Earned','💰'+T.money.toLocaleString(),'#fbbf24')+
+      '</div>'+
+      '<div class="dim small" style="margin-top:5px;line-height:1.6">'+
+        (T.titles?'🎖️ '+T.titles+' title'+(T.titles===1?'':'s')+' across all of them. ':'')+
+        (T.honors?'🏆 '+T.honors+' honour'+(T.honors===1?'':'s')+'. ':'')+
+        (T.champions?'👑 '+T.champions+' world '+(T.champions===1?'championship':'championships')+'. ':'')+
+        (T.gms?'🧑‍🎓 '+T.gms+' grandmaster'+(T.gms===1?'':'s')+' developed. ':'')+
+        (!T.titles&&!T.honors?'No titles yet. The hall keeps the quiet careers too.':'')+
+      '</div></div>'+
+    H.map(function(e,i){return hallRow(e,i,bestAt);}).join('')+
+    '<div class="dim small" style="text-align:center;margin-bottom:16px">The hall keeps the last '+HALL_KEEP+
+      ' careers. Everything here survives starting a new one.</div>'+
+    '</div>';
+}
+function hallCard(){
+  const H=hallList();
+  if(!H.length)return '';
+  const T=hallTotals(),b=hallBest();
+  return '<div class="card" style="margin-bottom:12px">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<div style="min-width:0"><div style="font-weight:700">🏛️ The hall</div>'+
+      '<div class="dim small">'+T.careers+' finished career'+(T.careers===1?'':'s')+
+        (b?' · best: '+esc(b.name)+' at '+b.peak:'')+'</div></div>'+
+      '<button class="btn sec sm" data-act="nav" data-val="hall">Open it</button>'+
+    '</div></div>';
+}
 function retireCareer(){var c=store.career;lifeInit(c);c.retired=true;c.hof={peak:c.peak,rating:c.rating,titles:(c.titles||[]).slice(),honors:(c.honors||[]).slice(),money:c.money,age:c.age,years:Math.round((c.weeks||0)/52),fans:c.fans,best:bestTitle(c),protege:c.protege?{name:c.protege.name,peak:c.protege.peak}:null,gmsMade:c.gmsMade||0,broadcasts:c.broadcasts||0,allTime:allTimeRank(c).rank,verdict:legacyVerdict(c),persona:personaChip(c),style:(playingStyle(c)||{}).key||null};
-  store.legacy={peak:Math.max((store.legacy&&store.legacy.peak)||0,c.peak||0,c.protege?(c.protege.peak-300):0),careers:((store.legacy&&store.legacy.careers)||0)+1};save();render();}
+  hallInit();
+  store.legacy.peak=Math.max(store.legacy.peak||0,c.peak||0,c.protege?(c.protege.peak-300):0);
+  store.legacy.careers=(store.legacy.careers||0)+1;
+  hallAdd(c);                       // and it stays there, whatever happens next
+  save();render();}
 function newCareer(){var leg=store.legacy;store.career=freshCareer();if(leg&&leg.peak>1200){store.career.xp=Math.min(90,Math.round((leg.peak-1200)/14));store.career.money=(store.career.money||0)+Math.min(4000,leg.careers*1200);}app.careerFinish=null;app.careerToast=(leg&&leg.peak>1200)?('🔄 New Game+ — your reputation precedes you (+'+store.career.xp+' XP head start).'):null;app.careerTour=false;app.careerOneoff=null;save();render();}
 /* ================= A LIFE, NOT A BUTTON =================
    Weeks used to pass in one click. Now a week is seven days and each day is
@@ -12681,7 +12828,9 @@ function careerTeamPanel(c){
   return h+'</div></div>';}
 function careerPressPanel(c){if(!c.pressPending)return '';var p=c.pressPending;
   return '<div class="card" style="margin-bottom:12px;border-color:#7c5cff66"><div style="font-weight:700;margin-bottom:3px">🎤 Press conference — '+esc(p.event)+'</div><div class="dim small" style="margin-bottom:8px">You finished '+ordinal(p.place)+'. Give the reporters a quote:</div><div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sec sm" data-act="press" data-val="humble">🙏 Stay humble</button><button class="btn sec sm" data-act="press" data-val="confident">😎 Back yourself</button><button class="btn sec sm" data-act="press" data-val="spicy">🔥 Call out a rival</button></div></div>';}
-function careerHoF(c){var f=c.hof||{};var v=f.verdict||legacyVerdict(c);var pc=f.persona||personaChip(c);return '<div style="max-width:720px;margin:0 auto"><h1>🏁 Career complete</h1><div class="card" style="margin-bottom:12px;border-color:var(--brand);text-align:center"><div style="font-size:34px;line-height:1">'+v.emoji+'</div><div style="font-weight:800;font-size:20px;margin:5px 0">'+esc(v.title)+'</div><div class="dim small" style="line-height:1.55">'+esc(v.blurb)+'</div>'+(pc?'<div class="small" style="margin-top:8px;color:var(--brand2)">'+pc+'</div>':'')+'</div><div class="muted small" style="margin-bottom:12px">'+esc(c.name)+' retired at age '+Math.floor(f.age||c.age)+' after '+(f.years||0)+' seasons on the circuit.</div><div class="card"><div class="row" style="flex-wrap:wrap">'+stat('Peak rating',f.peak||c.peak||'—','var(--brand2)')+stat('Top title',f.best||'—','var(--amber)')+stat('Earnings','💰'+((f.money||0).toLocaleString()),'var(--green)')+stat('Fans',(f.fans||0).toLocaleString(),'var(--text)')+'</div>'+((f.honors&&f.honors.length)?'<div style="margin-top:10px">Honours: '+f.honors.map(function(hn){return '<span class="chip green" style="margin:2px">'+esc(hn)+'</span>';}).join('')+'</div>':'')+(f.protege?'<div class="dim small" style="margin-top:10px">🧑‍🎓 Your protégé '+esc(f.protege.name)+' reached '+f.protege.peak+(f.protege.peak>=2500?' — a Grandmaster you made.':'.')+'</div>':'')+(f.allTime?'<div class="dim small" style="margin-top:10px">🐐 All-time rank: #'+(f.allTime||0).toLocaleString()+(f.gmsMade?' · '+f.gmsMade+' GM'+(f.gmsMade>1?'s':'')+' developed':'')+(f.broadcasts?' · '+f.broadcasts+' broadcasts':'')+'</div>':'')+'<div class="row" style="margin-top:14px"><button class="btn primary" data-act="careernew">Begin a new career</button></div></div></div>';}
+function careerHoF(c){var f=c.hof||{};var v=f.verdict||legacyVerdict(c);var pc=f.persona||personaChip(c);return '<div style="max-width:720px;margin:0 auto"><h1>🏁 Career complete</h1><div class="card" style="margin-bottom:12px;border-color:var(--brand);text-align:center"><div style="font-size:34px;line-height:1">'+v.emoji+'</div><div style="font-weight:800;font-size:20px;margin:5px 0">'+esc(v.title)+'</div><div class="dim small" style="line-height:1.55">'+esc(v.blurb)+'</div>'+(pc?'<div class="small" style="margin-top:8px;color:var(--brand2)">'+pc+'</div>':'')+'</div><div class="muted small" style="margin-bottom:12px">'+esc(c.name)+' retired at age '+Math.floor(f.age||c.age)+' after '+(f.years||0)+' seasons on the circuit.</div><div class="card"><div class="row" style="flex-wrap:wrap">'+stat('Peak rating',f.peak||c.peak||'—','var(--brand2)')+stat('Top title',f.best||'—','var(--amber)')+stat('Earnings','💰'+((f.money||0).toLocaleString()),'var(--green)')+stat('Fans',(f.fans||0).toLocaleString(),'var(--text)')+'</div>'+((f.honors&&f.honors.length)?'<div style="margin-top:10px">Honours: '+f.honors.map(function(hn){return '<span class="chip green" style="margin:2px">'+esc(hn)+'</span>';}).join('')+'</div>':'')+(f.protege?'<div class="dim small" style="margin-top:10px">🧑‍🎓 Your protégé '+esc(f.protege.name)+' reached '+f.protege.peak+(f.protege.peak>=2500?' — a Grandmaster you made.':'.')+'</div>':'')+(f.allTime?'<div class="dim small" style="margin-top:10px">🐐 All-time rank: #'+(f.allTime||0).toLocaleString()+(f.gmsMade?' · '+f.gmsMade+' GM'+(f.gmsMade>1?'s':'')+' developed':'')+(f.broadcasts?' · '+f.broadcasts+' broadcasts':'')+'</div>':'')+'<div class="row" style="margin-top:14px;gap:8px;flex-wrap:wrap"><button class="btn primary" data-act="careernew">Begin a new career</button>'+
+    (hallList().length?'<button class="btn sec" data-act="nav" data-val="hall">🏛️ The hall ('+hallList().length+')</button>':'')+
+    '</div></div></div>';}
 /* ============ Career: achievements, rivalries, random life events, circuit news ============ */
 const ACHIEVEMENTS=[
   {k:'first',e:'♟',n:'First blood',d:'Play your first career game',test:function(c){return (c.played||0)>=1;}},
@@ -13909,6 +14058,7 @@ function careerTabContent(c,tab){
     h+=careerPublishPanel(c);
   } else if(tab==='legacy'){
     h+=magShelfCard(c);
+    h+=hallCard();
     h+=careerMomentsPanel(c);
     h+=careerNewsPanel(c);
     h+=careerArcHistory(c);
