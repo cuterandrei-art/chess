@@ -257,8 +257,8 @@ X.playNoteClock();
 ok(X.app.playClk.length===0,'a game with no clock records no readings');
 
 /* ================= WIRED IN, NOT JUST WRITTEN ================= */
-ok(/playNoteClock\(\);sfxSan/.test(script),'the clock is noted after your own move');
-ok(/addIncrement\(eng\);playNoteClock\(\)/.test(script),'and after the engine’s');
+ok(/playNoteClock\(\);boothMove\(\);sfxSan/.test(script),'the clock is noted after your own move');
+ok(/addIncrement\(eng\);playNoteClock\(\);boothMove\(\)/.test(script),'and after the engine’s');
 ok(/myRating:youRating\(c,fmt\)\|\|c\.rating\|\|0/.test(script),'a finished game keeps the rating you had');
 ok(/clk:\(app\.playClk&&app\.playClk\.length\)/.test(script),'and the clock readings it was played on');
 ok(/if\(c\.games\.length>CG_KEEP\)/.test(script),'the archive is trimmed to the keep limit');
