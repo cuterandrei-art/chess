@@ -4538,7 +4538,7 @@ function delRep(id){store.repertoire=store.repertoire.filter(x=>x!==id);save();}
 /* ============================== app state ============================== */
 const app={view:'career',exId:null,exPath:[],exFlip:false,courseId:null,setupOpening:'',
   pz:null,pzSeen:new Set(),pzFilter:{type:'auto'},rush:null,
-  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,ccSyncing:false,ccSyncMsg:null,ccSyncErr:null,_ccAutoTried:false,drill:null,installOpen:false,installMsg:null,trkF:null,trkQ:'',trkSort:'date',trkPage:0,trkMsg:null,cgQ:'',cgSort:'new',cgPage:0,cgMsg:null,playClk:[],booth:null,replaySpeed:1,_replayTick:null,live:null,liveUser:null,liveList:null,liveLoading:false,liveErr:null,liveListAt:0,liveEv:null,liveBest:null,liveLines:[],liveEngErr:false,_liveKey:null,_livePollT:null,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
+  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,ccSyncing:false,ccSyncMsg:null,ccSyncErr:null,_ccAutoTried:false,drill:null,installOpen:false,installMsg:null,trkF:null,trkQ:'',trkSort:'date',trkPage:0,trkMsg:null,cgQ:'',cgSort:'new',cgPage:0,cgMsg:null,playClk:[],booth:null,magIdx:0,replaySpeed:1,_replayTick:null,live:null,liveUser:null,liveList:null,liveLoading:false,liveErr:null,liveListAt:0,liveEv:null,liveBest:null,liveLines:[],liveEngErr:false,_liveKey:null,_livePollT:null,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
   confirm:null,
   review:null,studyId:null,studyChapter:0,studyPath:[],studyFlip:false,studyMsg:null,
 
@@ -4756,7 +4756,8 @@ function render(){
   const navIcon=v=>(NAV_META[v]?NAV_META[v][0]:'•');
   const cur=nav.indexOf(app.view)>=0?app.view:'dashboard';
   const LEARN_VIEWS=['learn','courses','clearn','train','library','build','explore','course','endgames','eglesson','classics','guess','blindfold','daily','masters','studies','review','brilliancy','report','import','tracker','dashboard','reptree'];
-  const primaryOf=v=>(v==='career'?'career':v==='play'?'play':v==='puzzles'?'puzzles':LEARN_VIEWS.indexOf(v)>=0?'learn':'');
+  const CAREER_VIEWS=['career','magazine','player','livegame'];
+  const primaryOf=v=>(CAREER_VIEWS.indexOf(v)>=0?'career':v==='play'?'play':v==='puzzles'?'puzzles':LEARN_VIEWS.indexOf(v)>=0?'learn':'');
   const PRIMARY=[['career','🏆','Career'],['play','♟️','Play'],['puzzles','🧩','Puzzles'],['learn','📚','Learn']];
   const curP=primaryOf(cur);
   const topnav='<div class="topnav">'+PRIMARY.map(p=>'<button data-act="nav" data-val="'+p[0]+'" class="'+(curP===p[0]?'active':'')+'">'+p[1]+' '+p[2]+'</button>').join('')+'</div>';
@@ -4809,6 +4810,7 @@ function render(){
   else if(app.view==='clearn')body=viewCourseLearn();
   else if(app.view==='classics')body=viewClassics();
   else if(app.view==='guess')body=guessView();
+  else if(app.view==='magazine')body=viewMagazine();
   else if(app.view==='settings')body=viewSettings();
   // The welcome gets the screen to itself: a navigation bar highlighting a
   // section you have not chosen yet is exactly the noise it exists to spare you.
@@ -9728,6 +9730,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='impclear'){uiConfirm('Remove the imported games from this browser?',function(){store.myGames=[];store.myGamesMeta=null;app.imp=null;store.ccProfile=null;var _cl=ccAccount();if(_cl){_cl.lastGameTs=0;_cl.lastSync=0;}app.ccSyncMsg=null;app._ccAutoTried=false;save();});}
   else if(act==='impaddall'){var _pc=personalCourse();_pc.course.forEach(function(r){if(r.id&&!inRep(r.id))addRep(r.id);});save();render();}
   else if(act==='seasondismiss'){store.career.seasonReview=null;save();render();}
+  else if(act==='magissue'){app.magIdx=Math.max(0,parseInt(val,10)||0);render();}
   else if(act==='profile'){if(val)profileOpen(val);}
   else if(act==='specvs'){var _sp=buildWorld().filter(function(x){return x.id===val;})[0];if(_sp){var _fmt='classical';var _list=worldRanking(store.career,_fmt).filter(function(x){return !x.you&&x.id!==val;});var _o=_list[Math.floor(Math.random()*Math.min(12,_list.length))]||_list[0];if(_o)startSpectate({name:_sp.name,flag:_sp.flag,rating:wpRating(_sp,_fmt),real:_sp.real},_o);}}
   else if(act==='doday'){doDay(val);var _ac=store.career;if(_ac&&_ac.auto&&_ac.auto.week&&(_ac.day||0)>0&&!_ac.tour){autoRunWeek(_ac);save();render();}}
@@ -12233,19 +12236,358 @@ function seasonRollover(c){
   c.seasonStart=s1;
   pushNews(c,'🗓️','Season '+c.seasonReview.season+' is over — '+c.seasonReview.games+' games, '+c.seasonReview.won+' wins.');
   pushFeed(c,'🗓️','Season '+c.seasonReview.season+' ends. '+esc(c.name||'You')+': '+c.seasonReview.won+'W–'+c.seasonReview.lost+'L–'+c.seasonReview.drawn+'D.','you');
-  toastAdd('🗓️ Season '+c.seasonReview.season+' review is ready');
+  magPublish(c,c.seasonReview);
+  toastAdd('🗓️ Season '+c.seasonReview.season+' is over — the new issue is out');
 }
 function seasonMaybeRoll(c){
   var due=Math.floor((c.weeks||0)/52)+1;
   if(!c.seasonStart)c.seasonStart=seasonSnapshot(c);
   if(due>(c.season||1))seasonRollover(c);
 }
+/* ================= SIXTY-FOUR, THE MAGAZINE =================
+   A season ends and you get a scoreboard: games, wins, rating, money. Useful,
+   and about as stirring as a receipt. What a season actually leaves behind is
+   a story somebody else tells about you — a front page, a table, an interview
+   you half regret giving, and a letters page where a stranger in another
+   country has opinions about your opening choices.
+
+   So at the end of every season the game writes an issue. Everything in it is
+   real: the numbers come from the season snapshot, the world report from the
+   same world the leaderboard uses, the letters from your reputation, and the
+   interview questions from what actually happened to you. Issues are kept, so
+   a long career leaves a shelf of them. */
+const MAG_NAME='Sixty-Four';
+const MAG_KEEP=10;
+function magIssueNo(c){return (c&&c.season)||1;}
+/* ---- the front page ---- */
+function magFront(c,r){
+  const me=(c.name||'You'),sur=String(me).split(' ').pop();
+  const rd=(r.ratingFrom!=null&&r.ratingTo!=null)?(r.ratingTo-r.ratingFrom):null;
+  const score=r.games?((r.won+r.drawn*0.5)/r.games):0;
+  const pct=Math.round(score*100);
+  if(r.titles&&bestTitle(c))
+    return {head:sur+' is a '+magTitleName(bestTitle(c)),
+      stand:'A season that ends with letters in front of your name.',
+      body:'The title was confirmed after '+r.games+' games and '+r.norms+' norm'+(r.norms===1?'':'s')+
+        ' this season. '+sur+' finishes the year rated '+(r.ratingTo||'unrated')+
+        (rd!=null&&rd>0?', up '+rd+' points':'')+'. There is a longer road above this one, and it starts in the spring.'};
+  if(r.honors)
+    return {head:'Silverware for '+sur,
+      stand:r.honors+' honour'+(r.honors===1?'':'s')+' in a single season.',
+      body:'Whatever else the year contained — and it contained '+r.games+' games — it will be remembered for the trophy. '+
+        (r.best?'The high point was '+r.best.name+(r.best.place?', finishing '+ordinal(r.best.place):'')+'. ':'')+
+        'The circuit will arrive next season expecting a repeat, which is its own kind of pressure.'};
+  if(rd!=null&&rd>=60)
+    return {head:'The climb of '+sur,
+      stand:'Up '+rd+' points in a season, and not by accident.',
+      body:'A rating does not move that far on luck. '+r.games+' games, '+r.won+' of them won, '+pct+
+        '% overall, and a peak of '+(r.peakTo||r.ratingTo||'—')+'. '+
+        (r.bril?'There were '+r.bril+' games worth showing somebody. ':'')+
+        'The interesting question is whether the next hundred comes as easily as the last.'};
+  if(rd!=null&&rd<=-60)
+    return {head:'A hard year for '+sur,
+      stand:'Down '+Math.abs(rd)+' points, and no way to dress it up.',
+      body:'It happens to everybody who plays enough. '+r.games+' games, '+r.lost+' lost, '+pct+
+        '% in all. The rating is a lagging indicator of a problem that started earlier — '+
+        'somewhere in the preparation, the clock, or the hours kept. Next season is for fixing one of the three.'};
+  if(!r.games)
+    return {head:'A quiet season',
+      stand:sur+' played no rated chess this year.',
+      body:'Careers have years like this: illness, money, a house to move, a head that needed a rest. '+
+        'The rating sits where it sat. The board will still be there.'};
+  if(r.games>=40)
+    return {head:sur+' plays everybody',
+      stand:r.games+' games in one season is a working professional’s year.',
+      body:'W–D–L of '+r.won+'–'+r.drawn+'–'+r.lost+' at '+pct+'%, and a rating that finished at '+
+        (r.ratingTo||'unrated')+'. '+
+        'Volume like that is how ratings move slowly and reputations move fast. '+
+        (r.events?'Ten months, '+r.events+' events, and a lot of railway stations.':'')};
+  return {head:'A season of steady work for '+sur,
+    stand:r.games+' games, '+pct+'% and nothing broken.',
+    body:'Not every year is a turning point. '+r.won+' wins, '+r.drawn+' draws, '+r.lost+' defeats, '+
+      'and a rating that ends the season at '+(r.ratingTo||'unrated')+'. '+
+      (r.best?'The best of it was '+r.best.name+(r.best.place?' — '+ordinal(r.best.place):'')+'.':
+        'The work counts even when the table does not show it.')};
+}
+/* The long form of a title, from the ladder the career already defines. */
+function magTitleName(t){
+  for(const d of TITLE_DEFS)if(d.t===t)return d.name;
+  return t;
+}
+/* ---- the interview ---- */
+function magInterview(c,r){
+  const sur=String(c.name||'You').split(' ').pop();
+  const rd=(r.ratingFrom!=null&&r.ratingTo!=null)?(r.ratingTo-r.ratingFrom):null;
+  const st=playingStyle(c),style=st?st.name:null;
+  const qa=[];
+  if(r.best&&r.best.place===1)
+    qa.push({q:'You won '+r.best.name+'. When did you know?',
+      a:'Honestly? Two rounds before the end, and then I stopped sleeping. Knowing is worse than not knowing.'});
+  else if(r.best)
+    qa.push({q:'Your best result this season was '+r.best.name+(r.best.place?', '+ordinal(r.best.place):'')+'. Satisfied?',
+      a:'Satisfied is the wrong word. I played well for six rounds and badly for one, and the one is what I remember.'});
+  else
+    qa.push({q:'No result this season stands out. Does that bother you?',
+      a:'It bothers me more than a bad loss would. A bad loss you can study. A flat year you have to explain to yourself.'});
+  if(rd!=null&&rd>=40)
+    qa.push({q:'You are up '+rd+' points. What changed?',
+      a:'Nothing dramatic. I stopped playing the second game of an evening, and I started preparing the openings I actually get.'});
+  else if(rd!=null&&rd<=-40)
+    qa.push({q:'The rating went the wrong way. What is the diagnosis?',
+      a:'The clock. I know that is a boring answer, but I lost more points to the clock this year than to anybody’s preparation.'});
+  else
+    qa.push({q:'The rating barely moved. Plateau, or foundation?',
+      a:'Ask me in a year. It feels like the second. It always feels like the second.'});
+  if(c.rival&&c.rival.name){
+    const h=(c.h2h&&c.h2h[c.rival.name])||null;
+    qa.push({q:'And '+String(c.rival.name).split(' ').pop()+'?',
+      a:h?('We have played enough now that neither of us learns much from it. '+
+          (h.w>h.l?'I am ahead. I would rather not talk about it and stay ahead.':
+           h.l>h.w?'They are ahead. I am aware of the number, thank you.':
+           'Dead level, which is somehow worse than losing.')):
+        'We will play. Everybody keeps telling me we will play.'});
+  } else if(style){
+    qa.push({q:'People describe you as a '+style.toLowerCase()+'. Fair?',
+      a:'It is what the games say, so I can hardly argue. I did not choose it. You find out what you are by losing.'});
+  } else {
+    qa.push({q:'What are you working on?',
+      a:'Endgames, like everybody who has just thrown away a won position. Ask any player in this hall.'});
+  }
+  if((c.money||0)<400)
+    qa.push({q:'Is the money workable?',
+      a:'No. But it is workable enough, which is a different sentence and the one most of us live in.'});
+  else if(r.money>0)
+    qa.push({q:'A profitable season. Does that change anything?',
+      a:'It buys me the right to turn down one bad tournament. That is the whole luxury, and it is a real one.'});
+  else
+    qa.push({q:'Money?',
+      a:'Down this year. Chess pays in instalments and takes its rent monthly.'});
+  // four questions, and all four are asked — a cap of three silently dropped
+  // the money one every time, since it is always the last to be added
+  return qa.slice(0,4);
+}
+/* ---- around the world ---- */
+function magWorld(c){
+  const out=[];
+  let rank=[];
+  try{rank=worldRanking(c,'classical')||[];}catch(e){rank=[];}
+  const top=rank.filter(function(p){return !p.you;}).slice(0,5);
+  if(top.length){
+    const one=top[0];
+    out.push({e:'🌍',t:String(one.name).split(' ').pop()+' ends the season as world number one on '+
+      (one.rating||one.r||'—')+'.'});
+  }
+  const mine=rank.filter(function(p){return p.you;})[0];
+  const myIdx=rank.findIndex(function(p){return p.you;});
+  if(mine&&myIdx>=0)
+    out.push({e:'📈',t:'You finish the year ranked '+ordinal(myIdx+1)+' in the world.'});
+  if(c.rival&&c.rival.name){
+    let rr=null;try{rr=rivalRating(c);}catch(e){}
+    out.push({e:'🎯',t:rr
+      ? 'Your rival '+c.rival.name+' is rated '+rr+'. The circuit has noticed how often you two are drawn against each other.'
+      : 'Your rival '+c.rival.name+' is still out there. The circuit has noticed how often you two are drawn against each other.'});
+  }
+  if(c.youngGun&&c.youngGun.name)
+    out.push({e:'🐣',t:'A junior called '+esc(c.youngGun.name)+' has appeared out of nowhere and is beating people who should know better.'});
+  if((c.honors||[]).some(function(h){return /World Champion/.test(h);}))
+    out.push({e:'👑',t:'The world title is currently yours, which changes how every hall you walk into behaves.'});
+  if((c.weeksAtNo1||0)>0)
+    out.push({e:'🗓️',t:'You have now spent '+c.weeksAtNo1+' week'+(c.weeksAtNo1===1?'':'s')+' at number one.'});
+  return {notes:out,table:top.map(function(p,i){
+    return {rank:i+1,name:p.name,rating:p.rating||p.r||0,flag:p.flag||'',change:p.change||0};})};
+}
+/* ---- the letters page ---- */
+function magLetters(c,r){
+  const rep=(c.reputation==null?50:c.reputation),fame=c.fame||0;
+  const sur=String(c.name||'You').split(' ').pop();
+  const pool=[];
+  if(rep>=68)pool.push({from:'A reader in Reykjavík',t:'It is a pleasure to watch somebody win without making a performance of it. '+
+    'More of this and less of the theatrics elsewhere, please.'});
+  if(rep<=32)pool.push({from:'A reader in Buenos Aires',t:'I do not care how strong '+sur+' is. There is a way to behave at the board, '+
+    'and it is not that.'});
+  if(fame>=45)pool.push({from:'A reader in Delhi',t:'My daughter has a poster of '+sur+' on her wall. She is nine and has started '+
+    'analysing my games for me, which I did not ask for.'});
+  if(r.bril)pool.push({from:'A reader in Hamburg',t:'Whatever else happens this year, that combination was worth the subscription. '+
+    'I have shown it to everybody at my club, twice.'});
+  if(r.lost>r.won)pool.push({from:'A reader in Leeds',t:'A hard season is not a failed one. Ask anybody who has had ten of them. '+
+    'Chin up.'});
+  if((c.books||[]).length)pool.push({from:'A reader in Lyon',t:'I bought the book. It is better than most, and I say that as somebody '+
+    'who has bought a great many worse ones.'});
+  if((c.protege&&c.protege.name))pool.push({from:'A reader in Manila',t:'It says something about a player that they spend their own hours '+
+    'on somebody else’s games. Good luck to the pupil.'});
+  // the page is always full, so there are more unconditional letters than slots
+  pool.push({from:'A reader in Novi Sad',t:'Could the magazine please print fewer photographs and more endgames. '+
+    'Yours, as ever, in hope.'});
+  pool.push({from:'A reader in Cleveland',t:'Nobody writes about the travel. Three trains, a bus, a hall with no heating, '+
+    'and then you are expected to calculate.'});
+  pool.push({from:'A reader in Bergen',t:'I am forty-six and rated 1480. I will never be a master and I have never enjoyed '+
+    'a game more. Please tell the professionals this occasionally.'});
+  pool.push({from:'A reader in Córdoba',t:'The arbiter in round four was wrong, and I say that with respect. '+
+    'Somebody has to write these letters.'});
+  return pool.slice(0,3);
+}
+/* ---- what next ---- */
+function magNext(c,r){
+  const out=[];
+  const yr=youRating(c,'classical');
+  if(yr!=null){
+    const nextHundred=Math.floor(yr/100)*100+100;
+    out.push('The next round number is '+nextHundred+'. It is '+(nextHundred-yr)+' points away.');
+  }
+  // the ladder runs GM first, so the next rung up is the last one not yet held
+  const need=(function(){
+    const track=(c.gender==='women')?'women':'open';
+    const ladder=TITLE_DEFS.filter(function(d){return d.track===track||d.track==='open';});
+    for(let i=ladder.length-1;i>=0;i--){
+      const d=ladder[i];
+      if((c.titles||[]).indexOf(d.t)<0)return d;
+    }
+    return null;
+  })();
+  if(need)out.push('The next title on the ladder is '+need.t+' ('+need.name+'), which wants '+need.rating+
+    (need.normKind?' and three '+need.normKind+' norms':'')+'.');
+  if(c.objective&&c.objective.text)out.push('Your backer still wants: '+c.objective.text+'.');
+  if((c.burnout||0)>=50)out.push('You are close to burnt out. A season that starts tired ends badly.');
+  if((c.debt||0)>0)out.push('There is 💰'+c.debt+' of debt to clear before any of the rest of it matters.');
+  if(!out.length)out.push('Nothing is owed and nothing is overdue. Pick an event and go.');
+  return out;
+}
+/* ---- assemble one issue ---- */
+function magBuild(c,r){
+  if(!c||!r)return null;
+  // the issue number is the season it covers, so it does not depend on
+  // whether the season counter has already been advanced
+  return {no:r.season||magIssueNo(c),season:r.season,date:Date.now(),
+    front:magFront(c,r),numbers:{games:r.games,won:r.won,drawn:r.drawn,lost:r.lost,
+      ratingFrom:r.ratingFrom,ratingTo:r.ratingTo,peak:r.peakTo,money:Math.round(r.money||0),
+      events:r.events,titles:r.titles,norms:r.norms,honors:r.honors,bril:r.bril,
+      best:r.best?{name:r.best.name,place:r.best.place,emoji:r.best.emoji}:null},
+    interview:magInterview(c,r),world:magWorld(c),letters:magLetters(c,r),next:magNext(c,r),
+    who:{name:c.name||'You',title:bestTitle(c),flag:c.flag||'',age:Math.floor(c.age||16),
+      fed:c.fed||'FIDE',phase:careerPhase(c)}};
+}
+function magPublish(c,r){
+  const issue=magBuild(c,r);
+  if(!issue)return null;
+  if(!c.issues)c.issues=[];
+  c.issues.unshift(issue);
+  if(c.issues.length>MAG_KEEP)c.issues.length=MAG_KEEP;
+  return issue;
+}
+function magIssue(i){
+  const L=(store.career&&store.career.issues)||[];
+  const n=Math.max(0,Math.min(L.length-1,i||0));
+  return L[n]||null;
+}
+/* ---- the issue on screen ---- */
+function viewMagazine(){
+  const c=store.career;
+  const L=(c&&c.issues)||[];
+  if(!L.length)
+    return msgCard('📖 '+MAG_NAME,'No issue has been printed yet. One is written at the end of every season.',
+      '<button class="btn sec" data-act="nav" data-val="career">Back to the career</button>');
+  const idx=Math.max(0,Math.min(L.length-1,app.magIdx||0));
+  const m=L[idx];
+  const N=m.numbers,W=m.world;
+  const rd=(N.ratingFrom!=null&&N.ratingTo!=null)?(N.ratingTo-N.ratingFrom):null;
+  // wide enough for a W–D–L of three two-digit numbers without wrapping
+  const num=function(l,v,col){return '<div style="flex:1;min-width:86px;text-align:center;padding:7px 3px">'+
+    '<div class="dim small" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em">'+l+'</div>'+
+    '<div style="font-weight:800;font-size:17px;white-space:nowrap'+(col?';color:'+col:'')+'">'+v+'</div></div>';};
+  let h='<div style="max-width:760px;margin:0 auto">'+
+    /* masthead */
+    '<div class="card" style="margin-bottom:12px;border-color:var(--brand);background:linear-gradient(120deg,rgba(255,255,255,.05),transparent)">'+
+      '<div class="row" style="justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">'+
+        '<div><div style="font-weight:900;font-size:26px;letter-spacing:-.02em;line-height:1">'+MAG_NAME+'</div>'+
+        '<div class="dim small">Issue '+m.no+' · Season '+m.season+' · '+new Date(m.date).toLocaleDateString()+'</div></div>'+
+        '<button class="btn ghost sm" data-act="nav" data-val="career">← Career</button>'+
+      '</div>'+
+      (L.length>1?'<div class="row" style="gap:5px;flex-wrap:wrap;margin-top:8px">'+
+        L.map(function(x,i){return '<button class="btn '+(i===idx?'sec':'ghost')+' sm" data-act="magissue" data-val="'+i+'" style="padding:4px 8px;font-size:11px">#'+x.no+'</button>';}).join('')+
+        '</div>':'')+
+    '</div>'+
+    /* front page */
+    '<div class="card" style="margin-bottom:12px">'+
+      '<div style="font-weight:900;font-size:22px;line-height:1.18;letter-spacing:-.01em">'+esc(m.front.head)+'</div>'+
+      '<div style="font-weight:600;color:var(--brand2);margin-top:4px">'+esc(m.front.stand)+'</div>'+
+      '<div class="small" style="margin-top:8px;line-height:1.7">'+esc(m.front.body)+'</div>'+
+      '<div class="dim small" style="margin-top:8px">'+esc((m.who.title?m.who.title+' ':'')+m.who.name)+
+        ' · '+esc(m.who.fed)+' '+(m.who.flag||'')+' · age '+m.who.age+' · '+esc(m.who.phase)+'</div>'+
+    '</div>'+
+    /* the numbers */
+    '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:2px">The season in numbers</div>'+
+      '<div class="row" style="flex-wrap:wrap">'+
+        num('Games',N.games)+
+        num('W–D–L',N.won+'–'+N.drawn+'–'+N.lost)+
+        num('Rating',rd==null?'—':((rd>0?'+':'')+rd),rd>0?'var(--green)':rd<0?'#f87171':'')+
+        num('Peak',N.peak||'—','var(--brand2)')+
+        num('Money',(N.money>=0?'+':'−')+'💰'+Math.abs(N.money),N.money>=0?'#fbbf24':'#f87171')+
+      '</div>'+
+      '<div class="dim small" style="margin-top:6px;line-height:1.6">'+
+        (N.events?'🏟️ '+N.events+' event'+(N.events===1?'':'s')+'. ':'')+
+        (N.titles?'🎖️ '+N.titles+' title'+(N.titles===1?'':'s')+'. ':'')+
+        (N.norms?'📜 '+N.norms+' norm'+(N.norms===1?'':'s')+'. ':'')+
+        (N.honors?'🏆 '+N.honors+' honour'+(N.honors===1?'':'s')+'. ':'')+
+        (N.bril?'💎 '+N.bril+' brillianc'+(N.bril===1?'y':'ies')+'. ':'')+
+        (N.best?'Best result: '+(N.best.emoji||'🏟️')+' '+esc(N.best.name)+(N.best.place?' ('+ordinal(N.best.place)+')':'')+'.':'')+
+      '</div></div>'+
+    /* the interview */
+    '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:4px">🎤 The interview</div>'+
+      m.interview.map(function(x){
+        return '<div style="padding:7px 0;border-top:1px solid var(--border)">'+
+          '<div class="small" style="font-weight:700;color:var(--brand2)">'+esc(x.q)+'</div>'+
+          '<div class="small" style="margin-top:3px;line-height:1.65">“'+esc(x.a)+'”</div></div>';
+      }).join('')+'</div>'+
+    /* the world */
+    '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:4px">🌍 Around the world</div>'+
+      (W.notes.length?W.notes.map(function(n){
+        return '<div class="small" style="padding:3px 0;line-height:1.6">'+n.e+' '+n.t+'</div>';}).join('')
+        :'<div class="dim small">Quiet everywhere, for once.</div>')+
+      (W.table.length?'<div style="margin-top:7px;border-top:1px solid var(--border);padding-top:5px">'+
+        W.table.map(function(p){
+          return '<div style="display:flex;gap:8px;align-items:center;padding:2px 0">'+
+            '<span class="dim small" style="width:18px">'+p.rank+'</span>'+
+            '<span class="small" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+
+              esc(p.name)+' '+(p.flag||'')+'</span>'+
+            '<span class="small" style="font-weight:700">'+p.rating+'</span>'+
+            (p.change?'<span class="small" style="width:34px;text-align:right;color:'+(p.change>0?'var(--green)':'#f87171')+'">'+
+              (p.change>0?'+':'')+p.change+'</span>':'<span style="width:34px"></span>')+
+            '</div>';
+        }).join('')+'</div>':'')+
+    '</div>'+
+    /* letters */
+    '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:4px">✉️ Letters</div>'+
+      m.letters.map(function(l){
+        return '<div style="padding:7px 0;border-top:1px solid var(--border)">'+
+          '<div class="small" style="line-height:1.65">“'+esc(l.t)+'”</div>'+
+          '<div class="dim small" style="margin-top:2px">— '+esc(l.from)+'</div></div>';
+      }).join('')+'</div>'+
+    /* next season */
+    '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:4px">📅 Next season</div>'+
+      m.next.map(function(t){return '<div class="small" style="padding:3px 0;line-height:1.6">· '+esc(t)+'</div>';}).join('')+
+      '<div class="row" style="margin-top:9px"><button class="btn primary sm" data-act="nav" data-val="career">Get on with it ▸</button></div>'+
+    '</div>'+
+    '<div class="dim small" style="text-align:center;margin-bottom:16px">'+MAG_NAME+' · written at the end of every season · '+
+      L.length+' issue'+(L.length===1?'':'s')+' on the shelf</div>'+
+    '</div>';
+  return h;
+}
+function magShelfCard(c){
+  const L=(c&&c.issues)||[];
+  if(!L.length)return '';
+  return '<div class="card" style="margin-bottom:12px">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<div style="min-width:0"><div style="font-weight:700">📖 '+MAG_NAME+'</div>'+
+      '<div class="dim small">'+L.length+' issue'+(L.length===1?'':'s')+' — the seasons as somebody else told them</div></div>'+
+      '<button class="btn sec sm" data-act="nav" data-val="magazine">Read the latest</button>'+
+    '</div></div>';
+}
 function careerSeasonBanner(c){
   var r=c.seasonReview;if(!r)return '';
   var rd=(r.ratingFrom!=null&&r.ratingTo!=null)?(r.ratingTo-r.ratingFrom):null;
   var line=function(l,v,col){return '<div style="text-align:center;flex:1;min-width:66px"><div class="dim small">'+l+'</div><div style="font-weight:800;font-size:18px'+(col?';color:'+col:'')+'">'+v+'</div></div>';};
   return '<div class="card" style="margin-bottom:12px;border-color:#f59e0b;background:linear-gradient(120deg,rgba(245,158,11,.14),transparent)">'+
-    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:800">🗓️ Season '+r.season+' review</div><button class="btn ghost sm" data-act="seasondismiss">✕</button></div>'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:800">🗓️ Season '+r.season+' review</div><div class="row" style="gap:6px"><button class="btn sec sm" data-act="nav" data-val="magazine">📖 Read the issue</button><button class="btn ghost sm" data-act="seasondismiss">✕</button></div></div>'+
     '<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:9px">'+
       line('Games',r.games)+
       line('W–D–L',r.won+'–'+r.drawn+'–'+r.lost)+
@@ -13566,6 +13908,7 @@ function careerTabContent(c,tab){
     h+=careerStreamPanel(c);
     h+=careerPublishPanel(c);
   } else if(tab==='legacy'){
+    h+=magShelfCard(c);
     h+=careerMomentsPanel(c);
     h+=careerNewsPanel(c);
     h+=careerArcHistory(c);
