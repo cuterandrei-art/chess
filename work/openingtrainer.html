@@ -11446,7 +11446,7 @@ const CLUBS=['Knights of the Square Table','Rook & Roll CC','The En Passant Club
   'The Passed Pawns','Windmill CC','Battery Park Chess'];
 const CLUB_BOARDS=4;          // you and three team-mates
 const CLUB_SIZE=6;            // clubs in a division, so five matches a season
-const CLUB_DRAW_RATE=0.30;    // classical team chess draws a lot
+const CLUB_DRAW_RATE=0.30;    // between two equals; see bulDrawRate
 function clubDivRating(div){return [0,2350,2050,1750,1450][div]||1450;}
 function clubDivPrize(div,place){
   const base=[0,2600,1500,900,500][div]||500;
@@ -11456,10 +11456,13 @@ function clubDivPrize(div,place){
    their own slice rather than falling out of a coin flip. */
 function leagueSimBoard(mine,theirs){
   const e=1/(1+Math.pow(10,(theirs-mine)/400));
-  const pw=Math.max(0,Math.min(1-CLUB_DRAW_RATE,e-CLUB_DRAW_RATE/2));
+  // draws thin out as the boards get further apart, so the underdog on board
+  // four still has a chance and the favourite scores what its rating says
+  const d=bulDrawRate(e,CLUB_DRAW_RATE);
+  const pw=Math.max(0,Math.min(1-d,e-d/2));
   const r=Math.random();
   if(r<pw)return 1;
-  if(r<pw+CLUB_DRAW_RATE)return 0.5;
+  if(r<pw+d)return 0.5;
   return 0;
 }
 function leagueTeam(div,boards){
@@ -14190,6 +14193,7 @@ function careerTourView(c){
   });
   h+='</div>';
   h+=careerStandings(tr);
+  h+=tourBulletinCard(tr);
   h+='<div class="row" style="justify-content:space-between;align-items:center;margin-top:10px">'+
     '<div class="dim small">'+(done<total?'Win games to climb; a strong run can secure a norm. <span style="color:'+(conditionMod(c)>=0?'#86efac':'#fda4af')+'">You’re '+conditionNote(c).t+' ('+(conditionMod(c)>=0?'+':'')+conditionMod(c)+' Elo when simulating).</span>':'Tournament complete — your results are being finalised.')+'</div>'+
     '<div class="row" style="gap:6px">'+(done<total?'<button class="btn sec sm" data-act="simround" title="Auto-resolve this game from your rating &amp; current condition">⚡ Simulate</button><button class="btn ghost sm" data-act="simtour" title="Simulate the rest of the event">⏩ Sim to end</button>':'')+'<button class="btn ghost sm" data-act="careerwithdraw">Withdraw</button></div></div></div>';
@@ -14363,6 +14367,140 @@ function styleBonus(fen,uci,style){
     else if(style==='grinder'){if(!cap)b+=10;if(pawn&&!adv)b+=6;}
     return Math.max(-12,Math.min(46,b));
   }catch(e){return 0;}
+}
+/* ================= THE ROUND BULLETIN =================
+   You play your game, and the rest of the hall plays theirs. Until now the
+   field's scores simply grew: every player rolled a result against the event's
+   average, nobody played anybody, and a round could hand out any number of
+   points at all. The crosstable moved without ever being a crosstable.
+
+   Now the field is paired the way a Swiss really is — sorted by score, nearest
+   opponent they have not already met — every board is played, and the results
+   come back as a bulletin you read after your own game. One point per game, so
+   the table adds up, and the leader can lose. */
+/* The draw rate belongs between equals. Held at a flat 34% it ate the whole
+   remainder of a mismatch — a 2700 against a 2050 came out 66% win, 34% draw,
+   0% loss, so an upset was not unlikely but impossible, and the favourite's
+   expected score came out below what its rating says. Scaling the draws by how
+   close the two players are fixes both: the expectation matches Elo exactly,
+   draws peak between equals, and the underdog keeps a real chance. */
+const BUL_DRAW=0.34;           // the draw rate between two equal players
+function bulName(n){return String(n||'').split(' ').pop();}
+function tourMet(tr,a,b){
+  const k=tr.met||{};
+  return !!(k[a+'|'+b]||k[b+'|'+a]);
+}
+function tourNoteMet(tr,a,b){
+  if(!tr.met)tr.met={};
+  tr.met[a+'|'+b]=1;
+}
+/* One game between two rated players. */
+function bulDrawRate(e,base){return base*(1-Math.abs(2*e-1));}
+function bulSim(ra,rb){
+  const e=1/(1+Math.pow(10,((rb||1500)-(ra||1500))/400));
+  const d=bulDrawRate(e,BUL_DRAW);
+  const pw=Math.max(0,Math.min(1-d,e-d/2));
+  const r=Math.random();
+  if(r<pw)return 1;
+  if(r<pw+d)return 0.5;
+  return 0;
+}
+/* Swiss pairing for everybody not in your game. */
+function tourPairField(tr,myOppId){
+  const rest=(tr.standings||[]).filter(function(p){return !p.you&&p.id!==myOppId;});
+  rest.sort(function(a,b){return (b.score||0)-(a.score||0)||b.rating-a.rating;});
+  const used={},pairs=[];
+  for(let i=0;i<rest.length;i++){
+    const A=rest[i];
+    if(used[A.id])continue;
+    let j=-1;
+    for(let k=i+1;k<rest.length;k++)                 // nearest in score they have not met
+      if(!used[rest[k].id]&&!tourMet(tr,A.id,rest[k].id)){j=k;break;}
+    if(j<0)for(let k=i+1;k<rest.length;k++)if(!used[rest[k].id]){j=k;break;}
+    used[A.id]=1;
+    if(j<0){pairs.push({a:A,b:null});continue;}       // an odd field means somebody sits out
+    used[rest[j].id]=1;
+    pairs.push({a:A,b:rest[j]});
+  }
+  return pairs;
+}
+/* Play the round: your result is already in, the rest of the hall follows. */
+function tourPlayRound(tr,rIdx,myScore){
+  const myOppId='p'+rIdx;
+  const sortedBefore=standingsSorted(tr);
+  const leadBefore=sortedBefore.length
+    ? {id:sortedBefore[0].id,name:sortedBefore[0].name,score:sortedBefore[0].score||0,you:!!sortedBefore[0].you}
+    : null;
+  const boards=[];
+  (tr.standings||[]).forEach(function(p){
+    if(p.you)p.score=(p.score||0)+myScore;
+    else if(p.id===myOppId)p.score=(p.score||0)+(1-myScore);
+  });
+  tourPairField(tr,myOppId).forEach(function(pr){
+    if(!pr.b){
+      pr.a.score=(pr.a.score||0)+0.5;
+      boards.push({a:pr.a.name,ar:pr.a.rating,b:null,s:null,bye:true});
+      return;
+    }
+    const s=bulSim(pr.a.rating,pr.b.rating);
+    pr.a.score=(pr.a.score||0)+s;
+    pr.b.score=(pr.b.score||0)+(1-s);
+    tourNoteMet(tr,pr.a.id,pr.b.id);
+    boards.push({a:pr.a.name,ar:pr.a.rating,b:pr.b.name,br:pr.b.rating,s:s,
+      upset:(s===1&&pr.b.rating-pr.a.rating>=150)||(s===0&&pr.a.rating-pr.b.rating>=150)});
+  });
+  tourNoteMet(tr,'__you',myOppId);
+  const after=standingsSorted(tr);
+  const top=after.length?(after[0].score||0):0;
+  const leaders=after.filter(function(p){return (p.score||0)===top;});
+  const notes=[];
+  if(leadBefore&&!leadBefore.you){
+    const lb=after.filter(function(p){return p.id===leadBefore.id;})[0];
+    const gained=lb?((lb.score||0)-leadBefore.score):0;
+    if(gained===0)notes.push({e:'📉',t:bulName(leadBefore.name)+' led going into the round, and lost.'});
+    else if(gained===0.5&&leaders.length>1)notes.push({e:'🪢',t:bulName(leadBefore.name)+' only drew, and the lead is shared now.'});
+  }
+  if(leaders.length===1&&leaders[0].you)
+    notes.push({e:'👑',t:'You lead the tournament on '+fmtScore(top)+'.'});
+  else if(leaders.some(function(p){return p.you;}))
+    notes.push({e:'🤝',t:'You share the lead on '+fmtScore(top)+' with '+
+      leaders.filter(function(p){return !p.you;}).map(function(p){return bulName(p.name);}).join(' and ')+'.'});
+  else
+    notes.push({e:'📊',t:leaders.map(function(p){return bulName(p.name);}).join(' and ')+
+      ' lead'+(leaders.length>1?'':'s')+' on '+fmtScore(top)+'.'});
+  const perfect=after.filter(function(p){return (p.score||0)===rIdx+1;});
+  if(perfect.length===1&&perfect[0].you&&rIdx>=1)
+    notes.push({e:'💯',t:'You are the only player left on a perfect score.'});
+  const shock=boards.filter(function(b){return b.upset;})[0];
+  if(shock)notes.push({e:'😮',t:'A result nobody expected: '+
+    bulName(shock.s===1?shock.a:shock.b)+' beat '+bulName(shock.s===1?shock.b:shock.a)+'.'});
+  const bul={r:rIdx+1,boards:boards,notes:notes,mine:myScore};
+  if(!tr.bulletins)tr.bulletins=[];
+  tr.bulletins.push(bul);
+  if(tr.bulletins.length>14)tr.bulletins.shift();
+  return bul;
+}
+/* ---- on screen ---- */
+function tourBulletinCard(tr){
+  if(!tr||!tr.bulletins||!tr.bulletins.length)return '';
+  const bul=tr.bulletins[tr.bulletins.length-1];
+  const res=function(s){return s===1?'1–0':s===0?'0–1':'½–½';};
+  return '<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:7px">'+
+    '<div style="font-weight:700;font-size:12px;color:var(--brand2);margin-bottom:3px">📰 Round '+bul.r+' bulletin</div>'+
+    bul.notes.map(function(n){
+      return '<div class="small" style="padding:2px 0;line-height:1.5">'+n.e+' '+esc(n.t)+'</div>';
+    }).join('')+
+    (bul.boards.length
+      ? '<div style="margin-top:5px">'+bul.boards.map(function(b,i){
+          if(b.bye)return '<div class="dim small" style="padding:2px 0">— '+esc(b.a)+' sat out this round; half a point.</div>';
+          return '<div class="dim small" style="display:flex;gap:8px;padding:2px 0;align-items:center">'+
+            '<span style="width:54px;flex:0 0 auto">Board '+(i+2)+'</span>'+
+            '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'+
+              (b.upset?';color:var(--amber)':'')+'">'+esc(b.a)+' <b>'+res(b.s)+'</b> '+esc(b.b)+
+              (b.upset?' 😮':'')+'</span></div>';
+        }).join('')+'</div>'
+      : '')+
+    '</div>';
 }
 /* ---- tournament standings (the rest of the field plays each other too) ---- */
 function simRoundScore(E){const pw=Math.max(0,Math.min(1,E-0.18));const r=Math.random();return r<pw?1:(r<pw+0.36?0.5:0);}
@@ -14931,12 +15069,8 @@ function careerResult(score){
   app.careerDelta=delta;
   tr.results.push({name:opp.name,rating:opp.rating,title:opp.title,flag:opp.flag,score:score,delta:delta});
   archiveCareerGame(c,opp,score,fmt,tr.name,!!app.c960);pushRatingPoint(c);
-  // the rest of the field plays its round too, so the crosstable evolves
-  if(tr.standings){for(const p of tr.standings){
-    if(p.you){p.score=(p.score||0)+score;}
-    else if(p.id==='p'+rIdx){p.score=(p.score||0)+(1-score);}
-    else{const E=1/(1+Math.pow(10,(tr.avg-p.rating)/400));p.score=(p.score||0)+simRoundScore(E);}
-  }}
+  // the rest of the hall plays its round too — paired, so the table adds up
+  if(tr.standings)tourPlayRound(tr,rIdx,score);
   if(c.nemesis&&opp.name===c.nemesis.name&&score===1)c.nemesis=null;
   tr.round=(tr.round||0)+1;
   c.played=(c.played||0)+1;if(score===1)c.won=(c.won||0)+1;else if(score===0)c.lost=(c.lost||0)+1;else c.drawn=(c.drawn||0)+1;

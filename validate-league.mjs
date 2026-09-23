@@ -85,11 +85,19 @@ ok(Math.abs((w+d*0.5)/4000-0.5)<0.05,'two equal players score about half against
   Math.round((w+d*0.5)/40)/10+')');
 ok(Math.abs(d/4000-X.CLUB_DRAW_RATE)<0.05,'and draw about as often as classical chess does ('+Math.round(d/40)+'%)');
 let strong=0;
-for(let i=0;i<2000;i++)strong+=X.leagueSimBoard(1900,1500);
-ok(strong/2000>0.7,'400 points of advantage scores well over 70% ('+Math.round(strong/20)+'%)');
+for(let i=0;i<4000;i++)strong+=X.leagueSimBoard(1900,1500);
+ok(Math.abs(strong/4000-0.909)<0.03,'400 points of advantage scores what Elo says it should — about 91% ('+Math.round(strong/40)+'%)');
+/* the favourite must still be able to lose: a flat draw rate used to make that
+   impossible, which also dragged its expected score below its rating */
+let lost=0;
+for(let i=0;i<4000;i++)if(X.leagueSimBoard(2100,1500)===0)lost++;
+ok(lost>0,'and even a 600-point favourite loses sometimes ('+lost+' times in 4000)');
+let drawsFar=0;
+for(let i=0;i<4000;i++)if(X.leagueSimBoard(2100,1500)===0.5)drawsFar++;
+ok(drawsFar/4000<X.CLUB_DRAW_RATE/2,'with far fewer draws than between equals ('+Math.round(drawsFar/40)+'%)');
 let weak=0;
-for(let i=0;i<2000;i++)weak+=X.leagueSimBoard(1200,1800);
-ok(weak/2000<0.25,'and being outclassed scores badly ('+Math.round(weak/20)+'%)');
+for(let i=0;i<4000;i++)weak+=X.leagueSimBoard(1200,1800);
+ok(Math.abs(weak/4000-0.03)<0.03,'and being outclassed scores about what it should ('+Math.round(weak/40)+'%)');
 ok([0,0.5,1].indexOf(X.leagueSimBoard(1500,1500))>=0,'a board is always a win, a draw or a loss');
 
 /* ================= PLAYING A ROUND ================= */
