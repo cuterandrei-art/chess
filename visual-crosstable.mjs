@@ -29,7 +29,11 @@ await go('career');
 await page.fill('#cr-name','Ada Marín').catch(()=>{});
 await page.selectOption('#cr-start','master').catch(()=>{});
 await page.click('[data-act="careersetup"]'); await page.waitForTimeout(500);
-await page.locator('[data-act="careerjoin"]').first().click(); await page.waitForTimeout(500);
+/* a rated player, so a nine-round open is open to them */
+await page.evaluate(()=>{const c=window.__APPHOOK__.store.career;c.provisional=false;c.rating=1950;c.peak=1950;
+  c.ratedGames=60;c.age=22;window.__APPHOOK__.save();window.__APPHOOK__.render();});
+await page.click('[data-act="careertab"][data-val="play"]').catch(()=>{});await page.waitForTimeout(300);
+await page.locator('[data-act="careerjoin"][data-val="intl"]').first().click(); await page.waitForTimeout(500);
 
 /* one round, simulated, so there is a crosstable with something in it */
 await page.click('[data-act="simround"]'); await page.waitForTimeout(700);
@@ -40,16 +44,20 @@ ok(await page.locator('table.xt').count()===1,'and opening it draws a real table
 let grid=await page.evaluate(()=>{
   const t=document.querySelector('table.xt');
   return {rows:t.querySelectorAll('tbody tr').length,
-    cols:t.querySelectorAll('thead th').length,
+    rounds:[...t.querySelectorAll('thead th')].filter(th=>/^R\d+$/.test(th.textContent.trim())).length,
+    swiss:t.classList.contains('xts'),
     you:t.querySelectorAll('tr.xtyou').length,
     results:t.querySelectorAll('td.xtw,td.xtl,td.xtd').length,
     blanks:t.querySelectorAll('td.xtnone').length,
+    sample:(t.querySelector('td.xtw,td.xtl,td.xtd')||{}).textContent||'',
     rowHeads:t.querySelectorAll('tbody th[scope="row"]').length};
 });
-ok(grid.rows===grid.cols-4,'one row per player, one column per player ('+grid.rows+' × '+grid.rows+')');
+ok(grid.swiss,'an open prints the Swiss crosstable, round by round, the way opens publish it');
+ok(grid.rows===20&&grid.rounds===9,'one row per player in the hall, one column per round ('+grid.rows+' × '+grid.rounds+')');
+ok(/^\d+[wb][01½]$/.test(grid.sample),'each cell reads opponent, colour, result — like “'+grid.sample+'”');
 ok(grid.you===1,'with your own row marked, exactly once');
 ok(grid.rowHeads===grid.rows,'every name is a row header, so a screen reader can say whose row it is');
-ok(grid.results>=4,'a played round fills in its games ('+grid.results+' cells)');
+ok(grid.results===20,'a played round fills in one cell for everybody ('+grid.results+')');
 ok(grid.blanks>grid.results,'and everything else is still blank');
 await page.locator('.xtwrap').first().screenshot({path:SP+'/xt-1-round1.png'});
 
@@ -61,14 +69,18 @@ const overflow=await page.evaluate(()=>{
 });
 ok(overflow.page,'the page itself never scrolls sideways at 430px');
 const sticky=await page.evaluate(()=>{
-  const w=document.querySelector('.xtwrap'),n=w.querySelector('tbody th.xtn');
-  const before=n.getBoundingClientRect().left;
+  const w=document.querySelector('.xtwrap'),n=w.querySelector('tbody th.xtn'),r=w.querySelector('tbody td.xtr');
+  const over=w.scrollWidth-w.clientWidth;
+  const before=n.getBoundingClientRect().left,rb=r.getBoundingClientRect().left;
   w.scrollLeft=w.scrollWidth;
-  const after=n.getBoundingClientRect().left;
+  const after=n.getBoundingClientRect().left,ra=r.getBoundingClientRect().left;
   const bg=getComputedStyle(n).backgroundColor;
-  return {moved:Math.abs(after-before),bg:bg};
+  return {over:over,moved:Math.abs(after-before),rmoved:Math.abs(ra-rb),bg:bg};
 });
+// this used to pass without testing anything: a six-player grid never overflowed
+ok(sticky.over>40,'a full hall is wider than a phone, so the grid really does scroll ('+Math.round(sticky.over)+'px of overflow)');
 ok(sticky.moved<3,'and the names stay pinned when it is scrolled ('+sticky.moved.toFixed(1)+'px)');
+ok(sticky.rmoved<3,'and so do the rank numbers beside them ('+sticky.rmoved.toFixed(1)+'px)');
 ok(!/rgba\(0, 0, 0, 0\)/.test(sticky.bg),'with something opaque behind them, so the grid does not show through');
 
 /* the rest of the event */
@@ -82,13 +94,13 @@ const fin=await page.evaluate(()=>{
   const t=document.querySelector('table.xt');
   const rows=[...t.querySelectorAll('tbody tr')];
   const you=t.querySelector('tr.xtyou');
-  const cells=[...you.querySelectorAll('td.xtw,td.xtl,td.xtd')].map(td=>td.textContent.trim());
+  const cells=[...you.querySelectorAll('td.xtw,td.xtl,td.xtd')].map(td=>td.textContent.trim().slice(-1));
   const pts=[...you.querySelectorAll('td.xtp')].map(td=>td.textContent.trim())[0];
   const order=rows.map(r=>parseFloat(r.querySelector('td.xtp').textContent.replace('½','.5'))||0);
   return {cells:cells,pts:pts,order:order,blanks:t.querySelectorAll('td.xtnone').length,
     results:t.querySelectorAll('td.xtw,td.xtl,td.xtd').length};
 });
-ok(fin.results>fin.blanks,'a finished event is mostly filled in');
+ok(fin.blanks===0&&fin.results===20*9,'a finished Swiss has every player in every round ('+fin.results+' cells)');
 ok(/^[0-9½]/.test(fin.pts),'your row ends in a score: '+fin.pts);
 /* the row really adds up — the whole point of a crosstable */
 const mySum=fin.cells.filter(c=>/^[01½]$/.test(c)).reduce((s,c)=>s+(c==='1'?1:c==='½'?0.5:0),0);

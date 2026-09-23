@@ -90,16 +90,22 @@
   .xt{border-collapse:collapse;font-size:12px;white-space:nowrap}
   .xt th,.xt td{padding:3px 5px;text-align:center;border-top:1px solid var(--border)}
   .xt thead th{border-top:0;color:var(--muted);font-weight:700;font-size:11px}
-  .xt .xtn{text-align:left;font-weight:600;max-width:158px;overflow:hidden;text-overflow:ellipsis;position:sticky;left:0;background:var(--panel);z-index:1}
-  .xt .xtr{color:var(--muted);font-weight:700}
+  .xt .xtn{text-align:left;font-weight:600;max-width:158px;overflow:hidden;text-overflow:ellipsis;position:sticky;left:26px;background:var(--panel);z-index:1}
+  .xt .xtr{color:var(--muted);font-weight:700;position:sticky;left:0;width:26px;min-width:26px;max-width:26px;box-sizing:border-box;background:var(--panel);z-index:1}
   .xt .xtself{color:var(--border)}
   .xt .xtnone{color:var(--muted);opacity:.5}
   .xt .xtw{color:var(--green);font-weight:800}
   .xt .xtl{color:#f87171}
   .xt .xtd{color:var(--muted)}
   .xt .xtp{font-weight:800}
+  .xts td{font-variant-numeric:tabular-nums}
+  .xt .xtc{font-size:9px;opacity:.75;margin:0 1px}
   .xt tr.xtyou th,.xt tr.xtyou td{background:rgba(96,165,250,.14)}
-  .xt tr.xtyou .xtn{background:linear-gradient(rgba(96,165,250,.14),rgba(96,165,250,.14)),var(--panel)}
+  .xt tr.xtyou .xtn,.xt tr.xtyou .xtr{background:linear-gradient(rgba(96,165,250,.14),rgba(96,165,250,.14)),var(--panel)}
+  /* which colour you have in a round: a white or a black stone */
+  .coldot{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:middle;border:1px solid #94a3b8;margin-left:2px}
+  .coldot.w{background:#f8fafc}
+  .coldot.b{background:#0f172a;border-color:#64748b}
   .heatmap{display:flex;gap:2px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   .heatmap::-webkit-scrollbar{display:none}
   .heatcol{display:flex;flex-direction:column;gap:2px;flex:0 0 auto}
@@ -4217,12 +4223,12 @@ const TOURNAMENTS=[
   {id:'regional',   emoji:'📍', name:'Regional Championship',    tier:2, rounds:7, avg:1800, spread:330, minRating:1400, norm:false, blurb:'A county-level title event. A published rating is required to enter.'},
   {id:'national',   emoji:'🏆', name:'National Open',            tier:3, rounds:7, avg:2000, spread:360, minRating:1600, norm:false, blurb:'Hundreds of players; FMs and the odd IM on the top boards.'},
   {id:'intl',       emoji:'🌍', name:'International Open',        tier:4, rounds:9, avg:2200, spread:360, minRating:1800, norm:true,  blurb:'A big 9-round Swiss thick with titled players — a strong run can land an IM norm.'},
-  {id:'imrr',       emoji:'🎖️', name:'IM-Norm Round-Robin',      tier:5, rounds:9, avg:2380, spread:130, minRating:2050, norm:true,  blurb:'A round-robin built for IM norms: a ~2380 field. Perform at 2450+ to make the norm.'},
-  {id:'gmrr',       emoji:'🏅', name:'GM-Norm Round-Robin',      tier:6, rounds:9, avg:2500, spread:120, minRating:2250, norm:true,  blurb:'The classic GM-norm event — a 2500 field of IMs and GMs. A 2600 performance is a GM norm.'},
+  {id:'imrr',       emoji:'🎖️', name:'IM-Norm Round-Robin',      tier:5, rounds:9, avg:2380, spread:130, minRating:2050, norm:true,  normTarget:'IM', rr:1,  blurb:'A round-robin built for IM norms: a ~2380 field. Perform at 2450+ to make the norm.'},
+  {id:'gmrr',       emoji:'🏅', name:'GM-Norm Round-Robin',      tier:6, rounds:9, avg:2500, spread:120, minRating:2250, norm:true,  normTarget:'GM', rr:1,  blurb:'The classic GM-norm event — a 2500 field of IMs and GMs. A 2600 performance is a GM norm.'},
   {id:'natch',      emoji:'🎖️', name:'National Championship',     tier:6, rounds:9, avg:2400, spread:280, minRating:2100, norm:true,  champion:true, natChamp:true, blurb:'Your federation’s closed championship — a field of your compatriots. Win it to be crowned national champion.'},
   {id:'continental',emoji:'🌐', name:'Continental Championship',  tier:7, rounds:9, avg:2560, spread:200, minRating:2350, norm:true,  blurb:'Continental title and World Cup spots at stake, with norm chances on every board.'},
-  {id:'supergm',    emoji:'💎', name:'Super-GM Invitational',     tier:8, rounds:9, avg:2720, spread:110, minRating:2550, norm:true,  blurb:'An elite closed event — the 2700 club. Only the world’s best are invited.'},
-  {id:'candidates', emoji:'♛', name:'Candidates Tournament',     tier:9, rounds:14,avg:2770, spread:60,  minRating:2680, norm:true,  champion:true, honor:'Candidates Winner', altUnlock:'Candidates Qualifier', reqHint:'qualify or 2680', blurb:'Eight of the very elite in a double round-robin. Win it to become the official challenger for the world crown. Qualify by winning the World Cup or Grand Swiss — or by rating.'},
+  {id:'supergm',    emoji:'💎', name:'Super-GM Invitational',     tier:8, rounds:9, avg:2720, spread:110, minRating:2550, norm:true,  rr:1,  blurb:'An elite closed event — the 2700 club. Only the world’s best are invited.'},
+  {id:'candidates', emoji:'♛', name:'Candidates Tournament',     tier:9, rounds:14,avg:2770, spread:60,  minRating:2680, norm:true,  rr:2,  champion:true, honor:'Candidates Winner', altUnlock:'Candidates Qualifier', reqHint:'qualify or 2680', blurb:'Eight of the very elite in a double round-robin. Win it to become the official challenger for the world crown. Qualify by winning the World Cup or Grand Swiss — or by rating.'},
   {id:'wcc',        emoji:'👑', name:'World Championship Match',  tier:10,rounds:14,avg:2830, spread:30,  minRating:2750, norm:false, champion:true, honor:'World Champion', requires:'Candidates Winner', kind:'match', blurb:'Fourteen classical games against the reigning World Champion — the summit of the chess world. Qualify by winning the Candidates.'},
   // team & knockout (classical)
   {id:'olympiad',   emoji:'🤝', name:'Chess Olympiad',           tier:7, rounds:9, avg:2480, spread:250, minRating:2200, norm:true,  champion:true, honor:'Olympiad Board Medal', blurb:'Play a top board for your federation across 9 rounds against other nations. Board medals and norms are on offer.'},
@@ -4235,9 +4241,9 @@ const TOURNAMENTS=[
   {id:'aeroflot',   emoji:'🇷🇺', country:'Moscow',      name:'Aeroflot Open',            tier:6, rounds:9, avg:2470, spread:160, minRating:2200, norm:true,  blurb:'Moscow’s elite open — often called the toughest Swiss in the world to win.'},
   {id:'qatar',      emoji:'🇶🇦', country:'Doha',        name:'Qatar Masters',            tier:6, rounds:9, avg:2500, spread:240, minRating:2250, norm:true,  blurb:'Doha’s super-open, where an amateur can be paired against a 2700 GM.'},
   {id:'grandswiss', emoji:'🏝️', country:'Isle of Man',  name:'FIDE Grand Swiss',         tier:8, rounds:11,avg:2630, spread:160, minRating:2500, norm:true,  champion:true, honor:'Grand Swiss Winner', qualifier:1, blurb:'An 11-round elite Swiss — the winner books a seat straight into the Candidates.'},
-  {id:'tatasteel',  emoji:'🇳🇱', country:'Wijk aan Zee', name:'Tata Steel Masters',       tier:8, rounds:13,avg:2730, spread:90,  minRating:2600, norm:true,  champion:true, honor:'Tata Steel Winner',  blurb:'Wijk aan Zee — the “Wimbledon of chess”, a 13-round elite round-robin by the North Sea.'},
-  {id:'superbet',   emoji:'🇷🇴', country:'Bucharest',   name:'Superbet Chess Classic',   tier:8, rounds:9, avg:2745, spread:70,  minRating:2630, norm:true,  champion:true, honor:'Superbet Winner',   blurb:'Bucharest’s Grand Chess Tour leg — Romania’s own super-GM event.'},
-  {id:'norway',     emoji:'🇳🇴', country:'Stavanger',   name:'Norway Chess',             tier:8, rounds:9, avg:2745, spread:65,  minRating:2640, norm:true,  champion:true, honor:'Norway Chess Winner',blurb:'Stavanger’s super-tournament gathering the very best — Carlsen’s home event.'},
+  {id:'tatasteel',  emoji:'🇳🇱', country:'Wijk aan Zee', name:'Tata Steel Masters',       tier:8, rounds:13,avg:2730, spread:90,  minRating:2600, norm:true,  rr:1,  champion:true, honor:'Tata Steel Winner',  blurb:'Wijk aan Zee — the “Wimbledon of chess”, a 13-round elite round-robin by the North Sea.'},
+  {id:'superbet',   emoji:'🇷🇴', country:'Bucharest',   name:'Superbet Chess Classic',   tier:8, rounds:9, avg:2745, spread:70,  minRating:2630, norm:true,  rr:1,  champion:true, honor:'Superbet Winner',   blurb:'Bucharest’s Grand Chess Tour leg — Romania’s own super-GM event.'},
+  {id:'norway',     emoji:'🇳🇴', country:'Stavanger',   name:'Norway Chess',             tier:8, rounds:9, avg:2745, spread:65,  minRating:2640, norm:true,  rr:1,  champion:true, honor:'Norway Chess Winner',blurb:'Stavanger’s super-tournament gathering the very best — Carlsen’s home event.'},
   // rapid format — separate FIDE Rapid rating, faster clock (10+5)
   {id:'rapidopen',  emoji:'⚡', country:'Open',         name:'Rapid Open',               tier:3, rounds:7, avg:2050, spread:340, minRating:0,    norm:false, format:'rapid', blurb:'A one-day rapid Swiss. Builds your separate FIDE Rapid rating.'},
   {id:'cityrapid',  emoji:'🏙️', country:'France',       name:'Paris Rapid Grand Prix',   tier:5, rounds:9, avg:2400, spread:220, minRating:2000, norm:true,  format:'rapid', blurb:'A Grand Chess Tour rapid leg in Paris — a strong 9-round field.'},
@@ -4276,13 +4282,31 @@ const TITLE_DEFS=[
   {t:'WFM',name:'Woman FIDE Master',   rating:2100, normKind:null,  track:'women'},
   {t:'WCM',name:'Woman Candidate Master',rating:2000,normKind:null, track:'women'},
 ];
-/* Norm performance bars and the minimum field average that makes them count. */
+/* What a title norm needs, per the FIDE Title Regulations.
+
+   A norm used to be a performance rating over a minimum field average, and
+   nothing else. That is the part everybody remembers, and it is about half of
+   the rule. The other half is who you played: at least half of your opponents
+   must hold a title (FM or better — CM does not count), at least a third of
+   them, and never fewer than three, must hold the title you are after or a
+   higher one, and they must come from at least two federations other than
+   your own, with no more than three-fifths from yours and two-thirds from any
+   single one. This is why norm round-robins exist at all — they are events
+   built so the opposition qualifies — and why "I made the score but only had
+   two GMs" is one of the oldest stories in the game.
+
+   `floor` is the rating floor: if an opponent is rated below it, the single
+   lowest-rated one is counted at the floor when the average is worked out. */
 const NORM_BARS=[
-  {kind:'GM', tpr:2600, avgFloor:2380, track:'open'},
-  {kind:'IM', tpr:2450, avgFloor:2230, track:'open'},
-  {kind:'WGM',tpr:2400, avgFloor:2180, track:'women'},
-  {kind:'WIM',tpr:2250, avgFloor:2030, track:'women'},
+  {kind:'GM', tpr:2600, avgFloor:2380, floor:2200, titles:['GM'],                  track:'open'},
+  {kind:'IM', tpr:2450, avgFloor:2230, floor:2050, titles:['GM','IM'],             track:'open'},
+  {kind:'WGM',tpr:2400, avgFloor:2180, floor:2000, titles:['GM','IM','WGM'],       track:'women'},
+  {kind:'WIM',tpr:2250, avgFloor:2030, floor:1850, titles:['GM','IM','WGM','WIM'], track:'women'},
 ];
+const NORM_GAMES=9;                                   // fewer games cannot make a norm
+const NORM_TH=['GM','IM','FM','WGM','WIM','WFM'];     // title holders, for the half-titled rule
+const NORM_OWN_MAX=3/5;                               // share of opponents from your own federation
+const NORM_ONE_MAX=2/3;                               // share from any single federation
 const FEDS=[
   {c:'FIDE',f:'♟'},{c:'ROU',f:'🇷🇴'},{c:'USA',f:'🇺🇸'},{c:'ENG',f:'🏴'},{c:'GER',f:'🇩🇪'},{c:'FRA',f:'🇫🇷'},
   {c:'ESP',f:'🇪🇸'},{c:'ITA',f:'🇮🇹'},{c:'NED',f:'🇳🇱'},{c:'RUS',f:'🇷🇺'},{c:'UKR',f:'🇺🇦'},{c:'IND',f:'🇮🇳'},
@@ -4409,7 +4433,15 @@ function simulatePlace(field,yourScore,rounds){
 }
 /* K-factor: 40 for a player's first 30 rated games, 10 once 2400 has ever been
    reached, otherwise 20 — the live FIDE rule. */
-function kFactor(c){if((c.ratedGames||0)<30)return 40;if((c.peak||0)>=2400)return 10;return 20;}
+/* The FIDE development coefficient. A junior is rated at 40 until the end of
+   the year of their eighteenth birthday, as long as they stay under 2300 —
+   a career starts at sixteen, and without this rule its first two years
+   moved half as fast as a real junior's. */
+function kFactor(c){
+  if((c.ratedGames||0)<30)return 40;
+  if(c.age!=null&&Math.floor(c.age)<=18&&(c.rating||0)<2300)return 40;
+  if((c.peak||0)>=2400)return 10;
+  return 20;}
 // Career pace multiplier — scales how fast ratings move per game. 1 = realistic
 // FIDE speed; higher lets a strong player climb (and fall) faster so reaching the
 // elite is achievable in a reasonable number of games. Results still drive it.
@@ -4418,9 +4450,33 @@ const PACE_NAMES={1:'Realistic',2:'Accelerated',3:'Prodigy'};
 function paceTag(c){var p=paceMul(c);if(p===1)return '';return ' · <span style="color:var(--brand2)">⏩ '+(PACE_NAMES[p]||('×'+p))+'</span>';}
 /* Apply one rated game. Provisional (unrated) players don't move a number —
    their results pool until they qualify for a first published rating. */
-function applyRatedGame(c,oppRating,score){
+/* FIDE rates an event, not a game: every game in a tournament is measured
+   against the rating you had when it started, with the K you had then, and
+   the total is rounded once. Rating each game off the one before made the
+   result depend on the order the games came in and rounded nine times. The
+   live number still moves after every round — it is your start rating plus
+   what the event has earned so far, which is what a live list shows. */
+function ratingRef(c,fmt){
+  if(fmt==='classical'){
+    if(c.provisional||c.rating==null)return null;
+    return {fmt:fmt,r0:c.rating,k:kFactor(c),acc:0};
+  }
+  const rk=fmt==='rapid'?'ratingRapid':'ratingBlitz',gk=fmt==='rapid'?'ratedRapid':'ratedBlitz',pk=fmt==='rapid'?'peakRapid':'peakBlitz';
+  const r0=c[rk]!=null?c[rk]:(c.rating!=null?c.rating:1400);
+  return {fmt:fmt,r0:r0,k:(c[gk]||0)<30?40:((c[pk]||0)>=2400?10:20),acc:0};
+}
+function applyRatedGame(c,oppRating,score,ref){
   c.ratedGames=(c.ratedGames||0)+1;
   if(c.provisional){c.provScore=(c.provScore||0)+score;c.provOppSum=(c.provOppSum||0)+oppRating;return 0;}
+  if(ref&&ref.r0!=null&&ref.fmt==='classical'){
+    const D=Math.max(-400,Math.min(400,ref.r0-oppRating));
+    const We=1/(1+Math.pow(10,-D/400));
+    ref.acc=(ref.acc||0)+ref.k*paceMul(c)*(score-We);
+    const next=Math.max(1400,ref.r0+Math.round(ref.acc));
+    const delta=next-(c.rating||ref.r0);
+    c.rating=next;c.peak=Math.max(c.peak||0,c.rating);
+    return delta;
+  }
   const D=Math.max(-400,Math.min(400,(c.rating||1400)-oppRating));
   const We=1/(1+Math.pow(10,-D/400));
   const delta=Math.round(kFactor(c)*paceMul(c)*(score-We));
@@ -4430,27 +4486,47 @@ function applyRatedGame(c,oppRating,score){
 }
 /* Publish a first rating once 5+ rated games are played with a plus score and
    the resulting performance is at least the 1400 floor. */
+/* A first rating, as FIDE has worked it out since 2024: the games you played
+   plus two hypothetical draws against 1800-rated opponents. Without the two
+   draws a debut is the raw performance, and the performance table tops out at
+   +800 — so five straight wins in a 1350 club championship published you at
+   2150. With them the same debut comes out near 1790, which is about where a
+   player who can do that actually is. */
+const INIT_HYP_RATING=1800,INIT_HYP_GAMES=2;
 function publishRating(c){
   if(!c.provisional||(c.ratedGames||0)<5||(c.provScore||0)<=0)return false;
-  const Rp=Math.round((c.provOppSum/c.ratedGames)+dpFromPct(c.provScore/c.ratedGames));
+  const n=c.ratedGames+INIT_HYP_GAMES;
+  const Ra=(c.provOppSum+INIT_HYP_RATING*INIT_HYP_GAMES)/n;
+  const Rp=Math.round(Ra+dpFromPct((c.provScore+INIT_HYP_GAMES*0.5)/n));
   if(Rp>=1400){c.rating=Rp;c.peak=Math.max(c.peak||0,Rp);c.provisional=false;return true;}
   return false;
 }
 /* Apply one game in any format. Classical feeds the title/norm progression
    (with the provisional→published path). FIDE keeps separate Rapid and Blitz
    lists, seeded from your classical strength, that move on their own. */
-function applyByFormat(c,fmt,oppRating,score){
-  if(fmt==='classical')return applyRatedGame(c,oppRating,score);
+function applyByFormat(c,fmt,oppRating,score,ref){
+  if(fmt==='classical')return applyRatedGame(c,oppRating,score,ref);
   const rk=fmt==='rapid'?'ratingRapid':'ratingBlitz';
   const gk=fmt==='rapid'?'ratedRapid':'ratedBlitz';
   const pk=fmt==='rapid'?'peakRapid':'peakBlitz';
   if(c[rk]==null)c[rk]=(c.rating!=null?c.rating:1400); // seed from classical (or floor)
-  const D=Math.max(-400,Math.min(400,c[rk]-oppRating));
-  const We=1/(1+Math.pow(10,-D/400));
-  const K=(c[gk]||0)<30?40:((c[pk]||0)>=2400?10:20);
-  const delta=Math.round(K*paceMul(c)*(score-We));
+  let delta;
+  if(ref&&ref.r0!=null&&ref.fmt===fmt){
+    // the same per-event rule as classical: one start rating, one K, one rounding
+    const D=Math.max(-400,Math.min(400,ref.r0-oppRating));
+    const We=1/(1+Math.pow(10,-D/400));
+    ref.acc=(ref.acc||0)+ref.k*paceMul(c)*(score-We);
+    const next=Math.max(1000,ref.r0+Math.round(ref.acc));
+    delta=next-c[rk];
+    c[rk]=next;
+  }else{
+    const D=Math.max(-400,Math.min(400,c[rk]-oppRating));
+    const We=1/(1+Math.pow(10,-D/400));
+    const K=(c[gk]||0)<30?40:((c[pk]||0)>=2400?10:20);
+    delta=Math.round(K*paceMul(c)*(score-We));
+    c[rk]=Math.max(1000,c[rk]+delta);
+  }
   c[gk]=(c[gk]||0)+1;
-  c[rk]=Math.max(1000,c[rk]+delta);
   c[pk]=Math.max(c[pk]||0,c[rk]);
   return delta;
 }
@@ -4458,16 +4534,89 @@ function normsCount(c,kind){const t=c.norms||[];
   if(kind==='IM')return t.filter(n=>n.type==='IM'||n.type==='GM').length;
   if(kind==='WIM')return t.filter(n=>n.type==='WIM'||n.type==='WGM').length;
   return t.filter(n=>n.type===kind).length;}
-/* Norms earned by one finished event, given its real field average + score. */
-function eventNorms(c,avgOpp,score,games){
-  const out=[];if(games<9)return out;const Rp=avgOpp+dpFromPct(score/games);
+/* The average rating of the opposition as a norm counts it: the single
+   lowest-rated opponent, if below the floor, is counted at the floor. */
+function normRa(opps,floor){
+  const r=(opps||[]).map(function(o){return +o.rating||0;});
+  if(!r.length)return 0;
+  let lo=0;for(let i=1;i<r.length;i++)if(r[i]<r[lo])lo=i;
+  if(floor&&r[lo]<floor)r[lo]=floor;
+  return r.reduce(function(t,v){return t+v;},0)/r.length;
+}
+/* Every requirement of one norm, checked against a set of opponents.
+   opps: [{rating,title,fed}]. Returns each requirement with what you have and
+   what it needs, so the same answer drives the award and the live tracker.
+   `score` may be null, to ask only whether the opposition qualifies. */
+function normCheck(c,bar,opps,score,o){
+  o=o||{};
+  const n=(opps||[]).length,myFed=c&&c.fed;
+  const reqs=[];
+  const add=function(key,label,have,need,okv,why){reqs.push({key:key,label:label,have:have,need:need,ok:!!okv,why:why||''});};
+  add('games','Games',n,NORM_GAMES,n>=NORM_GAMES);
+  const Ra=normRa(opps,bar.floor);
+  add('avg','Average rating',Math.round(Ra),bar.avgFloor,Ra>=bar.avgFloor);
+  const th=(opps||[]).filter(function(p){return NORM_TH.indexOf(p.title)>=0;}).length;
+  const thNeed=Math.ceil(n/2);
+  add('titled','Title holders',th,thNeed,th>=thNeed,'FM or better; CM does not count');
+  const hi=(opps||[]).filter(function(p){return bar.titles.indexOf(p.title)>=0;}).length;
+  const hiNeed=Math.max(3,Math.ceil(n/3));
+  add('hi',bar.titles.join('/')+'s',hi,hiNeed,hi>=hiNeed,'a third of the field, and never fewer than three');
+  // federations — a national championship is exempt, as it is under the rules
+  if(!o.fedExempt){
+    const counts={};
+    (opps||[]).forEach(function(p){const f=p.fed||'?';counts[f]=(counts[f]||0)+1;});
+    const foreign=Object.keys(counts).filter(function(f){return f!==myFed&&f!=='?';}).length;
+    const own=counts[myFed]||0;
+    let most=0;Object.keys(counts).forEach(function(f){if(f!=='?'&&counts[f]>most)most=counts[f];});
+    add('feds','Foreign federations',foreign,2,foreign>=2);
+    add('own','From your federation',own,Math.floor(n*NORM_OWN_MAX),own<=n*NORM_OWN_MAX+1e-9,'at most three-fifths');
+    add('one','Most from one federation',most,Math.floor(n*NORM_ONE_MAX),most<=n*NORM_ONE_MAX+1e-9,'at most two-thirds');
+  }
+  let Rp=null;
+  if(score!=null&&n){
+    Rp=Math.round(Ra+dpFromPct(score/n));
+    add('tpr','Performance',Rp,bar.tpr,Rp>=bar.tpr);
+  }
+  const opposition=reqs.filter(function(r){return r.key!=='tpr';}).every(function(r){return r.ok;});
+  return {kind:bar.kind,bar:bar,n:n,Ra:Ra,Rp:Rp,reqs:reqs,
+    opposition:opposition,ok:opposition&&(Rp!=null&&Rp>=bar.tpr),
+    failed:reqs.filter(function(r){return !r.ok;})};
+}
+/* The opponents actually faced in an event, with their federations — results
+   saved before federations were kept borrow them from the field. */
+function normOpps(tr){
+  return (tr&&tr.results||[]).map(function(r,i){
+    const f=(tr.field||[])[i]||{};
+    return {rating:r.rating,title:r.title||f.title||'',fed:r.fed||f.fed||'?'};
+  });
+}
+function normExempt(tr){
+  const def=TOURNAMENTS.find(function(t){return t.id===(tr&&tr.id);})||{};
+  return !!(def.natChamp||def.id==='olympiad');
+}
+/* Norms earned by one finished event: the best one per track that passes
+   every requirement. */
+function eventNorms(c,tr){
+  const out=[];
+  const opps=normOpps(tr),score=(tr.results||[]).reduce(function(t,r){return t+r.score;},0);
   for(const b of NORM_BARS){
     if(b.track==='women'&&c.gender!=='women')continue;
-    if(b.track==='open'&&out.some(x=>NORM_BARS.find(n=>n.kind===x).track==='open'))continue; // one open norm (the best) per event
-    if(b.track==='women'&&out.some(x=>NORM_BARS.find(n=>n.kind===x).track==='women'))continue;
-    if(Rp>=b.tpr&&avgOpp>=b.avgFloor)out.push(b.kind);
+    if(out.some(function(x){return NORM_BARS.find(function(n){return n.kind===x;}).track===b.track;}))continue;
+    if(normCheck(c,b,opps,score,{fedExempt:normExempt(tr)}).ok)out.push(b.kind);
   }
   return out;}
+/* The norms you made the score for and were denied on the opposition —
+   the story people tell about them for years. */
+function eventNormMisses(c,tr){
+  const opps=normOpps(tr),score=(tr.results||[]).reduce(function(t,r){return t+r.score;},0);
+  const out=[];
+  for(const b of NORM_BARS){
+    if(b.track==='women'&&c.gender!=='women')continue;
+    const k=normCheck(c,b,opps,score,{fedExempt:normExempt(tr)});
+    if(k.Rp!=null&&k.Rp>=b.tpr&&!k.ok)out.push(k);
+  }
+  return out;
+}
 function bestTitle(c){for(const d of TITLE_DEFS)if((c.titles||[]).includes(d.t))return d.t;return'';}
 function titlePeak(c){return c.titleFormat==='any'?Math.max(c.peak||0,c.peakRapid||0,c.peakBlitz||0):(c.peak||0);}
 function checkTitles(c){const got=[];const peak=titlePeak(c);
@@ -13860,7 +14009,8 @@ function careerDailyPanel(c){if(!dailyAvailable(c))return '';var b=dailyBonusAmt
   return '<div class="card" style="margin-bottom:12px;border-color:#22c55e;background:linear-gradient(90deg,rgba(34,197,94,.12),transparent)"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-weight:700">📅 Daily reward ready! <span class="dim small">'+b.streak+'-day streak · +💰'+b.amt+(b.xp?' &amp; +'+b.xp+' XP':'')+'</span></span><button class="btn primary sm" data-act="claimdaily">Claim</button></div></div>';}
 /* ===== Simulate a tournament game from the ratings instead of playing it out ===== */
 function _simRound(c){var tr=c.tour;finishDraw(tr);var opp=tr.field[tr.round];var myr=(youRating(c,tr.format||'classical')||(c.rating||1400))+conditionMod(c);
-  var E=1/(1+Math.pow(10,(opp.rating-myr)/400)),score=_simScore(c,E);
+  var side=tourColourOf(tr,tr.round);
+  var E=1/(1+Math.pow(10,(opp.rating-myr-colourEdge(side))/400)),score=_simScore(c,E);
   app.careerFinish=null;app.careerOpp='tour';app.careerScored=false;app.careerTour=true;app.careerOneoff=null;app.careerRoundOpp=opp;app.careerElo=opp.rating;app.playMoves=[];app.c960=null;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=false;
   careerResult(score);}
 function simTourRound(){var c=store.career;if(!c.tour||c.tour.round>=c.tour.rounds)return;_simRound(c);render();}
@@ -13888,9 +14038,28 @@ function conditionMod(c){var d=0;
   if((c.prep||0)>0)d+=8;
   return d;}
 function conditionNote(c){var d=conditionMod(c);return {d:d,t:(d>=25?'flying':d>=8?'in good form':d<=-25?'badly out of sorts':d<=-8?'below par':'in normal shape')};}
-function _simScore(c,E){var st=playingStyle(c),sk=st?st.key:null,pw=Math.max(0,Math.min(1,E-0.18)),drawBand=0.36;
-  if(sk==='attacker')drawBand=0.24;else if(sk==='solid'||sk==='technician'){drawBand=0.48;pw=Math.max(0,pw-0.04);}
-  var r=Math.random();return r<pw?1:(r<pw+drawBand?0.5:0);}
+/* One simulated game of yours.
+
+   This used to set the win chance to E−0.18 and lay a fixed draw band on top.
+   Between equals that happens to give the right answer, and nowhere else: an
+   underdog could never score below 18% however outclassed (a 2000 against a
+   2500 is meant to score 5%), a favourite above E=0.82 could never lose, and
+   the style knobs moved the expectation itself — an attacker scored six points
+   of percentage below what their rating says in every game, a solid player two
+   above. Simulating into a field 400 points above you was a free climb of
+   thirty to fifty points a nine-round event, depending on style.
+
+   A rating already says how strong you are. What a style changes is how the
+   points arrive: an attacker's games are decided more often, a solid player's
+   are drawn more. So the style sets the draw rate, the draw rate thins out as
+   the gap widens (the bulletin's model), and the expected score is exactly
+   what Elo says — whoever you are. */
+const SIM_DRAW={universal:0.34,attacker:0.22,tactician:0.28,technician:0.42,solid:0.46};
+function simGame(E,style){
+  var d=bulDrawRate(E,SIM_DRAW[style]!=null?SIM_DRAW[style]:SIM_DRAW.universal);
+  var pw=Math.max(0,Math.min(1-d,E-d/2));
+  var r=Math.random();return r<pw?1:(r<pw+d?0.5:0);}
+function _simScore(c,E){var st=playingStyle(c);return simGame(E,st?st.key:'universal');}
 function oppBanter(c,opp){if(!opp)return null;var who=(opp.name||'Opponent').split(' ').pop();
   var st=playingStyle(c),sk=st?st.key:null,isRival=!!(c.rival&&opp.name===c.rival.name),isNem=!!(c.nemesis&&opp.name===c.nemesis.name),lines;
   /* Somebody you have sat opposite four times knows the score between you,
@@ -14335,6 +14504,11 @@ function careerFinishBanner(f){
   let x='';
   if(f.published)x+='<div style="color:var(--green);font-weight:700;margin-top:4px">🎉 You earned a published FIDE rating: '+f.rating+'!</div>';
   if(f.norms&&f.norms.length)x+='<div style="color:#fcd34d;font-weight:700;margin-top:4px">🏅 Norm achieved — '+f.norms.join(', ')+'! ('+f.tpr+' performance)</div>';
+  // the score was there and the opposition was not: say exactly what was missing
+  (f.missed||[]).forEach(function(m){
+    x+='<div style="margin-top:4px;color:#fdba74;font-weight:700">📜 '+m.tpr+' is '+esc(m.kind)+'-norm strength — but no norm.</div>'+
+      '<div class="dim small">The opposition did not qualify: '+esc(m.why)+'.</div>';
+  });
   if(f.honors&&f.honors.length)x+='<div style="color:#fcd34d;font-weight:800;margin-top:4px;font-size:16px">'+f.honors.map(hn=>honorEmoji(hn)+' '+esc(hn)+'!').join('  ')+'</div>';
   if(f.newTitles&&f.newTitles.length)x+='<div style="color:var(--brand2);font-weight:800;margin-top:4px;font-size:16px">👑 New FIDE title: '+f.newTitles.map(t=>(TITLE_DEFS.find(d=>d.t===t)||{name:t}).name+' ('+t+')').join(', ')+'!</div>';
   // the Olympiad finishes twice: once for you, once for the country
@@ -14354,7 +14528,7 @@ function careerFinishBanner(f){
   const xt=f.xt?('<div style="margin-top:9px;border-top:1px solid var(--border);padding-top:7px">'+
     '<button class="btn ghost sm" data-act="xtfin" style="padding:3px 8px;font-size:11px">'+
       (app.xtFin?'🧮 Hide the final crosstable':'🧮 See the final crosstable')+'</button>'+
-    (app.xtFin?xtTable(f.xt.players,f.xt.grid):'')+'</div>'):'';
+    (app.xtFin?xtFromSnap(f.xt):'')+'</div>'):'';
   return '<div class="card" style="margin-bottom:12px;border:1px solid var(--brand)"><div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px">'+
     '<div style="min-width:0"><div style="font-weight:800;font-size:16px">'+f.emoji+' '+esc(f.name)+' — finished</div>'+
     '<div class="dim small">'+place+'Scored '+fmtScore(f.score)+'/'+f.rounds+' · performance rating '+f.tpr+'</div>'+x+'</div>'+
@@ -14873,6 +15047,8 @@ const POT_LABEL={1:{n:'Pot 1',d:'Seeded. The ones who can beat you.',c:'#f43f5e'
                  4:{n:'Pot 4',d:'You are expected to win these.',c:'#22c55e'}};
 function tourDrawPanel(c,tr){
   if(!tr||tr.kind==='match'||tr.kind==='simul')return '';
+  if(tr.sched)return rrCard(tr);
+  if(tr.swiss)return swissCard(tr);
   const pots=tourPots(tr);
   if(!pots.length)return '';
   const done=drawComplete(tr),shown=drawRevealed(tr);
@@ -14922,12 +15098,14 @@ function careerTourView(c){
   h+='<div style="margin-top:10px">';
   const _shown=drawRevealed(tr);
   const _resumeHere=resumeIsThisRound(playSavedGame(),c);
-  tr.field.forEach((o,i)=>{
+  // every round gets a row, including ones a Swiss has not paired yet
+  const _rows=[];for(let _i=0;_i<total;_i++)_rows.push(tr.field[_i]||null);
+  _rows.forEach((o,i)=>{
     const played=i<done,r=tr.results[i],cur=i===done&&done<total;
-    if(i>=_shown){                       // not out of the pot yet
+    if(!o||i>=_shown){                   // not paired, or not out of the pot yet
       h+='<div style="display:flex;align-items:center;gap:9px;padding:8px 2px;border-top:1px solid var(--border);opacity:.5">'+
         '<div class="dim small" style="width:26px">R'+(i+1)+'</div>'+
-        '<div class="dim small" style="flex:1">🎱 To be drawn</div></div>';
+        '<div class="dim small" style="flex:1">'+(tr.swiss?'⏳ Paired on score after round '+i:'🎱 To be drawn')+'</div></div>';
       return;
     }
     let res='<span class="dim small">—</span>';
@@ -14937,8 +15115,9 @@ function careerTourView(c){
     else if(cur)res=_resumeHere
       ? '<button class="btn primary sm" data-act="presume" title="Pick the game up where you left it">Resume ▸</button>'
       : '<button class="btn primary sm" data-act="careerplay">Play ▸</button>';
+    const _col=tourColourOf(tr,i);
     h+='<div style="display:flex;align-items:center;gap:9px;padding:8px 2px;border-top:1px solid var(--border)'+(cur?';background:rgba(96,165,250,.07);margin:0 -6px;padding-left:8px;padding-right:8px;border-radius:6px':'')+(played||cur?'':';opacity:.7')+'">'+
-      '<div class="dim small" style="width:26px">R'+(i+1)+'</div>'+
+      '<div class="dim small" style="width:38px;white-space:nowrap">R'+(i+1)+' '+colourDot(_col,'You have '+(_col==='w'?'White':'Black'))+'</div>'+
       '<div style="flex:0 0 auto">'+oppAvatar(o,28)+'</div>'+
       '<div style="width:30px;font-weight:800;color:var(--brand2);font-size:12px">'+(o.title||'')+'</div>'+
       '<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(o.name)+' <span class="dim">'+(o.flag||'')+'</span>'+(o.style?' <span class="dim small" title="'+styleById(o.style).name+'">'+styleById(o.style).emoji+'</span>':'')+'</div>'+
@@ -15022,21 +15201,102 @@ function tourStakesCard(c,tr){
     '<div style="font-weight:800;color:'+st.tone+'">'+(st.final?'⏳ Final round — ':'')+esc(st.head)+'</div>'+
     '<div class="dim small" style="margin-top:2px">'+esc(st.sub)+'</div></div>';
 }
+/* In a Swiss most of the opponents a norm will be judged on have not been
+   paired yet. Each requirement is then either met already, still open with
+   the rounds that are left, or out of reach whatever happens. */
+function normOutlook(c,bar,sofar,pending,o){
+  o=o||{};
+  const total=sofar.length+pending;
+  const k=normCheck(c,bar,sofar,null,o),by={};
+  k.reqs.forEach(function(r){by[r.key]=r;});
+  const out=[];
+  const push=function(key,label,have,need,state,lim,why){out.push({key:key,label:label,have:have,need:need,state:state,lim:!!lim,why:why||''});};
+  push('games','Games',total,NORM_GAMES,total>=NORM_GAMES?'ok':'failed');
+  const thNeed=Math.ceil(total/2),hiNeed=Math.max(3,Math.ceil(total/3));
+  const th=by.titled.have,hi=by.hi.have;
+  push('titled','Title holders',th,thNeed,th>=thNeed?'ok':(th+pending>=thNeed?'open':'failed'),false,by.titled.why);
+  push('hi',by.hi.label,hi,hiNeed,hi>=hiNeed?'ok':(hi+pending>=hiNeed?'open':'failed'),false,by.hi.why);
+  if(!o.fedExempt){
+    const f=by.feds.have,ownMax=Math.floor(total*NORM_OWN_MAX),oneMax=Math.floor(total*NORM_ONE_MAX);
+    push('feds','Foreign federations',f,2,f>=2?'ok':(f+pending>=2?'open':'failed'));
+    push('own','From your federation',by.own.have,ownMax,by.own.have<=ownMax?'ok':'failed',true,by.own.why);
+    push('one','Most from one federation',by.one.have,oneMax,by.one.have<=oneMax?'ok':'failed',true,by.one.why);
+  }
+  return out;
+}
+/* Who a Swiss is likely to give you from here: somebody from the top of the
+   hall if you are near the top of it, which is where a norm is played. */
+function swissOppEstimate(tr){
+  const S=tr.standings||[],me=S.filter(function(p){return p.you;})[0],met=swissMet(tr);
+  const unmet=S.filter(function(p){return !p.you&&!met[p.id];});
+  if(!unmet.length)return null;
+  const near=unmet.filter(function(p){return (p.score||0)>=((me&&me.score)||0)-0.5;});
+  const pool=near.length?near:unmet;
+  return pool.reduce(function(t,p){return t+p.rating;},0)/pool.length;
+}
 function normTracker(tr,c){
-  const fieldAvg=Math.round(tr.field.reduce((s,o)=>s+o.rating,0)/tr.field.length);
   const total=tr.rounds,scoreTot=tr.results.reduce((s,r)=>s+r.score,0),played=tr.results.length,left=total-played;
-  function needFor(b){if(fieldAvg<b.avgFloor)return {b:b,state:'weak'};var need=null;for(var p=0;p<=total;p+=0.5){if(fieldAvg+dpFromPct(p/total)>=b.tpr){need=p;break;}}if(need===null)return {b:b,state:'far'};var maxPoss=scoreTot+left;return {b:b,need:need,state:scoreTot>=need?'secured':(maxPoss<need?'gone':'live')};}
-  var bars=NORM_BARS.filter(function(b){return !(b.track==='women'&&c.gender!=='women');}).map(needFor);
-  var secured=bars.filter(function(x){return x.state==='secured';}).sort(function(a,b){return b.b.tpr-a.b.tpr;})[0];
-  var live=bars.filter(function(x){return x.state==='live';}).sort(function(a,b){return b.b.tpr-a.b.tpr;})[0];
-  var head;
-  if(secured){var have=normsCount(c,secured.b.kind);head='<div style="font-weight:800;color:var(--green)">✓ '+secured.b.kind+' norm secured!</div><div class="dim small" style="margin-top:2px">'+(have>=3?'That completes the '+secured.b.kind+' title!':'This is norm '+Math.min(3,have+1)+' of 3 toward the '+secured.b.kind+' title.')+'</div>';}
-  else if(live){var b=live.b,still=Math.max(0,live.need-scoreTot),h2=normsCount(c,b.kind);
+  const exempt=normExempt(tr);
+  const known=(tr.field||[]).slice(0,total).map(function(o){return {rating:o.rating,title:o.title||'',fed:o.fed||'?'};});
+  const pending=Math.max(0,total-known.length);
+  const est=pending?swissOppEstimate(tr):null;
+  // the opposition a norm will be judged on: everybody paired so far, and in
+  // a Swiss an estimate of whoever the remaining rounds bring
+  const judged=known.concat(est?Array.apply(null,Array(pending)).map(function(){return {rating:est};}):[]);
+  function needFor(b){
+    let reqs;
+    if(pending){
+      reqs=normOutlook(c,b,known,pending,{fedExempt:exempt});
+    } else {
+      reqs=normCheck(c,b,known,null,{fedExempt:exempt}).reqs.map(function(r){
+        return {key:r.key,label:r.label,have:r.have,need:r.need,state:r.ok?'ok':'failed',lim:(r.key==='own'||r.key==='one'),why:r.why};});
+    }
+    const Ra=normRa(judged,b.floor);
+    if(reqs.some(function(r){return r.state==='failed';}))return {b:b,reqs:reqs,Ra:Ra,state:'opposition'};
+    if(!pending&&Ra<b.avgFloor)return {b:b,reqs:reqs,Ra:Ra,state:'opposition'};
+    let need=null;
+    for(let p=0;p<=total;p+=0.5){if(Ra+dpFromPct(p/total)>=b.tpr){need=p;break;}}
+    if(need===null)return {b:b,reqs:reqs,Ra:Ra,state:'far'};
+    const open=reqs.some(function(r){return r.state==='open';});
+    return {b:b,reqs:reqs,Ra:Ra,need:need,open:open,
+      state:(scoreTot>=need&&!open)?'secured':(scoreTot+left<need?'gone':'live')};
+  }
+  const bars=NORM_BARS.filter(function(b){return !(b.track==='women'&&c.gender!=='women');}).map(needFor);
+  const secured=bars.filter(function(x){return x.state==='secured';}).sort(function(a,b){return b.b.tpr-a.b.tpr;})[0];
+  const live=bars.filter(function(x){return x.state==='live';}).sort(function(a,b){return b.b.tpr-a.b.tpr;})[0];
+  const blocked=bars.filter(function(x){return x.state==='opposition';});
+  const fieldAvg=Math.round(judged.reduce(function(t,o){return t+o.rating;},0)/Math.max(1,judged.length));
+  let head;
+  if(secured){const have=normsCount(c,secured.b.kind);head='<div style="font-weight:800;color:var(--green)">✓ '+secured.b.kind+' norm secured!</div><div class="dim small" style="margin-top:2px">'+(have>=3?'That completes the '+secured.b.kind+' title!':'This is norm '+Math.min(3,have+1)+' of 3 toward the '+secured.b.kind+' title.')+'</div>';}
+  else if(live){const b=live.b,still=Math.max(0,live.need-scoreTot),h2=normsCount(c,b.kind);
     head='<div style="font-weight:800;color:#fcd34d">🎯 Chasing the '+b.kind+' norm</div>'+
-      '<div class="dim small" style="margin:2px 0 4px">Need <b>'+fmtScore(live.need)+'/'+total+'</b> (a '+b.tpr+' performance) — score <b>'+fmtScore(still)+'</b> from your last '+left+' game'+(left===1?'':'s')+'. You hold '+h2+'/3 '+b.kind+' norms.</div>'+cbar(scoreTot,live.need,'#fcd34d');}
+      '<div class="dim small" style="margin:2px 0 4px">Need <b>'+fmtScore(live.need)+'/'+total+'</b> (a '+b.tpr+' performance'+(pending?', on the pairings you are likely to get':'')+') — score <b>'+fmtScore(still)+'</b> from your last '+left+' game'+(left===1?'':'s')+'. You hold '+h2+'/3 '+b.kind+' norms.</div>'+cbar(scoreTot,live.need,'#fcd34d')+
+      (live.open?'<div class="dim small" style="margin-top:4px">The opposition is not settled yet — the rounds to come have to bring the titled players marked ◐.</div>':'');}
+  else if(blocked.length&&!pending)
+    head='<div style="font-weight:700;color:#fdba74">No norm is possible in this field, whatever you score.</div>'+
+      '<div class="dim small" style="margin-top:2px">The opposition does not meet the requirements — see below. Norm round-robins are built so that it does.</div>';
+  else if(blocked.length)
+    head='<div style="font-weight:700;color:#fdba74">No norm is left in this event.</div>'+
+      '<div class="dim small" style="margin-top:2px">Not enough rounds remain to meet the opposition requirements — see below.</div>';
   else head='<div class="dim small">No title norm is reachable in this field (avg '+fieldAvg+').</div>';
-  var rows=bars.map(function(x){var b=x.b;if(x.state==='weak')return '<div class="dim small">'+b.kind+' — field too weak (avg '+fieldAvg+' &lt; '+b.avgFloor+')</div>';if(x.state==='far')return '<div class="dim small">'+b.kind+' — not reachable here</div>';var tail=x.state==='secured'?' — <span style="color:var(--green)">secured ✓</span>':x.state==='gone'?' — <span style="color:#f87171">out of reach</span>':' · '+fmtScore(scoreTot)+'/'+played+' so far';return '<div class="dim small">'+b.kind+': need <b>'+fmtScore(x.need)+'/'+total+'</b>'+tail+'</div>';}).join('');
-  return '<div style="margin-top:9px;padding:9px 11px;background:rgba(250,204,21,.06);border:1px solid #854d0e44;border-radius:8px"><div style="font-weight:700;font-size:12px;color:#fcd34d;margin-bottom:4px">📜 Norm tracker</div>'+head+'<div style="margin-top:6px;border-top:1px solid #854d0e33;padding-top:5px">'+rows+'</div></div>';
+  const focus=live||secured||blocked[0]||null;
+  const mark={ok:['✓','var(--green)'],open:['◐','#fcd34d'],failed:['✗','#f87171']};
+  const checklist=focus?('<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 10px">'+
+    focus.reqs.map(function(r){
+      const m=mark[r.state]||mark.failed;
+      return '<span class="small" title="'+esc(r.why||'')+'" style="white-space:nowrap;color:'+m[1]+'">'+
+        m[0]+' '+esc(r.label)+' <b>'+r.have+'</b>'+(r.lim?' (max '+r.need+')':'/'+r.need)+'</span>';
+    }).join('')+'</div>'+(pending&&focus.reqs.some(function(r){return r.state!=='ok';})?'<div class="dim small" style="margin-top:3px">◐ still open — '+pending+' round'+(pending===1?'':'s')+' to be paired.</div>':'')):'';
+  const rows=bars.map(function(x){const b=x.b;
+    if(x.state==='opposition'){
+      const bad=x.reqs.filter(function(r){return r.state==='failed';});
+      return '<div class="dim small">'+b.kind+' — opposition does not qualify'+(bad.length?' ('+
+        bad.map(function(f){return esc(f.label.toLowerCase())+' '+f.have+(f.lim?' of max '+f.need:'/'+f.need);}).join(', ')+')':
+        ' (average '+Math.round(x.Ra)+' &lt; '+b.avgFloor+')')+'</div>';}
+    if(x.state==='far')return '<div class="dim small">'+b.kind+' — not reachable here</div>';
+    const tail=x.state==='secured'?' — <span style="color:var(--green)">secured ✓</span>':x.state==='gone'?' — <span style="color:#f87171">out of reach</span>':' · '+fmtScore(scoreTot)+'/'+played+' so far';
+    return '<div class="dim small">'+b.kind+': need <b>'+fmtScore(x.need)+'/'+total+'</b>'+tail+'</div>';}).join('');
+  return '<div style="margin-top:9px;padding:9px 11px;background:rgba(250,204,21,.06);border:1px solid #854d0e44;border-radius:8px"><div style="font-weight:700;font-size:12px;color:#fcd34d;margin-bottom:4px">📜 Norm tracker</div>'+head+checklist+'<div style="margin-top:6px;border-top:1px solid #854d0e33;padding-top:5px">'+rows+'</div></div>';
 }
 function careerNorms(c){
   const ns=c.norms||[];const any=c.titleFormat==='any';
@@ -15174,7 +15434,11 @@ function tourPairField(tr,myOppId){
     const A=rest[i];
     if(used[A.id])continue;
     let j=-1;
-    for(let k=i+1;k<rest.length;k++)                 // nearest in score they have not met
+    // nearest in score they have not met and can be given colours for; then
+    // not met; then anyone — the order a pairing program relaxes its rules in
+    for(let k=i+1;k<rest.length;k++)
+      if(!used[rest[k].id]&&!tourMet(tr,A.id,rest[k].id)&&!swissClash(A,rest[k])){j=k;break;}
+    if(j<0)for(let k=i+1;k<rest.length;k++)
       if(!used[rest[k].id]&&!tourMet(tr,A.id,rest[k].id)){j=k;break;}
     if(j<0)for(let k=i+1;k<rest.length;k++)if(!used[rest[k].id]){j=k;break;}
     used[A.id]=1;
@@ -15182,11 +15446,34 @@ function tourPairField(tr,myOppId){
     used[rest[j].id]=1;
     pairs.push({a:A,b:rest[j]});
   }
+  // Pairing top-down can paint itself into a corner on the last boards. A
+  // pairing program backtracks; this swaps partners with the nearest board
+  // that removes the colour clash without creating a rematch.
+  for(let i=0;i<pairs.length;i++){
+    const P=pairs[i];
+    if(!P.b||!swissClash(P.a,P.b))continue;
+    const order=pairs.map(function(_,k){return k;}).filter(function(k){return k!==i&&pairs[k].b;})
+      .sort(function(x,y){return Math.abs(x-i)-Math.abs(y-i);});
+    for(const k of order){
+      const Q=pairs[k];
+      if(!swissClash(P.a,Q.b)&&!swissClash(Q.a,P.b)&&!tourMet(tr,P.a.id,Q.b.id)&&!tourMet(tr,Q.a.id,P.b.id)){
+        const t=P.b;P.b=Q.b;Q.b=t;break;}
+      if(!swissClash(P.a,Q.a)&&!swissClash(P.b,Q.b)&&!tourMet(tr,P.a.id,Q.a.id)&&!tourMet(tr,P.b.id,Q.b.id)){
+        const t=P.b;P.b=Q.a;Q.a=t;break;}
+    }
+  }
   return pairs;
 }
 /* Play the round: your result is already in, the rest of the hall follows. */
+/* The other games of a round-robin round, straight off the schedule, white first. */
+function rrRoundPairs(tr,rIdx){
+  const by={};(tr.standings||[]).forEach(function(p){by[p.id]=p;});
+  return ((tr.sched||[])[rIdx]||[]).map(function(p){return {a:by[p[0]],b:by[p[1]],col:true};})
+    .filter(function(pr){return pr.a&&pr.b;});
+}
 function tourPlayRound(tr,rIdx,myScore){
-  const myOppId='p'+rIdx;
+  const myOpp=(tr.field||[])[rIdx];
+  const myOppId=(myOpp&&myOpp.pid)||('p'+rIdx);
   const sortedBefore=standingsSorted(tr);
   const leadBefore=sortedBefore.length
     ? {id:sortedBefore[0].id,name:sortedBefore[0].name,score:sortedBefore[0].score||0,you:!!sortedBefore[0].you}
@@ -15197,19 +15484,32 @@ function tourPlayRound(tr,rIdx,myScore){
     else if(p.id===myOppId)p.score=(p.score||0)+(1-myScore);
   });
   if(!tr.pairs)tr.pairs=[];
-  tr.pairs.push({r:rIdx+1,a:'__you',b:myOppId,s:myScore});
-  tourPairField(tr,myOppId).forEach(function(pr){
+  // who had White, so a Swiss crosstable can print it and the next pairing can balance it
+  const myCol=tourColourOf(tr,rIdx);
+  tr.pairs.push({r:rIdx+1,a:'__you',b:myOppId,s:myScore,w:myCol==='w'?'__you':myOppId});
+  (tr.standings||[]).forEach(function(p){
+    if(p.you)swissNoteColour(p,myCol);
+    else if(p.id===myOppId)swissNoteColour(p,myCol==='w'?'b':'w');
+  });
+  // a round-robin plays its schedule; everything else is paired on score
+  (tr.sched?rrRoundPairs(tr,rIdx):tourPairField(tr,myOppId)).forEach(function(pr){
     if(!pr.b){
       pr.a.score=(pr.a.score||0)+0.5;
       boards.push({a:pr.a.name,ar:pr.a.rating,b:null,s:null,bye:true});
       tr.pairs.push({r:rIdx+1,a:pr.a.id,b:null,s:0.5});
       return;
     }
-    const s=bulSim(pr.a.rating,pr.b.rating);
+    // a round-robin's schedule says who has White; in a Swiss it goes to
+    // whoever is owed it, the way pairing programs allocate colours
+    const aWhite=pr.col?true:swissWhiteFirst(pr.a,pr.b);
+    const W=aWhite?pr.a:pr.b,B=aWhite?pr.b:pr.a;
+    const sw=bulSim(W.rating+WHITE_EDGE,B.rating);
+    const s=aWhite?sw:1-sw;
     pr.a.score=(pr.a.score||0)+s;
     pr.b.score=(pr.b.score||0)+(1-s);
+    swissNoteColour(W,'w');swissNoteColour(B,'b');
     tourNoteMet(tr,pr.a.id,pr.b.id);
-    tr.pairs.push({r:rIdx+1,a:pr.a.id,b:pr.b.id,s:s});
+    tr.pairs.push({r:rIdx+1,a:pr.a.id,b:pr.b.id,s:s,w:W.id});
     boards.push({a:pr.a.name,ar:pr.a.rating,b:pr.b.name,br:pr.b.rating,s:s,
       upset:(s===1&&pr.b.rating-pr.a.rating>=150)||(s===0&&pr.a.rating-pr.b.rating>=150)});
   });
@@ -15267,7 +15567,6 @@ function tourBulletinCard(tr){
     '</div>';
 }
 /* ---- tournament standings (the rest of the field plays each other too) ---- */
-function simRoundScore(E){const pw=Math.max(0,Math.min(1,E-0.18));const r=Math.random();return r<pw?1:(r<pw+0.36?0.5:0);}
 function standingsSorted(tr){return tr.standings.slice().sort((a,b)=>b.score-a.score||b.rating-a.rating);}
 function standingsRank(tr){const S=standingsSorted(tr);return S.findIndex(p=>p.you)+1;}
 function careerStandings(tr){
@@ -15678,8 +15977,67 @@ function xtCell(cell){
   if(typeof cell==='object')return {s:cell.s,n:cell.n||1,r:cell.r||0};
   return {s:cell,n:1,r:0};
 }
+/* A Swiss is published round by round, not player by player: in a hall of
+   twenty you meet nine people, so a player-against-player grid is more than
+   half empty and twice the width of a phone. Each row is a player, each
+   column a round, and each cell says who they played — by final rank — with
+   which colour and how it went: 7w1, 12b½. That is the form every Swiss
+   crosstable is printed in. */
+function xtSwissRows(tr){
+  if(!tr||!tr.standings||!tr.standings.length)return null;
+  const P=standingsSorted(tr),rank={},byId={};
+  const n=tr.rounds||0;
+  P.forEach(function(p,i){rank[p.id]=i+1;});
+  const rows=P.map(function(p){
+    const cells=[];for(let i=0;i<n;i++)cells.push(null);
+    const row={name:p.name,rating:p.rating||0,title:p.title||'',score:p.score||0,you:!!p.you,cells:cells};
+    byId[p.id]=row;return row;
+  });
+  (tr.pairs||[]).forEach(function(pr){
+    const r=(pr.r||1)-1,A=byId[pr.a];
+    if(!A||r<0||r>=n)return;
+    if(pr.b==null){A.cells[r]=[0,'',0.5];return;}          // a bye: no opponent, half a point
+    const B=byId[pr.b];if(!B)return;
+    const aw=pr.w?(pr.w===pr.a?'w':'b'):'';
+    A.cells[r]=[rank[pr.b],aw,pr.s];
+    B.cells[r]=[rank[pr.a],aw?(aw==='w'?'b':'w'):'',1-pr.s];
+  });
+  return rows;
+}
+function xtSwissTable(rows){
+  if(!rows||!rows.length)return '';
+  const n=rows[0].cells.length;
+  let head='<tr><th class="xtr" scope="col">#</th><th class="xtn" scope="col">Player</th><th scope="col">Rtg</th>';
+  for(let i=0;i<n;i++)head+='<th scope="col">R'+(i+1)+'</th>';
+  head+='<th scope="col">Pts</th></tr>';
+  let body='';
+  rows.forEach(function(p,i){
+    body+='<tr'+(p.you?' class="xtyou"':'')+'>'+
+      '<td class="xtr">'+(i+1)+'</td>'+
+      '<th class="xtn" scope="row">'+(p.title?'<span style="color:var(--brand2)">'+esc(p.title)+'</span> ':'')+
+        esc(p.name)+(p.you?' <span class="chip brand" style="font-size:9px">YOU</span>':'')+'</th>'+
+      '<td class="dim">'+(p.rating||'—')+'</td>';
+    p.cells.forEach(function(c,r){
+      if(!c){body+='<td class="xtnone" title="round '+(r+1)+': not played">·</td>';return;}
+      if(!c[0]){body+='<td class="xtd" title="round '+(r+1)+': a bye">bye</td>';return;}
+      const sc=c[2];
+      body+='<td class="'+(sc===1?'xtw':sc===0?'xtl':'xtd')+'" title="round '+(r+1)+': '+
+        (c[1]==='w'?'White':c[1]==='b'?'Black':'')+' against no. '+c[0]+'">'+
+        c[0]+'<span class="xtc">'+(c[1]||'')+'</span>'+xtSym(sc)+'</td>';
+    });
+    body+='<td class="xtp">'+fmtScore(p.score)+'</td></tr>';
+  });
+  return '<div class="xtwrap"><table class="xt xts"><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
+}
 /* A crosstable that outlives the tournament object. */
 function xtSnapshot(tr){
+  if(tr&&tr.swiss){
+    const rows=xtSwissRows(tr);
+    if(!rows||!(tr.pairs||[]).length)return null;
+    return {swiss:true,players:rows.map(function(p){
+      return {name:p.name,rating:p.rating,title:p.title,score:p.score,you:p.you};}),
+      rows:rows.map(function(p){return p.cells;})};
+  }
   const X=xtGrid(tr);
   if(!X||!(tr.pairs||[]).length)return null;
   return {players:X.players.map(function(p){
@@ -15739,13 +16097,18 @@ function xtTable(P,G){
 function xtLiveCard(tr){
   if(!tr||!(tr.pairs||[]).length)return '';
   const open=!!app.xtOpen;
-  const X=open?xtGrid(tr):null;
+  const X=open&&!tr.swiss?xtGrid(tr):null;
+  const SW=open&&tr.swiss?xtSwissRows(tr):null;
   return '<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:7px">'+
     '<div class="row" style="justify-content:space-between;align-items:center;gap:8px">'+
       '<div style="font-weight:700;font-size:12px;color:var(--brand2)">🧮 Crosstable</div>'+
       '<button class="btn ghost sm" data-act="xttog" style="padding:3px 8px;font-size:11px">'+
         (open?'Hide':'Show')+'</button></div>'+
-    (open&&X
+    (open&&SW
+      ? xtSwissTable(SW)+
+        '<div class="dim small" style="margin-top:4px;line-height:1.5">One row per player, one column per round: '+
+        'the opponent\u2019s place in the table, the colour, and the result — <b>7w1</b> is a win with White against the player now seventh.</div>'
+      : open&&X
       ? xtTable(X.players,X.grid)+
         '<div class="dim small" style="margin-top:4px;line-height:1.5">Every game the hall has played, row against column. '+
         'Your row is highlighted; the column under your number is what people did to you.</div>'
@@ -15753,13 +16116,18 @@ function xtLiveCard(tr){
         ((tr.pairs||[]).length===1?'':'s')+' played in the hall so far.</div>')+
     '</div>';
 }
+function xtFromSnap(x){
+  if(!x)return '';
+  if(x.swiss)return xtSwissTable((x.players||[]).map(function(p,i){return Object.assign({cells:(x.rows||[])[i]||[]},p);}));
+  return xtTable(x.players,x.grid);
+}
 function xtHistCard(e,i){
   if(!e||!e.xt)return '';
   const open=(app.xtHist===i);
   return '<div style="padding:0 0 7px 32px">'+
     '<button class="btn ghost sm" data-act="xthist" data-val="'+i+'" style="padding:3px 8px;font-size:11px">'+
       (open?'🧮 Hide the crosstable':'🧮 Crosstable')+'</button>'+
-    (open?xtTable(e.xt.players,e.xt.grid):'')+'</div>';
+    (open?xtFromSnap(e.xt):'')+'</div>';
 }
 /* ---- per-game archive + rating-over-time graph ---- */
 function archiveCareerGame(c,opp,score,fmt,eventName,c960on){
@@ -16430,11 +16798,32 @@ function makeField(t){
     for(let i=0;i<t.rounds;i++)arr.push({name:ch.name,rating:cr,title:'GM',fed:ch.fed,flag:ch.flag,style:'universal'});
     return arr;
   }
-  const players=[];
-  for(let i=0;i<t.rounds;i++){
-    let r=Math.round(t.avg+gauss()*t.spread);r=Math.max(800,Math.min(2850,r));
-    const fed=t.natChamp?{c:store.career.fed,f:store.career.flag}:randFed();players.push({name:t.creator?pick(STREAMERS):randName(),rating:r,title:titleByRating(r),fed:fed.c,flag:fed.f,style:pickStyle()});
+  // a round-robin invites one player per opponent — a double round-robin of
+  // fourteen rounds is seven people met twice, not fourteen strangers
+  const count=t.rr?Math.round(t.rounds/t.rr):t.rounds;
+  const gen=function(){
+    const players=[];
+    for(let i=0;i<count;i++){
+      const r=fieldRating(t);
+      const fed=t.natChamp?{c:store.career.fed,f:store.career.flag}:randFed();players.push({name:t.creator?pick(STREAMERS):randName(),rating:r,title:titleByRating(r),fed:fed.c,flag:fed.f,style:pickStyle()});
+    }
+    return players;
+  };
+  let players=gen();
+  // A norm round-robin is invited, not drawn: the organiser picks the field so
+  // the norm is on offer, the way real ones are. Left to chance, one IM-norm
+  // event in five could not give an IM norm whatever you scored.
+  if(t.normTarget){
+    const bar=NORM_BARS.find(function(b){return b.kind===t.normTarget;});
+    const me=store.career||{fed:'FIDE'};
+    for(let tries=0;tries<200&&bar;tries++){
+      // a norm is judged on games, so in a double round-robin each player counts twice
+      const games=t.rr===2?players.concat(players):players;
+      if(normCheck(me,bar,games,null,{}).opposition)break;
+      players=gen();
+    }
   }
+  if(t.rr)return players;                 // the schedule decides the order, not a pot draw
   return drawFixtures(players,t.rounds);
 }
 /* ---------------------------------------------------------------------------
@@ -16452,6 +16841,351 @@ function makeField(t){
    never a walkover or a massacre; what you do not know is the order. Round one
    might be the top seed.
    --------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------------
+   COLOURS
+
+   Every round used to toss a coin for your colour. Nearly one nine-round event
+   in five came out seven-two or worse one way, and three blacks in a row was
+   routine — neither of which a real pairing is allowed to produce. The FIDE
+   pairing rules have two absolute colour criteria: nobody gets the same colour
+   three times running, and nobody's whites and blacks drift more than two
+   apart. Within those, a Swiss mostly alternates and sometimes has to repeat.
+
+   The sequence is planned when you enter, which is also how it works in life:
+   you know your colour when the pairings go up, and in a round-robin you know
+   all of them from the drawing of lots — so preparing a line for the colour
+   you will actually have is something you can do.
+
+   White is worth something, and the simulation now knows it: between equals
+   at master level White scores about 55%, which is thirty-five points of Elo
+   either way. Over a balanced event it washes out; the extra white in an
+   odd-numbered event is a small real edge, as it is over the board.
+   --------------------------------------------------------------------------- */
+const COL_REPEAT=0.18;      // how often a Swiss has to hand out the same colour twice
+const WHITE_EDGE=35;        // Elo: White scores ~55% between equals
+function colourOk(seq){
+  let w=0,b=0;
+  for(let i=0;i<seq.length;i++){
+    if(seq[i]==='w')w++;else b++;
+    if(Math.abs(w-b)>2)return false;                       // FIDE: never more than two apart
+    if(i>=2&&seq[i]===seq[i-1]&&seq[i]===seq[i-2])return false;   // never three in a row
+  }
+  return Math.abs(w-b)<=(seq.length%2?1:2);
+}
+function tourColours(n,first){
+  const start=first||(Math.random()<0.5?'w':'b');
+  for(let tries=0;tries<300;tries++){
+    const seq=[start];
+    for(let i=1;i<n;i++){
+      const last=seq[i-1];
+      seq.push(Math.random()<COL_REPEAT?last:(last==='w'?'b':'w'));
+    }
+    if(colourOk(seq))return seq;
+  }
+  const alt=[];for(let i=0;i<n;i++)alt.push((i%2===0)===(start==='w')?'w':'b');
+  return alt;
+}
+/* Your colour in a round, planned once and then fixed. A tournament saved
+   before colours were planned gets a plan from the round it is on. */
+function tourColourOf(tr,r){
+  if(!tr)return 'w';
+  // a Swiss decides each colour when the round is paired, not before
+  if(tr.swiss)return (tr.colours&&tr.colours[r]==='b')?'b':'w';
+  if(!tr.colours||tr.colours.length<tr.rounds){
+    const plan=tr.kind==='match'
+      ? (function(){const a=[],s=Math.random()<0.5?'w':'b';for(let i=0;i<tr.rounds;i++)a.push((i%2===0)===(s==='w')?'w':'b');return a;})()
+      : tourColours(tr.rounds);
+    tr.colours=(tr.colours||[]).concat(plan.slice((tr.colours||[]).length));
+  }
+  return tr.colours[Math.max(0,Math.min(tr.rounds-1,r))]==='b'?'b':'w';
+}
+/* The Elo edge the colour gives the side you are playing. */
+function colourEdge(side){return side==='w'?WHITE_EDGE:-WHITE_EDGE;}
+function colourDot(side,title){
+  return '<span class="coldot '+(side==='b'?'b':'w')+'" title="'+esc(title||(side==='b'?'Black':'White'))+'"></span>';
+}
+/* ---------------------------------------------------------------------------
+   ROUND-ROBINS
+
+   Every event used to be a Swiss in disguise: nine opponents drawn from pots,
+   the rest of the hall paired on score around you. For an open that is fair.
+   For a round-robin it is wrong in ways you can see — the Candidates, eight
+   players meeting twice, came out as fourteen different people, its table had
+   fifteen names in it, and the crosstable of a closed event was full of holes
+   because the players around you were being Swiss-paired instead of meeting
+   one another.
+
+   A round-robin is a schedule, and it is fixed on the first day. Lots are
+   drawn for pairing numbers, and the numbers decide who plays whom in which
+   round and with which colour; nobody is paired on score. So the whole hall
+   gets one: every player meets every other once (twice in a double, once with
+   each colour), nobody has the same colour three times running, and colours
+   come out as even as the number of rounds allows. The second cycle of a
+   double round-robin is the first again with the colours reversed.
+   --------------------------------------------------------------------------- */
+/* Who meets whom each round — the circle method, seats 0..n-1, n even. */
+function rrPairs(n){
+  const seats=[];for(let i=0;i<n;i++)seats.push(i);
+  const rounds=[];
+  for(let r=0;r<n-1;r++){
+    const pairs=[];
+    for(let i=0;i<n/2;i++)pairs.push([seats[i],seats[n-1-i]]);
+    rounds.push(pairs);
+    seats.splice(1,0,seats.pop());
+  }
+  return rounds;
+}
+/* Colours for each pairing: never a third of one colour, then whoever is
+   behind on whites, then whoever had black last. */
+function rrOrient(rounds,n){
+  const diff=[],seq=[];
+  for(let i=0;i<n;i++){diff.push(0);seq.push([]);}
+  const two=function(p,col){const q=seq[p];return q.length>=2&&q[q.length-1]===col&&q[q.length-2]===col;};
+  return rounds.map(function(pairs){
+    return pairs.map(function(pr){
+      const a=pr[0],b=pr[1],la=seq[a][seq[a].length-1],lb=seq[b][seq[b].length-1];
+      let aw;
+      if(two(a,'w')||two(b,'b'))aw=false;
+      else if(two(a,'b')||two(b,'w'))aw=true;
+      else if(diff[a]!==diff[b])aw=diff[a]<diff[b];
+      else if(la!==lb)aw=(la==='b'||lb==='w');
+      else aw=Math.random()<0.5;
+      const w=aw?a:b,bl=aw?b:a;
+      diff[w]++;diff[bl]--;seq[w].push('w');seq[bl].push('b');
+      return [w,bl];
+    });
+  });
+}
+function rrColourSeqs(sched,n){
+  const out=[];for(let i=0;i<n;i++)out.push([]);
+  sched.forEach(function(rd){rd.forEach(function(p){out[p[0]].push('w');out[p[1]].push('b');});});
+  return out;
+}
+/* Everything a round-robin schedule has to be. */
+function rrValid(sched,n,cycles){
+  const S=rrColourSeqs(sched,n);
+  for(const q of S){
+    let w=0,b=0;
+    for(let i=0;i<q.length;i++){
+      if(q[i]==='w')w++;else b++;
+      if(i>=2&&q[i]===q[i-1]&&q[i]===q[i-2])return false;
+      if(Math.abs(w-b)>2)return false;
+    }
+    if(Math.abs(w-b)>(q.length%2?1:(cycles===2?0:2)))return false;
+  }
+  const met={};
+  sched.forEach(function(rd){rd.forEach(function(p){
+    const k=Math.min(p[0],p[1])+'-'+Math.max(p[0],p[1]);met[k]=(met[k]||0)+1;});});
+  for(let a=0;a<n;a++)for(let b=a+1;b<n;b++)if(met[a+'-'+b]!==cycles)return false;
+  return true;
+}
+function rrSchedule(n,cycles){
+  const cy=cycles===2?2:1;
+  for(let t=0;t<400;t++){
+    const base=rrOrient(rrPairs(n),n);
+    const full=cy===2?base.concat(base.map(function(rd){return rd.map(function(p){return [p[1],p[0]];});})):base;
+    if(rrValid(full,n,cy))return full;
+  }
+  return null;
+}
+/* Draw lots for pairing numbers and lay the whole event out. `tr.field`
+   becomes your opponent in each round, in order (the same person twice in a
+   double), `tr.colours` your colour, and `tr.sched` every pairing of every
+   round by standings id, white first. */
+function rrInit(c,tr,t){
+  const players=(tr.field||[]).slice();
+  const cycles=t.rr===2?2:1;
+  players.forEach(function(o,i){o.pid='p'+i;});
+  const ids=players.map(function(o){return o.pid;}).concat(['__you']);
+  const n=ids.length;
+  if(n%2)return false;                        // every round-robin here has an even hall
+  // the drawing of lots
+  for(let i=ids.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const x=ids[i];ids[i]=ids[j];ids[j]=x;}
+  const sched=rrSchedule(n,cycles);
+  if(!sched)return false;
+  const byPid={};players.forEach(function(o){byPid[o.pid]=o;});
+  const field=[],cols=[],rounds=[];
+  sched.forEach(function(rd){
+    const round=[];
+    rd.forEach(function(p){
+      const w=ids[p[0]],b=ids[p[1]];
+      if(w==='__you'){field.push(byPid[b]||null);cols.push('w');}
+      else if(b==='__you'){field.push(byPid[w]||null);cols.push('b');}
+      else round.push([w,b]);
+    });
+    rounds.push(round);
+  });
+  tr.players=players;
+  tr.field=field;
+  tr.colours=cols;
+  tr.sched=rounds;
+  tr.rr=cycles;
+  tr.rounds=field.length;
+  tr.myNo=ids.indexOf('__you')+1;
+  tr.drawn=tr.rounds;                         // no pots: the whole schedule is known
+  return true;
+}
+function rrLabel(tr){
+  if(!tr||!tr.sched)return '';
+  const n=(tr.players||[]).length+1;
+  return (tr.rr===2?'Double round-robin':'Round-robin')+' · '+n+' players';
+}
+function rrCard(tr){
+  if(!tr||!tr.sched)return '';
+  return '<div class="card" style="margin-bottom:12px;border-color:#a855f755;background:linear-gradient(150deg,rgba(168,85,247,.09),transparent 62%),var(--panel)">'+
+    '<div style="font-weight:800">🗓️ '+esc(rrLabel(tr))+'</div>'+
+    '<div class="dim small" style="margin-top:3px;line-height:1.6">Lots were drawn for pairing numbers — you are number '+
+      tr.myNo+'. Every pairing and every colour is fixed from the start: '+
+      (tr.rr===2?'each player twice, once with each colour.':'everybody plays everybody once.')+
+      ' Nobody is paired on score.</div></div>';
+}
+/* ---------------------------------------------------------------------------
+   SWISS OPENS ARE PAIRED ON SCORE
+
+   An open used to hand you nine opponents on the first day, drawn from pots,
+   and the only thing your results changed was nothing. That is not a Swiss.
+   In a Swiss the hall is much larger than your nine games, and each round you
+   are paired with somebody on your own score. Win and you meet the other
+   leaders; lose and the tables get easier. It is the whole reason an open
+   produces norms at all — a player on a norm score is by then sitting on the
+   top boards opposite the titled players a norm needs — and it is why a good
+   start is also a hard middle.
+
+   So an open has a hall now, about twice as many players as rounds, and your
+   next opponent is paired when the round before it finishes: an unmet player
+   from your score group, top half of the group against bottom half by rating,
+   floating to the nearest group when yours is empty. The rest of the hall is
+   paired the same way, as the bulletin already did. You find out who you are
+   playing when the pairings go up, which is when everybody else does.
+   --------------------------------------------------------------------------- */
+/* One player's rating in an event's field. A plain bell curve around the
+   event's average has no top: an International Open (2200, give or take 360)
+   drew a 2850 — better than the world number one — in about one hall in two.
+   Real fields are cut off at the top by who actually turns up, so the curve
+   is truncated a little over one spread above the average and nudged back up
+   to keep the advertised average: the International Open now tops out near
+   2650, Gibraltar near 2740, the Qatar Masters near 2800. */
+function fieldRating(t){
+  let z;do{z=gauss();}while(z>1.05);
+  const r=Math.round(t.avg+t.spread*(z+0.2));
+  return Math.max(800,Math.min(2850,r));
+}
+function fieldCeiling(t){return Math.min(2850,Math.round(t.avg+t.spread*1.25));}
+function swissHallSize(rounds){return Math.max(12,2*rounds+2);}   // counting you; always even
+function swissEligible(t){
+  if(!t||t.rr||t.kind==='match'||t.kind==='simul'||t.id==='olympiad'||t.id==='worldcup')return false;
+  return true;
+}
+/* A hall of players around the event's average, with the norm guarantee a
+   norm event would have made for its field. */
+function swissHall(t,size){
+  const players=[];
+  for(let i=0;i<size-1;i++){
+    const r=fieldRating(t);
+    const fed=t.natChamp?{c:store.career.fed,f:store.career.flag}:randFed();
+    players.push({pid:'p'+i,name:t.creator?pick(STREAMERS):randName(),rating:r,title:titleByRating(r),
+      fed:fed.c,flag:fed.f,style:pickStyle()});
+  }
+  // names in a hall of twenty have to be told apart
+  const seen={};
+  players.forEach(function(o){while(seen[o.name])o.name=randName();seen[o.name]=1;});
+  return players;
+}
+function swissInit(c,tr,t){
+  const hall=swissHall(t,swissHallSize(t.rounds));
+  tr.hall=hall;
+  tr.swiss=true;
+  tr.field=[];
+  tr.drawn=0;
+  return hall;
+}
+/* Who you have already played. */
+function swissMet(tr){
+  const m={};(tr.field||[]).forEach(function(o){if(o&&o.pid)m[o.pid]=1;});
+  return m;
+}
+/* Pair you for the next round. Your score group is everybody unmet on your
+   score; sorted by rating, the top half meets the bottom half, so you sit
+   opposite the player in the mirror position. An empty group floats you to
+   the nearest score. */
+function swissPairMe(tr){
+  const S=tr.standings||[];
+  const me=S.filter(function(p){return p.you;})[0];
+  if(!me)return null;
+  const met=swissMet(tr);
+  const unmet=S.filter(function(p){return !p.you&&!met[p.id];});
+  if(!unmet.length)return null;
+  // nobody you cannot be given colours with, unless there is nobody else
+  const fit=unmet.filter(function(p){return !swissClash(me,p);});
+  const cand=fit.length?fit:unmet;
+  let best=Infinity;
+  cand.forEach(function(p){const d=Math.abs((p.score||0)-(me.score||0));if(d<best)best=d;});
+  const group=cand.filter(function(p){return Math.abs(Math.abs((p.score||0)-(me.score||0))-best)<1e-9;});
+  const withMe=group.concat([me]).sort(function(a,b){return b.rating-a.rating;});
+  const k=withMe.indexOf(me),m=withMe.length,half=Math.floor(m/2);
+  let target=k<half?k+half:k-half;
+  if(target>=m)target=m-1;
+  if(withMe[target]===me)target=(target+1)%m;
+  const pick_=withMe[target];
+  const byPid={};(tr.hall||[]).forEach(function(o){byPid[o.pid]=o;});
+  return byPid[pick_.id]||null;
+}
+/* Make sure the round about to be played has a pairing. */
+function swissEnsure(tr){
+  if(!tr||!tr.swiss)return;
+  while((tr.field||[]).length<=tr.round&&tr.field.length<tr.rounds){
+    const o=swissPairMe(tr);
+    if(!o)break;
+    tr.field.push(o);
+    // Your colour is decided now, from both of your histories, the way a
+    // pairing program does it. Planning yours in advance handed your opponent
+    // whatever was left — a third Black in a row, sometimes.
+    const S=tr.standings||[];
+    const me=S.filter(function(p){return p.you;})[0],them=S.filter(function(p){return p.id===o.pid;})[0];
+    if(me&&them){
+      if(!tr.colours)tr.colours=[];
+      tr.colours[tr.field.length-1]=swissWhiteFirst(me,them)?'w':'b';
+    }
+  }
+  tr.drawn=tr.field.length;
+}
+/* Colour bookkeeping for everybody in the hall: the balance of whites over
+   blacks, and the last two colours. */
+function swissNoteColour(p,col){
+  if(!p)return;
+  p.cb=(p.cb||0)+(col==='w'?1:-1);
+  p.lc2=p.lc||null;p.lc=col;
+}
+/* The colour a player must have next round, if any: after two of one colour
+   running, or two ahead on one colour, the rules leave no choice. */
+function swissNeeds(p){
+  if(!p)return null;
+  if((p.lc==='w'&&p.lc2==='w')||(p.cb||0)>=2)return 'b';
+  if((p.lc==='b'&&p.lc2==='b')||(p.cb||0)<=-2)return 'w';
+  return null;
+}
+/* Two players who both must have the same colour cannot sit down together —
+   one of them would break the rule. A pairing program looks elsewhere. */
+function swissClash(a,b){const n=swissNeeds(a);return !!n&&n===swissNeeds(b);}
+/* Who should have White: whoever is further behind on whites, then whoever
+   had Black last, and never anybody's third of a colour in a row. */
+function swissWhiteFirst(a,b){
+  const three=function(p,col){return p.lc===col&&p.lc2===col;};
+  if(three(a,'w')||three(b,'b'))return false;
+  if(three(a,'b')||three(b,'w'))return true;
+  if((a.cb||0)!==(b.cb||0))return (a.cb||0)<(b.cb||0);
+  if(a.lc!==b.lc)return a.lc==='b'||b.lc==='w';
+  return Math.random()<0.5;
+}
+/* A small card where the pot draw used to be. */
+function swissCard(tr){
+  if(!tr||!tr.swiss)return '';
+  const n=(tr.hall||[]).length+1;
+  return '<div class="card" style="margin-bottom:12px;border-color:#22d3ee44;background:linear-gradient(150deg,rgba(34,211,238,.07),transparent 62%),var(--panel)">'+
+    '<div style="font-weight:800">♟ Swiss · '+n+' players · '+tr.rounds+' rounds</div>'+
+    '<div class="dim small" style="margin-top:3px;line-height:1.6">Paired on score after every round. Win and you meet the other leaders — '+
+      'which is also where the titled players a norm needs are sitting. Lose and the boards get easier.</div></div>';
+}
 const POT_MAX=4;
 /* How many fixtures come out of each pot, and in what order the pots are
    pulled. Balanced by construction, shuffled on purpose. */
@@ -16498,12 +17232,13 @@ function tourPots(tr){
    a draw counts as fully revealed, so an old career opens where it left off. */
 function drawRevealed(tr){
   if(!tr)return 0;
+  if(tr.swiss)return (tr.field||[]).length;          // paired so far, which is all anybody knows
   if(tr.drawn==null)return tr.rounds||0;
   return Math.max(0,Math.min(tr.rounds||0,tr.drawn));
 }
 function drawComplete(tr){return drawRevealed(tr)>=(tr&&tr.rounds||0);}
 /* Nothing is ever blocked by the ceremony: starting a round finishes it. */
-function finishDraw(tr){if(tr)tr.drawn=tr.rounds||0;}
+function finishDraw(tr){if(!tr)return;if(tr.swiss){swissEnsure(tr);return;}tr.drawn=tr.rounds||0;}
 /* ===== Spectator: watch two leaderboard players play, simulated at their
    real ratings (engine vs engine). ===== */
 function specLvl(rating){return rating>=1320?{elo:rating,skill:20,mt:550}:{elo:0,skill:Math.max(0,Math.min(9,Math.round((rating-700)/80))),mt:350};}
@@ -16540,11 +17275,22 @@ function joinTournament(id){
   // the Olympiad redraws its own field: your nine opponents are the board ones
   // of nine nations, so the country you face is the country the team comes from
   if(t.id==='olympiad')olyInit(c,c.tour);
+  // an open is a hall paired on score; a round-robin is laid out whole on the first day
+  if(swissEligible(t))swissInit(c,c.tour,t);
+  if(t.rr&&!rrInit(c,c.tour,t)){
+    const f=c.tour.field;
+    c.tour.field=drawFixtures(t.rr===2?f.concat(f):f,t.rounds);
+  }
   if(c.tour.kind!=='match'){
-    const pool=c.tour.field.map((o,i)=>({id:'p'+i,name:o.name,rating:o.rating,title:o.title,flag:o.flag,score:0,you:false}));
+    // one standings row per player — in a double round-robin the fixture list
+    // names everybody twice
+    const pool=(c.tour.players||c.tour.hall||c.tour.field).map((o,i)=>({id:o.pid||('p'+i),name:o.name,rating:o.rating,title:o.title,flag:o.flag,score:0,you:false}));
     pool.push({id:'__you',name:c.name,rating:youRating(c,c.tour.format)||(c.rating||1400),title:bestTitle(c),flag:c.flag,score:0,you:true});
     c.tour.standings=pool;
+    swissEnsure(c.tour);                          // round one's pairing goes up
   }
+  tourColourOf(c.tour,0);                           // the colours are fixed from the start
+  c.tour.ref=ratingRef(c,c.tour.format);            // …and so is the rating you are measured from
   var _af=appearanceFee(t,c);if(_af>0){c.money=(c.money||0)+_af;app.careerToast='✉️ Invited to '+t.name+' — appearance fee 💰'+_af+' collected.';pushNews(c,'✉️','You were invited to '+t.name+' (appearance fee 💰'+_af+').');}
   save();render();
 }
@@ -16565,7 +17311,7 @@ function playTourRound(){
   if(store.career.tour)finishDraw(store.career.tour);
   const c=store.career;if(!c.tour)return;const tr=c.tour;if(tr.round>=tr.rounds)return;
   app.careerFinish=null;
-  const opp=tr.field[tr.round],side=Math.random()<0.5?'w':'b';
+  const opp=tr.field[tr.round],side=tourColourOf(tr,tr.round);
   const tc=tcById(FORMAT_TC[tr.format||'classical']||'30+20');
   const g=tr.var960?c960Start():null;
   const prep=g?null:careerPrepBook(side);
@@ -16747,15 +17493,19 @@ function careerResult(score){
   }
   if(!(app.careerTour&&c.tour)){checkAchievements(c);markActiveDay();save();return;}
   const tr=c.tour,fmt=tr.format||'classical',rIdx=tr.round,opp=app.careerRoundOpp||tr.field[tr.round];
-  const delta=applyByFormat(c,fmt,opp.rating,score);
+  // an event saved before this existed starts its reference from here
+  if(tr.ref===undefined)tr.ref=ratingRef(c,fmt);
+  const delta=applyByFormat(c,fmt,opp.rating,score,tr.ref);
   app.careerDelta=delta;
-  tr.results.push({name:opp.name,rating:opp.rating,title:opp.title,flag:opp.flag,score:score,delta:delta});
+  tr.results.push({name:opp.name,rating:opp.rating,title:opp.title,flag:opp.flag,fed:opp.fed,score:score,delta:delta,
+    col:tourColourOf(tr,rIdx)});
   archiveCareerGame(c,opp,score,fmt,tr.name,!!app.c960);pushRatingPoint(c);
   // the rest of the hall plays its round too — paired, so the table adds up
   if(tr.standings)tourPlayRound(tr,rIdx,score);
   if(tr.oly)olyPlayRound(c,tr,rIdx,score);        // …and so do the other nations
   if(c.nemesis&&opp.name===c.nemesis.name&&score===1)c.nemesis=null;
   tr.round=(tr.round||0)+1;
+  swissEnsure(tr);                                // …and the next round's pairings go up
   c.played=(c.played||0)+1;if(score===1)c.won=(c.won||0)+1;else if(score===0)c.lost=(c.lost||0)+1;else c.drawn=(c.drawn||0)+1;
   if(tr.round>=tr.rounds)finalizeTournament(c);
   markActiveDay();save();
@@ -16769,7 +17519,17 @@ function finalizeTournament(c){
   const tpr=Math.round(avgOpp+dpFromPct(scoreTot/games));
   const published=(fmt==='classical'&&c.provisional)?publishRating(c):false;
   let gainedNorms=[];
-  if(tr.normEligible&&(fmt==='classical'||c.titleFormat==='any')){for(const k of eventNorms(c,avgOpp,scoreTot,games)){c.norms.push({type:k,tpr:tpr,event:tr.name,date:Date.now(),games:games,avg:avgOpp,format:fmt});gainedNorms.push(k);}}
+  let missedNorms=[];
+  if(tr.normEligible&&(fmt==='classical'||c.titleFormat==='any')){
+    for(const k of eventNorms(c,tr)){c.norms.push({type:k,tpr:tpr,event:tr.name,date:Date.now(),games:games,avg:avgOpp,format:fmt});gainedNorms.push(k);}
+    // a performance good enough for a norm the opposition would not allow
+    if(!gainedNorms.length){
+      missedNorms=eventNormMisses(c,tr).map(function(m){
+        return {kind:m.kind,tpr:m.Rp,why:m.failed.map(function(f){return f.label+' '+f.have+(f.key==='own'||f.key==='one'?' (max '+f.need+')':'/'+f.need);}).join(', ')};});
+      missedNorms.forEach(function(m){
+        pushNews(c,'📜','A '+m.tpr+' performance at '+esc(tr.name)+' — '+m.kind+'-norm strength, but no norm: '+m.why+'.');});
+    }
+  }
   const newTitles=checkTitles(c);
   newTitles.forEach(function(t){pushFeed(c,'🎖️','Title confirmed: '+esc(c.name||'You')+' is now '+t+'.','you');});
   // finishing place — from the real crosstable standings if available
@@ -16843,7 +17603,8 @@ function finalizeTournament(c){
   xtPrune(c);
   pushFeed(c,won1st?'🏆':'📋',esc(c.name||'You')+(won1st?' WINS ':' finishes '+ordinal(place)+' at ')+esc(tr.name)+' with '+fmtScore(scoreTot)+'/'+games+' (TPR '+tpr+').','you');
   gainedNorms.forEach(function(k){pushFeed(c,'📜',esc(c.name||'You')+' scores a '+k+' norm at '+esc(tr.name)+'.','you');});
-  app.careerFinish={name:tr.name,emoji:tr.emoji,score:scoreTot,rounds:games,avg:avgOpp,tpr:tpr,norms:gainedNorms,newTitles:newTitles,honors:gainedHonors,published:published,rating:youRating(c,fmt),place:place,format:fmt,xt:(c.history[0]&&c.history[0].xt)||null};
+  app.careerFinish={name:tr.name,emoji:tr.emoji,score:scoreTot,rounds:games,avg:avgOpp,tpr:tpr,norms:gainedNorms,newTitles:newTitles,honors:gainedHonors,published:published,rating:youRating(c,fmt),place:place,format:fmt,xt:(c.history[0]&&c.history[0].xt)||null,
+    missed:missedNorms};
   momentsFromFinish(c,app.careerFinish);      // the event is over: keep what was worth keeping
   lifeAfterEvent(tr,place,games);
   c.calDone=c.calDone||[];if(c.calDone.indexOf(tr.id)<0)c.calDone.push(tr.id);

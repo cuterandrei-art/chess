@@ -327,6 +327,103 @@ as the gap widens, so a +400 favourite scores the 91% Elo predicts instead of
 85%, and a 600-point favourite loses about 2% of the time. The club league's
 board simulation had the identical flaw and the identical fix.
 
+## How a chess career actually works
+
+An audit of the career mode against the FIDE rules and against how events are
+actually run, fixed in order of how much each one mattered. Every one of them
+was wrong in a way a player could feel, and several were wrong in a way a
+player could exploit.
+
+**1. A simulated game scores what the ratings say.** The simulation set your
+win chance to E−0.18 and laid a fixed draw band on top. That happens to be
+right between equals and nowhere else: an underdog could never score below
+18% however outclassed (a 500-point underdog is meant to score 5%), a favourite
+above 82% could never lose a game, and playing style moved the expectation
+itself — an attacker scored six points of percentage below their rating in
+every game, a solid player two above. Simulating into a field 400 points above
+you was a free climb of thirty to fifty points an event, depending on style. Style now changes only
+how the points arrive (an attacker's games are decided more often, a solid
+player's drawn more), draws thin out as the gap widens, and the expected score
+is exactly Elo's for every style from 3% to 97%.
+
+**2. Colours follow the pairing rules.** Every round tossed a coin for your
+colour. Nearly one nine-round event in five came out seven–two or worse, and
+three Blacks in a row was routine — both things FIDE's two absolute colour
+rules forbid (never three of a colour running, never more than two ahead on
+one). Colours are allocated the way pairing software does it, and White is
+worth its real edge in the simulation: about 55% between equals, thirty-five
+points either way. Each round shows your colour, and you know it when the
+pairing goes up, so preparing a line for the colour you will actually have is
+something you can do.
+
+**3. A norm needs the right opposition, not just the score.** A norm used to be
+a performance over a field average and nothing else — about half of the rule.
+The rest is who you played: half of them title holders (FM or better; CM does
+not count), a third of them, and never fewer than three, holding the title you
+are after or a higher one, at least two federations other than yours, no more
+than three-fifths from yours and two-thirds from any one; and the lowest-rated
+opponent below the rating floor counted at the floor. National championships
+are exempt from the federation rules, as they are in life. The norm tracker
+shows every requirement as a checklist, a finished event that made the score
+without the opposition says exactly what was missing, and a norm round-robin
+is now invited so that the norm is on offer — left to chance, one IM-norm
+event in five could not give an IM norm whatever you scored.
+
+**4. Ratings are worked out the way FIDE works them out.** Three things. A
+junior is rated at K=40 until the end of the year they turn eighteen, as long
+as they stay under 2300 — a career starts at sixteen, and its first two years
+were moving half as fast as a real junior's. FIDE rates an event, not a game:
+every game is measured against the rating and K you started the event with,
+and the total is rounded once, so the order the results come in no longer
+changes where you finish. And a first rating is worked out with two
+hypothetical draws against 1800-rated opponents, as FIDE has done since 2024;
+without them five straight wins in a 1350 club championship published you at
+2150. It is now 1788.
+
+**5. A round-robin is a schedule.** The Candidates — eight players, meeting
+twice — came out as fourteen different people and a table with fifteen names
+in it, and every closed event's crosstable was full of holes because the
+players around you were being Swiss-paired. Round-robins now draw lots for
+pairing numbers and lay out the whole event on the first day: everybody meets
+everybody once (twice, once with each colour, in a double), nobody has three
+of a colour running, and the finished crosstable is complete. Seven events use
+it: the two norm round-robins, the Super-GM Invitational, Tata Steel, Superbet,
+Norway Chess, and the Candidates.
+
+**6. An open is paired on score.** An open handed you nine opponents on the
+first day, and your results changed nothing about who they were. In a real
+Swiss the hall is much larger than your nine games and each round pairs you
+with somebody on your score — which is the whole reason an open produces norms,
+because a player on a norm score is by then sitting opposite the titled players
+on the top boards. Opens now have a hall of about twice the rounds, and your
+next opponent is paired when the round before it finishes, top half of your
+score group against the bottom half, with colour rules taking precedence as
+they do in pairing software. In an International Open, a 2380 who wins every
+game now meets opposition three hundred points stronger than one who loses
+every game, and the IM-norm requirements are met about three times in four;
+under the old draw they were met one time in four whatever you did. The
+crosstable for an open is printed the way opens print it — one row per player,
+one column per round, cells like `7w1`.
+
+Building these turned up three more things worth fixing. A player-by-player
+grid for a Swiss is more than half empty, which is why the round-by-round form
+exists. Field ratings came from a bell curve with no top, so an International
+Open drew a player rated 2850 — better than the world number one — about one
+event in two; fields are now cut off a little above one spread over the
+average, which keeps the advertised average and puts the top of that event
+near 2650. And pairing the hall on score alone let two players who both *had*
+to have Black sit down together; 88 of 800 player-rows broke the three-in-a-row
+rule until the pairing learned to look past a colour clash and repair the last
+boards, and now none do.
+
+Not done yet, in the order they would come next: the World Cup is still seven
+games against a drawn field rather than a knockout of two-game matches (and so,
+at seven games, it cannot give a norm); prize money grows too slowly with the
+level of the event, so a World Championship pays about seventeen times a club
+championship when the real ratio is thousands; and a player's title is still
+read straight off their rating, where in life titles lag and lead ratings both
+ways.
+
 ## The Olympiad is a team event
 
 Nine individual games with a sentence bolted on the end. Your "team" was three
@@ -871,7 +968,7 @@ the engine can answer, and a game with one known blunder).
 
 ## Tests
 
-Forty-eight suites, about 4,500 checks, plus thirteen browser suites that drive the real app with the real engine.
+Forty-nine suites, about 4,700 checks, plus thirteen browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
@@ -893,6 +990,18 @@ exactly one point per game), `validate-magazine.mjs` (every front-page branch
 and where each section's facts come from), `validate-hall.mjs` (what survives a
 new career, a reload and a backup) and `validate-pzmiss.mjs` (the box ladder,
 what is due and in what order, and a queue that outlives the puzzle set).
+
+`validate-realism.mjs` checks the career against the real rules rather than
+against what the code does: that every playing style scores its Elo expectation
+from 3% to 97% and that simulating far above or below you is worth nothing on
+average; that five thousand planned colour sequences and twenty whole opens'
+worth of pairings never break FIDE's two absolute colour rules; each norm
+requirement on a field built to fail exactly that one (two GMs where three are
+needed, nine Germans, six compatriots out of nine); that nine results in any
+order rate the same; the 1788 debut; that every round-robin crosstable comes
+out complete; and that winning in an open brings stronger opposition than
+losing in it. Several of its checks are statistical, and each was run ten times
+in a row before it was trusted.
 
 `validate-olympiad.mjs` plays thirty Olympiads and checks the books balance —
 every match hands out exactly two match points and four game points, no nation
