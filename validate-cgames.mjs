@@ -267,8 +267,9 @@ ok(/act==='cgopen'\)cgOpen/.test(script),'the board button is connected');
 ok(/act==='cgpgn'\)cgExport\(\)/.test(script),'so is the export');
 ok(/act==='cgq'\)cgSearchNow\(\)/.test(script),'and the search');
 ok(/id==='cg-q'&&e\.key==='Enter'/.test(script),'with Enter to run it');
-ok(/L\.kind==='career'\n?\s*\?\s*'<button class="btn ghost sm" data-act="nav" data-val="career">← Career/.test(script),
-  'the board sends a career game back to the career, not to the tracker');
+ok(/L\.kind==='career'[\s\S]{0,60}data-act="nav" data-val="'\+esc\(L\.back\|\|'career'\)/.test(script),
+  'the board sends a career game back where it came from, not to the tracker');
+ok(/anno:annoBuild\(g\),back:'career'/.test(script),'which for one opened from the archive is the career');
 ok(/application\/x-chess-pgn/.test(script),'the file is offered as a PGN, so any chess program opens it');
 ok(/h\+=careerGames\(c\);/.test(script),'and the panel is actually rendered');
 

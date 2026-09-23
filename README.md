@@ -193,6 +193,44 @@ find. Every move in the table is playable straight off it.
 
 ---
 
+## Playing without a mouse
+
+Every board in this app was sixty-four unlabelled `<div>`s. You could not reach
+one with the Tab key, you could not move a piece with the keyboard, and a
+screen reader had nothing to read out: one `aria-label` and no `role` anywhere
+in the file. The whole game was silent to anyone not using their eyes and a
+pointer.
+
+There is one `renderBoard`, so it is fixed in one place and every board gets
+it — the play screen, the puzzles, the analysis board, Game Review, the
+opening explorer, the endgame lessons:
+
+- The board is a `role="grid"` labelled *"Chess board, White at the bottom.
+  White to move. Arrow keys move, Enter selects, Escape cancels."*
+- Each square is a `role="gridcell"` that describes itself: **"e2, white
+  pawn"**, **"e2, white pawn, selected"**, **"e4, empty, can move here"**,
+  **"d5, black pawn, can be captured"**, **"e1, white king, in check"**.
+- Exactly one square is in the tab order, so **Tab** reaches the board once
+  and arrow keys walk a cursor from there, respecting which way the board is
+  facing. **Enter** picks a piece up and puts it down, **Escape** lets go.
+  The cursor ring only appears for keyboard use; a mouse click puts it away.
+- A live region announces what happened — *"Nf6. Your move."*, *"Not the move.
+  Try again, or view the solution."*, *"Checkmate — you won."* — and stays
+  quiet when nothing changed, so the same sentence is never read twice.
+
+Two bugs came out of this, and the browser found both:
+
+- A deliberate announcement was talked over by the running status in the same
+  render, so *"selection cleared"* was never heard.
+- The live region was inside `#app`, which `render()` replaces wholesale — the
+  redraw that follows an announcement **destroyed the region and the message
+  with it**. It lives on `<body>` now, created once and written to directly. A
+  unit test looking at the in-memory copy could not have caught that; only
+  reading the actual DOM after a redraw did.
+
+A board can opt out with `{a11y:false}` — a decorative thumbnail has nothing
+to announce and no business in the tab order.
+
 ## Arrows on the board
 
 Right-drag (or long-press and drag) draws an arrow; right-click circles a
@@ -288,6 +326,73 @@ favourite's expected score sat below what its rating said. Draws now thin out
 as the gap widens, so a +400 favourite scores the 91% Elo predicts instead of
 85%, and a 600-point favourite loses about 2% of the time. The club league's
 board simulation had the identical flaw and the identical fix.
+
+## The crosstable
+
+The standings say who is on what score. A crosstable says *how*: the grid
+every real tournament publishes, every player down the side and the same
+players across the top, one symbol in each cell. Read a row and you have
+somebody's whole week; read the column under your own number and you can see
+who beat you.
+
+Those games already existed — the hall has been playing paired rounds since
+the bulletin went in — they were just being thrown away once the round note
+was written. Every pairing is kept now, including your own game, which the
+bulletin never stored, and the grid falls out of them. It is folded away
+under the standings, because it is wide; it scrolls sideways on a phone with
+the names pinned; and it is a real `<table>` with `scope="col"` and
+`scope="row"`, so a screen reader can say whose row a cell is in.
+
+It outlives the event. A compact snapshot goes on the history entry — three
+numbers a cell, score, games and round — so a crosstable from four seasons
+ago is still there to open, and only the last twelve events keep one so a
+long career does not carry fifty grids around in local storage.
+
+Writing it turned up an arithmetic bug of my own making. With nine in the
+hall and eight rounds there is not always an unmet opponent left, so a small
+Swiss occasionally has to pair two people twice — and the second game was
+overwriting the first, which made the row disagree with the score printed
+beside it. A cell now accumulates: two games show as a total with a small
+superscript. The test plays forty events and checks every row adds up to the
+point, byes added back; the browser test reads your own row out of the DOM
+and adds the symbols up.
+
+## The game, written up
+
+A career game was a row in a list, and since the archive went in, a board you
+could step through. What it still was not was a game anybody had written
+about. A move list is a record. An annotated game is the form chess has used
+to remember its own games for two hundred years.
+
+No engine is involved and none is needed. Everything worth remarking on is
+visible in the moves: the opening, the first piece off (and how long the two
+of you circled before it), which way the kings went, a piece handed over and
+not won back, the queens coming off, a pawn reaching the eighth, the move
+where the material broke for good, the four minutes somebody spent on move
+23, the point somebody dropped under a twelfth of their clock, and how it
+finished. Up to nine notes, keyed to the ply, so the analysis board hands you
+each one as you reach it.
+
+A sacrifice is the hard one. The move that makes it usually *gains* material —
+it is a capture — so a single ply says nothing; what matters is the balance
+before the move against the balance after the reply, and then whether it came
+back over the next few moves. An exchange nets zero and never appears. The
+note names the piece the opponent actually took, because a queen given for a
+pawn nets eight and "gave up a rook" would be a lie.
+
+It is printed in two places: on the analysis board beside any career game,
+and as **Game of the issue** in the magazine, with its own board to step
+through — the brilliancy if the season had one, otherwise the best win,
+otherwise the longest fight. The issue keeps its own copy of the game, so it
+still prints once the 150-game archive has rolled past it.
+
+Two things the tests caught. The first capture of Légal's mate *is* the queen
+sacrifice, and the note that got to the move first was winning it — so a move
+that two things happened on now goes to the bigger moment, not the earlier
+one. And the grammar trap the commentary booth fell into is back: a player is
+either "You" or a surname, and English does not conjugate those the same way,
+so the notes are written in past tense (*castled*, *took*, *had*, *spent* —
+the same for both) with a helper for the two places that need "was" or "has".
 
 ## Sixty-Four, the magazine
 
@@ -722,7 +827,7 @@ the engine can answer, and a game with one known blunder).
 
 ## Tests
 
-Forty-four suites, a little over four thousand checks, plus eight browser checks that drive the real app with the real engine.
+Forty-seven suites, about 4,400 checks, plus twelve browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
@@ -732,6 +837,10 @@ one system each (career pace, story arcs and the world feed, brilliancies, the
 park and simuls, the weekly life sim, avatars and backdrops, profiles, courses,
 endgames, and the rest).
 
+`validate-a11y.mjs` covers the board's labels, the cursor, the keys and the
+live region, and `visual-a11y.mjs` plays 1.e4 in a real browser using nothing
+but Tab, the arrow keys and Enter.
+
 Career mode's newer systems have their own: `validate-booth.mjs` (what the
 commentators can and cannot know, the grammar guard that fills every line with
 the awkward name "You", and the constraint that the section never touches the
@@ -740,6 +849,18 @@ exactly one point per game), `validate-magazine.mjs` (every front-page branch
 and where each section's facts come from), `validate-hall.mjs` (what survives a
 new career, a reload and a backup) and `validate-pzmiss.mjs` (the box ladder,
 what is due and in what order, and a queue that outlives the puzzle set).
+
+`validate-crosstable.mjs` plays forty simulated events and checks the grid
+never contradicts the standings — every row adds up to the point, byes added
+back, including the cells where a small Swiss had to pair somebody twice.
+`validate-anno.mjs` puts each detector in front of a position built to contain
+exactly the thing it looks for (Légal's mate for the sacrifice, an English
+Attack for the opposite castling, a pawn on the seventh for the promotion, a
+clock array for the long think), then plays out fifty games with a crude
+policy and checks no column ever throws, leaks or points past the end of the
+game. `visual-crosstable.mjs` plays a whole tournament in a browser and adds
+your own row up out of the DOM; `visual-anno.mjs` reads the write-up on both
+screens that print it.
 
 Career mode has its own three on top of the rest: `validate-resume.mjs` (what
 gets written down, what it refuses to trust, and that a round only ever holds

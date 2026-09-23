@@ -70,6 +70,26 @@
   .learncard .lt{font-weight:800}
   .learncard .ld{color:var(--muted);font-size:12.5px;margin-top:2px;line-height:1.4}
   /* twenty-six week columns have to fit a phone without scrolling */
+  /* the keyboard cursor: only ever visible to somebody using the keyboard */
+  .square{outline:none}
+  .square.kbcur:focus-visible,.square.kbcur:focus{box-shadow:inset 0 0 0 3px var(--brand),0 0 0 2px var(--brand)55;z-index:6}
+  .sronly{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  /* the crosstable: a real table, so a screen reader can read a row against a
+     column, and scrolled sideways on a phone with the names pinned */
+  .xtwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:6px}
+  .xt{border-collapse:collapse;font-size:12px;white-space:nowrap}
+  .xt th,.xt td{padding:3px 5px;text-align:center;border-top:1px solid var(--border)}
+  .xt thead th{border-top:0;color:var(--muted);font-weight:700;font-size:11px}
+  .xt .xtn{text-align:left;font-weight:600;max-width:158px;overflow:hidden;text-overflow:ellipsis;position:sticky;left:0;background:var(--panel);z-index:1}
+  .xt .xtr{color:var(--muted);font-weight:700}
+  .xt .xtself{color:var(--border)}
+  .xt .xtnone{color:var(--muted);opacity:.5}
+  .xt .xtw{color:var(--green);font-weight:800}
+  .xt .xtl{color:#f87171}
+  .xt .xtd{color:var(--muted)}
+  .xt .xtp{font-weight:800}
+  .xt tr.xtyou th,.xt tr.xtyou td{background:rgba(96,165,250,.14)}
+  .xt tr.xtyou .xtn{background:linear-gradient(rgba(96,165,250,.14),rgba(96,165,250,.14)),var(--panel)}
   .heatmap{display:flex;gap:2px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   .heatmap::-webkit-scrollbar{display:none}
   .heatcol{display:flex;flex-direction:column;gap:2px;flex:0 0 auto}
@@ -4544,7 +4564,7 @@ function delRep(id){store.repertoire=store.repertoire.filter(x=>x!==id);save();}
 /* ============================== app state ============================== */
 const app={view:'career',exId:null,exPath:[],exFlip:false,courseId:null,setupOpening:'',
   pz:null,pzSeen:new Set(),pzFilter:{type:'auto'},rush:null,
-  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,ccSyncing:false,ccSyncMsg:null,ccSyncErr:null,_ccAutoTried:false,drill:null,installOpen:false,installMsg:null,trkF:null,trkQ:'',trkSort:'date',trkPage:0,trkMsg:null,cgQ:'',cgSort:'new',cgPage:0,cgMsg:null,playClk:[],booth:null,magIdx:0,pzReview:null,pzGraduated:null,pzMissDone:false,_pzCount:0,replaySpeed:1,_replayTick:null,live:null,liveUser:null,liveList:null,liveLoading:false,liveErr:null,liveListAt:0,liveEv:null,liveBest:null,liveLines:[],liveEngErr:false,_liveKey:null,_livePollT:null,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
+  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,ccSyncing:false,ccSyncMsg:null,ccSyncErr:null,_ccAutoTried:false,drill:null,installOpen:false,installMsg:null,trkF:null,trkQ:'',trkSort:'date',trkPage:0,trkMsg:null,cgQ:'',cgSort:'new',cgPage:0,cgMsg:null,playClk:[],booth:null,magIdx:0,magPly:0,xtOpen:false,xtFin:false,xtHist:null,pzReview:null,pzGraduated:null,pzMissDone:false,_pzCount:0,kbSq:null,kbFocus:false,_srLast:null,_srAt:0,replaySpeed:1,_replayTick:null,live:null,liveUser:null,liveList:null,liveLoading:false,liveErr:null,liveListAt:0,liveEv:null,liveBest:null,liveLines:[],liveEngErr:false,_liveKey:null,_livePollT:null,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
   confirm:null,
   review:null,studyId:null,studyChapter:0,studyPath:[],studyFlip:false,studyMsg:null,
 
@@ -4572,6 +4592,178 @@ function days(n){const out=[];const now=Date.now();for(let i=n-1;i>=0;i--)out.pu
 
 /* ============================== board view ============================ */
 function sqCenterPct(files,ranks,sq){var fi=files.indexOf(sq[0]),ri=ranks.indexOf(+sq[1]);if(fi<0||ri<0)return null;return {x:(fi+0.5)/8*100,y:(ri+0.5)/8*100};}
+/* ================= PLAYING WITHOUT A MOUSE =================
+   Every board in this app was sixty-four unlabelled divs. You could not reach
+   one with the Tab key, you could not move a piece with the keyboard, and a
+   screen reader had nothing whatsoever to read out — the whole game was
+   silent to anyone not using their eyes and a pointer.
+
+   There is one renderBoard, so this is fixed in one place and every board
+   gets it: the play screen, the puzzles, the analysis board, the review, the
+   opening explorer, the endgame lessons.
+
+   Squares are grid cells with real labels ("e4, white knight"), arrow keys
+   walk a cursor around, Enter picks a piece up and puts it down, Escape lets
+   go. A live region says what just happened, so a move is announced rather
+   than merely drawn. */
+const PIECE_WORD={p:'pawn',n:'knight',b:'bishop',r:'rook',q:'queen',k:'king'};
+function a11yPiece(p){
+  if(!p)return 'empty';
+  return (p.color==='w'?'white ':'black ')+(PIECE_WORD[p.type]||'piece');
+}
+/* What a screen reader reads when the cursor lands on a square. */
+function a11ySquare(sq,piece,st){
+  const bits=[sq,a11yPiece(piece)];
+  if(st){
+    if(st.sel)bits.push('selected');
+    if(st.dest)bits.push(piece?'can be captured':'can move here');
+    if(st.last)bits.push('last move');
+    if(st.check)bits.push('in check');
+  }
+  return bits.join(', ');
+}
+/* ---- the cursor ---- */
+function kbDefault(fen,orient){
+  // start where the game is: the square of the last move, or the middle
+  const L=app.playLast||(app.pz&&app.pz.last)||null;
+  if(L&&L.to)return L.to;
+  return orient==='black'?'d5':'e4';
+}
+function kbSq(fen,orient){
+  if(!app.kbSq||!/^[a-h][1-8]$/.test(app.kbSq))app.kbSq=kbDefault(fen,orient);
+  return app.kbSq;
+}
+function kbStep(sq,dx,dy,orient){
+  const f='abcdefgh'.indexOf(sq[0]),r=+sq[1]-1;
+  const flip=(orient==='black')?-1:1;
+  const nf=Math.max(0,Math.min(7,f+dx*flip));
+  const nr=Math.max(0,Math.min(7,r+dy*flip));
+  return 'abcdefgh'[nf]+(nr+1);
+}
+/* The board currently on screen, and which way round it is. */
+function kbBoardEl(){try{return document.querySelector('.board');}catch(e){return null;}}
+function kbOrient(){
+  const el=kbBoardEl();
+  return (el&&el.getAttribute('data-orient'))||'white';
+}
+function kbFen(){
+  const el=kbBoardEl();
+  return (el&&el.getAttribute('data-fen'))||null;
+}
+/* Arrow keys, Enter and Escape on a board. Returns true when it acted, so the
+   ordinary shortcuts for the screen are left alone otherwise. */
+function kbHandle(e){
+  const el=kbBoardEl();
+  if(!el)return false;
+  const k=e.key;
+  const arrows={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,1],ArrowDown:[0,-1]};
+  const inBoard=!!(e.target&&e.target.closest&&e.target.closest('.board'));
+  if(arrows[k]){
+    // arrows only take over the board once you are actually on it, so the
+    // left/right move-stepping on the play screen keeps working
+    if(!inBoard&&!app.kbFocus)return false;
+    const or=kbOrient();
+    app.kbSq=kbStep(kbSq(kbFen(),or),arrows[k][0],arrows[k][1],or);
+    app.kbFocus=true;
+    e.preventDefault();
+    render();
+    return true;
+  }
+  if(!inBoard&&!app.kbFocus)return false;
+  if(k==='Enter'||k===' '){
+    e.preventDefault();
+    app.kbFocus=true;
+    boardClick(kbSq(kbFen(),kbOrient()));
+    return true;
+  }
+  if(k==='Escape'){
+    e.preventDefault();
+    app.sel=null;app.playSel=null;
+    if(app.pz)app.pz.sel=null;
+    srSay('Selection cleared.');
+    render();
+    return true;
+  }
+  return false;
+}
+/* ---- the live region ---- */
+/* The live region lives OUTSIDE #app, because render() replaces #app's
+   innerHTML wholesale — a region inside it is destroyed, and its message with
+   it, by the very redraw that follows the announcement. It is created once and
+   written to directly from then on. */
+function srNode(){
+  try{
+    let el=document.getElementById('srlive');
+    if(!el){
+      el=document.createElement('div');
+      el.id='srlive';el.className='sronly';
+      el.setAttribute('aria-live','polite');
+      el.setAttribute('aria-atomic','true');
+      el.setAttribute('role','status');
+      document.body.appendChild(el);
+    }
+    return el;
+  }catch(e){return null;}
+}
+function srSay(text){
+  if(!text)return;
+  app._srLast=text;app._srAt=Date.now();
+  const el=srNode();
+  if(el)el.textContent=text;
+}
+/* One sentence about where the game is, read out when it changes. */
+function a11yStatus(){
+  if(app.view==='play'&&app.playFen){
+    const mv=(app.playMoves||[]);
+    const last=mv.length?mv[mv.length-1].san:null;
+    if(app.playStatus==='over')return (last?last+'. ':'')+(app.playResult||'Game over');
+    const mine=turnOf(app.playFen)===app.playSide;
+    return (last?last+'. ':'')+(mine?'Your move.':'Waiting for your opponent.');
+  }
+  if(app.view==='puzzles'&&app.pz){
+    const P=app.pz;
+    if(P.status==='solved')return 'Correct.';
+    if(P.status==='failed')return 'Not the move. Try again, or view the solution.';
+    if(P.status==='shown')return 'Showing the solution.';
+    return (P.side==='w'?'White':'Black')+' to move. Find the best move.';
+  }
+  if(app.view==='livegame'&&app.live&&app.live.moves){
+    const m=app.live.moves[app.live.pos-1];
+    return (m?m.san+'. ':'')+'Move '+app.live.pos+' of '+(app.live.fens.length-1)+'.';
+  }
+  if(app.view==='train'&&app.fen){
+    if(app.status==='wrong')return 'Not that move. Try again.';
+    if(app.status==='linedone')return 'Line complete.';
+    return 'Your move.';
+  }
+  return null;
+}
+/* Called at the end of every render: says what changed, and nothing when
+   nothing did, so a screen reader is not read the same sentence twice. */
+function a11yTick(){
+  const s=a11yStatus();
+  /* A deliberate announcement — "selection cleared" — is not talked over by
+     the running status in the same breath. */
+  if(s&&s!==app._srLast&&(Date.now()-(app._srAt||0))>900)srSay(s);
+  // keep the keyboard cursor focused, but never steal focus from a text field
+  if(app.kbFocus){
+    try{
+      const ae=document.activeElement;
+      if(ae&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName))return;
+      const el=document.querySelector('.board [data-sq="'+app.kbSq+'"]');
+      if(el&&el.focus)el.focus({preventScroll:true});
+    }catch(e){}
+  }
+}
+/* Kept for the boot path: makes sure the region exists before anything has
+   been said, so the first announcement is not the one that creates it. */
+function srRegion(){srNode();return '';}
+/* A short description of the whole board, for when the grid is focused. */
+function a11yBoardLabel(fen,orient){
+  const t=turnOf(fen);
+  return 'Chess board, '+(orient==='white'?'White':'Black')+' at the bottom. '+
+    (t==='w'?'White':'Black')+' to move. Arrow keys move, Enter selects, Escape cancels.';
+}
 function renderBoard(fen,orient,o={}){const{sel=null,last=null,wrong=null,hint=null,premove=null,premoves=null,interactive=true,hidePieces=false}=o;
   const pmset=new Set();if(premove){pmset.add(premove.from);pmset.add(premove.to);}if(premoves)premoves.forEach(function(p){pmset.add(p.from);pmset.add(p.to);});
   const pm=pmap(fen);const ranks=orient==='white'?[8,7,6,5,4,3,2,1]:[1,2,3,4,5,6,7,8];
@@ -4579,7 +4771,11 @@ function renderBoard(fen,orient,o={}){const{sel=null,last=null,wrong=null,hint=n
   const dset=new Set(sel&&interactive?dests(fen,sel):[]);
   const th=THEMES[store.settings.theme]||THEMES.green;const showC=store.settings.coords!==false;
   const an=(app.annot&&app.annot[fen])||null;const dl=last?(last.from+last.to):'';
-  let h='<div class="board" style="position:relative;--lt:'+th.l+';--dk:'+th.d+'" data-fen="'+fen+'" data-orient="'+orient+'" data-last="'+dl+'">';
+  const cur=o.a11y===false?null:kbSq(fen,orient);
+  let inChk=null;
+  try{const _c=new Chess(fen);if(_c.inCheck&&_c.inCheck()){for(const _s in pm)if(pm[_s].type==='k'&&pm[_s].color===_c.turn())inChk=_s;}}catch(e){}
+  let h='<div class="board" role="grid"'+(o.a11y===false?'':' aria-label="'+esc(a11yBoardLabel(fen,orient))+'"')+
+    ' style="position:relative;--lt:'+th.l+';--dk:'+th.d+'" data-fen="'+fen+'" data-orient="'+orient+'" data-last="'+dl+'">';
   for(let ri=0;ri<8;ri++)for(let fi=0;fi<8;fi++){const r=ranks[ri],f=files[fi],sq=f+r;const light=("abcdefgh".indexOf(f)+r)%2===0;
     let cls='square '+(light?'light':'dark');if(sel===sq)cls+=' sel';if(last&&(last.from===sq||last.to===sq))cls+=' last';if(wrong&&(wrong.from===sq||wrong.to===sq))cls+=' wrong';if(hint&&(hint.from===sq||hint.to===sq))cls+=' hint';if(pmset.has(sq))cls+=' premove';
     let inner='';
@@ -4587,7 +4783,13 @@ function renderBoard(fen,orient,o={}){const{sel=null,last=null,wrong=null,hint=n
     if(showC){if(fi===0)inner+='<span class="coord r">'+r+'</span>';if(ri===7)inner+='<span class="coord f">'+f+'</span>';}
     if(dset.has(sq)&&!hidePieces)inner+=pm[sq]?'<span class="ring"></span>':'<span class="dot"></span>';
     const p=pm[sq];if(p&&!hidePieces)inner+=pieceImg(p.color,p.type);
-    h+='<div class="'+cls+'" data-sq="'+sq+'">'+inner+'</div>';}
+    if(cur===sq)cls+=' kbcur';
+    const a11y=(o.a11y===false)?'' :
+      ' role="gridcell" tabindex="'+(cur===sq?'0':'-1')+'"'+
+      ' aria-label="'+esc(a11ySquare(sq,pm[sq],{sel:sel===sq,dest:dset.has(sq),
+        last:!!(last&&(last.from===sq||last.to===sq)),check:inChk===sq}))+'"'+
+      (sel===sq?' aria-selected="true"':'');
+    h+='<div class="'+cls+'"'+a11y+' data-sq="'+sq+'">'+inner+'</div>';}
   if(an&&an.arrows&&an.arrows.length)h+=annSvg(files,ranks,an.arrows,'annsv');
   h+='<svg id="annprev" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:7"></svg>';
   // engine suggestions: their own layer, so drawing your own arrows never fights them
@@ -4823,12 +5025,14 @@ function render(){
   // section you have not chosen yet is exactly the noise it exists to spare you.
   const chrome=app.view==='onboard'?'<header class="top"><div class="topin"><div class="brand"><span class="mark">♞</span><b>Chess</b> <span style="color:var(--brand2)">Career</span></div></div></header>':head;
   document.getElementById('app').innerHTML=chrome+'<div class="wrap">'+body+'</div>'+confirmOverlay()+promoOverlay();
+  srNode();                       // outside #app, so a redraw never wipes it
   if(app.view==='play'&&app.playStatus==='over'&&resultKind(app.playResult)==='win'&&app._fxKey!==app.playResult){app._fxKey=app.playResult;confetti();}
   var _cf=app.careerFinish;if(_cf&&((_cf.newTitles&&_cf.newTitles.length)||(_cf.honors&&_cf.honors.length)||(_cf.norms&&_cf.norms.length)||_cf.published)&&app._fxCareer!==_cf){app._fxCareer=_cf;confetti(130);}
   if(app.view==='clearn'&&app.cl&&app.cl.done&&app._fxCl!==app.cl){app._fxCl=app.cl;confetti(90);}
   // keep the game on disk while it is being played, and drop it the moment it
   // is finished — one place, so no ending can forget to clean up after itself
   if(app.view==='play')playSave();
+  a11yTick();
   animateLast();
 }
 
@@ -7659,7 +7863,8 @@ function viewLiveGame(){
   let h='<div style="max-width:560px;margin:0 auto">'+
     '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">'+
       (L.kind==='career'
-        ? '<button class="btn ghost sm" data-act="nav" data-val="career">← Career</button>'
+        ? '<button class="btn ghost sm" data-act="nav" data-val="'+esc(L.back||'career')+'">← '+
+          (L.back==='magazine'?MAG_NAME:'Career')+'</button>'
         : '<button class="btn ghost sm" data-act="nav" data-val="tracker">← Tracker</button>')+
       '<div class="row" style="gap:6px;flex-wrap:wrap">'+
         (L.kind==='live'?'<span class="chip'+(L.finished?'':' green')+'" style="font-size:10px">'+(L.finished?'game over':'● live')+'</span>':'')+
@@ -7701,6 +7906,7 @@ function viewLiveGame(){
     h+='<div class="dim small">The engine is off. Turn either switch on and it analyses whatever position is on the board.</div>';
   h+='</div>';
 
+  h+=annoPanel(L);
   h+=replayPanel();
   // where we are in the game
   h+='<div class="card" style="margin-bottom:10px">'+
@@ -9495,7 +9701,7 @@ function animateLast(){var b=document.querySelector('.board[data-last]');if(!b)r
   }}
 document.getElementById('app').addEventListener('click',e=>{
   if(_suppress){_suppress=false;return;}
-  const sqEl=e.target.closest('[data-sq]');if(sqEl){boardClick(sqEl.dataset.sq);return;}
+  const sqEl=e.target.closest('[data-sq]');if(sqEl){app.kbSq=sqEl.dataset.sq;app.kbFocus=false;boardClick(sqEl.dataset.sq);return;}
   const a=e.target.closest('[data-act]');if(!a)return;
   const act=a.dataset.act,val=a.dataset.val,mode=a.dataset.mode,idx=a.dataset.idx;
   if(act==='install'){app.menuOpen=false;installNow();return;}
@@ -9737,7 +9943,12 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='impclear'){uiConfirm('Remove the imported games from this browser?',function(){store.myGames=[];store.myGamesMeta=null;app.imp=null;store.ccProfile=null;var _cl=ccAccount();if(_cl){_cl.lastGameTs=0;_cl.lastSync=0;}app.ccSyncMsg=null;app._ccAutoTried=false;save();});}
   else if(act==='impaddall'){var _pc=personalCourse();_pc.course.forEach(function(r){if(r.id&&!inRep(r.id))addRep(r.id);});save();render();}
   else if(act==='seasondismiss'){store.career.seasonReview=null;save();render();}
-  else if(act==='magissue'){app.magIdx=Math.max(0,parseInt(val,10)||0);render();}
+  else if(act==='magissue'){app.magIdx=Math.max(0,parseInt(val,10)||0);app.magPly=0;render();}
+  else if(act==='magply'){app.magPly=Math.max(0,parseInt(val,10)||0);render();}
+  else if(act==='magopen'){if(!magOpenGame(parseInt(val,10))) render();}
+  else if(act==='xttog'){app.xtOpen=!app.xtOpen;render();}
+  else if(act==='xtfin'){app.xtFin=!app.xtFin;render();}
+  else if(act==='xthist'){var _xi=parseInt(val,10);app.xtHist=(app.xtHist===_xi)?null:_xi;render();}
   else if(act==='profile'){if(val)profileOpen(val);}
   else if(act==='specvs'){var _sp=buildWorld().filter(function(x){return x.id===val;})[0];if(_sp){var _fmt='classical';var _list=worldRanking(store.career,_fmt).filter(function(x){return !x.you&&x.id!==val;});var _o=_list[Math.floor(Math.random()*Math.min(12,_list.length))]||_list[0];if(_o)startSpectate({name:_sp.name,flag:_sp.flag,rating:wpRating(_sp,_fmt),real:_sp.real},_o);}}
   else if(act==='doday'){doDay(val);var _ac=store.career;if(_ac&&_ac.auto&&_ac.auto.week&&(_ac.day||0)>0&&!_ac.tour){autoRunWeek(_ac);save();render();}}
@@ -12611,6 +12822,9 @@ function magBuild(c,r){
       events:r.events,titles:r.titles,norms:r.norms,honors:r.honors,bril:r.bril,
       best:r.best?{name:r.best.name,place:r.best.place,emoji:r.best.emoji}:null},
     interview:magInterview(c,r),world:magWorld(c),letters:magLetters(c,r),next:magNext(c,r),
+    // the issue keeps its own copy of the game it prints, so it still has it
+    // once the archive has rolled past 150 games
+    game:magGamePick(c),
     who:{name:c.name||'You',title:bestTitle(c),flag:c.flag||'',age:Math.floor(c.age||16),
       fed:c.fed||'FIDE',phase:careerPhase(c)}};
 }
@@ -12679,6 +12893,8 @@ function viewMagazine(){
         (N.bril?'💎 '+N.bril+' brillianc'+(N.bril===1?'y':'ies')+'. ':'')+
         (N.best?'Best result: '+(N.best.emoji||'🏟️')+' '+esc(N.best.name)+(N.best.place?' ('+ordinal(N.best.place)+')':'')+'.':'')+
       '</div></div>'+
+    /* the game of the issue, annotated */
+    magGameCard(m,idx)+
     /* the interview */
     '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:4px">🎤 The interview</div>'+
       m.interview.map(function(x){
@@ -14112,10 +14328,15 @@ function careerFinishBanner(f){
   if(f.honors&&f.honors.length)x+='<div style="color:#fcd34d;font-weight:800;margin-top:4px;font-size:16px">'+f.honors.map(hn=>honorEmoji(hn)+' '+esc(hn)+'!').join('  ')+'</div>';
   if(f.newTitles&&f.newTitles.length)x+='<div style="color:var(--brand2);font-weight:800;margin-top:4px;font-size:16px">👑 New FIDE title: '+f.newTitles.map(t=>(TITLE_DEFS.find(d=>d.t===t)||{name:t}).name+' ('+t+')').join(', ')+'!</div>';
   const place=f.place?ordinal(f.place)+' place · ':'';
+  // the final crosstable, folded away until asked for
+  const xt=f.xt?('<div style="margin-top:9px;border-top:1px solid var(--border);padding-top:7px">'+
+    '<button class="btn ghost sm" data-act="xtfin" style="padding:3px 8px;font-size:11px">'+
+      (app.xtFin?'🧮 Hide the final crosstable':'🧮 See the final crosstable')+'</button>'+
+    (app.xtFin?xtTable(f.xt.players,f.xt.grid):'')+'</div>'):'';
   return '<div class="card" style="margin-bottom:12px;border:1px solid var(--brand)"><div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px">'+
     '<div style="min-width:0"><div style="font-weight:800;font-size:16px">'+f.emoji+' '+esc(f.name)+' — finished</div>'+
     '<div class="dim small">'+place+'Scored '+fmtScore(f.score)+'/'+f.rounds+' · performance rating '+f.tpr+'</div>'+x+'</div>'+
-    '<button class="btn ghost sm" data-act="careerdismiss">Dismiss</button></div></div>';
+    '<button class="btn ghost sm" data-act="careerdismiss">Dismiss</button></div>'+xt+'</div>';
 }
 function fmtRating(v){return v==null?'Unrated':String(v);}
 function honorEmoji(h){if(/World Champion/.test(h))return'👑';if(/Rapid/.test(h))return'🚀';if(/Blitz/.test(h))return'💥';if(/World Cup/.test(h))return'🗺️';if(/Olympiad/.test(h))return'🤝';if(/Candidates/.test(h))return'♛';return'🏆';}
@@ -14706,6 +14927,7 @@ function careerTourView(c){
   h+='</div>';
   h+=careerStandings(tr);
   h+=tourBulletinCard(tr);
+  h+=xtLiveCard(tr);
   h+='<div class="row" style="justify-content:space-between;align-items:center;margin-top:10px">'+
     '<div class="dim small">'+(done<total?'Win games to climb; a strong run can secure a norm. <span style="color:'+(conditionMod(c)>=0?'#86efac':'#fda4af')+'">You’re '+conditionNote(c).t+' ('+(conditionMod(c)>=0?'+':'')+conditionMod(c)+' Elo when simulating).</span>':'Tournament complete — your results are being finalised.')+'</div>'+
     '<div class="row" style="gap:6px">'+(done<total?'<button class="btn sec sm" data-act="simround" title="Auto-resolve this game from your rating &amp; current condition">⚡ Simulate</button><button class="btn ghost sm" data-act="simtour" title="Simulate the rest of the event">⏩ Sim to end</button>':'')+'<button class="btn ghost sm" data-act="careerwithdraw">Withdraw</button></div></div></div>';
@@ -14802,8 +15024,10 @@ function careerNorms(c){
 }
 function careerHistory(c){
   const hs=c.history||[];if(!hs.length)return '';
-  let h='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:6px">📜 History</div>';
-  hs.slice(0,14).forEach(e=>{
+  const nxt=xtCount(c);
+  let h='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:6px">📜 History'+
+    (nxt?' <span class="dim small" style="font-weight:600">· '+nxt+' crosstable'+(nxt===1?'':'s')+' kept</span>':'')+'</div>';
+  hs.slice(0,14).forEach((e,i)=>{
     const norms=e.norms&&e.norms.length?' <span class="chip amber" style="font-size:10px">'+e.norms.join(' ')+' norm</span>':'';
     const hon=e.honors&&e.honors.length?' <span class="chip green" style="font-size:10px">'+honorEmoji(e.honors[0])+' '+esc(e.honors[0])+'</span>':'';
     const fmt=e.format&&e.format!=='classical'?'<span class="dim" style="font-size:10px;text-transform:uppercase">'+e.format+'</span> ':'';
@@ -14811,7 +15035,8 @@ function careerHistory(c){
     h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border)">'+
       '<div style="width:24px;text-align:center">'+(e.emoji||'•')+'</div>'+
       '<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+fmt+esc(e.name)+norms+hon+'</div>'+
-      '<div class="dim small" style="text-align:right;white-space:nowrap">'+right+'</div></div>';
+      '<div class="dim small" style="text-align:right;white-space:nowrap">'+right+'</div></div>'+
+      xtHistCard(e,i);
   });
   h+='</div>';
   return h;
@@ -14948,16 +15173,20 @@ function tourPlayRound(tr,rIdx,myScore){
     if(p.you)p.score=(p.score||0)+myScore;
     else if(p.id===myOppId)p.score=(p.score||0)+(1-myScore);
   });
+  if(!tr.pairs)tr.pairs=[];
+  tr.pairs.push({r:rIdx+1,a:'__you',b:myOppId,s:myScore});
   tourPairField(tr,myOppId).forEach(function(pr){
     if(!pr.b){
       pr.a.score=(pr.a.score||0)+0.5;
       boards.push({a:pr.a.name,ar:pr.a.rating,b:null,s:null,bye:true});
+      tr.pairs.push({r:rIdx+1,a:pr.a.id,b:null,s:0.5});
       return;
     }
     const s=bulSim(pr.a.rating,pr.b.rating);
     pr.a.score=(pr.a.score||0)+s;
     pr.b.score=(pr.b.score||0)+(1-s);
     tourNoteMet(tr,pr.a.id,pr.b.id);
+    tr.pairs.push({r:rIdx+1,a:pr.a.id,b:pr.b.id,s:s});
     boards.push({a:pr.a.name,ar:pr.a.rating,b:pr.b.name,br:pr.b.rating,s:s,
       upset:(s===1&&pr.b.rating-pr.a.rating>=150)||(s===0&&pr.a.rating-pr.b.rating>=150)});
   });
@@ -15029,6 +15258,136 @@ function careerStandings(tr){
   if(yi>=n)rows+='<div class="dim small" style="text-align:center;padding:2px">⋯</div>'+row(S[yi],yi+1);
   return '<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:6px"><div style="font-weight:700;font-size:12px;color:var(--brand2);margin-bottom:2px">📊 Standings</div>'+rows+'</div>';
 }
+/* ================= THE CROSSTABLE =================
+   The standings say who is on what score. A crosstable says how: it is the
+   grid every real tournament publishes, every player down the side and the
+   same players across the top, one symbol in each cell. Read a row and you
+   have somebody's whole week. Read the column under your own number and you
+   can see who beat you.
+
+   The hall has been playing its own paired rounds since the bulletin went in,
+   so the games already exist — they were just being thrown away after the
+   round note was written. They are kept now, and the grid falls out of them.
+   It is kept after the event too: a snapshot goes on the history entry, so a
+   crosstable from four seasons ago is still there to be looked at. */
+const XT_KEEP=12;           // events that keep their crosstable
+function xtSym(s){return s===1?'1':s===0?'0':'½';}
+/* The grid, from the pairings the rounds recorded. */
+function xtGrid(tr){
+  if(!tr||!tr.standings||!tr.standings.length)return null;
+  const P=standingsSorted(tr),n=P.length,pos={};
+  P.forEach(function(p,i){pos[p.id]=i;});
+  const G=[];
+  for(let i=0;i<n;i++){const row=[];for(let j=0;j<n;j++)row.push(null);G.push(row);}
+  // A small Swiss occasionally has to pair two players twice — with nine in
+  // the hall and eight rounds there is not always an unmet opponent left. The
+  // second game is added to the cell rather than overwriting the first, so no
+  // game is ever lost and a row still adds up to the score beside it.
+  const add=function(a,b,s,r){
+    const cur=G[a][b];
+    if(cur){cur.s+=s;cur.n++;}
+    else G[a][b]={s:s,r:r,n:1};
+  };
+  (tr.pairs||[]).forEach(function(pr){
+    if(!pr||pr.b==null)return;
+    const i=pos[pr.a],j=pos[pr.b];
+    if(i==null||j==null||i===j)return;
+    add(i,j,pr.s,pr.r);
+    add(j,i,1-pr.s,pr.r);
+  });
+  return {players:P,grid:G};
+}
+/* One cell, however it was stored: live as {s,r,n}, snapshotted as [s,n], or
+   as a bare score by an older save. */
+function xtCell(cell){
+  if(cell==null)return null;
+  if(Array.isArray(cell))return {s:cell[0],n:cell[1]||1,r:cell[2]||0};
+  if(typeof cell==='object')return {s:cell.s,n:cell.n||1,r:cell.r||0};
+  return {s:cell,n:1,r:0};
+}
+/* A crosstable that outlives the tournament object. */
+function xtSnapshot(tr){
+  const X=xtGrid(tr);
+  if(!X||!(tr.pairs||[]).length)return null;
+  return {players:X.players.map(function(p){
+      return {name:p.name,rating:p.rating||0,title:p.title||'',score:p.score||0,you:!!p.you};}),
+    // [score, games, round] — three numbers per cell, so a shelf of these
+    // still fits in local storage next to 150 games and ten magazine issues,
+    // and a crosstable from four seasons ago still says which round was which
+    grid:X.grid.map(function(row){return row.map(function(c){return c?[c.s,c.n||1,c.r||0]:null;});})};
+}
+/* Only the recent events keep theirs — a long career should not carry fifty
+   grids around in local storage. */
+function xtPrune(c){
+  const H=(c&&c.history)||[];
+  let kept=0;
+  for(let i=0;i<H.length;i++){
+    if(!H[i]||!H[i].xt)continue;
+    kept++;
+    if(kept>XT_KEEP)delete H[i].xt;
+  }
+  return kept>XT_KEEP?XT_KEEP:kept;
+}
+function xtCount(c){return ((c&&c.history)||[]).filter(function(h){return h&&h.xt;}).length;}
+/* ---- on screen ---- */
+/* P: [{name,rating,title,score,you}]  G: [[score|null]] */
+function xtTable(P,G){
+  if(!P||!P.length||!G)return '';
+  const n=P.length;
+  let head='<tr><th class="xtr" scope="col">#</th><th class="xtn" scope="col">Player</th>'+
+    '<th scope="col">Rtg</th>';
+  for(let j=0;j<n;j++)
+    head+='<th scope="col" title="'+esc(P[j].name)+'"'+(P[j].you?' style="color:var(--brand2)"':'')+'>'+(j+1)+'</th>';
+  head+='<th scope="col">Pts</th></tr>';
+  let body='';
+  for(let i=0;i<n;i++){
+    const p=P[i];
+    body+='<tr'+(p.you?' class="xtyou"':'')+'>'+
+      '<td class="xtr">'+(i+1)+'</td>'+
+      '<th class="xtn" scope="row">'+(p.title?'<span style="color:var(--brand2)">'+esc(p.title)+'</span> ':'')+
+        esc(p.name)+(p.you?' <span class="chip brand" style="font-size:9px">YOU</span>':'')+'</th>'+
+      '<td class="dim">'+(p.rating||'—')+'</td>';
+    for(let j=0;j<n;j++){
+      if(i===j){body+='<td class="xtself" aria-label="own square">▪</td>';continue;}
+      const C=xtCell((G[i]||[])[j]);
+      if(!C||C.s==null){body+='<td class="xtnone" title="not played">·</td>';continue;}
+      const avg=C.s/Math.max(1,C.n);
+      body+='<td class="'+(avg>0.5?'xtw':avg<0.5?'xtl':'xtd')+'" title="'+esc(P[i].name)+' '+
+        fmtScore(C.s)+'–'+fmtScore(C.n-C.s)+' '+esc(P[j].name)+
+        (C.n>1?' over '+C.n+' games':(C.r?', round '+C.r:''))+'">'+
+        (C.n>1?fmtScore(C.s)+'<sup style="font-size:8px">'+C.n+'</sup>':xtSym(C.s))+'</td>';
+    }
+    body+='<td class="xtp">'+fmtScore(p.score||0)+'</td></tr>';
+  }
+  return '<div class="xtwrap"><table class="xt"><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
+}
+/* Cells come off the live grid as {s,r} and off a snapshot as a bare number;
+   xtTable takes either, so both callers hand it what they have. */
+function xtLiveCard(tr){
+  if(!tr||!(tr.pairs||[]).length)return '';
+  const open=!!app.xtOpen;
+  const X=open?xtGrid(tr):null;
+  return '<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:7px">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px">'+
+      '<div style="font-weight:700;font-size:12px;color:var(--brand2)">🧮 Crosstable</div>'+
+      '<button class="btn ghost sm" data-act="xttog" style="padding:3px 8px;font-size:11px">'+
+        (open?'Hide':'Show')+'</button></div>'+
+    (open&&X
+      ? xtTable(X.players,X.grid)+
+        '<div class="dim small" style="margin-top:4px;line-height:1.5">Every game the hall has played, row against column. '+
+        'Your row is highlighted; the column under your number is what people did to you.</div>'
+      : '<div class="dim small" style="margin-top:2px">'+(tr.pairs||[]).length+' game'+
+        ((tr.pairs||[]).length===1?'':'s')+' played in the hall so far.</div>')+
+    '</div>';
+}
+function xtHistCard(e,i){
+  if(!e||!e.xt)return '';
+  const open=(app.xtHist===i);
+  return '<div style="padding:0 0 7px 32px">'+
+    '<button class="btn ghost sm" data-act="xthist" data-val="'+i+'" style="padding:3px 8px;font-size:11px">'+
+      (open?'🧮 Hide the crosstable':'🧮 Crosstable')+'</button>'+
+    (open?xtTable(e.xt.players,e.xt.grid):'')+'</div>';
+}
 /* ---- per-game archive + rating-over-time graph ---- */
 function archiveCareerGame(c,opp,score,fmt,eventName,c960on){
   const moves=(app.playMoves||[]).map(m=>({san:m.san,from:m.from,to:m.to}));if(!moves.length)return;
@@ -15061,6 +15420,441 @@ function careerRatingGraph(c){
   return '<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center;margin-bottom:3px"><div style="font-weight:700">📈 Rating progress</div><div class="dim small">'+lo+'–'+hi+'</div></div>'+
     '<svg viewBox="0 0 '+W+' '+Ht+'" width="100%" height="84" preserveAspectRatio="none" style="display:block">'+paths+'</svg>'+
     '<div class="dim small" style="margin-top:3px"><span style="color:var(--brand2)">●</span> Classical &nbsp;<span style="color:#fbbf24">●</span> Rapid &nbsp;<span style="color:#f472b6">●</span> Blitz</div></div>';
+}
+/* ================= THE ANNOTATED GAME =================
+   A career game was a row in a list, and since the archive went in, a board
+   you can step through. What it still was not was a game anybody had written
+   about. A move list is a record. An annotated game is the form chess has
+   used to remember its own games for two hundred years: the turning points
+   marked, in words, by somebody who watched.
+
+   No engine is involved and none is needed for this. Everything worth
+   remarking on is visible in the moves themselves — the opening, the first
+   piece off, which way the two kings went, a piece handed over and not won
+   back, the queens coming off, a pawn reaching the eighth, the move where the
+   material actually broke, the four minutes somebody spent on move 23, and
+   how it finished. The notes are keyed to the ply, so the analysis board can
+   hand you each one as you reach it, and the magazine can print the whole
+   column with a board beside it.
+
+   English has one trap here, and it is the one the commentary booth fell into:
+   the player is either "You" or a surname, so any sentence built around "is",
+   "was" or "has" has to agree with whichever it got. Past-tense verbs —
+   castled, took, played, had, spent — are the same for both, so the notes are
+   written in those, and annoWas/annoHas exist for the two places that need a
+   choice. */
+const ANNO_MAX=9;           // a column, not a book
+const ANNO_MIN_PLY=8;       // shorter than this and there is nothing to say
+const ANNO_SAC=2;           // material handed over before it counts as a sacrifice
+const ANNO_LOOK=8;          // plies allowed to win it back before it is a real one
+const ANNO_THINK=4;         // times the median think before a move counts as a long one
+const ANNO_THINK_MIN=45;    // …and this many seconds, so a blitz game stays quiet
+function annoWas(s){return s==='You'?'were':'was';}
+function annoHas(s){return s==='You'?'have':'has';}
+function annoSurname(n){return String(n==null?'':n).trim().split(' ').pop()||'your opponent';}
+/* Who had this colour, in the second person when it was you. */
+function annoName(g,white){return ((g&&g.color==='w')===!!white)?'You':annoSurname(g&&g.opp);}
+/* "23." for White's 23rd, "23…" for Black's. Ply is 1-based. */
+function annoMoveNo(ply){return Math.ceil(ply/2)+(ply%2?'.':'…');}
+function annoMatWord(n){
+  const v=Math.abs(n);
+  if(v>=9)return 'a queen';
+  if(v>=5)return 'a rook';
+  if(v>=4)return 'a piece and a pawn';
+  if(v>=3)return 'a piece';
+  if(v>=2)return 'two pawns';
+  return 'a pawn';
+}
+/* The moves, replayed. */
+function annoScan(g){
+  const b=lgFens((((g&&g.moves)||[]).map(function(m){return m&&m.san;})).filter(Boolean),
+    (g&&g.startFen)||undefined);
+  return {sans:b.moves.map(function(m){return m.san;}),fens:b.fens,moves:b.moves};
+}
+/* ---- the facts, one function each, so each can be tested on its own ---- */
+function annoCastles(sans){
+  const o={wc:-1,bc:-1,ws:'',bs:''};
+  for(let i=1;i<=(sans||[]).length;i++){
+    const s=String(sans[i-1]||'');
+    if(!/^O-O/.test(s))continue;
+    const side=/^O-O-O/.test(s)?'long':'short';
+    if(i%2){if(o.wc<0){o.wc=i;o.ws=side;}}
+    else if(o.bc<0){o.bc=i;o.bs=side;}
+  }
+  return o;
+}
+/* The ply the last queen left the board, or -1. */
+function annoQueensOff(S){
+  const f=(S&&S.fens)||[];
+  if(f.length<2)return -1;
+  const q0=boothQueens(f[0]);
+  if(q0.w+q0.b<2)return -1;
+  for(let i=1;i<f.length;i++){
+    const q=boothQueens(f[i]);
+    if(q.w===0&&q.b===0)return i;
+  }
+  return -1;
+}
+/* A sacrifice is a two-ply swing that stays. The move itself usually gains
+   material (it is a capture), so a single ply says nothing: what matters is
+   the balance before the move against the balance after the reply, and then
+   whether it came back within the next few moves. An exchange nets zero and
+   never shows up here. */
+function annoSac(g,S){
+  const sans=(S&&S.sans)||[],N=sans.length;
+  const mat=(S.fens||[]).map(boothMaterial);
+  for(let i=1;i<N;i++){
+    const white=(i%2===1);
+    const d0=mat[i-1].diff,d2=mat[i+1].diff;
+    const net=white?(d2-d0):(d0-d2);          // negative: the mover is down on the deal
+    if(net>-ANNO_SAC)continue;
+    if(!/x/.test(String(sans[i]||'')))continue; // the reply has to be the capture
+    let back=false;
+    for(let j=i+2;j<=Math.min(N,i+ANNO_LOOK);j++){
+      const dj=white?(mat[j].diff-d0):(d0-mat[j].diff);
+      if(dj>-ANNO_SAC){back=true;break;}
+    }
+    if(back)continue;
+    return {ply:i,net:net,white:white};
+  }
+  return null;
+}
+/* The ply the material settled: three or more to one side, and it never came
+   back below two for the rest of the game. */
+function annoBreak(S){
+  const N=((S&&S.sans)||[]).length;
+  const mat=(S.fens||[]).map(boothMaterial);
+  for(let i=1;i<=N;i++){
+    const d=mat[i].diff;
+    if(Math.abs(d)<3)continue;
+    const sg=d>0?1:-1;
+    let held=true;
+    for(let j=i;j<=N;j++)if(sg*mat[j].diff<2){held=false;break;}
+    if(held)return {ply:i,sign:sg,amt:Math.abs(d)};
+  }
+  return null;
+}
+/* The longest think of the game, measured against the median one. */
+function annoThink(g,S){
+  if(!g||!g.clk||!g.clk.length)return null;
+  const med=replayTypical(g,null);
+  if(!med)return null;
+  const N=Math.min(((S&&S.sans)||[]).length,g.clk.length);
+  let ply=-1,secs=0;
+  for(let i=1;i<=N;i++){
+    const s=replaySpent(g,i);
+    if(s!=null&&s>secs){secs=s;ply=i;}
+  }
+  if(ply<0||secs<ANNO_THINK_MIN||secs<med*ANNO_THINK)return null;
+  return {ply:ply,secs:secs,med:med,times:Math.round(secs/Math.max(1,med))};
+}
+/* The ply somebody first dropped under a twelfth of their starting time. */
+function annoTimeTrouble(g,S){
+  if(!g||!g.clk||!g.clk.length||!g.base)return null;
+  const lim=Math.max(20,g.base/12);
+  const N=Math.min(((S&&S.sans)||[]).length,g.clk.length);
+  for(let i=1;i<=N;i++)if(g.clk[i-1]!=null&&g.clk[i-1]<=lim)return {ply:i,left:g.clk[i-1]};
+  return null;
+}
+/* ---- the notes ---- */
+function annoNotes(g,S){
+  const sans=(S&&S.sans)||[],N=sans.length;
+  if(N<ANNO_MIN_PLY)return [];
+  const W=annoName(g,true),B=annoName(g,false);
+  const who=function(ply){return (ply%2)?W:B;};
+  const out=[];
+  // One note per move, and when two things happened on the same one — the
+  // first capture of the game *was* the queen sacrifice, in Légal's mate —
+  // the bigger moment takes the move rather than whichever ran first.
+  const push=function(ply,w,text){
+    if(!(ply>=1&&ply<=N))return;
+    for(let i=0;i<out.length;i++)if(out[i].ply===ply){
+      if(w>out[i].w)out[i]={ply:ply,san:sans[ply-1],w:w,text:text};
+      return;
+    }
+    out.push({ply:ply,san:sans[ply-1],w:w,text:text});
+  };
+  /* the first piece off */
+  let fc=-1;
+  for(let i=1;i<=N;i++)if(/x/.test(String(sans[i-1]))){fc=i;break;}
+  if(fc>0){
+    const cap=boothCaptured(S.fens[fc-1],S.fens[fc]);
+    const pc=cap?cap.piece:'pawn';
+    const before=Math.floor((fc-1)/2);
+    if(before>=11)
+      push(fc,58,'There were '+before+' moves before anybody took anything. '+who(fc)+
+        ' broke the spell with '+annoMoveNo(fc)+' '+sans[fc-1]+', and the '+pc+' was the first thing off the board.');
+    else
+      push(fc,26,'The first piece came off here: '+who(fc)+' took a '+pc+' with '+
+        annoMoveNo(fc)+' '+sans[fc-1]+'.');
+  }
+  /* the kings */
+  const C=annoCastles(sans);
+  if(C.wc>0&&C.bc>0&&C.ws!==C.bs)
+    push(Math.max(C.wc,C.bc),80,'The kings went to opposite wings — '+W+' castled '+C.ws+', '+
+      B+' castled '+C.bs+'. Neither side could spend a move defending after that. '+
+      'It was a race from here, and both sets of pawns were already running.');
+  else if(C.wc>0&&C.bc>0&&C.ws==='long'&&C.bs==='long')
+    push(Math.max(C.wc,C.bc),38,'Both kings went long, which is rarer than it sounds and asks the '+
+      'queenside pawns to do two jobs at once.');
+  /* a pawn home */
+  for(let i=1;i<=N;i++){
+    const s=String(sans[i-1]);
+    if(!/=/.test(s))continue;
+    const pr=(s.match(/=([QRBN])/)||[null,'Q'])[1];
+    // above the material-break note, which in a promotion is the same move
+    // described less usefully: "a pawn got home" says why it broke
+    push(i,76,who(i)+' got a pawn home on '+annoMoveNo(i)+' '+s+
+      (pr==='Q'?'. A new queen ends most arguments.'
+               :'. Not a queen — which nearly always means a queen would have been stalemate, or lost the thing outright.'));
+    break;
+  }
+  /* the sacrifice */
+  const sac=annoSac(g,S);
+  if(sac){
+    const mine=((g.color==='w')===sac.white);
+    const tail=((g.result===1&&mine)||(g.result===0&&!mine))?'It worked.'
+      :((g.result===0&&mine)||(g.result===1&&!mine))?'It did not come off — but there was nothing better on offer by then.'
+      :'It bought half a point, which is not nothing.';
+    // name the piece the opponent actually took, not the arithmetic: a queen
+    // given for a pawn nets eight, and "gave up a rook" would be a lie
+    const took=boothCaptured(S.fens[sac.ply],S.fens[sac.ply+1]);
+    push(sac.ply,95,who(sac.ply)+' gave up '+(took?'the '+took.piece:annoMatWord(sac.net))+' with '+
+      annoMoveNo(sac.ply)+' '+sans[sac.ply-1]+' and never asked for it back. '+tail);
+  }
+  /* the queens */
+  const qo=annoQueensOff(S);
+  if(qo>0&&N-qo>=6)
+    push(qo,50,'The queens came off on '+annoMoveNo(qo)+' '+sans[qo-1]+
+      ' and the game changed register. No more mating nets: from here it was technique, and '+
+      (N-qo)+' more half-moves of it.');
+  /* the break */
+  const brk=annoBreak(S);
+  if(brk&&N-brk.ply>=4){
+    const up=brk.sign>0?W:B,dn=brk.sign>0?B:W;
+    push(brk.ply,72,'From '+annoMoveNo(brk.ply)+' the material was settled and it stayed settled: '+
+      up+' had '+annoMatWord(brk.amt)+' more than '+dn+', and kept it. '+
+      'Everything after this was a question of not slipping.');
+  }
+  /* the long think */
+  const th=annoThink(g,S);
+  if(th)
+    push(th.ply,66,who(th.ply)+' spent '+fmtSecs(th.secs)+' on '+annoMoveNo(th.ply)+' '+
+      sans[th.ply-1]+' — '+th.times+' times the '+fmtSecs(th.med)+
+      ' the rest of the game was getting. Whatever the position was hiding, it was hiding it here.');
+  /* the clock */
+  const tt=annoTimeTrouble(g,S);
+  if(tt&&N-tt.ply>=3)
+    push(tt.ply,56,'By '+annoMoveNo(tt.ply)+' '+who(tt.ply)+' had '+fmtSecs(tt.left)+
+      ' left for the rest of it. Whatever the moves after this look like now, they were played on instinct.');
+  /* the first check, only when it comes early enough to be a remark */
+  for(let i=1;i<=N;i++){
+    if(!/\+/.test(String(sans[i-1])))continue;
+    if(i<=14)push(i,20,'The first check, '+annoMoveNo(i)+' '+sans[i-1]+
+      ' — early, and more a question than a threat.');
+    break;
+  }
+  /* the finish */
+  const last=String(sans[N-1]);
+  const moves=Math.ceil(N/2);
+  if(/#/.test(last))
+    push(N,100,'Mate, '+annoMoveNo(N)+' '+last+'. '+who(N)+' had the last word'+
+      (moves<=30?', and it took '+moves+' moves':'')+'.');
+  else if(g.result===0.5)
+    push(N,88,'Drawn after '+moves+' moves. '+(qo>0
+      ?'With the queens long gone there was not a great deal left to play for.'
+      :'Neither side found a way through the other.'));
+  else{
+    const iWon=(g.result===1);
+    const win=iWon?'You':annoSurname(g.opp),lose=iWon?annoSurname(g.opp):'You';
+    push(N,88,'That was the end of it: '+annoMoveNo(N)+' '+last+', and '+win+' had the point after '+
+      moves+' moves. '+lose+' '+annoHas(lose)+' had better days.');
+  }
+  out.sort(function(a,b){return b.w-a.w||a.ply-b.ply;});
+  const keep=out.slice(0,ANNO_MAX);
+  keep.sort(function(a,b){return a.ply-b.ply;});
+  return keep;
+}
+/* ---- the paragraph at the top ---- */
+function annoIntro(g,S){
+  const N=((S&&S.sans)||[]).length;
+  const opp=annoSurname(g&&g.opp);
+  const op=cgOpening(g);
+  const gap=(g&&g.myRating>0&&g.oppRating>0)?(g.oppRating-g.myRating):null;
+  const out=[];
+  out.push((op?op.name:'A game that left the book early')+', '+
+    (g.color==='w'?'you with the white pieces':'you with the black pieces')+
+    (g.event?', at '+g.event:'')+'.');
+  if(gap!=null&&Math.abs(gap)>=80)
+    out.push(gap>0
+      ?opp+' '+annoWas(opp)+' rated '+gap+' points above you, which is the kind of gap that decides a game before it starts — on the days it decides one.'
+      :opp+' '+annoWas(opp)+' rated '+Math.abs(gap)+' points below you, and a favourite has more to lose than to win.');
+  else if(gap!=null&&Math.abs(gap)>0)
+    out.push(Math.abs(gap)+' rating points separated you, which is to say nothing did.');
+  const C=annoCastles((S&&S.sans)||[]);
+  if(N>=26&&C.wc<0&&C.bc>0)
+    out.push(annoName(g,true)+' never castled. Sometimes that is a plan; more often it is a plan that went wrong early and could not be undone.');
+  else if(N>=26&&C.bc<0&&C.wc>0)
+    out.push(annoName(g,false)+' never castled. Sometimes that is a plan; more often it is a plan that went wrong early and could not be undone.');
+  if(N>=90)out.push('It ran to '+Math.ceil(N/2)+' moves, which is a long evening by anybody’s standards.');
+  else if(N<=24)out.push('It was over in '+Math.ceil(N/2)+' moves.');
+  return out;
+}
+function annoVerdict(g,S){
+  const N=((S&&S.sans)||[]).length;
+  const opp=annoSurname(g&&g.opp);
+  const sac=annoSac(g,S),brk=annoBreak(S),qo=annoQueensOff(S);
+  if(g.result===1){
+    if(sac)return 'A game won by giving something away and being right about it. Those are the ones worth keeping.';
+    if(brk&&brk.ply<=N*0.45)return 'The material broke early and never came back. Won in the first half, finished in the second.';
+    if(qo>0)return 'No fireworks: the queens came off and the technique held. Wins like this count the same.';
+    return 'A clean win over '+opp+', and the scoresheet does not record how close it felt.';
+  }
+  if(g.result===0)
+    return sac
+      ? 'A loss with an idea in it. Better than a loss without one, though not by much on the day.'
+      : 'One of those. '+opp+' got the better position and then did not let go of it.';
+  return 'Half a point each, and both of you will have opinions about which half you deserved.';
+}
+/* ---- the column ---- */
+function annoBuild(g){
+  if(!g||!g.moves||g.moves.length<ANNO_MIN_PLY||g.c960)return null;
+  const S=annoScan(g);
+  if(S.sans.length<ANNO_MIN_PLY)return null;
+  const op=cgOpening(g);
+  const me=(store.career&&store.career.name)||'You';
+  const opp=(g.oppTitle?g.oppTitle+' ':'')+(g.opp||'Opponent');
+  return {head:(g.color==='w'?me+' – '+opp:opp+' – '+me),
+    opening:op?op.name:'',
+    res:g.result===1?(g.color==='w'?'1–0':'0–1'):g.result===0?(g.color==='w'?'0–1':'1–0'):'½–½',
+    event:g.event||'',date:g.date||0,plies:S.sans.length,
+    intro:annoIntro(g,S),notes:annoNotes(g,S),verdict:annoVerdict(g,S)};
+}
+function annoNoteAt(A,ply){
+  if(!A||!A.notes)return null;
+  for(const n of A.notes)if(n.ply===ply)return n;
+  return null;
+}
+/* The panel on the analysis board: the note for wherever you are, and the
+   whole column underneath with a button on each note that jumps there. */
+function annoPanel(L){
+  const A=L&&L.anno;
+  if(!A)return '';
+  const here=annoNoteAt(A,L.pos||0);
+  return '<div class="card" style="margin-bottom:10px;border-color:#f59e0b3d;background:linear-gradient(160deg,rgba(245,158,11,.07),transparent 60%),var(--panel)">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<div style="font-weight:700">📝 The game, written up</div>'+
+      '<div class="dim small">'+A.notes.length+' note'+(A.notes.length===1?'':'s')+'</div></div>'+
+    '<div style="margin-top:6px;min-height:52px">'+
+      (here
+        ? '<div class="small" style="line-height:1.7"><b style="color:#fbbf24">'+annoMoveNo(here.ply)+' '+
+            esc(here.san)+'</b> — '+esc(here.text)+'</div>'
+        : '<div class="small dim" style="line-height:1.7">'+
+            (L.pos?'Nothing to say about this move.':esc(A.intro.join(' ')))+'</div>')+
+    '</div>'+
+    '<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:6px">'+
+      A.notes.map(function(n){
+        const on=(n.ply===(L.pos||0));
+        return '<button class="btn '+(on?'sec':'ghost')+' sm" data-act="liveto" data-val="'+n.ply+
+          '" style="padding:3px 8px;font-size:11px;margin:2px 3px 2px 0">'+annoMoveNo(n.ply)+' '+esc(n.san)+'</button>';
+      }).join('')+
+    '</div>'+
+    '<div class="dim small" style="margin-top:7px;line-height:1.6;border-top:1px solid var(--border);padding-top:6px">'+
+      esc(A.verdict)+'</div></div>';
+}
+/* ---- the magazine's game column, board and all ---- */
+function magGamePick(c){
+  const L=(c&&c.games)||[];
+  const ok=L.filter(function(g){return g&&!g.c960&&g.moves&&g.moves.length>=ANNO_MIN_PLY;});
+  if(!ok.length)return null;
+  const bri=ok.filter(function(g){return g.bri;});
+  const wins=ok.filter(function(g){return g.result===1;});
+  const pick=bri.length?bri[0]
+    :(wins.length
+      ? wins.slice().sort(function(a,b){return (b.oppRating||0)-(a.oppRating||0);})[0]
+      : ok.slice().sort(function(a,b){return b.moves.length-a.moves.length;})[0]);
+  if(!pick)return null;
+  return {moves:pick.moves.map(function(m){return {san:m.san};}),startFen:pick.startFen||null,
+    opp:pick.opp||'',oppRating:pick.oppRating||0,oppTitle:pick.oppTitle||'',
+    result:pick.result,color:pick.color,event:pick.event||'',date:pick.date||0,
+    myRating:pick.myRating||0,bri:!!pick.bri,format:pick.format||'classical',
+    clk:pick.clk||null,base:pick.base||0,inc:pick.inc||0};
+}
+function magGameCard(m,idx){
+  const g=m&&m.game;
+  if(!g)return '';
+  const A=annoBuild(g);
+  if(!A)return '';
+  const S=annoScan(g);
+  const N=S.sans.length;
+  const ply=Math.max(0,Math.min(N,app.magPly||0));
+  const here=annoNoteAt(A,ply);
+  const orient=(g.color==='b')?'black':'white';
+  return '<div class="card" style="margin-bottom:12px">'+
+    '<div style="font-weight:700;margin-bottom:2px">♜ Game of the issue'+
+      (g.bri?' <span class="chip amber" style="font-size:10px">✨ game of the day</span>':'')+'</div>'+
+    '<div class="small" style="font-weight:700">'+esc(A.head)+' &nbsp;<span class="dim">'+A.res+'</span></div>'+
+    '<div class="dim small" style="margin-bottom:8px">'+
+      [A.opening,A.event,Math.ceil(N/2)+' moves'].filter(Boolean).map(esc).join(' · ')+'</div>'+
+    '<div class="row" style="gap:12px;align-items:flex-start;flex-wrap:wrap">'+
+      '<div style="flex:0 1 300px;min-width:230px;max-width:340px">'+
+        renderBoard(S.fens[ply],orient,{interactive:false,
+          last:ply>0?S.moves[ply-1]:null})+
+        '<div class="row" style="gap:5px;justify-content:center;margin-top:7px;flex-wrap:wrap">'+
+          '<button class="btn ghost sm" data-act="magply" data-val="0"'+(ply===0?' disabled':'')+'>⏮</button>'+
+          '<button class="btn ghost sm" data-act="magply" data-val="'+(ply-1)+'"'+(ply===0?' disabled':'')+'>◀</button>'+
+          '<span class="small dim" style="min-width:86px;text-align:center;align-self:center">'+
+            (ply===0?'start':annoMoveNo(ply)+' '+esc(S.sans[ply-1]||''))+'</span>'+
+          '<button class="btn ghost sm" data-act="magply" data-val="'+(ply+1)+'"'+(ply>=N?' disabled':'')+'>▶</button>'+
+          '<button class="btn ghost sm" data-act="magply" data-val="'+N+'"'+(ply>=N?' disabled':'')+'>⏭</button>'+
+        '</div></div>'+
+      '<div style="flex:1 1 240px;min-width:210px">'+
+        '<div class="small" style="line-height:1.7">'+esc(A.intro.join(' '))+'</div>'+
+        '<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:7px;min-height:56px">'+
+          (here
+            ? '<div class="small" style="line-height:1.7"><b style="color:#fbbf24">'+annoMoveNo(here.ply)+' '+
+                esc(here.san)+'</b> — '+esc(here.text)+'</div>'
+            : '<div class="small dim" style="line-height:1.7">Step through it — the notes appear as you reach them.</div>')+
+        '</div>'+
+        '<div style="margin-top:7px">'+
+          A.notes.map(function(n){
+            return '<button class="btn '+(n.ply===ply?'sec':'ghost')+' sm" data-act="magply" data-val="'+n.ply+
+              '" style="padding:3px 7px;font-size:11px;margin:2px 3px 2px 0">'+annoMoveNo(n.ply)+' '+esc(n.san)+'</button>';
+          }).join('')+
+        '</div>'+
+      '</div></div>'+
+    '<div class="dim small" style="margin-top:9px;line-height:1.6;border-top:1px solid var(--border);padding-top:7px">'+
+      esc(A.verdict)+'</div>'+
+    '<div class="row" style="gap:6px;margin-top:9px;flex-wrap:wrap">'+
+      '<button class="btn sec sm" data-act="magopen" data-val="'+(idx||0)+'">🔬 Open it on the analysis board</button>'+
+    '</div></div>';
+}
+/* The issue's game, handed to the same board everything else uses. */
+function magOpenGame(i){
+  const idx=(i==null?app.magIdx:i)||0;
+  const m=magIssue(idx),g=m&&m.game;
+  if(!g)return false;
+  const S=annoScan(g);
+  if(S.fens.length<2)return false;
+  const me=(store.career&&store.career.name)||'You';
+  const opp=(g.oppTitle?g.oppTitle+' ':'')+(g.opp||'Opponent');
+  app.view='livegame';
+  app.live={kind:'career',idx:-1,url:'',back:'magazine',
+    white:g.color==='w'?me:opp,black:g.color==='w'?opp:me,
+    side:g.color==='b'?'b':'w',flip:false,
+    fens:S.fens,moves:S.moves,pos:0,follow:false,
+    turn:turnOf(S.fens[0]),moveBy:0,lastActivity:g.date||0,
+    tc:FORMAT_TC[g.format||'classical']||'',
+    clk:g.clk||null,base:g.base||0,inc:g.inc||0,tcDaily:false,
+    event:g.event||'Career game',rated:true,
+    result:g.result===1?'won':g.result===0?'lost':'drew',
+    reason:'',myRating:g.myRating||0,oppRating:g.oppRating||0,
+    acc:null,oppAcc:null,date:g.date||0,anno:annoBuild(g),
+    err:null,polling:false};
+  app._liveKey=null;
+  replayStop();
+  render();
+  return true;
 }
 /* ================= THE GAMES YOU ACTUALLY PLAYED =================
    The tracker gives imported Chess.com games an analysis board with an eval
@@ -15131,7 +15925,7 @@ function cgOpen(i){
     event:g.event||'Career game',rated:true,
     result:g.result===1?'won':g.result===0?'lost':'drew',
     reason:'',myRating:g.myRating||0,oppRating:g.oppRating||0,
-    acc:null,oppAcc:null,date:g.date||0,
+    acc:null,oppAcc:null,date:g.date||0,anno:annoBuild(g),back:'career',
     err:null,polling:false};
   app._liveKey=null;
   replayStop();
@@ -15634,10 +16428,13 @@ function finalizeTournament(c){
   if(prize&&c.backer&&c.backer.cut){var bcut=Math.round(prize*c.backer.cut);if(bcut>0){c.money=Math.max(0,(c.money||0)-bcut);c.backer.paid=(c.backer.paid||0)+bcut;pushNews(c,'💸','Your backer took 💰'+bcut+' ('+Math.round(c.backer.cut*100)+'%) of your '+esc(tr.name)+' prize.');}}
   if(tr.champion&&!won1st){const L=tr.results.filter(r=>r.score===0).sort((a,b)=>b.rating-a.rating);if(L.length)c.nemesis={name:L[0].name,rating:L[0].rating,flag:L[0].flag,since:tr.name};}
   c.history=c.history||[];
-  c.history.unshift({name:tr.name,emoji:tr.emoji,score:scoreTot,rounds:games,avg:avgOpp,tpr:tpr,norms:gainedNorms,honors:gainedHonors,place:place,date:Date.now(),format:fmt});
+  c.history.unshift({name:tr.name,emoji:tr.emoji,score:scoreTot,rounds:games,avg:avgOpp,tpr:tpr,norms:gainedNorms,honors:gainedHonors,place:place,date:Date.now(),format:fmt,
+    // the grid outlives the tournament object, for the recent events at least
+    xt:xtSnapshot(tr)});
+  xtPrune(c);
   pushFeed(c,won1st?'🏆':'📋',esc(c.name||'You')+(won1st?' WINS ':' finishes '+ordinal(place)+' at ')+esc(tr.name)+' with '+fmtScore(scoreTot)+'/'+games+' (TPR '+tpr+').','you');
   gainedNorms.forEach(function(k){pushFeed(c,'📜',esc(c.name||'You')+' scores a '+k+' norm at '+esc(tr.name)+'.','you');});
-  app.careerFinish={name:tr.name,emoji:tr.emoji,score:scoreTot,rounds:games,avg:avgOpp,tpr:tpr,norms:gainedNorms,newTitles:newTitles,honors:gainedHonors,published:published,rating:youRating(c,fmt),place:place,format:fmt};
+  app.careerFinish={name:tr.name,emoji:tr.emoji,score:scoreTot,rounds:games,avg:avgOpp,tpr:tpr,norms:gainedNorms,newTitles:newTitles,honors:gainedHonors,published:published,rating:youRating(c,fmt),place:place,format:fmt,xt:(c.history[0]&&c.history[0].xt)||null};
   momentsFromFinish(c,app.careerFinish);      // the event is over: keep what was worth keeping
   lifeAfterEvent(tr,place,games);
   c.calDone=c.calDone||[];if(c.calDone.indexOf(tr.id)<0)c.calDone.push(tr.id);
@@ -16295,7 +17092,8 @@ function viewPlay(){
     '<div class="row" style="margin-top:8px"><button class="btn sec sm" data-act="pdraw" '+(app.playStatus==='play'?'':'disabled')+'>½ Offer draw</button><button class="btn danger sm" data-act="presign" '+((app.playStatus==='play'||app.playStatus==='engine')?'':'disabled')+'>⚑ Resign</button><button class="btn ghost sm" data-act="ppgn" '+(app.playMoves.length?'':'disabled')+'>'+(app.pgnCopied?'✓ Copied':'⧉ Copy PGN')+'</button></div>'+
     '<div class="row" style="margin-top:8px"><button class="btn sec sm" style="flex:1" data-act="revplay" '+(app.playMoves.length?'':'disabled')+'>🔍 Game Review</button></div>'+
     '<div class="row" style="margin-top:8px"><button class="btn sec sm" data-act="pnew">⟳ Rematch</button><button class="btn ghost sm" data-act="psetup">⚙ New game</button>'+(app.playOpening?'<button class="btn ghost sm" data-act="explore" data-val="'+app.playOpening+'">Opening</button>':'')+'</div>'+
-    '<div class="dim small" style="margin-top:8px">Arrow keys ◀ ▶ step through the game. Tap a move to jump there. Strength is also in Settings.</div></div></div></div>';
+    '<div class="dim small" style="margin-top:8px">Arrow keys ◀ ▶ step through the game. Tap a move to jump there. Strength is also in Settings.<br>'+
+    '⌨️ Or play from the keyboard: <b>Tab</b> to the board, arrow keys to move the cursor, <b>Enter</b> to pick a piece up and put it down, <b>Esc</b> to let go.</div></div></div></div>';
   return h;
 }
 
@@ -17076,6 +17874,8 @@ document.addEventListener('visibilitychange',function(){
   if(document.visibilityState==='hidden'&&app.view==='play')playSave(true);
 });
 window.addEventListener('keydown',e=>{
+  // a focused board takes the arrows, Enter and Escape before anything else
+  if(!(e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))&&kbHandle(e))return;
   // typing a name and pressing Enter is the obvious gesture; the rest of the
   // shortcuts stay out of text fields
   if(e.target&&e.target.id==='trk-q'&&e.key==='Enter'){e.preventDefault();trkSearchNow();return;}
