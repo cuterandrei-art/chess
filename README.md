@@ -327,6 +327,50 @@ as the gap widens, so a +400 favourite scores the 91% Elo predicts instead of
 85%, and a 600-point favourite loses about 2% of the time. The club league's
 board simulation had the identical flaw and the identical fix.
 
+## The Olympiad is a team event
+
+Nine individual games with a sentence bolted on the end. Your "team" was three
+anonymous random numbers — `simOlympiadTeam` rolled 0.40 to 0.75 three times,
+averaged them with your percentage and read a medal off a threshold. You never
+met your team-mates, never saw a board below your own, never knew which country
+you were playing, and no other nation existed at all. The one event in chess
+that people cry at was a coin flip in a trench coat.
+
+It is a team event now. Your federation fields four boards; three named
+team-mates play the others and their games are simulated at their ratings. Your
+nine opponents are drawn from twelve nations, and each one is the player on
+**your** board for their country — so the person opposite you comes from the
+side your side is playing. A match is four boards, two match points for winning
+it and one for a draw, the way FIDE scores it. The other nations are paired on
+match points and play each other, so the table moves while you play, and the
+medals at the end come off that table rather than off a dice roll. Every board
+of every match is simulated, which costs nothing and buys the thing the old
+version could not have: a board medal that is an actual ranking of everybody
+who played that board.
+
+Two things came out of building it that made it better than planned.
+
+**Your country is not as good or as bad as you are.** Building the squad off
+your rating alone meant a 2200 on board one dragged three imaginary 2100s
+behind them and lost every match 0–4, while a 2750 carried three 2600s nobody
+had earned. The team is now the stronger of you and what that federation
+actually fields, so a weak board is the weak link in a real side — and can be
+carried to a medal, or be the reason there isn't one.
+
+**A captain orders the team by rating**, so which board you play is the one
+your rating earns. A 2200 who is top-three for Romania plays board four behind
+a 2570, and climbing to board one is its own progression across a career. That
+also decides which board of the other nations you sit opposite and which board
+medal is yours to win. Selection needs top-three in your federation, which most
+careers reach well below the strength their country fields, so most of a career
+is spent down the order: in the test, fifteen of fifteen plausible selections
+start below board one.
+
+The suite also caught a modelling slip of mine. The step between boards is 38
+points and the noise around it is wider than that, so `olySquad` was handing a
+2800 a 2810 team-mate about one time in five and quietly demoting them to board
+two. Nobody in a squad can now outrank the board one they are standing behind.
+
 ## The crosstable
 
 The standings say who is on what score. A crosstable says *how*: the grid
@@ -827,7 +871,7 @@ the engine can answer, and a game with one known blunder).
 
 ## Tests
 
-Forty-seven suites, about 4,400 checks, plus twelve browser suites that drive the real app with the real engine.
+Forty-eight suites, about 4,500 checks, plus thirteen browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
@@ -849,6 +893,12 @@ exactly one point per game), `validate-magazine.mjs` (every front-page branch
 and where each section's facts come from), `validate-hall.mjs` (what survives a
 new career, a reload and a backup) and `validate-pzmiss.mjs` (the box ladder,
 what is due and in what order, and a queue that outlives the puzzle set).
+
+`validate-olympiad.mjs` plays thirty Olympiads and checks the books balance —
+every match hands out exactly two match points and four game points, no nation
+is ever in two matches at once, and the nation on the most match points is
+always first. `visual-olympiad.mjs` plays one in a browser and adds the match
+points up out of the live state.
 
 `validate-crosstable.mjs` plays forty simulated events and checks the grid
 never contradicts the standings — every row adds up to the point, byes added

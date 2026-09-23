@@ -4564,7 +4564,7 @@ function delRep(id){store.repertoire=store.repertoire.filter(x=>x!==id);save();}
 /* ============================== app state ============================== */
 const app={view:'career',exId:null,exPath:[],exFlip:false,courseId:null,setupOpening:'',
   pz:null,pzSeen:new Set(),pzFilter:{type:'auto'},rush:null,
-  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,ccSyncing:false,ccSyncMsg:null,ccSyncErr:null,_ccAutoTried:false,drill:null,installOpen:false,installMsg:null,trkF:null,trkQ:'',trkSort:'date',trkPage:0,trkMsg:null,cgQ:'',cgSort:'new',cgPage:0,cgMsg:null,playClk:[],booth:null,magIdx:0,magPly:0,xtOpen:false,xtFin:false,xtHist:null,pzReview:null,pzGraduated:null,pzMissDone:false,_pzCount:0,kbSq:null,kbFocus:false,_srLast:null,_srAt:0,replaySpeed:1,_replayTick:null,live:null,liveUser:null,liveList:null,liveLoading:false,liveErr:null,liveListAt:0,liveEv:null,liveBest:null,liveLines:[],liveEngErr:false,_liveKey:null,_livePollT:null,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
+  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOly:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,ccSyncing:false,ccSyncMsg:null,ccSyncErr:null,_ccAutoTried:false,drill:null,installOpen:false,installMsg:null,trkF:null,trkQ:'',trkSort:'date',trkPage:0,trkMsg:null,cgQ:'',cgSort:'new',cgPage:0,cgMsg:null,playClk:[],booth:null,magIdx:0,magPly:0,xtOpen:false,xtFin:false,xtHist:null,pzReview:null,pzGraduated:null,pzMissDone:false,_pzCount:0,kbSq:null,kbFocus:false,_srLast:null,_srAt:0,replaySpeed:1,_replayTick:null,live:null,liveUser:null,liveList:null,liveLoading:false,liveErr:null,liveListAt:0,liveEv:null,liveBest:null,liveLines:[],liveEngErr:false,_liveKey:null,_livePollT:null,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
   confirm:null,
   review:null,studyId:null,studyChapter:0,studyPath:[],studyFlip:false,studyMsg:null,
 
@@ -9971,7 +9971,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='arcchoice'){arcChoose(store.career,parseInt(val,10));save();render();}
   else if(act==='chalfmt'){app.chalFormat=val;render();}
   else if(act==='lbfmt'){app.lbFormat=val;render();}
-  else if(act==='careerdismiss'){app.careerFinish=null;render();}
+  else if(act==='careerdismiss'){app.careerFinish=null;app.careerOly=null;render();}
   else if(act==='careerwithdraw'){if(confirm('Withdraw from this tournament? Your results so far are discarded — no rating change, norm or title is awarded.')){store.career.tour=null;save();render();}}
   else if(act==='hint')hint();
   else if(act==='toggleguided'){app.guided=!app.guided;render();}
@@ -14327,6 +14327,18 @@ function careerFinishBanner(f){
   if(f.norms&&f.norms.length)x+='<div style="color:#fcd34d;font-weight:700;margin-top:4px">🏅 Norm achieved — '+f.norms.join(', ')+'! ('+f.tpr+' performance)</div>';
   if(f.honors&&f.honors.length)x+='<div style="color:#fcd34d;font-weight:800;margin-top:4px;font-size:16px">'+f.honors.map(hn=>honorEmoji(hn)+' '+esc(hn)+'!').join('  ')+'</div>';
   if(f.newTitles&&f.newTitles.length)x+='<div style="color:var(--brand2);font-weight:800;margin-top:4px;font-size:16px">👑 New FIDE title: '+f.newTitles.map(t=>(TITLE_DEFS.find(d=>d.t===t)||{name:t}).name+' ('+t+')').join(', ')+'!</div>';
+  // the Olympiad finishes twice: once for you, once for the country
+  const O=app.careerOly;
+  if(O){
+    x+='<div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border)">'+
+      '<div style="font-weight:800">'+(O.flag||'')+' '+esc(O.fed||'')+' finished '+ordinal(O.place)+
+        ' of '+O.of+' nations'+(O.team?' — '+olyMedalEmoji(O.team)+' '+O.team.toLowerCase()+'!':'.')+'</div>'+
+      (O.boardRank
+        ? '<div class="dim small">Board '+olyBoardWord(O.myBoard)+': '+ordinal(O.boardRank)+' of '+O.boardOf+' on '+
+          Math.round(O.boardPct*100)+'%'+(O.board?' — '+olyMedalEmoji(O.board)+' '+O.board.toLowerCase()+' board medal!':'.')+'</div>'
+        : '')+
+      '</div>';
+  }
   const place=f.place?ordinal(f.place)+' place · ':'';
   // the final crosstable, folded away until asked for
   const xt=f.xt?('<div style="margin-top:9px;border-top:1px solid var(--border);padding-top:7px">'+
@@ -14925,6 +14937,7 @@ function careerTourView(c){
     if(cur&&o.style)h+='<div class="dim small" style="padding:2px 2px 6px 28px;line-height:1.5">🔎 Scouting: '+esc(o.name.split(' ').pop())+' '+scoutTip(o.style)+personaScoutNote(c)+(c.preppedOpening?' · 📕 you’re prepared':' · prepare a line below for an edge')+'</div>';
   });
   h+='</div>';
+  h+=olyCards(c,tr);
   h+=careerStandings(tr);
   h+=tourBulletinCard(tr);
   h+=xtLiveCard(tr);
@@ -15257,6 +15270,356 @@ function careerStandings(tr){
   let rows='';const n=Math.min(S.length,8);for(let i=0;i<n;i++)rows+=row(S[i],i+1);
   if(yi>=n)rows+='<div class="dim small" style="text-align:center;padding:2px">⋯</div>'+row(S[yi],yi+1);
   return '<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:6px"><div style="font-weight:700;font-size:12px;color:var(--brand2);margin-bottom:2px">📊 Standings</div>'+rows+'</div>';
+}
+/* ================= THE OLYMPIAD IS A TEAM EVENT =================
+   The Olympiad was nine individual games with a sentence bolted on the end.
+   Your "team" was three anonymous random numbers — `simOlympiadTeam` rolled
+   0.40 to 0.75 three times, averaged them with your percentage and read a
+   medal off a threshold. You never met your team-mates, never saw a board
+   below your own, never knew which country you were playing, and no other
+   nation existed at all. The one event in chess that people cry at was a
+   coin flip in a trench coat.
+
+   So it is a team event now, the way it is in life. You play board one for
+   your federation. Three named team-mates play boards two to four and their
+   games are simulated at their ratings. Your nine opponents are the board
+   ones of nine other nations, so the country you are facing is the country
+   their whole team comes from. A match is four boards; two match points for
+   winning it, one for a draw, the way FIDE scores it. The other nations play
+   each other too, paired on match points, so the table moves while you play
+   and the medals at the end come off the real table.
+
+   Every board of every match is simulated, which costs nothing and buys the
+   thing the old version could not have: a board-one medal that is an actual
+   ranking of every board one in the hall, not a threshold on a dice roll. */
+const OLY_BOARDS=4;         // a team is four players
+const OLY_TEAMS=12;         // you and eleven other nations
+const OLY_DRAW=0.36;        // top boards draw more often than a club league
+const OLY_MIN_GAMES=0.6;    // of the rounds, before a board medal is possible
+/* Federations with a plausible top-board strength. Nations, not players —
+   nobody here is a real person. */
+const OLY_NATIONS=[
+  {c:'IND',f:'🇮🇳',str:2745},{c:'USA',f:'🇺🇸',str:2740},{c:'CHN',f:'🇨🇳',str:2720},
+  {c:'UZB',f:'🇺🇿',str:2700},{c:'NOR',f:'🇳🇴',str:2695},{c:'FRA',f:'🇫🇷',str:2680},
+  {c:'ARM',f:'🇦🇲',str:2665},{c:'AZE',f:'🇦🇿',str:2660},{c:'POL',f:'🇵🇱',str:2650},
+  {c:'GER',f:'🇩🇪',str:2645},{c:'NED',f:'🇳🇱',str:2640},{c:'UKR',f:'🇺🇦',str:2635},
+  {c:'ESP',f:'🇪🇸',str:2615},{c:'HUN',f:'🇭🇺',str:2610},{c:'ENG',f:'🏴',str:2600},
+  {c:'SRB',f:'🇷🇸',str:2590},{c:'ROU',f:'🇷🇴',str:2575},{c:'CZE',f:'🇨🇿',str:2565},
+  {c:'GEO',f:'🇬🇪',str:2555},{c:'ITA',f:'🇮🇹',str:2545},{c:'SWE',f:'🇸🇪',str:2530},
+  {c:'BRA',f:'🇧🇷',str:2515},{c:'TUR',f:'🇹🇷',str:2505},{c:'VIE',f:'🇻🇳',str:2495},
+];
+/* What that federation actually fields on board one, for the nations in the
+   list; a floor for anybody playing under a flag that is not in it. */
+const OLY_FED_FLOOR=2380;
+function olyFedStrength(code){
+  for(const n of OLY_NATIONS)if(n.c===code)return n.str;
+  return OLY_FED_FLOOR;
+}
+function olyFlagOf(code){
+  for(const n of OLY_NATIONS)if(n.c===code)return n.f;
+  for(const f of FEDS)if(f.c===code)return f.f;
+  return '♟';
+}
+/* One board of one match. The draw rate thins out with the rating gap, the
+   same model the bulletin and the club league use. */
+function olySimBoard(mine,theirs){
+  const e=1/(1+Math.pow(10,((theirs||2400)-(mine||2400))/400));
+  const d=bulDrawRate(e,OLY_DRAW);
+  const pw=Math.max(0,Math.min(1-d,e-d/2));
+  const r=Math.random();
+  if(r<pw)return 1;
+  if(r<pw+d)return 0.5;
+  return 0;
+}
+/* A squad, strongest first — a captain does not put board four on board one. */
+function olySquad(str,n,startBoard){
+  const b0=startBoard||1,out=[];
+  // `str` is what this side fields on board one, so a squad that starts lower
+  // down cannot contain somebody better than it: the step between boards is
+  // only 38 points and the noise is wider than that, so without this a 2800
+  // was handed a 2810 team-mate about one time in five and demoted to board two
+  const cap=(b0>1)?Math.max(1650,str-5):2850;
+  for(let i=0;i<n;i++){
+    const r=Math.max(1600,Math.min(2850,cap,Math.round(str-(b0+i-1)*38+gauss()*45)));
+    out.push({name:randName(),rating:r,title:titleByRating(r)});
+  }
+  out.sort(function(a,b){return b.rating-a.rating;});
+  out.forEach(function(p,i){p.board=b0+i;});
+  return out;
+}
+function olyBlank(n){const a=[];for(let i=0;i<n;i++)a.push(0);return a;}
+function olyNation(oly,id){
+  if(!oly)return null;
+  for(const n of oly.nations)if(n.id===id)return n;
+  return null;
+}
+function olyMet(oly,a,b){const k=oly.met||{};return !!(k[a+'|'+b]||k[b+'|'+a]);}
+function olyNoteMet(oly,a,b){if(!oly.met)oly.met={};oly.met[a+'|'+b]=1;}
+/* Build the whole thing, and redraw the tournament's field so that each of
+   your nine opponents is the board one of a nation you will meet. */
+function olyInit(c,tr){
+  const myFed=c.fed||'FIDE',myFlag=c.flag||olyFlagOf(c.fed);
+  const myR=youRating(c,'classical')||c.rating||2300;
+  // Your country is not as good or as bad as you are. Building the squad off
+  // your own rating alone meant a 2200 on board one dragged three imaginary
+  // 2100s behind them and lost every match 0–4, while a 2750 carried three
+  // 2600s nobody had earned. The team is the stronger of you and what that
+  // federation actually fields, so a weak board one is the weak link in a real
+  // side — and can be carried to a medal, or be the reason there isn't one.
+  const pool=OLY_NATIONS.filter(function(n){return n.c!==myFed;}).slice();
+  const teamStr=Math.max(myR,olyFedStrength(myFed));
+  const nations=[{id:'me',c:myFed,f:myFlag,str:teamStr,you:true,mp:0,gp:0,
+    bd:olyBlank(OLY_BOARDS),bn:olyBlank(OLY_BOARDS)}];
+  for(let i=0;i<OLY_TEAMS-1&&pool.length;i++){
+    const n=pool.splice(Math.floor(Math.random()*pool.length),1)[0];
+    nations.push({id:'n'+i,c:n.c,f:n.f,str:n.str,you:false,mp:0,gp:0,
+      bd:olyBlank(OLY_BOARDS),bn:olyBlank(OLY_BOARDS),squad:olySquad(n.str,OLY_BOARDS,1)});
+  }
+  // A captain orders the team by strength, so which board you play is the one
+  // your rating earns. Early in a career that is board four, and the climb to
+  // board one is its own progression; it also decides which board of the other
+  // nations you actually sit opposite, and which board medal is yours to win.
+  const mates=olySquad(teamStr,OLY_BOARDS-1,2);
+  const above=mates.filter(function(m){return m.rating>myR;}).length;
+  const myBoard=above+1;
+  mates.forEach(function(m,i){m.board=(i<above)?(i+1):(i+2);});
+  const me=nations[0];
+  // nine of the eleven become your fixture list, drawn into an order
+  const foes=nations.filter(function(n){return !n.you;}).slice(0,tr.rounds);
+  tr.field=drawFixtures(foes.map(function(n){
+    const p=n.squad[myBoard-1];
+    return {name:p.name,rating:p.rating,title:p.title,fed:n.c,flag:n.f,
+      style:pickStyle(),nat:n.id};
+  }),tr.rounds);
+  tr.oly={nations:nations,mates:mates,met:{},matches:[],rounds:tr.rounds,myBoard:myBoard};
+  me.squad=olyMyTeam(c,tr.oly);
+  return tr.oly;
+}
+/* Your four boards as they stand right now — your own rating moves. */
+function olyMyTeam(c,oly){
+  const me=olyNation(oly,'me');
+  if(!me)return [];
+  const myR=youRating(c,'classical')||c.rating||me.str;
+  const out=(oly.mates||[]).map(function(m){
+    return {board:m.board,name:m.name,rating:m.rating,title:m.title};});
+  out.push({board:oly.myBoard||1,name:c.name||'You',rating:myR,
+    title:bestTitle(c)||'',you:true});
+  out.sort(function(a,b){return a.board-b.board;});
+  return out;
+}
+const OLY_BOARD_WORD=['one','two','three','four'];
+function olyBoardWord(b){return OLY_BOARD_WORD[(b||1)-1]||String(b);}
+/* Two nations, four boards. */
+function olySimMatch(A,B){
+  const boards=[];let s=0;
+  for(let i=0;i<OLY_BOARDS;i++){
+    const a=(A.squad||[])[i]||{rating:A.str-i*38},b=(B.squad||[])[i]||{rating:B.str-i*38};
+    const r=olySimBoard(a.rating,b.rating);
+    s+=r;
+    boards.push({board:i+1,score:r});
+  }
+  return {s:s,boards:boards};
+}
+/* Match points, game points, and each board's running total — the last of
+   which is what makes a board medal a ranking rather than a guess. */
+function olyScore(A,B,sA,boards){
+  const sB=OLY_BOARDS-sA;
+  A.gp=(A.gp||0)+sA;B.gp=(B.gp||0)+sB;
+  if(sA>sB)A.mp=(A.mp||0)+2;
+  else if(sA<sB)B.mp=(B.mp||0)+2;
+  else{A.mp=(A.mp||0)+1;B.mp=(B.mp||0)+1;}
+  (boards||[]).forEach(function(b,i){
+    A.bd[i]=(A.bd[i]||0)+b.score;A.bn[i]=(A.bn[i]||0)+1;
+    B.bd[i]=(B.bd[i]||0)+(1-b.score);B.bn[i]=(B.bn[i]||0)+1;
+  });
+}
+/* Everybody not in your match, paired on match points. */
+function olyPairNations(oly,foeId){
+  const rest=oly.nations.filter(function(n){return !n.you&&n.id!==foeId;});
+  rest.sort(function(a,b){return (b.mp||0)-(a.mp||0)||(b.gp||0)-(a.gp||0)||b.str-a.str;});
+  const used={},pairs=[];
+  for(let i=0;i<rest.length;i++){
+    const A=rest[i];
+    if(used[A.id])continue;
+    let j=-1;
+    for(let k=i+1;k<rest.length;k++)
+      if(!used[rest[k].id]&&!olyMet(oly,A.id,rest[k].id)){j=k;break;}
+    if(j<0)for(let k=i+1;k<rest.length;k++)if(!used[rest[k].id]){j=k;break;}
+    used[A.id]=1;
+    if(j<0){pairs.push({a:A,b:null});continue;}
+    used[rest[j].id]=1;
+    pairs.push({a:A,b:rest[j]});
+  }
+  return pairs;
+}
+/* One round of the whole Olympiad: your match, then everybody else's. */
+function olyPlayRound(c,tr,rIdx,myScore){
+  const oly=tr&&tr.oly;
+  if(!oly)return null;
+  const opp=(tr.field||[])[rIdx];
+  const me=olyNation(oly,'me'),foe=olyNation(oly,opp&&opp.nat);
+  if(!me||!foe)return null;
+  const theirs=foe.squad||[];
+  const team=olyMyTeam(c,oly);
+  const boards=team.map(function(p,i){
+    const o=theirs[i]||{name:randName(),rating:foe.str-i*38,title:''};
+    return {board:p.board,you:!!p.you,name:p.name,rating:p.rating,title:p.title||'',
+      oppName:p.you?((theirs[i]||{}).name||opp.name):o.name,
+      oppRating:p.you?((theirs[i]||{}).rating||opp.rating):o.rating,
+      oppTitle:(p.you?((theirs[i]||{}).title||opp.title):o.title)||'',
+      score:p.you?myScore:olySimBoard(p.rating,o.rating)};
+  });
+  const us=boards.reduce(function(t,b){return t+b.score;},0);
+  olyScore(me,foe,us,boards);
+  olyNoteMet(oly,'me',foe.id);
+  const others=[];
+  olyPairNations(oly,foe.id).forEach(function(pr){
+    if(!pr.b){                                    // an odd number sits a nation out
+      pr.a.mp=(pr.a.mp||0)+2;pr.a.gp=(pr.a.gp||0)+OLY_BOARDS/2;
+      others.push({a:pr.a.c,af:pr.a.f,bye:true});
+      return;
+    }
+    const r=olySimMatch(pr.a,pr.b);
+    olyScore(pr.a,pr.b,r.s,r.boards);
+    olyNoteMet(oly,pr.a.id,pr.b.id);
+    others.push({a:pr.a.c,af:pr.a.f,b:pr.b.c,bf:pr.b.f,s:r.s});
+  });
+  const M={r:rIdx+1,foe:foe.c,foeFlag:foe.f,boards:boards,us:us,them:OLY_BOARDS-us,others:others};
+  oly.matches.push(M);
+  if(oly.matches.length>20)oly.matches.shift();
+  const won=us>OLY_BOARDS-us,drew=us===OLY_BOARDS-us;
+  pushNews(c,'🤝',(c.flag||'')+' '+esc(c.fed||'Your team')+(won?' beat ':drew?' drew with ':' lost to ')+
+    foe.f+' '+esc(foe.c)+' '+fmtScore(us)+'–'+fmtScore(OLY_BOARDS-us)+
+    ' (you '+(myScore===1?'won':myScore===0?'lost':'drew')+' on board one).');
+  return M;
+}
+/* ---- where everybody stands ---- */
+function olyTable(oly){
+  if(!oly||!oly.nations)return [];
+  return oly.nations.slice().sort(function(a,b){
+    return (b.mp||0)-(a.mp||0)||(b.gp||0)-(a.gp||0)||b.str-a.str;});
+}
+function olyPlace(oly){
+  const T=olyTable(oly);
+  for(let i=0;i<T.length;i++)if(T[i].you)return i+1;
+  return null;
+}
+/* Your board one against every other board one in the hall. */
+function olyBoardRank(oly,board){
+  if(!oly||!oly.nations)return null;
+  const b=(board||1)-1,rounds=oly.rounds||9;
+  const need=Math.max(1,Math.ceil(rounds*OLY_MIN_GAMES));
+  const rows=oly.nations.filter(function(n){return (n.bn[b]||0)>=need;})
+    .map(function(n){return {id:n.id,c:n.c,f:n.f,you:!!n.you,
+      pts:n.bd[b]||0,games:n.bn[b]||0,pct:(n.bd[b]||0)/Math.max(1,n.bn[b]||0)};});
+  if(!rows.length)return null;
+  rows.sort(function(a,b2){return b2.pct-a.pct||b2.games-a.games;});
+  for(let i=0;i<rows.length;i++)if(rows[i].you)
+    return {rank:i+1,of:rows.length,pct:rows[i].pct,pts:rows[i].pts,games:rows[i].games,rows:rows};
+  return null;
+}
+const OLY_MEDAL=['Gold','Silver','Bronze'];
+function olyMedals(oly){
+  const place=olyPlace(oly),br=olyBoardRank(oly,oly&&oly.myBoard||1);
+  return {place:place,myBoard:(oly&&oly.myBoard)||1,
+    team:(place&&place<=3)?OLY_MEDAL[place-1]:null,
+    boardRank:br?br.rank:null,boardOf:br?br.of:null,boardPct:br?br.pct:null,
+    board:(br&&br.rank<=3)?OLY_MEDAL[br.rank-1]:null};
+}
+/* ---- on screen ---- */
+function olyMedalEmoji(m){return m==='Gold'?'🥇':m==='Silver'?'🥈':m==='Bronze'?'🥉':'';}
+function olySquadCard(c,tr){
+  const oly=tr&&tr.oly;
+  if(!oly)return '';
+  const me=olyNation(oly,'me');
+  const team=olyMyTeam(c,oly);
+  const played=(oly.matches||[]).length;
+  return '<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:7px">'+
+    '<div style="font-weight:700;font-size:12px;color:var(--brand2);margin-bottom:3px">'+
+      (me?me.f+' ':'')+esc(me?me.c:'Your federation')+' — the team sheet</div>'+
+    team.map(function(p,i){
+      const pts=me?(me.bd[i]||0):0,n=me?(me.bn[i]||0):0;
+      return '<div style="display:flex;align-items:center;gap:8px;padding:3px 0'+
+        (p.you?';background:rgba(96,165,250,.12);margin:0 -6px;padding-left:8px;padding-right:8px;border-radius:6px':'')+'">'+
+        '<span class="dim small" style="width:18px">'+p.board+'</span>'+
+        '<span style="width:26px;font-weight:800;color:var(--brand2);font-size:11px">'+esc(p.title||'')+'</span>'+
+        '<span class="small" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:'+(p.you?'800':'600')+'">'+
+          esc(p.name)+(p.you?' <span class="chip brand" style="font-size:9px">YOU</span>':'')+'</span>'+
+        '<span class="dim small" style="width:42px;text-align:right">'+p.rating+'</span>'+
+        '<span class="small" style="width:40px;text-align:right;font-weight:700">'+
+          (n?fmtScore(pts)+'/'+n:'—')+'</span></div>';
+    }).join('')+
+    (played?'':'<div class="dim small" style="margin-top:3px">Boards two to four play their own games each round.</div>')+
+    '</div>';
+}
+function olyMatchCard(tr){
+  const oly=tr&&tr.oly;
+  if(!oly||!(oly.matches||[]).length)return '';
+  const M=oly.matches[oly.matches.length-1];
+  const res=M.us>M.them?['beat','var(--green)']:M.us===M.them?['drew with','var(--muted)']:['lost to','#f87171'];
+  return '<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:7px">'+
+    '<div style="font-weight:700;font-size:12px;color:var(--brand2);margin-bottom:3px">🤝 Round '+M.r+
+      ' · the match</div>'+
+    '<div class="small" style="font-weight:700;margin-bottom:4px;color:'+res[1]+'">You '+res[0]+' '+
+      M.foeFlag+' '+esc(M.foe)+' '+fmtScore(M.us)+'–'+fmtScore(M.them)+'</div>'+
+    M.boards.map(function(b){
+      const sym=b.score===1?'1':b.score===0?'0':'½';
+      const col=b.score===1?'var(--green)':b.score===0?'#f87171':'var(--muted)';
+      return '<div style="display:flex;align-items:center;gap:7px;padding:2px 0'+
+        (b.you?';background:rgba(96,165,250,.1);margin:0 -6px;padding-left:8px;padding-right:8px;border-radius:6px':'')+'">'+
+        '<span class="dim small" style="width:16px">'+b.board+'</span>'+
+        '<span class="small" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+
+          esc(b.name)+'</span>'+
+        '<span style="width:30px;text-align:center;font-weight:800;color:'+col+'">'+sym+'</span>'+
+        '<span class="small" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right" class="dim">'+
+          esc(b.oppName)+'</span></div>';
+    }).join('')+
+    ((M.others||[]).length
+      ? '<div class="dim small" style="margin-top:5px;line-height:1.6">Elsewhere: '+
+        M.others.slice(0,4).map(function(o){
+          return o.bye?(esc(o.a)+' sat out')
+            :(o.af+esc(o.a)+' '+fmtScore(o.s)+'–'+fmtScore(OLY_BOARDS-o.s)+' '+o.bf+esc(o.b));
+        }).join(' · ')+'</div>'
+      : '')+
+    '</div>';
+}
+function olyTableCard(tr){
+  const oly=tr&&tr.oly;
+  if(!oly)return '';
+  const T=olyTable(oly);
+  if(!T.length)return '';
+  const played=(oly.matches||[]).length;
+  const mine=T.findIndex(function(n){return n.you;});
+  const row=function(n,rank){
+    return '<div style="display:flex;align-items:center;gap:8px;padding:3px 2px;border-top:1px solid var(--border)'+
+      (n.you?';background:rgba(96,165,250,.12);margin:0 -6px;padding-left:8px;padding-right:8px;border-radius:6px':'')+'">'+
+      '<span class="dim small" style="width:18px;font-weight:700">'+rank+'</span>'+
+      '<span style="width:20px">'+n.f+'</span>'+
+      '<span class="small" style="flex:1;min-width:0;font-weight:'+(n.you?'800':'600')+'">'+esc(n.c)+
+        (n.you?' <span class="chip brand" style="font-size:9px">YOU</span>':'')+'</span>'+
+      '<span class="small" style="width:30px;text-align:right;font-weight:800">'+(n.mp||0)+'</span>'+
+      '<span class="dim small" style="width:36px;text-align:right">'+fmtScore(n.gp||0)+'</span></div>';
+  };
+  let rows='';
+  const n=Math.min(T.length,8);
+  for(let i=0;i<n;i++)rows+=row(T[i],i+1);
+  if(mine>=n)rows+='<div class="dim small" style="text-align:center;padding:2px">⋯</div>'+row(T[mine],mine+1);
+  const myBoard=oly.myBoard||1,br=olyBoardRank(oly,myBoard);
+  return '<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:7px">'+
+    '<div class="row" style="justify-content:space-between;align-items:baseline;gap:8px">'+
+      '<div style="font-weight:700;font-size:12px;color:var(--brand2)">🌍 Nations</div>'+
+      '<div class="dim small">match pts · game pts</div></div>'+
+    rows+
+    (br?'<div class="dim small" style="margin-top:5px;line-height:1.6">Board '+olyBoardWord(myBoard)+': you are '+ordinal(br.rank)+
+      ' of '+br.of+' on '+Math.round(br.pct*100)+'% ('+fmtScore(br.pts)+'/'+br.games+')'+
+      (br.rank<=3?' — a board medal as it stands.':'.')+'</div>'
+     :'<div class="dim small" style="margin-top:5px">Board medals are decided on percentage once enough rounds are played.</div>')+
+    (played?'':'<div class="dim small" style="margin-top:3px">Nothing played yet — every nation starts on zero.</div>')+
+    '</div>';
+}
+function olyCards(c,tr){
+  if(!tr||!tr.oly)return '';
+  return olySquadCard(c,tr)+olyMatchCard(tr)+olyTableCard(tr);
 }
 /* ================= THE CROSSTABLE =================
    The standings say who is on what score. A crosstable says how: it is the
@@ -16164,6 +16527,9 @@ function joinTournament(id){
   if(tourLocked(t,c))return;
   app.careerFinish=null;
   c.tour={id:t.id,name:t.name,emoji:t.emoji,rounds:t.rounds,round:0,field:makeField(t),results:[],normEligible:!!t.norm,avg:t.avg,tier:t.tier,format:eventFormat(t),champion:!!t.champion,honor:t.honor||null,kind:t.kind||'swiss',var960:!!t.var960,started:Date.now(),drawn:0};
+  // the Olympiad redraws its own field: your nine opponents are the board ones
+  // of nine nations, so the country you face is the country the team comes from
+  if(t.id==='olympiad')olyInit(c,c.tour);
   if(c.tour.kind!=='match'){
     const pool=c.tour.field.map((o,i)=>({id:'p'+i,name:o.name,rating:o.rating,title:o.title,flag:o.flag,score:0,you:false}));
     pool.push({id:'__you',name:c.name,rating:youRating(c,c.tour.format)||(c.rating||1400),title:bestTitle(c),flag:c.flag,score:0,you:true});
@@ -16377,6 +16743,7 @@ function careerResult(score){
   archiveCareerGame(c,opp,score,fmt,tr.name,!!app.c960);pushRatingPoint(c);
   // the rest of the hall plays its round too — paired, so the table adds up
   if(tr.standings)tourPlayRound(tr,rIdx,score);
+  if(tr.oly)olyPlayRound(c,tr,rIdx,score);        // …and so do the other nations
   if(c.nemesis&&opp.name===c.nemesis.name&&score===1)c.nemesis=null;
   tr.round=(tr.round||0)+1;
   c.played=(c.played||0)+1;if(score===1)c.won=(c.won||0)+1;else if(score===0)c.lost=(c.lost||0)+1;else c.drawn=(c.drawn||0)+1;
@@ -16404,7 +16771,39 @@ function finalizeTournament(c){
   // World Cup / Grand Swiss: a top finish qualifies you for the Candidates
   if(def.qualifier&&place<=def.qualifier){c.honors=c.honors||[];if(c.honors.indexOf('Candidates Qualifier')<0){c.honors.push('Candidates Qualifier');gainedHonors.push('Candidates Qualifier');pushNews(c,'♛','You QUALIFIED for the Candidates Tournament!');}}
   // Olympiad: your board score plus simulated team-mates decides a team medal
-  if(def.id==='olympiad'){const tm=simOlympiadTeam(scoreTot/Math.max(1,games));if(tm.place<=3){const medal='Olympiad Team '+['Gold','Silver','Bronze'][tm.place-1];c.honors=c.honors||[];if(c.honors.indexOf(medal)<0){c.honors.push(medal);gainedHonors.push(medal);}pushNews(c,'🤝','Your '+esc(c.fed)+' team took '+['🥇 gold','🥈 silver','🥉 bronze'][tm.place-1]+' at the Olympiad!');}else pushNews(c,'🤝','Your '+esc(c.fed)+' team finished '+ordinal(tm.place)+' at the Olympiad.');}
+  // The Olympiad's medals come off the real nations table and a real ranking of
+  // every board one in the hall. A tournament carried over from a save made
+  // before the team existed still falls back to the old estimate.
+  if(def.id==='olympiad'){
+    const M=tr.oly?olyMedals(tr.oly):null;
+    const place=M&&M.place?M.place:simOlympiadTeam(scoreTot/Math.max(1,games)).place;
+    // the news list holds eight items and a finishing tournament fills it, so
+    // a result people remember for twenty years also goes to the feed
+    const say=function(text){pushNews(c,'🤝',text);pushFeed(c,'🤝',text,'you');};
+    const award=function(medal,text){
+      if(!medal)return;
+      c.honors=c.honors||[];
+      if(c.honors.indexOf(medal)<0){c.honors.push(medal);gainedHonors.push(medal);}
+      say(text);
+    };
+    if(place<=3)
+      award('Olympiad Team '+OLY_MEDAL[place-1],
+        (c.flag||'')+' '+esc(c.fed)+' took '+olyMedalEmoji(OLY_MEDAL[place-1])+' '+
+        OLY_MEDAL[place-1].toLowerCase()+' at the Olympiad'+
+        (M?' — '+M.place+' of '+tr.oly.nations.length+' nations':'')+'!');
+    else
+      say((c.flag||'')+' '+esc(c.fed)+' finished '+ordinal(place)+' at the Olympiad'+
+        (M?' of '+tr.oly.nations.length+' nations':'')+'.');
+    if(M&&M.board)
+      award('Olympiad Board '+M.board,
+        'Board '+olyBoardWord(M.myBoard)+' medal: '+olyMedalEmoji(M.board)+' '+M.board.toLowerCase()+' on '+
+        Math.round(M.boardPct*100)+'%, '+ordinal(M.boardRank)+' of '+M.boardOf+' board ones.');
+    else if(M&&M.boardRank)
+      say('You finished '+ordinal(M.boardRank)+' of '+M.boardOf+' on board '+olyBoardWord(M.myBoard)+', '+
+        Math.round(M.boardPct*100)+'%.');
+    if(M)app.careerOly={place:M.place,of:tr.oly.nations.length,team:M.team,board:M.board,myBoard:M.myBoard,
+      boardRank:M.boardRank,boardOf:M.boardOf,boardPct:M.boardPct,fed:c.fed,flag:c.flag};
+  }
   // National Championship: win it to be crowned your federation's champion
   if(def.natChamp&&won1st){var nh=c.fed+' Champion';c.honors=c.honors||[];if(c.honors.indexOf(nh)<0){c.honors.push(nh);gainedHonors.push(nh);}unlockAch(c,'natchamp');pushNews(c,'🎖️','You are the '+esc(c.fed)+' National Champion!');}
   var _cw=CIRCUIT_LEGS[tr.id];if(_cw){c.circuit=c.circuit||{pts:0,season:c.season||1};var _cp=circuitPts(place,_cw);c.circuit.pts+=_cp;pushNews(c,'🏆','Grand Circuit: +'+_cp+' points at '+esc(tr.name)+' (season total '+c.circuit.pts+').');}
