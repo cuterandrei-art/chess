@@ -4464,7 +4464,11 @@ function freshCareer(){return JSON.parse(JSON.stringify(DEF.career));}
 /* Migrate saved career data: the old ladder (with `beaten`/`results`) is reset
    to the new FIDE structure; new-format saves are merged onto fresh defaults. */
 function migrateCareer(d){if(!d||typeof d!=='object'||('beaten'in d)||!('setup'in d))return freshCareer();return Object.assign(freshCareer(),d);}
-let store=DEF;
+/* A copy, not the defaults themselves. Aliased, a first run with nothing saved
+   would edit DEF as it went, and everything that reads a default afterwards —
+   freshCareer() for a new career, the merges in restore(), the statistics
+   reset — would be handed the state it was supposed to replace. */
+let store=JSON.parse(JSON.stringify(DEF));
 try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],courseProgress:d.courseProgress||{},settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],myGames:d.myGames||[],myGamesMeta:d.myGamesMeta||null,ccProfile:d.ccProfile||null,ccAccount:d.ccAccount||null,daily:d.daily||null,brilliancies:d.brilliancies||[],onboarded:!!d.onboarded,career:migrateCareer(d.career)};}catch(e){}
 function rebuildOpenings(){const cust=(store.custom||[]).map(d=>{try{return buildOpening(d);}catch(e){return null;}}).filter(Boolean);BUILT=BASE.concat(cust);byId=new Map(BUILT.map(o=>[o.id,o]));}
 rebuildOpenings();
@@ -4544,7 +4548,7 @@ function delRep(id){store.repertoire=store.repertoire.filter(x=>x!==id);save();}
 /* ============================== app state ============================== */
 const app={view:'career',exId:null,exPath:[],exFlip:false,courseId:null,setupOpening:'',
   pz:null,pzSeen:new Set(),pzFilter:{type:'auto'},rush:null,
-  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,ccSyncing:false,ccSyncMsg:null,ccSyncErr:null,_ccAutoTried:false,drill:null,installOpen:false,installMsg:null,trkF:null,trkQ:'',trkSort:'date',trkPage:0,trkMsg:null,replaySpeed:1,_replayTick:null,live:null,liveUser:null,liveList:null,liveLoading:false,liveErr:null,liveListAt:0,liveEv:null,liveBest:null,liveLines:[],liveEngErr:false,_liveKey:null,_livePollT:null,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
+  careerOpp:null,careerElo:null,careerScored:false,careerDelta:0,careerTour:false,careerRoundOpp:null,careerFinish:null,careerOneoff:null,lbFormat:'classical',chalFormat:'classical',feedAll:false,playerId:null,trkTab:'overview',dailySet:null,dailyFeedback:null,imp:null,impSrc:'chesscom',impUser:'',impMax:200,ccSyncing:false,ccSyncMsg:null,ccSyncErr:null,_ccAutoTried:false,drill:null,installOpen:false,installMsg:null,trkF:null,trkQ:'',trkSort:'date',trkPage:0,trkMsg:null,cgQ:'',cgSort:'new',cgPage:0,cgMsg:null,playClk:[],replaySpeed:1,_replayTick:null,live:null,liveUser:null,liveList:null,liveLoading:false,liveErr:null,liveListAt:0,liveEv:null,liveBest:null,liveLines:[],liveEngErr:false,_liveKey:null,_livePollT:null,reportSrc:'mine',coachNote:null,whyNot:null,blunderNote:null,skippedTo:0,oppDraw:null,oppSaid:null,_oppLost:0,_drawCd:0,parkBet:null,parkStake:0,parkDouble:null,
   confirm:null,
   review:null,studyId:null,studyChapter:0,studyPath:[],studyFlip:false,studyMsg:null,
 
@@ -4823,6 +4827,9 @@ function render(){
   if(app.view==='play'&&app.playStatus==='over'&&resultKind(app.playResult)==='win'&&app._fxKey!==app.playResult){app._fxKey=app.playResult;confetti();}
   var _cf=app.careerFinish;if(_cf&&((_cf.newTitles&&_cf.newTitles.length)||(_cf.honors&&_cf.honors.length)||(_cf.norms&&_cf.norms.length)||_cf.published)&&app._fxCareer!==_cf){app._fxCareer=_cf;confetti(130);}
   if(app.view==='clearn'&&app.cl&&app.cl.done&&app._fxCl!==app.cl){app._fxCl=app.cl;confetti(90);}
+  // keep the game on disk while it is being played, and drop it the moment it
+  // is finished — one place, so no ending can forget to clean up after itself
+  if(app.view==='play')playSave();
   animateLast();
 }
 
@@ -7652,7 +7659,9 @@ function viewLiveGame(){
     (L.kind==='live'&&isTurn?'<span class="chip green" style="font-size:10px">to move'+(L.moveBy?' · '+esc(liveDeadline(L.moveBy)):'')+'</span>':'')+'</div>';
   let h='<div style="max-width:560px;margin:0 auto">'+
     '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">'+
-      '<button class="btn ghost sm" data-act="nav" data-val="tracker">← Tracker</button>'+
+      (L.kind==='career'
+        ? '<button class="btn ghost sm" data-act="nav" data-val="career">← Career</button>'
+        : '<button class="btn ghost sm" data-act="nav" data-val="tracker">← Tracker</button>')+
       '<div class="row" style="gap:6px;flex-wrap:wrap">'+
         (L.kind==='live'?'<span class="chip'+(L.finished?'':' green')+'" style="font-size:10px">'+(L.finished?'game over':'● live')+'</span>':'')+
         '<button class="btn ghost sm" data-act="liveflip">⇅ Flip</button>'+
@@ -7723,8 +7732,9 @@ function viewLiveGame(){
   const facts=[];
   if(L.event)facts.push(esc(L.event));
   if(L.tc)facts.push(esc(tcLabel(L.tc)));
-  if(L.kind==='game'&&L.result)facts.push('You '+L.result+(L.reason?' — '+esc(trkReasonLabel(L.reason)):''));
+  if((L.kind==='game'||L.kind==='career')&&L.result)facts.push('You '+L.result+(L.reason?' — '+esc(trkReasonLabel(L.reason)):''));
   if(L.kind==='game'&&L.acc)facts.push('accuracy '+L.acc+'%'+(L.oppAcc?' vs '+L.oppAcc+'%':''));
+  if(L.kind==='career'&&L.myRating&&L.oppRating)facts.push(L.myRating+' vs '+L.oppRating);
   if(L.kind==='live'&&L.lastActivity)facts.push(esc(liveAgo(L.lastActivity)));
   if(L.rated===false)facts.push('unrated');
   h+='<div class="card">'+
@@ -7740,8 +7750,9 @@ function viewLiveGame(){
 function liveReview(){
   const L=app.live;
   if(!L||!L.moves||!L.moves.length)return;
-  reviewStart(L.moves.map(m=>({san:m.san})),null,
-    {side:L.side,opp:L.side==='w'?L.black:L.white,oppName:L.side==='w'?L.black:L.white,event:L.event||'Chess.com'});
+  reviewStart(L.moves.map(m=>({san:m.san})),(L.fens&&L.fens[0])||null,
+    {side:L.side,opp:L.side==='w'?L.black:L.white,oppName:L.side==='w'?L.black:L.white,
+     event:L.event||(L.kind==='career'?'Career game':'Chess.com')});
 }
 
 /* ============== LEARN FROM YOUR MISTAKES ==============
@@ -8395,10 +8406,12 @@ function replayElapsed(){
 }
 function replayPanel(){
   const L=app.live;
-  if(!L||L.kind!=='game')return '';
+  if(!L||(L.kind!=='game'&&L.kind!=='career'))return '';
   if(!replayable(L)){
     const why=(L.tcDaily)
       ? 'Daily games are played over days, so there is no pace to watch back.'
+      : (L.kind==='career')
+      ? 'This game was played without a clock, so there is no pace to watch back.'
       : 'This game was imported before the clocks were kept. Sync your games again and it will have them.';
     return '<div class="card" style="margin-bottom:10px"><div class="dim small">⏱ '+esc(why)+'</div></div>';
   }
@@ -9610,7 +9623,8 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='careersimul')careerSimul();
   else if(act==='buyasset')buyAsset(val);
   else if(act==='joinclub')joinClub();
-  else if(act==='leaveclub')leaveClub();
+  else if(act==='leaveclub')uiConfirm('Leave the club and give up this league season?',leaveClub);
+  else if(act==='leagueskip')uiConfirm('Miss this round and let a reserve take board one?',leagueSkip);
   else if(act==='careerleague')careerLeague();
   else if(act==='publishbook')publishBook(val);
   else if(act==='drama')careerDrama(val);
@@ -9645,6 +9659,8 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='toastdismiss'){app.careerToast=null;render();}
   else if(act==='careertab'){app.careerTab=val;render();}
   else if(act==='careertitles'){app.careerTitlesOpen=!app.careerTitlesOpen;render();}
+  else if(act==='presume')playResume();
+  else if(act==='presumediscard')uiConfirm('Throw away the game you left unfinished?',function(){playDiscardSaved();});
   else if(act==='pback')playSeek(-1);
   else if(act==='pfwd')playSeek(1);
   else if(act==='plast')playSeekTo(app.playStack.length-1);
@@ -9769,6 +9785,12 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='rushend')rushEnd();
   /* review */
   else if(act==='revplay'){reviewStart(app.playMoves||[],app._playStartFen,{side:app.playSide});}
+  else if(act==='cgopen')cgOpen(parseInt(val,10));
+  else if(act==='cgq')cgSearchNow();
+  else if(act==='cgqclear'){app.cgQ='';app.cgPage=0;app.cgMsg=null;render();}
+  else if(act==='cgsort'){app.cgSort=val||'new';app.cgPage=0;render();}
+  else if(act==='cgpage'){app.cgPage=Math.max(0,parseInt(val,10)||0);render();}
+  else if(act==='cgpgn')cgExport();
   else if(act==='cgreview'){const g=(store.career.games||[])[+idx];if(g&&!g.c960)reviewStart(g.moves,g.startFen,{});}
   else if(act==='revpgn'){const ta=document.getElementById('rev-pgn');const g=ta?parseOnePGN(ta.value||''):null;if(!g||!g.root.children.length){alert('No moves found in that PGN.');return;}
     const moves=[];let n=g.root;while(n.children.length){n=n.children[0];moves.push({san:n.san,from:n.from,to:n.to});}reviewStart(moves,g.headers.FEN&&g.headers.FEN!=='?'?g.headers.FEN:null,{});}
@@ -10287,6 +10309,159 @@ function detectOpening(sans){let best=null;
 function advanceBook(from,to){if(app.playBookNode){const c=app.playBookNode.children.find(ch=>ch.from===from&&ch.to===to);app.playBookNode=c||null;}}
 function recomputeBook(){if(!app.playBook){app.playBookNode=null;return;}let node=app.playBook.root;
   for(const mv of app.playMoves){const c=node.children.find(ch=>ch.from===mv.from&&ch.to===mv.to);if(!c){node=null;break;}node=c;}app.playBookNode=node;}
+/* ================= A GAME YOU CAN COME BACK TO =================
+   A classical career round is 30+20 — up to two hours in the chair. Until now
+   the board lived only in memory: reload the page, tap Career to check the
+   standings, or let the phone reclaim a backgrounded app, and the game was
+   gone. The tournament survived, so you could replay round three from move
+   one — which is not the same thing at all.
+
+   So the position, the move list, both clocks and everything the career needs
+   to score it are written down after every move, under their own storage key.
+   Its own key on purpose: a half-played game has no business inside the
+   backup file, and a corrupted one must never take the rest of your save with
+   it. Everything here is wrapped — storage can be full, blocked or simply
+   absent, and none of that is a reason to interrupt a game. */
+const RESUME_KEY='chess-career-resume-v1';
+let _resumeSig=null;
+/* A game is only worth keeping while it is still being played. */
+function playLive(){return app.playStatus==='play'||app.playStatus==='engine';}
+function playSnapshot(){
+  if(!app.playFen||!app.playStack||!app.playMoves||!playLive())return null;
+  const last=app.playMoves[app.playMoves.length-1];
+  return {v:1,at:Date.now(),
+    fen:app.playFen,startFen:app._playStartFen||app.playStack[0],
+    stack:app.playStack.slice(),
+    moves:app.playMoves.map(function(m){return {from:m.from,to:m.to,san:m.san};}),
+    side:app.playSide,title:app.playTitle||'',opening:app.playOpening||null,flip:!!app.playFlip,
+    last:last?{from:last.from,to:last.to}:null,
+    tcId:(app.tc&&app.tc.id)||null,
+    clock:app.clock?{w:Math.round(app.clock.w),b:Math.round(app.clock.b),inc:app.clock.inc}:null,
+    clk:(app.playClk||[]).slice(),
+    blindfold:!!app.blindfold,c960:app.c960||null,endgame:app.endgame||null,bot:app.playBot||null,
+    bookId:app.playBook?app.playBook.id:null,
+    career:{opp:app.careerOpp||null,elo:app.careerElo||null,tour:!!app.careerTour,
+      roundOpp:app.careerRoundOpp||null,oneoff:app.careerOneoff||null,league:!!app.careerLeague,
+      hints:app.careerHintsLeft||0,prepUsed:app.careerPrepUsed||null,
+      novelty:!!app.careerNovelty,studyEdge:app.careerStudyEdge||0,
+      tourId:(store.career&&store.career.tour)?store.career.tour.id:null,
+      round:(store.career&&store.career.tour)?store.career.tour.round:null},
+    park:app.parkBet?{id:app.parkBet.id,stake:app.parkBet.stake,double:!!app.parkBet.double}:null};
+}
+/* Written at move boundaries, and again when the app is about to go away —
+   that second one is the whole point on a phone. */
+function playSave(force){
+  try{
+    const g=playSnapshot();
+    if(!g){if(_resumeSig!==null){_resumeSig=null;localStorage.removeItem(RESUME_KEY);}return;}
+    const sig=g.moves.length+':'+app.playStatus+':'+g.startFen;
+    // the shortcut only holds while the copy it refers to is still there —
+    // storage can be cleared from under us in another tab or by the browser
+    if(!force&&sig===_resumeSig&&localStorage.getItem(RESUME_KEY))return;
+    _resumeSig=sig;
+    localStorage.setItem(RESUME_KEY,JSON.stringify(g));
+  }catch(e){}
+}
+function playSavedGame(){
+  try{
+    const raw=localStorage.getItem(RESUME_KEY);
+    if(!raw)return null;
+    const g=JSON.parse(raw);
+    // anything we cannot put back on a board is not a saved game
+    if(!g||g.v!==1||!g.fen||!Array.isArray(g.stack)||!g.stack.length||!Array.isArray(g.moves))return null;
+    if(g.side!=='w'&&g.side!=='b')return null;
+    new Chess(g.fen);                       // throws on a FEN we cannot read
+    // A tournament round holds one slot. If that slot has moved on — the round
+    // was simulated, the event was withdrawn from or finished — then the saved
+    // game has nowhere to be scored, so it is not a game any more.
+    if(g.career&&g.career.tour&&!resumeIsThisRound(g,store.career)){playDiscardSaved();return null;}
+    return g;
+  }catch(e){return null;}
+}
+function playDiscardSaved(){
+  try{localStorage.removeItem(RESUME_KEY);}catch(e){}
+  _resumeSig=null;
+}
+/* Does the saved game belong to the round the career is waiting on? */
+function resumeIsThisRound(g,c){
+  if(!g||!g.career||!g.career.tour||!c||!c.tour)return false;
+  return g.career.tourId===c.tour.id&&g.career.round===c.tour.round;
+}
+function resumeAge(g){
+  const ms=Date.now()-(g.at||0);
+  if(ms<90000)return 'just now';
+  const m=Math.round(ms/60000);
+  if(m<60)return m+' minute'+(m===1?'':'s')+' ago';
+  const h=Math.round(m/60);
+  if(h<24)return h+' hour'+(h===1?'':'s')+' ago';
+  const d=Math.round(h/24);
+  return d+' day'+(d===1?'':'s')+' ago';
+}
+function resumeWhere(g){
+  // the move about to be played, the way a scoresheet counts it
+  const n=Math.floor((g.moves.length||0)/2)+1;
+  const turn=turnOf(g.fen)===g.side?'your move':'their move';
+  return 'move '+n+' · '+turn;
+}
+function resumeCard(onlyCareer){
+  const g=playSavedGame();
+  if(!g)return '';
+  // the career screen only speaks for career games; a free game against the
+  // engine belongs on the Play screen
+  if(onlyCareer&&!(g.career&&g.career.opp))return '';
+  const cl=g.clock?' · ⏱ '+fmtClock(g.clock[g.side==='w'?'w':'b'])+' left on your clock':'';
+  return '<div class="card" style="margin-bottom:12px;border-color:var(--amber)">'+
+    '<div style="font-weight:700;margin-bottom:2px">⏸️ You have a game in progress</div>'+
+    '<div class="dim small" style="margin-bottom:8px">'+esc(g.title||'A game')+' — '+esc(resumeWhere(g))+cl+
+      '. Left '+esc(resumeAge(g))+'.</div>'+
+    '<div class="row" style="gap:8px;flex-wrap:wrap">'+
+      '<button class="btn primary sm" data-act="presume">▶ Resume the game</button>'+
+      '<button class="btn ghost sm" data-act="presumediscard">Discard it</button>'+
+    '</div></div>';
+}
+/* Put it all back and hand the move to whoever it belongs to. */
+function playResume(){
+  const g=playSavedGame();
+  if(!g)return false;
+  app.view='play';
+  app.playFen=g.fen;app._playStartFen=g.startFen||g.stack[0];
+  app.playSide=g.side;app.playOpening=g.opening||null;app.playTitle=g.title||'Game';
+  app.playFlip=!!g.flip;app.playStack=g.stack.slice();
+  app.playMoves=g.moves.map(function(m){return {from:m.from,to:m.to,san:m.san};});
+  app.playView=app.playStack.length-1;app.playLast=g.last||null;app.playSel=null;
+  // everything a fresh game clears, cleared again — a stale hint or draw offer
+  // from before the interruption would be nonsense now
+  app.playHint=null;app.playEval=null;app.playResult=null;app.careerStory=null;
+  app.engineErr=false;app.drawMsg=null;app.blunderNote=null;app.coachNote=null;app.whyNot=null;
+  app.oppDraw=null;app.oppSaid=null;app._oppLost=0;app._drawCd=0;app.pgnCopied=false;
+  app.playPremoves=[];app.peek=false;app.careerScored=false;app.careerDelta=0;
+  app.careerBanter=null;app.careerReaction=null;app.tiltEval=false;
+  app._fxKey=null;app._lastEvalCp=null;app._engOutOfBook=false;app._engRetry=0;
+  app._evLow=null;app._evHigh=null;
+  app.blindfold=!!g.blindfold;app.c960=g.c960||null;app.endgame=g.endgame||null;app.playBot=g.bot||null;
+  const cr=g.career||{};
+  app.careerOpp=cr.opp||null;app.careerElo=cr.elo||null;app.careerTour=!!cr.tour;
+  app.careerRoundOpp=cr.roundOpp||null;app.careerOneoff=cr.oneoff||null;app.careerLeague=!!cr.league;
+  app.careerHintsLeft=cr.hints||0;app.careerPrepUsed=cr.prepUsed||null;
+  app.careerNovelty=!!cr.novelty;app.careerStudyEdge=cr.studyEdge||0;
+  app.parkBet=g.park?{id:g.park.id,stake:g.park.stake,double:!!g.park.double}:null;
+  // the opening book is a tree, so it is walked back down rather than stored
+  app.playBook=g.bookId?byId.get(g.bookId):null;
+  recomputeBook();
+  app.tc=g.tcId?tcById(g.tcId):(g.clock?{id:null,label:'',cat:'',base:0,inc:Math.round((g.clock.inc||0)/1000)}:tcById('unlimited'));
+  app.playClk=Array.isArray(g.clk)?g.clk.slice():[];
+  app.clock=g.clock?{w:g.clock.w,b:g.clock.b,inc:g.clock.inc,lastTs:performance.now(),
+    botSide:null,botRate:0,botBudget:0,botUsed:0,botFrom:null}:null;
+  if(app.clock)Engine.load();
+  // trust the board over the stored flag: whoever is to move, moves
+  app.playStatus=(turnOf(app.playFen)===app.playSide)?'play':'engine';
+  stopClockTick();
+  _resumeSig=null;
+  render();
+  startClockTick();
+  if(app.playStatus==='engine')setTimeout(engineMove,420);
+  return true;
+}
 /* ---- resign / draw offer ---- */
 function resignGame(){if(app.playStatus!=='play'&&app.playStatus!=='engine')return;stopClockTick();app.playStatus='over';app.playResult='You resigned — Stockfish wins.';app.playSel=null;careerResult(0);render();}
 function offerDraw(){if(app.playStatus!=='play')return;
@@ -10321,6 +10496,8 @@ function startPlay(fen,side,openingId,title,opts){opts=opts||{};
   app.playHint=null;app.playEval=null;app.playResult=null;app.careerStory=null;app.engineErr=false;app.drawMsg=null;app.blunderNote=null;app.coachNote=null;app.whyNot=null;app.oppDraw=null;app.oppSaid=null;app._oppLost=0;app._drawCd=0;app.pgnCopied=false;app.playPremoves=[];app.blindfold=!!opts.blindfold;app.peek=false;app.careerOpp=opts.careerOpp||null;app.careerElo=opts.careerElo||null;app.careerScored=false;app.careerDelta=0;app.careerTour=!!opts.careerTour;app.careerRoundOpp=opts.roundOpp||null;app.careerOneoff=opts.oneoff||null;app.c960=opts.c960||null;app.endgame=opts.endgame||null;app.playBot=opts.bot||null;app.tiltEval=false;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=!!(opts.league);app.careerHintsLeft=opts.careerOpp?careerHintAllowance():0;app._fxKey=null;app._lastEvalCp=null;app._engOutOfBook=false;app._engRetry=0;app._evLow=null;app._evHigh=null;
   app.playBook=opts.bookId?byId.get(opts.bookId):(opts.book||null);
   app.playBookNode=opts.bookNode||(app.playBook?app.playBook.root:null);
+  app.playClk=[];
+  _resumeSig=null;                      // a new game replaces any saved one
   const tc=opts.tc||tcById((opts.tcId)||'unlimited');app.tc=tc;
   if(tc.base>0){app.clock={w:tc.base*1000,b:tc.base*1000,inc:tc.inc*1000,lastTs:performance.now(),
     botSide:null,botRate:0,botBudget:0,botUsed:0,botFrom:null};Engine.load();}
@@ -10328,6 +10505,16 @@ function startPlay(fen,side,openingId,title,opts){opts=opts||{};
   stopClockTick();
   app.playStatus=(turnOf(fen)===side)?'play':'engine';render();startClockTick();
   if(app.playStatus==='engine')setTimeout(engineMove,300);
+}
+/* The clock reading after the move just played, in seconds, the way a PGN
+   records it — after the increment, so the replay can read the drop back as
+   time spent. Kept for every game, so a career game can later be watched back
+   at the pace it was actually played. */
+function playNoteClock(){
+  if(!app.clock||!app.playMoves||!app.playMoves.length)return;
+  const moved=turnOf(app.playFen)==='w'?'b':'w';
+  if(!app.playClk)app.playClk=[];
+  app.playClk[app.playMoves.length-1]=Math.round(app.clock[moved]/100)/10;
 }
 /* Position key for repetition (piece placement + side + castling + en passant,
    ignoring the move clocks — exactly what FIDE counts as "the same position"). */
@@ -10355,7 +10542,7 @@ async function engineMove(){app.playStatus='engine';render();
     const kids=app.playBookNode.children;const pick=kids[Math.floor(Math.random()*kids.length)];
     const m=tryFromTo(app.playFen,pick.from,pick.to);
     if(m){await sleep(280);
-      app.playStack.push(m.fen);app.playMoves.push({from:pick.from,to:pick.to,san:m.san,book:true});
+      app.playStack.push(m.fen);app.playMoves.push({from:pick.from,to:pick.to,san:m.san,book:true});playNoteClock();
       app.playFen=m.fen;app.playLast={from:pick.from,to:pick.to};app.playSel=null;app.playView=app.playStack.length-1;
       app.playBookNode=pick;addIncrement(app.playSide==='w'?'b':'w');sfxSan(m.san);
       // still in theory; the next move off the book is the one they stop on
@@ -10432,7 +10619,7 @@ function playEngineBest(best,eng,plan,thinkFen){
     app._engRetry=0;
     settleBotClock(eng,plan);
     if(best&&best!=='(none)'){const m=tryFromTo(app.playFen,best.slice(0,2),best.slice(2,4),best[4]||'q');
-      if(m){if(app.c960)c960UpdateRights(eng,best.slice(0,2));app.playStack.push(m.fen);app.playMoves.push({from:best.slice(0,2),to:best.slice(2,4),san:m.san});app.playFen=m.fen;app.playLast={from:best.slice(0,2),to:best.slice(2,4)};app.playSel=null;app.playView=app.playStack.length-1;app.playBookNode=null;addIncrement(eng);sfxSan(m.san);}}
+      if(m){if(app.c960)c960UpdateRights(eng,best.slice(0,2));app.playStack.push(m.fen);app.playMoves.push({from:best.slice(0,2),to:best.slice(2,4),san:m.san});app.playFen=m.fen;app.playLast={from:best.slice(0,2),to:best.slice(2,4)};app.playSel=null;app.playView=app.playStack.length-1;app.playBookNode=null;addIncrement(eng);playNoteClock();sfxSan(m.san);}}
     if(!checkOver()){app.playStatus='play';oppAfterMove();}
     render();tryPremove();
 }
@@ -10448,7 +10635,7 @@ function playMove(from,to){
   markActiveDay();
   if(app.c960)c960UpdateRights(app.playSide,from);
   app.playStack.push(m.fen);app.playMoves.push({from,to,san:m.san});app.playFen=m.fen;app.playLast={from,to};app.playSel=null;app.playHint=null;app.playView=app.playStack.length-1;
-  advanceBook(from,to);addIncrement(app.playSide);sfxSan(m.san);
+  advanceBook(from,to);addIncrement(app.playSide);playNoteClock();sfxSan(m.san);
   if(store.settings.blunderWarn!==false){
     var _bl=vxCostOf(app.playStack[app.playStack.length-2]||app._playStartFen,m.san);
     app.blunderNote=(_bl&&_bl.net>=2)?('⚠️ That drops material — '+_bl.san+' wins the '+VX_NAME[_bl.captured]+'.'):null;
@@ -10668,28 +10855,407 @@ function careerSimul(){var c=store.career;lifeInit(c);if(c.energy<18)return;c.en
   c.money=(c.money||0)+fee;c.fame=Math.min(100,c.fame+1.5);c.fans=Math.round((c.fans||0)+20+(c.fame||0));
   pushNews(c,'♟','You gave a paid exhibition simul (+💰'+fee+').');app.careerToast='♟ Simul done — +💰'+fee+'.';save();render();}
 /* ===== Club league: play a board for your club and chase promotion ===== */
-const CLUBS=['Knights of the Square Table','Rook & Roll CC','The En Passant Club','Zugzwang United','Castle Crew','Gambit Social Club','The Bishop Pair','Stalemate FC'];
+/* ================= THE CLUB LEAGUE =================
+   Team chess is what most players' weekends actually are, and it was the one
+   format here that wasn't simulated: one button, one anonymous opponent, eight
+   "boards" and a points total. So it is a season now.
+
+   A division is six clubs. Everybody plays everybody once — five matches, four
+   boards a match. You are board one; the three players behind you have names,
+   ratings and results you do not control, which is the whole experience of
+   team chess: you win your game and lose the match, or you lose yours and your
+   captain buys you a drink anyway. The other two matches in each round are
+   simulated the same way, so the table above you moves while you play. Win the
+   division and you go up; finish last and you go down. */
+const CLUBS=['Knights of the Square Table','Rook & Roll CC','The En Passant Club','Zugzwang United',
+  'Castle Crew','Gambit Social Club','The Bishop Pair','Stalemate FC','Fianchetto Athletic',
+  'The Passed Pawns','Windmill CC','Battery Park Chess'];
+const CLUB_BOARDS=4;          // you and three team-mates
+const CLUB_SIZE=6;            // clubs in a division, so five matches a season
+const CLUB_DRAW_RATE=0.30;    // classical team chess draws a lot
 function clubDivRating(div){return [0,2350,2050,1750,1450][div]||1450;}
-function joinClub(){var c=store.career;lifeInit(c);if(c.club)return;c.club={name:pick(CLUBS),div:4,points:0,played:0};pushNews(c,'🛡️','You joined '+c.club.name+' (Division 4).');app.careerToast='🛡️ You joined '+c.club.name+'!';save();render();}
+function clubDivPrize(div,place){
+  const base=[0,2600,1500,900,500][div]||500;
+  return Math.round(base*(place===1?1:place===2?0.5:place===3?0.25:0));
+}
+/* One board, simulated from the two ratings. Draws are frequent, so they get
+   their own slice rather than falling out of a coin flip. */
+function leagueSimBoard(mine,theirs){
+  const e=1/(1+Math.pow(10,(theirs-mine)/400));
+  const pw=Math.max(0,Math.min(1-CLUB_DRAW_RATE,e-CLUB_DRAW_RATE/2));
+  const r=Math.random();
+  if(r<pw)return 1;
+  if(r<pw+CLUB_DRAW_RATE)return 0.5;
+  return 0;
+}
+function leagueTeam(div,boards){
+  const base=clubDivRating(div),t=[];
+  for(let i=0;i<(boards||CLUB_BOARDS-1);i++){
+    const r=Math.max(900,Math.min(2750,base-20-i*45+Math.round(gauss()*70)));
+    t.push({name:randName(),rating:r,flag:randFed().f,title:titleByRating(r)});
+  }
+  // a captain fills the team sheet strongest first, so the boards are ordered
+  t.sort(function(a,b){return b.rating-a.rating;});
+  t.forEach(function(m,i){m.board=i+2;});
+  return t;
+}
+/* Everybody plays everybody once: the circle method, so no club is left out
+   of a round and nobody plays twice in one. */
+function leagueSchedule(ids){
+  const n=ids.length,arr=ids.slice(),rounds=[];
+  for(let r=0;r<n-1;r++){
+    const pairs=[];
+    for(let i=0;i<n/2;i++)pairs.push({h:arr[i],a:arr[n-1-i]});
+    rounds.push({round:r+1,pairs:pairs,played:false});
+    arr.splice(1,0,arr.pop());        // rotate all but the first
+  }
+  return rounds;
+}
+function leagueBlankTable(clubs){
+  const t={};
+  clubs.forEach(function(cl){t[cl.id]={w:0,d:0,l:0,pts:0,bf:0,ba:0};});
+  return t;
+}
+function leagueSeason(c,div,name){
+  const pool=CLUBS.filter(function(n){return n!==name;});
+  const clubs=[{id:'you',name:name,str:clubDivRating(div)}];
+  for(let i=0;i<CLUB_SIZE-1;i++){
+    const n=pool.splice(Math.floor(Math.random()*pool.length),1)[0]||('Club '+(i+2));
+    clubs.push({id:'r'+i,name:n,str:Math.max(900,clubDivRating(div)+Math.round(gauss()*90))});
+  }
+  return {name:name,div:div,season:1,clubs:clubs,team:leagueTeam(div),
+    fixtures:leagueSchedule(clubs.map(function(cl){return cl.id;})),
+    round:0,table:leagueBlankTable(clubs),history:[],last:null};
+}
+/* Old saves kept only a name, a division and a points total. Rebuild a real
+   season around them rather than throwing the club away. */
+function leagueInit(c){
+  if(!c||!c.club)return null;
+  const L=c.club;
+  if(!L.fixtures||!L.clubs||!L.table){
+    const rebuilt=leagueSeason(c,L.div||4,L.name||pick(CLUBS));
+    rebuilt.season=L.season||1;
+    rebuilt.history=L.history||[];
+    c.club=rebuilt;
+    return c.club;
+  }
+  if(!L.team||!L.team.length)L.team=leagueTeam(L.div);
+  return L;
+}
+/* Clubs recruit at their own level: a master is not asked to play board one
+   in the bottom division, and a beginner is not thrown in at the top. */
+function leagueJoinDiv(c){
+  const r=youRating(c,'classical')||c.rating||0;
+  if(!r)return 4;
+  return r>=2250?1:r>=1950?2:r>=1650?3:4;
+}
+function joinClub(){
+  var c=store.career;lifeInit(c);if(c.club)return;
+  const div=leagueJoinDiv(c);
+  c.club=leagueSeason(c,div,pick(CLUBS));
+  pushNews(c,'🛡️','You joined '+c.club.name+' on board one in Division '+div+'.');
+  app.careerToast='🛡️ You signed for '+c.club.name+' — board one, Division '+div+'.';
+  save();render();
+}
 function leaveClub(){var c=store.career;if(c.club){pushNews(c,'🚪','You left '+c.club.name+'.');c.club=null;save();render();}}
-function careerLeague(){var c=store.career;lifeInit(c);if(!c.club||c.tour)return;var rt=clubDivRating(c.club.div)+Math.round(gauss()*120);rt=Math.max(900,Math.min(2700,rt));
-  var opp={name:randName(),rating:rt,title:titleByRating(rt),flag:randFed().f,id:'league',style:pickStyle()};
-  app.careerFinish=null;var side=Math.random()<0.5?'w':'b';
-  startPlay(new Chess().fen(),side,null,'🛡️ '+c.club.name+' · Div '+c.club.div+' vs '+(opp.title?opp.title+' ':'')+opp.name+' ('+rt+')',
-    {tc:tcById(FORMAT_TC['classical']||'30+20'),careerOpp:'oneoff',careerElo:rt,roundOpp:opp,oneoff:'classical',league:true});
-  applyCareerCondition();}
-function leagueResult(score){var c=store.career;if(!c.club)return;c.club.points+=(score===1?2:score===0?0:1);c.club.played++;
-  if(c.club.played>=8){var pts=c.club.points,div=c.club.div,msg;
-    if(pts>=12&&div>1){c.club.div--;c.money=(c.money||0)+(5-div)*800;msg='🎉 '+c.club.name+' won promotion to Division '+c.club.div+'!';unlockAch(c,'promoted');}
-    else if(pts<=4&&div<4){c.club.div++;msg='📉 '+c.club.name+' were relegated to Division '+c.club.div+'.';}
-    else{c.money=(c.money||0)+400;msg='🛡️ Your club finished mid-table in Division '+div+'.';}
-    c.club.points=0;c.club.played=0;pushNews(c,'🛡️',msg);app.careerToast=msg;}}
+function leagueEventName(c){
+  const L=c&&c.club;
+  if(!L)return 'Club match';
+  const f=(L.fixtures||[])[L.round];
+  const pair=f?(f.pairs||[]).filter(function(p){return p.h==='you'||p.a==='you';})[0]:null;
+  const opp=pair?leagueClub(L,pair.h==='you'?pair.a:pair.h):null;
+  return L.name+' vs '+(opp?opp.name:'the visitors')+' · Div '+L.div;
+}
+function leagueClub(L,id){return (L.clubs||[]).filter(function(cl){return cl.id===id;})[0]||null;}
+function leagueFixture(c){
+  const L=leagueInit(c);
+  if(!L||L.round>=(L.fixtures||[]).length)return null;
+  return L.fixtures[L.round];
+}
+/* Your match in the round, with the other side's line-up drawn once and kept —
+   the team sheet should not reshuffle itself every time the screen redraws. */
+function leagueMyMatch(c){
+  const L=leagueInit(c),f=leagueFixture(c);
+  if(!f)return null;
+  const pair=f.pairs.filter(function(p){return p.h==='you'||p.a==='you';})[0];
+  if(!pair)return null;
+  const oppId=pair.h==='you'?pair.a:pair.h;
+  const oppClub=leagueClub(L,oppId);
+  if(!f.oppTeam){
+    // board one is their strongest; the rest step down, same as yours
+    const str=oppClub?oppClub.str:1450;
+    f.oppTeam=[{name:randName(),rating:Math.max(900,str+Math.round(gauss()*80)),flag:randFed().f}]
+      .concat(leagueTeam(L.div,CLUB_BOARDS-1).map(function(m,i){
+        return {name:m.name,rating:Math.max(900,str-20-i*45+Math.round(gauss()*70)),flag:m.flag};
+      }));
+    f.oppTeam.sort(function(a,b){return b.rating-a.rating;});
+    f.oppTeam.forEach(function(m,i){m.board=i+1;m.title=titleByRating(m.rating);});
+  }
+  return {fixture:f,home:pair.h==='you',oppId:oppId,oppClub:oppClub,oppTeam:f.oppTeam};
+}
+function leagueMyBoardDone(c){
+  const L=leagueInit(c),f=leagueFixture(c);
+  return !!(f&&f.mine!=null);
+}
+function careerLeague(){
+  var c=store.career;lifeInit(c);
+  const L=leagueInit(c);
+  if(!L||c.tour)return;
+  const m=leagueMyMatch(c);
+  if(!m||m.fixture.mine!=null)return;          // season over, or already played
+  const b1=m.oppTeam[0];
+  const opp={name:b1.name,rating:b1.rating,title:b1.title||titleByRating(b1.rating),
+    flag:b1.flag,fed:'Club',id:'league',style:pickStyle()};
+  app.careerFinish=null;
+  const side=m.home?'w':'b';                   // home team has White on board one
+  startPlay(new Chess().fen(),side,null,
+    '🛡️ '+L.name+' vs '+(m.oppClub?m.oppClub.name:'the visitors')+' · board 1 vs '+(opp.title?opp.title+' ':'')+opp.name+' ('+opp.rating+')',
+    {tc:tcById(FORMAT_TC['classical']||'30+20'),careerOpp:'oneoff',careerElo:opp.rating,
+     roundOpp:opp,oneoff:'classical',league:true});
+  applyCareerCondition();
+}
+/* Your board is in. Now the rest of your team, then the rest of the division,
+   then the table. */
+function leagueResult(score){
+  var c=store.career;
+  const L=leagueInit(c);
+  if(!L)return;
+  const m=leagueMyMatch(c);
+  if(!m||m.fixture.mine!=null)return;
+  const f=m.fixture;
+  const me=(c.name||'You'),myR=youRating(c,'classical')||c.rating||clubDivRating(L.div);
+  f.mine=score;
+  f.boards=[{board:1,you:true,name:me,rating:myR,
+    oppName:m.oppTeam[0].name,oppRating:m.oppTeam[0].rating,score:score}];
+  (L.team||[]).forEach(function(mate,i){
+    const o=m.oppTeam[i+1]||{name:randName(),rating:clubDivRating(L.div)};
+    const s=leagueSimBoard(mate.rating,o.rating);
+    f.boards.push({board:mate.board,name:mate.name,rating:mate.rating,
+      oppName:o.name,oppRating:o.rating,score:s});
+  });
+  const us=f.boards.reduce(function(s,b){return s+b.score;},0);
+  f.us=us;f.them=CLUB_BOARDS-us;
+  f.oppName=m.oppClub?m.oppClub.name:'the visitors';
+  f.home=m.home;
+  // the other matches in this round, so the table moves while you played
+  f.others=[];
+  f.pairs.forEach(function(p){
+    if(p.h==='you'||p.a==='you')return;
+    const H=leagueClub(L,p.h),A=leagueClub(L,p.a);
+    let hs=0;
+    for(let b=0;b<CLUB_BOARDS;b++)hs+=leagueSimBoard((H?H.str:1450)-b*45+25,(A?A.str:1450)-b*45);
+    f.others.push({h:p.h,a:p.a,hs:hs,as:CLUB_BOARDS-hs});
+  });
+  const add=function(id,bf,ba){
+    const t=L.table[id]||(L.table[id]={w:0,d:0,l:0,pts:0,bf:0,ba:0});
+    t.bf+=bf;t.ba+=ba;
+    if(bf>ba){t.w++;t.pts+=2;}else if(bf===ba){t.d++;t.pts+=1;}else t.l++;
+  };
+  add('you',us,CLUB_BOARDS-us);
+  add(m.oppId,CLUB_BOARDS-us,us);
+  f.others.forEach(function(o){add(o.h,o.hs,o.as);add(o.a,o.as,o.hs);});
+  f.played=true;
+  L.round++;
+  const won=us>CLUB_BOARDS-us,drew=us===CLUB_BOARDS-us;
+  L.last={oppName:f.oppName,us:us,them:CLUB_BOARDS-us,mine:score,round:f.round};
+  pushNews(c,'🛡️',L.name+(won?' beat ':drew?' drew with ':' lost to ')+f.oppName+' '+
+    fmtScore(us)+'–'+fmtScore(CLUB_BOARDS-us)+' (you '+(score===1?'won':score===0?'lost':'drew')+' on board one).');
+  addXp(c,won?35:drew?20:12);
+  if(L.round>=L.fixtures.length)leagueSeasonEnd(c);
+  save();
+}
+function leagueStandings(L){
+  return (L.clubs||[]).map(function(cl){
+    const t=L.table[cl.id]||{w:0,d:0,l:0,pts:0,bf:0,ba:0};
+    return {id:cl.id,name:cl.name,you:cl.id==='you',w:t.w,d:t.d,l:t.l,pts:t.pts,bf:t.bf,ba:t.ba,
+      diff:Math.round((t.bf-t.ba)*10)/10};
+  }).sort(function(a,b){return b.pts-a.pts||b.diff-a.diff||b.bf-a.bf;});
+}
+function leaguePlace(L){
+  const S=leagueStandings(L);
+  for(let i=0;i<S.length;i++)if(S[i].you)return i+1;
+  return null;
+}
+function leagueSeasonEnd(c){
+  const L=c.club;
+  const place=leaguePlace(L),div=L.div,name=L.name;
+  const prize=clubDivPrize(div,place);
+  let msg,up=false,down=false;
+  if(place===1&&div>1){up=true;msg='🎉 '+name+' won Division '+div+' — promoted to Division '+(div-1)+'!';unlockAch(c,'promoted');}
+  else if(place===1){msg='🏆 '+name+' won Division 1 — champions of the league.';unlockAch(c,'promoted');}
+  else if(place===CLUB_SIZE&&div<4){down=true;msg='📉 '+name+' finished last and drop to Division '+(div+1)+'.';}
+  else msg='🛡️ '+name+' finished '+ordinal(place)+' of '+CLUB_SIZE+' in Division '+div+'.';
+  if(prize>0){c.money=(c.money||0)+prize;msg+=' Prize money 💰'+prize+'.';}
+  const boards=L.fixtures.filter(function(f){return f.mine!=null;});
+  const myPts=boards.reduce(function(s,f){return s+f.mine;},0);
+  L.history=L.history||[];
+  L.history.unshift({season:L.season,div:div,place:place,pts:(L.table.you||{}).pts||0,
+    board:myPts,of:boards.length,prize:prize,up:up,down:down});
+  if(L.history.length>12)L.history.length=12;
+  pushNews(c,'🛡️',msg);
+  app.careerToast=msg;
+  // a new season, one division up or down, with the team-mates that level brings
+  const nd=up?div-1:down?div+1:div;
+  const next=leagueSeason(c,nd,name);
+  next.season=(L.season||1)+1;
+  next.history=L.history;
+  next.last=L.last;
+  c.club=next;
+}
+/* ---- the panel ---- */
+function leagueBoardRow(b){
+  const col=b.score===1?'var(--green)':b.score===0?'#f87171':'var(--muted)';
+  const res=b.score===1?'1':b.score===0?'0':'½';
+  return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--border)'+
+    (b.you?';background:rgba(96,165,250,.07)':'')+'">'+
+    '<div class="dim small" style="width:20px">'+b.board+'</div>'+
+    '<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" class="small">'+
+      (b.you?'<b>'+esc(b.name)+'</b>':esc(b.name))+' <span class="dim">('+b.rating+')</span></div>'+
+    '<div style="width:34px;text-align:center;font-weight:800;color:'+col+'">'+res+'</div>'+
+    '<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right" class="small dim">'+
+      esc(b.oppName)+' ('+b.oppRating+')</div></div>';
+}
+function leagueTableCard(L){
+  const S=leagueStandings(L);
+  return '<div style="margin-top:9px;border-top:1px solid var(--border);padding-top:7px">'+
+    '<div class="dim small" style="display:flex;gap:8px;font-size:10px;text-transform:uppercase;letter-spacing:.04em">'+
+      '<span style="width:16px"></span><span style="flex:1">Club</span><span style="width:52px;text-align:center">W–D–L</span>'+
+      '<span style="width:44px;text-align:right">Boards</span><span style="width:26px;text-align:right">Pts</span></div>'+
+    S.map(function(r,i){
+      const zone=(i===0)?'var(--green)':(i===S.length-1&&L.div<4)?'#f87171':'transparent';
+      return '<div style="display:flex;gap:8px;align-items:center;padding:4px 0;border-top:1px solid var(--border)'+
+        (r.you?';background:rgba(96,165,250,.08)':'')+'">'+
+        '<span class="small" style="width:16px;color:'+zone+';font-weight:800">'+(i+1)+'</span>'+
+        '<span class="small" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+
+          (r.you?'<b>'+esc(r.name)+'</b>':esc(r.name))+'</span>'+
+        '<span class="small dim" style="width:52px;text-align:center">'+r.w+'–'+r.d+'–'+r.l+'</span>'+
+        '<span class="small dim" style="width:44px;text-align:right">'+fmtScore(r.bf)+'</span>'+
+        '<span class="small" style="width:26px;text-align:right;font-weight:800">'+r.pts+'</span></div>';
+    }).join('')+
+    '<div class="dim small" style="margin-top:5px;font-size:10px">'+
+      (L.div>1?'Top of the table goes up':'Division 1 — nowhere left to climb')+
+      (L.div<4?' · bottom goes down':'')+'</div></div>';
+}
 function careerClubPanel(c){
-  if(!c.club)return '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:3px">🛡️ Club league</div><div class="dim small">Join a local club and play a board in the team league — win matches to climb the divisions for prize money and pride.</div><div class="row" style="margin-top:8px"><button class="btn sec sm" data-act="joinclub">Join a club</button></div></div>';
-  var cl=c.club;
-  return '<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">🛡️ '+esc(cl.name)+'</div><div class="dim small">Division '+cl.div+' · '+cl.points+' pts · board '+cl.played+'/8</div></div>'+
-    '<div class="dim small" style="margin-top:4px">Win your board (2 pts). Reach 12 pts over 8 boards to win promotion; 4 or fewer and you drop a division.</div>'+
-    '<div class="row" style="margin-top:8px;gap:6px"><button class="btn primary sm" data-act="careerleague" '+(c.tour?'disabled':'')+'>▶ Play your league board</button><button class="btn ghost sm" data-act="leaveclub">Leave</button></div></div>';}
+  if(!c.club)
+    return '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:3px">🛡️ Club league</div>'+
+      '<div class="dim small">Sign for a club and play board one in the team league: six clubs, five matches a season, four boards a match. '+
+      'You play yours — the three players behind you play theirs, and you live with the result. Win the division and you go up.</div>'+
+      '<div class="row" style="margin-top:8px"><button class="btn sec sm" data-act="joinclub">Sign for a club</button></div></div>';
+  const L=leagueInit(c);
+  const m=leagueMyMatch(c);
+  const played=(L.fixtures||[]).filter(function(f){return f.played;});
+  let h='<div class="card" style="margin-bottom:12px">'+
+    '<div class="row" style="justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">'+
+      '<div style="min-width:0"><div style="font-weight:700">🛡️ '+esc(L.name)+'</div>'+
+      '<div class="dim small">Division '+L.div+' · season '+(L.season||1)+' · board one</div></div>'+
+      '<div style="text-align:right"><div style="font-weight:800">'+((L.table.you||{}).pts||0)+' pts</div>'+
+      '<div class="dim small">'+ordinal(leaguePlace(L)||1)+' of '+CLUB_SIZE+'</div></div></div>';
+  if(L.last)
+    h+='<div class="note" style="margin-top:8px;'+(L.last.us>L.last.them?'border-color:#14532d;background:#052e1655;color:#86efac':L.last.us===L.last.them?'':'border-color:#7f1d1d;background:#7f1d1d22;color:#fca5a5')+'">'+
+      (L.last.us>L.last.them?'✅ ':L.last.us===L.last.them?'🤝 ':'❌ ')+
+      'Round '+L.last.round+': '+fmtScore(L.last.us)+'–'+fmtScore(L.last.them)+' against '+esc(L.last.oppName)+
+      ' — you '+(L.last.mine===1?'won':L.last.mine===0?'lost':'drew')+' on board one.</div>';
+  if(m){
+    const yourTeam=[{name:(c.name||'You'),rating:youRating(c,'classical')||c.rating||clubDivRating(L.div),board:1,you:true}]
+      .concat(L.team||[]);
+    h+='<div style="margin-top:9px;padding:9px 11px;border-radius:9px;border:1px solid var(--brand)44;background:linear-gradient(120deg,rgba(255,255,255,.035),transparent)">'+
+      '<div style="font-weight:800">Round '+m.fixture.round+' of '+L.fixtures.length+
+        ' — '+(m.home?'home to ':'away at ')+esc(m.oppClub?m.oppClub.name:'the visitors')+'</div>'+
+      '<div class="dim small" style="margin-top:2px">You have '+(m.home?'White':'Black')+' on board one. '+
+        'Three boards behind you play their own games.</div>'+
+      '<div style="margin-top:7px">'+
+      yourTeam.map(function(mm,i){
+        const o=m.oppTeam[i]||{name:'—',rating:0};
+        return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-top:1px solid var(--border)'+
+          (mm.you?';background:rgba(96,165,250,.07)':'')+'">'+
+          '<div class="dim small" style="width:20px">'+(i+1)+'</div>'+
+          '<div class="small" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+
+            (mm.you?'<b>'+esc(mm.name)+'</b>':esc(mm.name))+' <span class="dim">('+mm.rating+')</span></div>'+
+          '<div class="dim small" style="width:18px;text-align:center">v</div>'+
+          '<div class="small" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right">'+
+            esc(o.name)+' <span class="dim">('+o.rating+')</span></div></div>';
+      }).join('')+'</div>'+
+      '<div class="row" style="margin-top:9px;gap:6px;flex-wrap:wrap">'+
+        '<button class="btn primary sm" data-act="careerleague" '+(c.tour?'disabled':'')+'>▶ Play board one</button>'+
+        '<button class="btn ghost sm" data-act="leagueskip" title="Let a reserve take your board this round">Miss this round</button>'+
+      '</div>'+
+      (c.tour?'<div class="dim small" style="margin-top:5px">Your league match waits until the tournament is over.</div>':'')+
+      '</div>';
+  } else {
+    h+='<div class="note" style="margin-top:9px">🏁 Every match played. The season is being wrapped up.</div>';
+  }
+  h+=leagueTableCard(L);
+  if(played.length){
+    const last=played[played.length-1];
+    if(last.boards)
+      h+='<div style="margin-top:9px;border-top:1px solid var(--border);padding-top:7px">'+
+        '<div class="small" style="font-weight:700;margin-bottom:2px">Last match, board by board</div>'+
+        '<div class="dim small">'+esc(L.name)+' '+fmtScore(last.us)+'–'+fmtScore(last.them)+' '+esc(last.oppName||'')+'</div>'+
+        last.boards.map(leagueBoardRow).join('')+
+        ((last.others&&last.others.length)?'<div class="dim small" style="margin-top:5px">Elsewhere in the round: '+
+          last.others.map(function(o){
+            const H=leagueClub(L,o.h),A=leagueClub(L,o.a);
+            return esc((H?H.name:'?'))+' '+fmtScore(o.hs)+'–'+fmtScore(o.as)+' '+esc((A?A.name:'?'));
+          }).join(' · ')+'</div>':'')+
+        '</div>';
+  }
+  if((L.history||[]).length)
+    h+='<div style="margin-top:9px;border-top:1px solid var(--border);padding-top:7px">'+
+      '<div class="small" style="font-weight:700;margin-bottom:2px">Seasons</div>'+
+      L.history.map(function(s){
+        return '<div class="dim small" style="padding:2px 0">Season '+s.season+' · Division '+s.div+' · '+
+          ordinal(s.place)+' of '+CLUB_SIZE+' · '+s.pts+' pts · you scored '+fmtScore(s.board)+'/'+s.of+
+          (s.up?' · <span style="color:var(--green)">promoted</span>':s.down?' · <span style="color:#f87171">relegated</span>':'')+
+          (s.prize?' · 💰'+s.prize:'')+'</div>';
+      }).join('')+'</div>';
+  h+='<div class="row" style="margin-top:9px"><button class="btn ghost sm" data-act="leaveclub">Leave the club</button></div>';
+  return h+'</div>';
+}
+/* A round you cannot make: a reserve plays your board, usually worse than you
+   would have. Missing them is allowed; it is not free. */
+function leagueSkip(){
+  var c=store.career;
+  const L=leagueInit(c);
+  const m=leagueMyMatch(c);
+  if(!L||!m||m.fixture.mine!=null)return;
+  const f=m.fixture;
+  const reserve={name:randName(),rating:Math.max(900,clubDivRating(L.div)-180+Math.round(gauss()*60))};
+  const s=leagueSimBoard(reserve.rating,m.oppTeam[0].rating);
+  f.mine=null;f.missed=true;
+  f.boards=[{board:1,name:reserve.name+' (reserve)',rating:reserve.rating,
+    oppName:m.oppTeam[0].name,oppRating:m.oppTeam[0].rating,score:s}];
+  (L.team||[]).forEach(function(mate,i){
+    const o=m.oppTeam[i+1]||{name:randName(),rating:clubDivRating(L.div)};
+    f.boards.push({board:mate.board,name:mate.name,rating:mate.rating,
+      oppName:o.name,oppRating:o.rating,score:leagueSimBoard(mate.rating,o.rating)});
+  });
+  const us=f.boards.reduce(function(a,b){return a+b.score;},0);
+  f.us=us;f.them=CLUB_BOARDS-us;f.oppName=m.oppClub?m.oppClub.name:'the visitors';f.home=m.home;
+  f.others=[];
+  f.pairs.forEach(function(p){
+    if(p.h==='you'||p.a==='you')return;
+    const H=leagueClub(L,p.h),A=leagueClub(L,p.a);
+    let hs=0;
+    for(let b=0;b<CLUB_BOARDS;b++)hs+=leagueSimBoard((H?H.str:1450)-b*45+25,(A?A.str:1450)-b*45);
+    f.others.push({h:p.h,a:p.a,hs:hs,as:CLUB_BOARDS-hs});
+  });
+  const add=function(id,bf,ba){
+    const t=L.table[id]||(L.table[id]={w:0,d:0,l:0,pts:0,bf:0,ba:0});
+    t.bf+=bf;t.ba+=ba;
+    if(bf>ba){t.w++;t.pts+=2;}else if(bf===ba){t.d++;t.pts+=1;}else t.l++;
+  };
+  add('you',us,CLUB_BOARDS-us);add(m.oppId,CLUB_BOARDS-us,us);
+  f.others.forEach(function(o){add(o.h,o.hs,o.as);add(o.a,o.as,o.hs);});
+  f.played=true;L.round++;
+  L.last={oppName:f.oppName,us:us,them:CLUB_BOARDS-us,mine:null,round:f.round};
+  c.reputation=Math.max(0,(c.reputation||50)-2);
+  pushNews(c,'🛡️','You missed the league match against '+f.oppName+' — a reserve took board one. '+
+    L.name+' '+(us>CLUB_BOARDS-us?'won':us===CLUB_BOARDS-us?'drew':'lost')+' '+fmtScore(us)+'–'+fmtScore(CLUB_BOARDS-us)+'.');
+  app.careerToast='🛡️ A reserve played board one — '+fmtScore(us)+'–'+fmtScore(CLUB_BOARDS-us)+' against '+f.oppName+'.';
+  if(L.round>=L.fixtures.length)leagueSeasonEnd(c);
+  save();render();
+}
 /* ===== Influence: publish your repertoire for royalties, start drama, stake grudge matches ===== */
 function bookPublished(c,id){return (c.books||[]).some(function(b){return b.id===id;});}
 function publishableOpenings(c){return (store.repertoire||[]).map(function(id){return byId.get(id);}).filter(function(o){return o&&!bookPublished(c,o.id)&&(progress(o,store.srs).mastery||0)>=0.4;});}
@@ -12377,6 +12943,7 @@ function careerTabBar(c){
 function careerTabContent(c,tab){
   let h='';
   if(tab==='play'){
+    h+=resumeCard(true);
     h+=careerArcPanel(c);
     h+=careerRoadmapPanel(c);
     h+=careerManagerPanel(c);
@@ -13022,6 +13589,7 @@ function careerTourView(c){
   if(tr.normEligible)h+=normTracker(tr,c);
   h+='<div style="margin-top:10px">';
   const _shown=drawRevealed(tr);
+  const _resumeHere=resumeIsThisRound(playSavedGame(),c);
   tr.field.forEach((o,i)=>{
     const played=i<done,r=tr.results[i],cur=i===done&&done<total;
     if(i>=_shown){                       // not out of the pot yet
@@ -13032,7 +13600,11 @@ function careerTourView(c){
     }
     let res='<span class="dim small">—</span>';
     if(played)res=(r.score===1?'<b style="color:var(--green)">1</b>':r.score===0?'<b style="color:#f87171">0</b>':'<b class="dim">½</b>')+(r.delta!=null&&r.delta!==0?' <span class="dim small">'+(r.delta>0?'+':'')+r.delta+'</span>':'');
-    else if(cur)res='<button class="btn primary sm" data-act="careerplay">Play ▸</button>';
+    // an unfinished game for this very round is offered back rather than
+    // quietly replaced by a fresh one
+    else if(cur)res=_resumeHere
+      ? '<button class="btn primary sm" data-act="presume" title="Pick the game up where you left it">Resume ▸</button>'
+      : '<button class="btn primary sm" data-act="careerplay">Play ▸</button>';
     h+='<div style="display:flex;align-items:center;gap:9px;padding:8px 2px;border-top:1px solid var(--border)'+(cur?';background:rgba(96,165,250,.07);margin:0 -6px;padding-left:8px;padding-right:8px;border-radius:6px':'')+(played||cur?'':';opacity:.7')+'">'+
       '<div class="dim small" style="width:26px">R'+(i+1)+'</div>'+
       '<div style="flex:0 0 auto">'+oppAvatar(o,28)+'</div>'+
@@ -13242,8 +13814,15 @@ function archiveCareerGame(c,opp,score,fmt,eventName,c960on){
   if(score===1){var last=moves[moves.length-1],myr=youRating(c,fmt)||opp.rating;
     var quickMate=last&&/#/.test(last.san||'')&&moves.length<=30,upset=opp.rating>=myr+120;
     if(quickMate||upset){bri=true;lifeInit(c);var briPrize=Math.round(150+(c.fame||0)*10);c.money=(c.money||0)+briPrize;c.fame=Math.min(100,(c.fame||0)+3);c.fans=Math.round((c.fans||0)+40+(c.fame||0));addXp(c,8);unlockAch(c,'brilliancy');pushNews(c,'✨','Game of the Day (+💰'+briPrize+' brilliancy prize) — your '+(quickMate?'attacking miniature':'upset')+' over '+esc(opp.name)+'!');}}
-  c.games.unshift({moves:moves,startFen:app._playStartFen||null,opp:opp.name,oppRating:opp.rating,oppTitle:opp.title||'',result:score,color:app.playSide,format:fmt,event:eventName,date:Date.now(),c960:!!c960on,bri:bri});
-  if(c.games.length>60)c.games.length=60;
+  c.games.unshift({moves:moves,startFen:app._playStartFen||null,opp:opp.name,oppRating:opp.rating,
+    oppTitle:opp.title||'',result:score,color:app.playSide,format:fmt,event:eventName,date:Date.now(),
+    c960:!!c960on,bri:bri,
+    // your own rating at the time, and the clock after every move, so the game
+    // can be exported properly and watched back at its own pace
+    myRating:youRating(c,fmt)||c.rating||0,
+    clk:(app.playClk&&app.playClk.length)?app.playClk.slice(0,moves.length):null,
+    base:(app.tc&&app.tc.base)||0,inc:(app.tc&&app.tc.inc)||0});
+  if(c.games.length>CG_KEEP)c.games.length=CG_KEEP;
 }
 function pushRatingPoint(c){c.ratingHist=c.ratingHist||[];c.ratingHist.push({t:Date.now(),c:(c.provisional?null:c.rating),r:c.ratingRapid,b:c.ratingBlitz});if(c.ratingHist.length>300)c.ratingHist.shift();}
 function careerRatingGraph(c){
@@ -13259,21 +13838,199 @@ function careerRatingGraph(c){
     '<svg viewBox="0 0 '+W+' '+Ht+'" width="100%" height="84" preserveAspectRatio="none" style="display:block">'+paths+'</svg>'+
     '<div class="dim small" style="margin-top:3px"><span style="color:var(--brand2)">●</span> Classical &nbsp;<span style="color:#fbbf24">●</span> Rapid &nbsp;<span style="color:#f472b6">●</span> Blitz</div></div>';
 }
-function careerGames(c){
-  const G=c.games||[];if(!G.length)return '';
-  let h='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:6px">♟ My games ('+G.length+')</div>';
-  G.slice(0,12).forEach((g,i)=>{
-    const rs=g.result===1?'<b style="color:var(--green)">win</b>':g.result===0?'<b style="color:#f87171">loss</b>':'<b class="dim">draw</b>';
-    h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border)">'+
-      '<div style="width:16px;text-align:center">'+(g.color==='w'?'⚪':'⚫')+'</div>'+
-      '<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(g.bri?'<span title="Game of the Day">✨</span> ':'')+(g.oppTitle?g.oppTitle+' ':'')+esc(g.opp)+' <span class="dim small">('+g.oppRating+') · '+esc(g.event||'')+'</span></div>'+
-      '<div class="dim small" style="width:50px;text-align:right">'+rs+'</div>'+
-      (g.c960?'<span class="dim small" style="width:58px;text-align:right">🎲 960</span>':'<button class="btn ghost sm" data-act="cgreview" data-idx="'+i+'" style="width:58px">Review</button>')+
-      '</div>';
-  });
-  return h+'</div>';
+/* ================= THE GAMES YOU ACTUALLY PLAYED =================
+   The tracker gives imported Chess.com games an analysis board with an eval
+   bar, engine arrows, a searchable list and an export. Your own career games —
+   the ones you sat through, the ones a norm turned on — had a twelve-row list
+   and nothing else. They get the same treatment here: the same board, the same
+   list, and a PGN you can take somewhere else, because a career you cannot
+   take the games out of is not really an archive. */
+const CG_KEEP=150;          // a career archive, not just the last few
+const CG_PAGE=20;
+const CG_SORTS=[['new','Newest'],['old','Oldest'],['long','Longest'],['tough','Toughest'],['best','Best games']];
+function cgAll(){return (store.career&&store.career.games)||[];}
+function cgQuery(){return String(app.cgQ||'').trim().toLowerCase();}
+function cgSortKey(){const k=app.cgSort;return CG_SORTS.some(s=>s[0]===k)?k:'new';}
+function cgOpening(g){
+  if(!g||!g.moves||g.moves.length<4)return null;
+  try{return detectOpening(g.moves.map(m=>m.san));}catch(e){return null;}
 }
-
+function cgResultWord(g){return g.result===1?'win':g.result===0?'loss':'draw';}
+function cgSearch(list){
+  const q=cgQuery();
+  if(!q)return list||[];
+  return (list||[]).filter(function(g){
+    const o=cgOpening(g);
+    return String(g.opp||'').toLowerCase().indexOf(q)>=0
+      ||String(g.event||'').toLowerCase().indexOf(q)>=0
+      ||String(g.oppTitle||'').toLowerCase().indexOf(q)>=0
+      ||(o?String(o.name).toLowerCase().indexOf(q)>=0:false)
+      ||cgResultWord(g).indexOf(q)>=0
+      ||String(g.format||'').toLowerCase().indexOf(q)>=0;
+  });
+}
+function cgSort(list){
+  const out=(list||[]).slice();
+  switch(cgSortKey()){
+    case 'old':out.sort((a,b)=>(a.date||0)-(b.date||0));break;
+    case 'long':out.sort((a,b)=>((b.moves||[]).length)-((a.moves||[]).length));break;
+    case 'tough':out.sort((a,b)=>(b.oppRating||0)-(a.oppRating||0));break;
+    // the ones worth showing someone: a brilliancy first, then a win over
+    // the strongest opponent who ever sat opposite you
+    case 'best':out.sort(function(a,b){
+      const av=(a.bri?100000:0)+(a.result===1?(a.oppRating||0):0);
+      const bv=(b.bri?100000:0)+(b.result===1?(b.oppRating||0):0);
+      return bv-av;});break;
+    default:out.sort((a,b)=>(b.date||0)-(a.date||0));
+  }
+  return out;
+}
+function cgPages(n){return Math.max(1,Math.ceil((n||0)/CG_PAGE));}
+function cgPageNo(n){return Math.min(Math.max(0,app.cgPage||0),cgPages(n)-1);}
+/* ---- one career game, on the same analysis board as everything else ---- */
+function cgOpen(i){
+  const c=store.career,g=cgAll()[i];
+  if(!g||g.c960)return false;
+  const sans=(g.moves||[]).map(m=>m.san);
+  const b=lgFens(sans,g.startFen||undefined);
+  if(b.fens.length<2)return false;
+  const me=(c&&c.name)||'You';
+  const opp=(g.oppTitle?g.oppTitle+' ':'')+(g.opp||'Opponent');
+  app.view='livegame';
+  app.live={kind:'career',idx:i,url:'',
+    white:g.color==='w'?me:opp,black:g.color==='w'?opp:me,
+    side:g.color==='b'?'b':'w',flip:false,
+    fens:b.fens,moves:b.moves,pos:0,follow:false,
+    turn:turnOf(b.fens[0]),moveBy:0,lastActivity:g.date||0,
+    tc:FORMAT_TC[g.format||'classical']||'',
+    clk:g.clk||null,base:g.base||0,inc:g.inc||0,tcDaily:false,
+    event:g.event||'Career game',rated:true,
+    result:g.result===1?'won':g.result===0?'lost':'drew',
+    reason:'',myRating:g.myRating||0,oppRating:g.oppRating||0,
+    acc:null,oppAcc:null,date:g.date||0,
+    err:null,polling:false};
+  app._liveKey=null;
+  replayStop();
+  render();
+  return true;
+}
+/* ---- a PGN anyone else can read ---- */
+function pgnEscape(s){return String(s==null?'':s).replace(/[\\"]/g,'');}
+function cgPgnResult(g){
+  const w=(g.color==='w');
+  if(g.result===1)return w?'1-0':'0-1';
+  if(g.result===0)return w?'0-1':'1-0';
+  return '1/2-1/2';
+}
+function cgPgn(g,me){
+  const std=!g.startFen||g.startFen===new Chess().fen();
+  const opp=(g.oppTitle?g.oppTitle+' ':'')+(g.opp||'Opponent');
+  const res=cgPgnResult(g);
+  const d=g.date?new Date(g.date):null;
+  const o=cgOpening(g);
+  const hdr=['[Event "'+pgnEscape(g.event||'Career game')+'"]','[Site "Chess Career"]',
+    '[Date "'+(d?d.toISOString().slice(0,10).replace(/-/g,'.'):'????.??.??')+'"]',
+    '[White "'+pgnEscape(g.color==='w'?me:opp)+'"]',
+    '[Black "'+pgnEscape(g.color==='w'?opp:me)+'"]',
+    '[Result "'+res+'"]'];
+  if(g.myRating)hdr.push('['+(g.color==='w'?'White':'Black')+'Elo "'+g.myRating+'"]');
+  if(g.oppRating)hdr.push('['+(g.color==='w'?'Black':'White')+'Elo "'+g.oppRating+'"]');
+  if(g.format)hdr.push('[TimeControl "'+pgnEscape(FORMAT_TC[g.format]||g.format)+'"]');
+  if(o)hdr.push('[Opening "'+pgnEscape(o.name)+'"]'+(o.eco?'\n[ECO "'+pgnEscape(o.eco)+'"]':''));
+  if(!std)hdr.push('[FEN "'+g.startFen+'"]','[SetUp "1"]');
+  let body='';
+  (g.moves||[]).forEach(function(m,i){
+    if(i%2===0)body+=(i/2+1)+'. ';
+    body+=m.san+' ';
+    if((i+1)%8===0)body+='\n';
+  });
+  return hdr.join('\n')+'\n\n'+body.trim()+' '+res+'\n';
+}
+function cgPgnAll(list){
+  const me=(store.career&&store.career.name)||'You';
+  return (list||[]).map(g=>cgPgn(g,me)).join('\n');
+}
+function cgExport(){
+  const list=cgSort(cgSearch(cgAll()));
+  if(!list.length){app.cgMsg='No games to export yet.';render();return;}
+  try{
+    const blob=new Blob([cgPgnAll(list)],{type:'application/x-chess-pgn;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;
+    // accents come off rather than out: "Ada Marín" should file as ada-marin
+    const slug=((store.career&&store.career.name)||'career')
+      .normalize?((store.career&&store.career.name)||'career').normalize('NFD').replace(/[̀-ͯ]/g,'')
+      :((store.career&&store.career.name)||'career');
+    a.download=(slug.replace(/[^\w-]+/g,'-').replace(/^-+|-+$/g,'').toLowerCase()||'career')+'-games.pgn';
+    a.click();URL.revokeObjectURL(url);
+    app.cgMsg=list.length+' game'+(list.length===1?'':'s')+' saved as a PGN file — it opens in any chess program.';
+  }catch(e){app.cgMsg='Could not save the file here.';}
+  render();
+}
+function cgSearchNow(){
+  const el=document.getElementById('cg-q');
+  app.cgQ=el?el.value:'';
+  app.cgPage=0;app.cgMsg=null;render();
+}
+/* ---- the list ---- */
+function cgRow(g,i){
+  const r=g.result===1?['Won','var(--green)']:g.result===0?['Lost','#f87171']:['Drew','var(--muted)'];
+  const o=cgOpening(g);
+  const n=Math.ceil((g.moves||[]).length/2);
+  const gap=(g.myRating>0&&g.oppRating>0)?g.oppRating-g.myRating:null;
+  return '<div style="display:flex;align-items:center;gap:9px;padding:9px 13px;border-top:1px solid var(--border)">'+
+    '<div style="width:34px;flex:0 0 auto;font-weight:800;font-size:11px;color:'+r[1]+'">'+r[0]+'</div>'+
+    '<div style="flex:1;min-width:0">'+
+      '<div class="small" style="font-weight:600;overflow-wrap:anywhere;line-height:1.35">'+
+        (g.color==='w'?'⬦ ':'⬥ ')+(g.bri?'<span title="Game of the Day">✨</span> ':'')+
+        (g.oppTitle?'<span style="color:var(--brand2)">'+esc(g.oppTitle)+'</span> ':'')+esc(g.opp||'?')+
+        (g.oppRating?' <span class="dim">('+g.oppRating+(gap!=null&&Math.abs(gap)>=50?', '+(gap>0?'+':'')+gap:'')+')</span>':'')+'</div>'+
+      '<div class="dim small" style="line-height:1.35">'+esc(g.event||'')+' · '+n+' move'+(n===1?'':'s')+
+        (o?' · '+esc(o.name):'')+(g.date?' · '+esc(trkAgo(g.date)):'')+'</div>'+
+    '</div>'+
+    (g.c960
+      ? '<span class="dim small" style="flex:0 0 auto;width:54px;text-align:right">🎲 960</span>'
+      : '<button class="btn sec sm" data-act="cgopen" data-val="'+i+'" title="Open it on the analysis board" style="flex:0 0 auto;padding:4px 8px">🔬</button>')+
+    '</div>';
+}
+function careerGames(c){
+  const all=cgAll();
+  if(!all.length)return '';
+  // the index into the stored list has to survive sorting and searching
+  const idx=new Map();all.forEach((g,i)=>idx.set(g,i));
+  const found=cgSort(cgSearch(all));
+  const q=cgQuery();
+  const page=cgPageNo(found.length),pages=cgPages(found.length);
+  const rows=found.slice(page*CG_PAGE,(page+1)*CG_PAGE);
+  const chip=(act,val,label,on)=>'<button class="btn '+(on?'sec':'ghost')+' sm" data-act="'+act+'" data-val="'+esc(val)+'" style="padding:5px 9px;font-size:12px">'+esc(label)+'</button>';
+  let h='<div class="card" style="margin-bottom:12px;padding:9px 11px">'+
+    '<div style="font-weight:700;margin-bottom:5px">♟ My games <span class="dim small" style="font-weight:600">· '+all.length+' kept</span></div>'+
+    '<div class="row" style="gap:8px;flex-wrap:wrap;align-items:flex-end">'+
+      '<div style="flex:1;min-width:140px"><input id="cg-q" type="text" autocapitalize="off" spellcheck="false" placeholder="An opponent, event, opening or result" value="'+esc(app.cgQ||'')+'" style="width:100%"></div>'+
+      '<button class="btn primary sm" data-act="cgq">Search</button>'+
+      (q?'<button class="btn ghost sm" data-act="cgqclear">Clear</button>':'')+
+    '</div>'+
+    '<div class="row" style="gap:5px;flex-wrap:wrap;align-items:center;margin-top:7px">'+
+      CG_SORTS.map(s=>chip('cgsort',s[0],s[1],cgSortKey()===s[0])).join('')+
+      '<button class="btn ghost sm" data-act="cgpgn" title="Download every one of these games as a PGN file" style="padding:5px 9px;font-size:12px;margin-left:auto">⬇ PGN</button>'+
+    '</div>'+
+    (app.cgMsg?'<div class="note" style="margin-top:8px">⬇ '+esc(app.cgMsg)+'</div>':'')+
+    '</div>';
+  if(!found.length)
+    return h+'<div class="card" style="margin-bottom:12px"><b>Nothing matches “'+esc(app.cgQ||'')+'”.</b>'+
+      '<div class="dim small" style="margin-top:4px">Searched the opponent, the event, the opening and the result across your '+all.length+' games.</div></div>';
+  h+='<div class="card" style="padding:0;margin-bottom:12px">'+
+    '<div style="padding:11px 13px;font-weight:700">'+found.length+' game'+(found.length===1?'':'s')+
+      (q?' matching “'+esc(app.cgQ)+'”':'')+
+      '<div class="dim small" style="font-weight:600">⬦ you had White · ⬥ Black · 🔬 opens it on the analysis board, with the engine and a full review</div></div>'+
+    rows.map(g=>cgRow(g,idx.get(g))).join('')+'</div>';
+  if(pages>1)
+    h+='<div class="row" style="justify-content:center;align-items:center;gap:8px;margin-bottom:12px">'+
+      '<button class="btn ghost sm" data-act="cgpage" data-val="'+(page-1)+'"'+(page<=0?' disabled':'')+'>← Newer</button>'+
+      '<span class="small dim">'+(page*CG_PAGE+1)+'–'+Math.min(found.length,(page+1)*CG_PAGE)+' of '+found.length+'</span>'+
+      '<button class="btn ghost sm" data-act="cgpage" data-val="'+(page+1)+'"'+(page>=pages-1?' disabled':'')+'>Older →</button></div>';
+  return h;
+}
 /* ---- tournament flow ---- */
 function makeField(t){
   const fmt=eventFormat(t);
@@ -13407,6 +14164,9 @@ function applyCareerCondition(){var c=store.career;if(!c||!c.setup)return;lifeIn
    that exact line, your mastery of it becomes an in-game edge. */
 function oppBookEdge(opp,side){var c=store.career;var oppColor=side==='w'?'b':'w';var id=oppOpenings(opp.name)[oppColor];var o=id?byId.get(id):null;if(!o)return null;var edge=inRep(o.id)?(progress(o,store.srs).mastery||0)*theoryMod(c,o.id):0;return {book:o,bookNode:o.root,id:o.id,studyEdge:Math.max(0,Math.min(1,edge))};}
 function playTourRound(){
+  // If this round was already begun and interrupted, pick that game up rather
+  // than quietly starting it again — whichever button was pressed.
+  if(resumeIsThisRound(playSavedGame(),store.career)&&playResume())return;
   // starting a round finishes the draw — the ceremony never blocks the chess
   if(store.career.tour)finishDraw(store.career.tour);
   const c=store.career;if(!c.tour)return;const tr=c.tour;if(tr.round>=tr.rounds)return;
@@ -13580,10 +14340,10 @@ function careerResult(score){
     const delta=applyByFormat(c,fmt,opp.rating,score);app.careerDelta=delta;
     c.played=(c.played||0)+1;if(score===1)c.won=(c.won||0)+1;else if(score===0)c.lost=(c.lost||0)+1;else c.drawn=(c.drawn||0)+1;
     if(fmt==='classical'&&c.provisional)publishRating(c);
-    archiveCareerGame(c,opp,score,fmt,'One-off',!!app.c960);pushRatingPoint(c);
+    archiveCareerGame(c,opp,score,fmt,app.careerLeague?leagueEventName(c):'One-off',!!app.c960);pushRatingPoint(c);
     worldTick();const newTitles=checkTitles(c);
     const res=score===1?'beat':score===0?'lost to':'drew with';
-    c.history=c.history||[];c.history.unshift({name:'Challenge: '+res+' '+opp.name,emoji:'🎯',score:score,rounds:1,avg:opp.rating,tpr:opp.rating,norms:[],date:Date.now(),format:fmt,oneoff:true});
+    c.history=c.history||[];c.history.unshift({name:(app.careerLeague?'Club match: ':'Challenge: ')+res+' '+opp.name,emoji:app.careerLeague?'🛡️':'🎯',score:score,rounds:1,avg:opp.rating,tpr:opp.rating,norms:[],date:Date.now(),format:fmt,oneoff:true});
     app.careerFinish={name:'One-off vs '+opp.name,emoji:'🎯',score:score,rounds:1,avg:opp.rating,tpr:opp.rating,norms:[],newTitles:newTitles,honors:[],published:false,rating:youRating(c,fmt),place:null,format:fmt,oneoff:true};
     momentsFromFinish(c,app.careerFinish);
     if(app.careerLeague){leagueResult(score);app.careerLeague=false;}
@@ -14241,7 +15001,8 @@ function viewPlay(){
     const cats=[],map=new Map();for(const o of BUILT){if(!map.has(o.category)){map.set(o.category,[]);cats.push(o.category);}map.get(o.category).push(o);}
     for(const cat of cats)opSel+='<optgroup label="'+esc(cat)+'">'+map.get(cat).map(o=>'<option value="'+o.id+'"'+(app.setupOpening===o.id?' selected':'')+'>'+esc(o.name)+'</option>').join('')+'</optgroup>';
     opSel+='</select>';
-    return '<div class="center"><div class="card" style="max-width:540px;text-align:left">'+
+    const rc=resumeCard();
+    return '<div class="center"><div style="max-width:540px;width:100%">'+rc+'</div><div class="card" style="max-width:540px;text-align:left">'+
       '<h1 style="text-align:center">Play vs Stockfish</h1>'+
       '<p class="muted" style="text-align:center;margin-top:6px">Pick the engine strength and a time control, optionally play one of your openings against it, then choose your colour.</p>'+
       '<div style="margin:14px 0">'+
@@ -14953,10 +15714,19 @@ function viewStudyOpen(){
 window.addEventListener('online',function(){app._ccAutoTried=false;render();});
 window.addEventListener('offline',function(){render();});
 installListen();
+/* The last chance to write the game down. A phone reclaiming a backgrounded
+   app never fires unload, so `pagehide` and the visibility change are the two
+   that actually arrive — and they carry the clocks as they stand this second,
+   not as they stood at the last move. */
+window.addEventListener('pagehide',function(){if(app.view==='play')playSave(true);});
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='hidden'&&app.view==='play')playSave(true);
+});
 window.addEventListener('keydown',e=>{
   // typing a name and pressing Enter is the obvious gesture; the rest of the
   // shortcuts stay out of text fields
   if(e.target&&e.target.id==='trk-q'&&e.key==='Enter'){e.preventDefault();trkSearchNow();return;}
+  if(e.target&&e.target.id==='cg-q'&&e.key==='Enter'){e.preventDefault();cgSearchNow();return;}
   if(e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;
   if(app.view==='explore'){
     if(e.key==='ArrowLeft'){app.exPath.pop();app.sel=null;render();}

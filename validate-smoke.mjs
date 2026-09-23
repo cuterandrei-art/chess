@@ -51,7 +51,7 @@ const PUZZLES = JSON.parse(pm[1]);
 dom.window.__PUZZLES = PUZZLES;
 ok(PUZZLES.length >= 20000, 'puzzle set present (' + PUZZLES.length + ')');
 
-const X = new Function(script + '\nreturn {store,DEF,restoreBackup};')(); // 2) boots without throwing
+const X = new Function(script + '\nreturn {store,DEF,restoreBackup,freshCareer,app};')(); // 2) boots without throwing
 ok(true, 'app boots');
 
 // A fresh visitor now lands on the first-run questions, so dismiss them before
@@ -119,6 +119,26 @@ ok(illegal === 0, 'sampled puzzles are legal');
   ok(!restoreBackup('not json').ok && !restoreBackup('{}').ok && !restoreBackup('[1,2]').ok && !restoreBackup('{"other":1}').ok,
      'a file that is not one of ours is refused');
   ok(store.career.rating === before, 'and a refused file leaves what you already had alone');
+}
+
+/* ---- the defaults are defaults, not the live state ----
+   `store` used to BE the defaults object on a first run, so playing a career
+   edited DEF as it went: a new career then started as a copy of the old one,
+   and resetting your statistics restored the numbers it was meant to clear. */
+{
+  const { store, DEF, freshCareer } = X;
+  ok(store !== DEF, 'the live save is a copy of the defaults, not the defaults themselves');
+  ok(store.career !== DEF.career, 'and so is the career inside it');
+  store.career.name = 'Polluter'; store.career.money = 99999; store.career.setup = true;
+  store.career.titles = ['GM']; store.career.retired = true;
+  store.stats.total = 500; store.stats.correct = 400;
+  store.settings.level = 7;
+  const fc = freshCareer();
+  ok(fc.name !== 'Polluter' && !fc.money && !fc.setup, 'a new career really is new after one has been played');
+  ok(!fc.retired && (fc.titles || []).length === 0, 'with no titles and no retirement carried over');
+  ok(DEF.stats.total === 0, 'the default statistics stay at zero however much you train');
+  ok(JSON.parse(JSON.stringify(DEF.stats)).total === 0, 'so resetting them really does clear them');
+  ok(DEF.settings.level !== 7, 'and a changed setting does not become the default');
 }
 
 console.log('\n✅ smoke: ' + pass + ' checks passed');

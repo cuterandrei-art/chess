@@ -225,6 +225,77 @@ actually brought back rather than claiming success:
 A file that is not one of ours is refused outright instead of being half
 applied over what you already have.
 
+The live save is a **copy** of the defaults, not the defaults themselves. It
+was the object itself, which on a first run with nothing stored meant playing a
+career quietly edited the defaults as it went: "Begin a new career" then handed
+back a copy of the career you had just retired, and resetting your statistics
+restored the numbers it was supposed to clear. `validate-smoke.mjs` guards it
+now, since everything downstream reads a default at some point.
+
+---
+
+## A game you can come back to
+
+A classical career round is 30+20 — up to two hours in the chair. The board
+used to live only in memory: reload the page, tap **Career** to check the
+standings, or let a phone reclaim a backgrounded app, and the game was gone.
+The tournament survived, so you could play round three again from move one,
+which is not the same thing.
+
+The position, the move list, both clocks and everything the career needs to
+score it are now written down after every move, and again when the app is put
+away — `pagehide` and the visibility change, because a phone killing a
+background tab never fires `unload`. Come back and the game is offered where
+you left it: *"move 14 · your move · ⏱ 21:36 left on your clock"*. It is
+offered on the career screen, on the Play screen, and as the round's own button
+— which reads **Resume ▸** instead of **Play ▸**, so no entry point can quietly
+start the game again.
+
+It lives under its own storage key, on purpose: a half-played game has no
+business inside the backup file, and a corrupted one must never take the rest
+of your save with it. A finished game clears itself the moment it ends, and a
+game saved for a round that has since been simulated, withdrawn from or
+finished is thrown away rather than offered for a slot that no longer exists.
+
+## Your own games, on the same board as everybody else's
+
+Career games used to be a twelve-row list with a Review button — less than the
+games imported from Chess.com, which is the wrong way round. They now open on
+the same analysis board as everything else: eval bar, engine arrows, the full
+review one tap further, and, because the clock reading after every move is kept
+now, **watched back at the pace they were played**. The list is searchable by
+opponent, event, opening or result, sorts five ways including *best games* (the
+brilliancy first, then your best win), and pages 20 at a time through an
+archive of the last `CG_KEEP` games.
+
+**⬇ PGN** writes the lot to a file with proper headers — event, date, both
+names, both ratings, the result, the time control and the opening — that any
+chess program will open. `validate-cgames.mjs` parses the app's own export back
+with the app's own PGN reader and checks every move survives the round trip.
+
+## The club league is a season
+
+Team chess is what most players' weekends actually are, and it was the one
+format here that wasn't simulated: one button, one anonymous opponent, eight
+"boards", a points total.
+
+A division is now **six clubs**, each with a name and a strength, playing
+everybody once — five matches, four boards a match. You are board one. The
+three players behind you have names, ratings and results you do not control,
+which is the whole experience of team chess: you win your game and lose the
+match anyway. The other two matches in each round are simulated the same way,
+so the table above you moves while you play, with W–D–L, board points and match
+points, the promotion place in green and the relegation place in red. Win the
+division and you go up; finish last and you go down; the prize money is worth
+more the higher you are.
+
+Clubs recruit at their own level, so a master is not asked to play board one in
+Division 4, and both line-ups are ordered by rating the way a captain fills a
+team sheet. A round you cannot make can be missed — a reserve takes board one,
+usually worse than you would have, and your club thinks slightly less of you
+for it. League games are rated, and are filed in your archive under the match
+they were rather than as a "one-off".
+
 ---
 
 ## The draw
@@ -536,7 +607,7 @@ the engine can answer, and a game with one known blunder).
 
 ## Tests
 
-Thirty-six suites, a little over three thousand checks.
+Thirty-nine suites, a little under four thousand checks.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
@@ -545,6 +616,17 @@ parse test misses them and the app silently never boots. The other suites cover
 one system each (career pace, story arcs and the world feed, brilliancies, the
 park and simuls, the weekly life sim, avatars and backdrops, profiles, courses,
 endgames, and the rest).
+
+Career mode has its own three on top of the rest: `validate-resume.mjs` (what
+gets written down, what it refuses to trust, and that a round only ever holds
+one game), `validate-cgames.mjs` (the archive, the board, and a PGN that
+round-trips through the app's own reader) and `validate-league.mjs` (the
+fixture list is a real round-robin, the board simulation scores what two
+ratings say it should, and promotion, relegation and prize money all land where
+they belong). Three browser checks drive the real app with the real engine:
+`visual-resume.mjs` reloads mid-game and resumes, `visual-cgames.mjs` exports
+the PGN and checks the file, `visual-league.mjs` plays a board and watches the
+table move.
 
 The tracker has two of its own. `validate-tracker.mjs` covers the import and
 the profile; `validate-trackerx.mjs` covers the statistics, against values
