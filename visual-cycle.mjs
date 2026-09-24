@@ -40,7 +40,7 @@ await page.click('[data-act="careersetup"]'); await page.waitForTimeout(500);
 await page.evaluate(()=>{
   const H=window.__APPHOOK__,c=H.store.career;
   H.lifeInit(c);
-  c.name='Ada Marín';c.fed='ROU';c.flag='🇷🇴';c.season=3;c.money=80000;
+  c.name='Ada Marín';c.fed='ROU';c.flag='🇷🇴';c.season=3;c.weeks=2*52+10;c.day=0;c.money=80000;
   c.rating=2720;c.ratingRapid=2700;c.ratingBlitz=2690;c.provisional=false;c.peak=2720;
   c.played=300;c.won=120;c.drawn=130;c.lost=50;c.titles=['CM','FM','IM','GM'];
   H.save();H.render();
@@ -63,7 +63,14 @@ ok(/World Cup: .*in on rating/.test(r),'showing the World Cup is open on rating'
 /* qualify, and win the Candidates */
 await page.evaluate(()=>{const H=window.__APPHOOK__;H.cycleQualify(H.store.career,'reaching the final of the World Cup');H.save();H.render();});
 await playTab();
-ok(await page.locator('[data-act="careerjoin"][data-val="candidates"]').count()>0,'with a place, the Candidates opens');
+t=await txt();
+ok(/Locked · opens week 13/.test(t),'with a place, the Candidates is open to you — in its week, which is week 13');
+ok(/Season 3 · 2028/.test(t),'the calendar shows the season and the year');
+const goto13=page.locator('[data-act="calwait"][data-val="13"]');
+ok(await goto13.count()>0,'and offers to go there');
+await goto13.first().click();await page.waitForTimeout(700);
+ok(await page.evaluate(()=>window.__APPHOOK__.store.career.weeks%52)===13,'three weeks of your life later, it is week 13');
+ok(await page.locator('[data-act="careerjoin"][data-val="candidates"]').count()>0,'and the Candidates can be entered');
 await page.click('[data-act="careerjoin"][data-val="candidates"]');await page.waitForTimeout(600);
 ok(await page.evaluate(()=>window.__APPHOOK__.store.career.cycle.cand===null),'and entering it uses the place up');
 /* force the result: every game won */
@@ -73,12 +80,31 @@ const cand=await page.evaluate(()=>{const c=window.__APPHOOK__.store.career;retu
 ok(cand.place===1&&cand.chall===3,'a Candidates won makes you the challenger (place '+cand.place+')');
 await page.screenshot({path:SP+'/cycle-1-candidates.png',fullPage:false});
 
-/* the title match */
+/* the title match, in November */
 await playTab();
+t=await txt();
+ok(/Locked · opens week 47/.test(t),'the title match is the challenger’s — in week 47');
+await page.locator('[data-act="calwait"][data-val="47"]').first().click();await page.waitForTimeout(1500);
 ok(await page.locator('[data-act="careerjoin"][data-val="wcc"]').count()>0,'the title match is open to the challenger');
 await page.click('[data-act="careerjoin"][data-val="wcc"]');await page.waitForTimeout(600);
 t=await txt();
 ok(/World Championship Match/.test(t),'the match begins');
+ok(/Your team of seconds/.test(t),'with the team to pick first');
+const m0=await page.evaluate(()=>window.__APPHOOK__.store.career.money);
+await page.click('[data-act="wmhire"][data-val="opening"]');await page.waitForTimeout(300);
+ok(await page.evaluate(()=>window.__APPHOOK__.store.career.money)===m0-60000,'an opening specialist, paid for');
+await page.click('[data-act="wmstart"]');await page.waitForTimeout(300);
+await page.click('[data-act="simround"]');await page.waitForTimeout(900);
+t=await txt();
+ok(/Press conference after game 1/.test(t),'a press conference after the first game');
+ok(/The match so far/.test(t)&&/You strike first/.test(t),'and the story of the match begins');
+await page.click('[data-act="wmpress"][data-val="confident"]');await page.waitForTimeout(300);
+await page.click('[data-act="simround"]');await page.waitForTimeout(900);
+t=await txt();
+ok(/Rest day/.test(t),'after two games, a rest day');
+await page.evaluate(()=>window.scrollTo(0,0));await page.waitForTimeout(200);
+await page.screenshot({path:SP+'/cycle-2a-match.png',fullPage:false});
+await page.click('[data-act="wmrest"][data-val="prep"]');await page.waitForTimeout(300);
 await page.click('[data-act="simtour"]');await page.waitForTimeout(3000);
 t=await txt();
 const wcc=await page.evaluate(()=>{const c=window.__APPHOOK__.store.career,h=c.history[0];return {champ:c.cycle.champ,games:h.rounds,place:h.place};});

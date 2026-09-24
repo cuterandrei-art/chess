@@ -138,9 +138,11 @@ ok(boardsAt[2200]>boardsAt[2800],'you climb the team as you improve: board '+
   (Math.round(boardsAt[2200]*10)/10)+' at 2200, board '+(Math.round(boardsAt[2800]*10)/10)+' at 2800');
 ok(boardsAt[2800]<1.2,'a 2800 is essentially always board one');
 ok(boardsAt[2200]>3.5,'and a 2200 in that side essentially always board four');
-/* and this is the normal case, not an edge one: being picked at all takes
-   top-three in your federation, which most careers reach well below the
-   strength their country fields, so most of a career is spent down the order */
+/* and this is the normal case, not an edge one: being picked at all takes a
+   place in your federation's top five — read off the strength the country
+   fields, since the named world list holds only a few players from each — and
+   most careers get there below board one, so most of a career is spent down
+   the order */
 let lowBoards=0,checked=0;
 ['ROU','SRB','BRA','VIE','TUR'].forEach(function(fed){
   [2250,2350,2450].forEach(function(r){
@@ -152,7 +154,7 @@ let lowBoards=0,checked=0;
     if(X.olyInit(cc,tour(9)).myBoard>1)lowBoards++;
   });
 });
-ok(checked>=8,checked+' plausible selections to look at');
+ok(checked>=5,checked+' plausible selections to look at');
 ok(lowBoards>=checked*0.6,lowBoards+' of '+checked+' of them start below board one — '+
   'the team is the country’s, not a copy of you');
 

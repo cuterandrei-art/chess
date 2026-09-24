@@ -19,7 +19,7 @@ ok(wcc&&wcc.kind==='match'&&wcc.rounds===14,'the World Championship is a 14-game
 const field=X.makeField(wcc);
 ok(field.length===14 && new Set(field.map(f=>f.name)).size===1,'the match field is the same champion for all 14 games');
 
-const mk=(round,results)=>({emoji:'👑',name:'World Championship Match',rounds:14,round,results,field,kind:'match'});
+const mk=(round,results)=>({id:'wcc',emoji:'👑',name:'World Championship Match',rounds:14,round,results,field,kind:'match'});
 // mid-match scoreboard: your points + opponent points = games played
 let tr=mk(6,[{score:1,rating:2830},{score:0,rating:2830},{score:0.5,rating:2830},{score:1,rating:2830},{score:0.5,rating:2830},{score:0,rating:2830}]);
 let strip=X.matchScoreStrip(tr);

@@ -4407,9 +4407,9 @@ const WORLD_REAL=[
 ];
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 let _world=null;
-function buildWorld(){
+function baseWorld(){
   if(_world)return _world;
-  const out=WORLD_REAL.map(p=>({id:p.id,name:p.name,fed:p.fed,flag:p.flag,real:true,r:p.r,rr:p.rr!=null?p.rr:p.r-30,rb:p.rb!=null?p.rb:p.r-45}));
+  const out=WORLD_REAL.map(p=>({id:p.id,name:p.name,fed:p.fed,flag:p.flag,real:true,r:p.r,r0:p.r,rr:p.rr!=null?p.rr:p.r-30,rb:p.rb!=null?p.rb:p.r-45}));
   // deterministic fictional field from 2700 down to ~1100 so there are always rivals
   const rnd=mulberry32(0x5eed1234);const used={};
   let r=2700;const n=150;
@@ -4419,9 +4419,23 @@ function buildWorld(){
     let nm;do{nm=GEN_FNAMES[Math.floor(rnd()*GEN_FNAMES.length)][0]+'. '+GEN_LNAMES[Math.floor(rnd()*GEN_LNAMES.length)];}while(used[nm]&&Object.keys(used).length<GEN_FNAMES.length*GEN_LNAMES.length);
     used[nm]=1;const fed=FEDS[1+Math.floor(rnd()*(FEDS.length-1))];
     const rr=Math.round(r-20+rnd()*40-10),rb=Math.round(r-35+rnd()*70-15);
-    out.push({id:'f'+i,name:nm,fed:fed.c,flag:fed.f,real:false,r:Math.round(r),rr,rb});
+    out.push({id:'f'+i,name:nm,fed:fed.c,flag:fed.f,real:false,r:Math.round(r),r0:Math.round(r),rr,rb});
   }
   _world=out;return out;
+}
+/* The world as this career has it: the list it started from, less those who
+   have retired, with each player's rating base moved by the seasons since,
+   plus everybody who has come up since. Rebuilt only when a season changes it. */
+let _worldCache=null;
+function buildWorld(){
+  const c=(typeof store!=='undefined'&&store)?store.career:null,X=c&&c.wx;
+  if(!X)return baseWorld();
+  if(_worldCache&&_worldCache.c===c&&_worldCache.v===X.v)return _worldCache.list;
+  const list=baseWorld().filter(function(p){return !X.retired[p.id];})
+    .map(function(p){const b=X.base[p.id];return b?Object.assign({},p,b):p;})
+    .concat((X.extra||[]).filter(function(p){return !X.retired[p.id];}));
+  _worldCache={c:c,v:X.v,list:list};
+  return list;
 }
 function wpBase(p,fmt){return fmt==='rapid'?p.rr:fmt==='blitz'?p.rb:p.r;}
 function wpState(p){const w=store.career.world;return(w&&w[p.id])||null;}
@@ -4430,13 +4444,178 @@ function wpChange(p,fmt){const s=wpState(p);return s?Math.round(s.dd*(fmt==='cla
 function youRating(c,fmt){return fmt==='rapid'?c.ratingRapid:fmt==='blitz'?c.ratingBlitz:c.rating;}
 /* The full ranked list for a format, with the player inserted (if rated). */
 function worldRanking(c,fmt){
-  const list=buildWorld().map(p=>({id:p.id,name:p.name,fed:p.fed,flag:p.flag,real:p.real,rating:wpRating(p,fmt),change:wpChange(p,fmt),you:false}));
+  const list=buildWorld().map(p=>({id:p.id,name:p.name,fed:p.fed,flag:p.flag,real:p.real,rating:wpRating(p,fmt),change:wpChange(p,fmt),you:false,title:wpTitle(p)}));
   const yr=youRating(c,fmt);
-  if(yr!=null)list.push({id:'__you',name:c.name,fed:c.fed,flag:c.flag,real:false,rating:yr,change:0,you:true});
+  if(yr!=null)list.push({id:'__you',name:c.name,fed:c.fed,flag:c.flag,real:false,rating:yr,change:0,you:true,title:bestTitle(c)||''});
   list.sort((a,b)=>b.rating-a.rating||(a.you?-1:b.you?1:0));
+  return rankList(list);
+}
+function worldRank(c,fmt){const l=worldRanking(c,fmt);const m=l.find(p=>p.you);return m?m.rank:null;}
+/* ---------------------------------------------------------------------------
+   THE WORLD AT ITS REAL SIZE
+
+   The named list is a couple of hundred players, from the world's best down
+   to club level, so that there is always somebody just above and below you.
+   Counted by position in it, a 2480 was the 62nd best player in the world; on
+   the real list of active players that rating is about 1,300th. Above 2750
+   the named list is the world. Below it, a place is read off the depth of the
+   real list, so the numbers around you jump the way the real ones would.
+   --------------------------------------------------------------------------- */
+const REAL_DEPTH=[[2750,16],[2700,36],[2650,90],[2600,200],[2550,400],[2500,750],[2450,1250],[2400,1950],
+  [2350,3000],[2300,4500],[2250,6500],[2200,9000],[2100,16000],[2000,26000],[1900,40000],[1800,57000],
+  [1700,76000],[1600,96000],[1500,116000],[1400,136000],[1200,165000],[1000,185000]];
+/* Active players rated at least r (0 above the top of the table). */
+function realDepth(r){
+  if(r>=REAL_DEPTH[0][0])return 0;
+  for(let i=1;i<REAL_DEPTH.length;i++){
+    const a=REAL_DEPTH[i-1],b=REAL_DEPTH[i];
+    if(r>=b[0]){const t=(a[0]-r)/(a[0]-b[0]);return Math.round(Math.exp(Math.log(a[1])+t*(Math.log(b[1])-Math.log(a[1]))));}
+  }
+  return REAL_DEPTH[REAL_DEPTH.length-1][1];
+}
+/* Places on the real list, for a list sorted strongest first. */
+function rankList(list){
+  let prev=0;
+  list.forEach(function(p){p.rank=Math.max(prev+1,realDepth(p.rating+1)+1);prev=p.rank;});
   return list;
 }
-function worldRank(c,fmt){const l=worldRanking(c,fmt);const i=l.findIndex(p=>p.you);return i<0?null:i+1;}
+/* ---------------------------------------------------------------------------
+   TITLES PEOPLE EARNED
+
+   Everybody else's title was read off their rating that minute: cross 2500
+   and you were a grandmaster, drop to 2499 and you were not. Titles are for
+   life, and they lag a rating on the way up — the norms take time — so a
+   2450 is as likely to be a grandmaster as an IM. Anonymous players draw a
+   title from how the real list is spread at their rating; everybody on the
+   world list keeps the one they have and is promoted, a season or two after
+   the rating gets there.
+   --------------------------------------------------------------------------- */
+const TITLE_ORDER=['','CM','FM','IM','GM'];
+const TITLE_BANDS=[        // rating from, then the share holding GM, IM, FM, CM
+  [2600,1,0,0,0],[2550,0.97,0.03,0,0],[2500,0.8,0.2,0,0],[2450,0.45,0.5,0.05,0],[2400,0.18,0.62,0.2,0],
+  [2350,0.05,0.4,0.45,0.05],[2300,0,0.15,0.6,0.1],[2250,0,0.04,0.45,0.2],[2200,0,0,0.25,0.3],
+  [2100,0,0,0.05,0.15],[0,0,0,0,0.02]];
+function titleFor(r,u){
+  const b=TITLE_BANDS.find(function(x){return r>=x[0];})||TITLE_BANDS[TITLE_BANDS.length-1];
+  let x=(u!=null)?u:Math.random();
+  const T=['GM','IM','FM','CM'];
+  for(let i=0;i<4;i++){x-=b[i+1];if(x<0)return T[i];}
+  return '';
+}
+function wpHash(id){let h=2166136261;const s=String(id);for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function wpTitle(p){
+  const c=(typeof store!=='undefined'&&store)?store.career:null,X=c&&c.wx;
+  if(X&&X.titles&&X.titles[p.id]!=null)return X.titles[p.id];
+  if(p.title!=null)return p.title;
+  if(p.real)return 'GM';
+  return titleFor(p.r0!=null?p.r0:p.r,(wpHash(p.id)%10000)/10000);
+}
+/* The next title a player has earned at this rating, or null. Each player's
+   norms come at their own pace: somewhere up to forty points past the line. */
+function titlePromote(p,r){
+  const ci=TITLE_ORDER.indexOf(wpTitle(p)),lag=(wpHash(p.id)>>>8)%41,need=[0,2200,2300,2400,2500];
+  let t=ci;
+  while(t<4&&r>=need[t+1]+(t+1>=2?lag:0))t++;
+  return t>ci?TITLE_ORDER[t]:null;
+}
+/* ---------------------------------------------------------------------------
+   A FIELD THAT LIVES
+
+   The world list was the same people for ever: nobody aged, nobody retired,
+   nobody new arrived, and the rising stars rose only as far as a drift that
+   pulled everybody back to where they started. Each player now has an age and
+   a talent. A season moves a rating the way a career moves one — fast in the
+   teens, flat in the late twenties, down from the late thirties — players
+   retire from forty on, and each season brings a handful of teenagers onto the
+   list, some of whom will be very good.
+   --------------------------------------------------------------------------- */
+const WORLD_AGE={carlsen:35,nakamura:38,caruana:34,erigaisi:22,gukesh:20,firouzja:23,abdus:22,pragg:21,wei:27,
+  nepo:36,so:33,giri:32,aronian:44,dominguez:43,mvl:36,mamed:41,ding:34,vidit:32,duda:28,rapport:30,yu:32,
+  sevian:26,keymer:22,hou:32,goryach:28,ju:35};
+const JUNIORS_PER_SEASON=5;       // prodigies onto the list each season
+const NEWCOMERS_PER_SEASON=3;     // and club players, so there is always somebody at your level
+function wxInit(c){
+  if(!c)return null;
+  if(!c.wx)c.wx={v:1,s0:c.season||1,base:{},titles:{},retired:{},extra:[],log:[]};
+  const X=c.wx;
+  X.base=X.base||{};X.titles=X.titles||{};X.retired=X.retired||{};X.extra=X.extra||[];X.log=X.log||[];
+  return X;
+}
+function wpBaseAge(p){const h=wpHash(p.id+'age'),r=p.r0!=null?p.r0:p.r;return r>=2600?20+h%18:r>=2300?17+h%28:15+h%45;}
+function wpAge(p){
+  const c=(typeof store!=='undefined'&&store)?store.career:null,X=c&&c.wx,S=(c&&c.season)||1;
+  const s0=p.born!=null?p.born:(X?X.s0:S);
+  const a0=p.age0!=null?p.age0:(WORLD_AGE[p.id]!=null?WORLD_AGE[p.id]:wpBaseAge(p));
+  return a0+Math.max(0,S-s0);
+}
+function wpTalent(p){
+  if(p.talent!=null)return p.talent;
+  if(WORLD_TREND[p.id]!=null)return Math.max(-1,Math.min(1,WORLD_TREND[p.id]*1.8));
+  return ((wpHash(p.id+'tal')%201)-100)/100;
+}
+/* What a season does to a rating at a given age, before talent. */
+function ageDev(age){
+  return age<16?55:age<18?40:age<20?28:age<23?15:age<26?6:age<30?0:age<35?-3:age<40?-7:age<45?-11:age<50?-15:-20;
+}
+function seasonDev(p,r){
+  const a=wpAge(p),t=wpTalent(p);
+  let d=ageDev(a)+t*(a<20?25:a<26?12:4)+gauss()*8;
+  if(r>2750)d-=(r-2750)*0.25;             // the air is thin at the top
+  return d;
+}
+function retireChance(age){return age<40?0:Math.min(0.6,0.03+0.035*(age-40));}
+function wxUniqueName(X){
+  const taken={};buildWorld().forEach(function(p){taken[p.name]=1;});(X.extra||[]).forEach(function(p){taken[p.name]=1;});
+  for(let i=0;i<60;i++){const n=pick(GEN_FNAMES)[0]+'. '+pick(GEN_LNAMES);if(!taken[n])return n;}
+  return pick(GEN_FNAMES)[0]+'. '+pick(GEN_LNAMES)+'-'+pick(GEN_LNAMES);
+}
+function wxNewPlayer(c,X,kind,i){
+  const S=c.season||1,fed=randFed();
+  const junior=kind==='junior';
+  const r=junior?Math.round(2250+Math.random()*300):Math.round(1300+Math.random()*700);
+  const age=junior?14+Math.floor(Math.random()*4):16+Math.floor(Math.random()*20);
+  const p={id:'n'+S+kind[0]+i+'_'+Math.floor(Math.random()*1e6).toString(36),name:wxUniqueName(X),fed:fed.c,flag:fed.f,real:false,
+    r:r,r0:r,rr:r+Math.round(gauss()*40),rb:r+Math.round(gauss()*50),age0:age,born:S,
+    talent:junior?Math.round((0.2+Math.random()*0.8)*100)/100:Math.round((Math.random()-0.5)*100)/100,junior:junior};
+  p.title=titleFor(r);
+  X.extra.push(p);
+  return p;
+}
+/* Once a season, at the turn of the year. */
+function worldSeason(c){
+  const X=wxInit(c),S=c.season||1,w=c.world=c.world||{};
+  const champ=(c.cycle&&c.cycle.reigning&&c.cycle.reigning.name)||null;
+  const keep={};if(c.rival&&c.rival.id)keep[c.rival.id]=1;
+  const notes=[];
+  buildWorld().forEach(function(p){
+    const st=w[p.id],carry=st?st.d*0.5:0;
+    if(st)st.d-=carry;
+    const r=p.r,nr=Math.max(1000,Math.min(2880,Math.round(r+carry+seasonDev(p,r)*0.7)));
+    const dr=nr-r;
+    if(p.born!=null){p.r=nr;p.rr=Math.round(p.rr+dr*0.9);p.rb=Math.round(p.rb+dr*0.85);}
+    else X.base[p.id]={r:nr,rr:Math.round(p.rr+dr*0.9),rb:Math.round(p.rb+dr*0.85)};
+    // a title, a season or two after the rating got there
+    const now=nr+(st?st.d:0),t=titlePromote(p,now);
+    if(t&&Math.random()<0.7){
+      X.titles[p.id]=t;
+      if(t==='GM'&&wpAge(p)<=21)notes.push({e:'🎖️',t:p.name+' ('+p.fed+') becomes a grandmaster at '+Math.floor(wpAge(p))+'.'});
+    }
+    // and one day, the last game
+    if(!keep[p.id]&&p.name!==champ&&p.id!==DEFAULT_CHAMPION&&Math.random()<retireChance(wpAge(p))){
+      X.retired[p.id]=S;
+      if(p.real||now>=2650)notes.push({e:'🎗️',t:p.name+' retires from classical chess at '+Math.floor(wpAge(p))+'.'});
+    }
+  });
+  let best=null;
+  for(let i=0;i<JUNIORS_PER_SEASON;i++){const j=wxNewPlayer(c,X,'junior',i);if(!best||j.r>best.r)best=j;}
+  for(let i=0;i<NEWCOMERS_PER_SEASON;i++)wxNewPlayer(c,X,'club',i);
+  if(best)notes.push({e:'🌱',t:'New on the list: '+best.name+' of '+best.fed+', '+best.age0+' years old and rated '+best.r+'.'});
+  X.v++;
+  notes.forEach(function(n){pushFeed(c,n.e,esc(n.t),'world');});
+  X.log.unshift({season:S,notes:notes.map(function(n){return n.e+' '+n.t;})});
+  if(X.log.length>10)X.log.length=10;
+  return notes;
+}
 /* ---- realistic evolution of the rest of the world ----
    Each player has a hidden trajectory: rising young stars trend up, veterans
    ease down, everyone else mean-reverts to true strength. Every rating period
@@ -10355,6 +10534,10 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='leaveclub')uiConfirm('Leave the club and give up this league season?',leaveClub);
   else if(act==='leagueskip')uiConfirm('Miss this round and let a reserve take board one?',leagueSkip);
   else if(act==='careerleague')careerLeague();
+  else if(act==='prosign')proSign(val);
+  else if(act==='proleave')proLeave();
+  else if(act==='proplay')careerProPlay();
+  else if(act==='prosim')careerProSim();
   else if(act==='publishbook')publishBook(val);
   else if(act==='drama')careerDrama(val);
   else if(act==='rivalmatch')startRivalMatch();
@@ -10404,6 +10587,11 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='careerpace'){const c=store.career;lifeInit(c);c.pace=(c.pace||1)>=3?1:(c.pace||1)+1;app.careerToast='⏩ Career pace: '+(PACE_NAMES[c.pace]||('×'+c.pace))+' — ratings now move '+(c.pace===1?'at true FIDE speed':(c.pace+'× faster'))+'.';save();render();}
   else if(act==='careerjoin')joinTournament(val);
   else if(act==='careerplay')playTourRound();
+  else if(act==='calwait')careerWaitUntil(+val);
+  else if(act==='wmhire')wmHire(val);
+  else if(act==='wmstart')wmStart();
+  else if(act==='wmrest')wmRest(val);
+  else if(act==='wmpress')wmPress(val);
   else if(act==='simround')simTourRound();
   else if(act==='simtour')simRestOfTour();
   else if(act==='claimdaily')claimDaily();
@@ -11685,7 +11873,7 @@ function playSnapshot(){
     blindfold:!!app.blindfold,c960:app.c960||null,endgame:app.endgame||null,bot:app.playBot||null,
     bookId:app.playBook?app.playBook.id:null,
     career:{opp:app.careerOpp||null,elo:app.careerElo||null,tour:!!app.careerTour,
-      roundOpp:app.careerRoundOpp||null,oneoff:app.careerOneoff||null,league:!!app.careerLeague,
+      roundOpp:app.careerRoundOpp||null,oneoff:app.careerOneoff||null,league:!!app.careerLeague,pro:!!app.careerPro,
       hints:app.careerHintsLeft||0,prepUsed:app.careerPrepUsed||null,
       novelty:!!app.careerNovelty,studyEdge:app.careerStudyEdge||0,
       tourId:(store.career&&store.career.tour)?store.career.tour.id:null,
@@ -11788,7 +11976,7 @@ function playResume(){
   if(app.pass){app.playSide=turnOf(g.fen);app.playFlip=app.pass.flip?false:(app.playSide==='b');}
   const cr=g.career||{};
   app.careerOpp=cr.opp||null;app.careerElo=cr.elo||null;app.careerTour=!!cr.tour;
-  app.careerRoundOpp=cr.roundOpp||null;app.careerOneoff=cr.oneoff||null;app.careerLeague=!!cr.league;
+  app.careerRoundOpp=cr.roundOpp||null;app.careerOneoff=cr.oneoff||null;app.careerLeague=!!cr.league;app.careerPro=!!cr.pro;
   app.careerHintsLeft=cr.hints||0;app.careerPrepUsed=cr.prepUsed||null;
   app.careerNovelty=!!cr.novelty;app.careerStudyEdge=cr.studyEdge||0;
   app.parkBet=g.park?{id:g.park.id,stake:g.park.stake,double:!!g.park.double}:null;
@@ -11889,7 +12077,7 @@ function startPlay(fen,side,openingId,title,opts){opts=opts||{};
   if(app.pass){side=turnOf(fen);app.playBot=null;}
   app.view='play';app.playFen=fen;app._playStartFen=fen;app.playSide=side;app.playOpening=openingId||null;
   app.playTitle=title||'Free game';app.playFlip=false;app.playStack=[fen];app.playMoves=[];app.playView=0;app.playLast=null;app.playSel=null;app.careerBanter=null;app.careerReaction=null;
-  app.playHint=null;app.playEval=null;app.playResult=null;app.careerStory=null;app.engineErr=false;app.drawMsg=null;app.blunderNote=null;app.coachNote=null;app.whyNot=null;app.oppDraw=null;app.oppSaid=null;app._oppLost=0;app._drawCd=0;app.pgnCopied=false;app.playPremoves=[];app.blindfold=!!opts.blindfold;app.peek=false;app.careerOpp=opts.careerOpp||null;app.careerElo=opts.careerElo||null;app.careerScored=false;app.careerDelta=0;app.careerTour=!!opts.careerTour;app.careerRoundOpp=opts.roundOpp||null;app.careerOneoff=opts.oneoff||null;app.c960=opts.c960||null;app.endgame=opts.endgame||null;app.playBot=opts.bot||null;app.tiltEval=false;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=!!(opts.league);app.careerHintsLeft=opts.careerOpp?careerHintAllowance():0;app._fxKey=null;app._lastEvalCp=null;app._engOutOfBook=false;app._engRetry=0;app._evLow=null;app._evHigh=null;
+  app.playHint=null;app.playEval=null;app.playResult=null;app.careerStory=null;app.engineErr=false;app.drawMsg=null;app.blunderNote=null;app.coachNote=null;app.whyNot=null;app.oppDraw=null;app.oppSaid=null;app._oppLost=0;app._drawCd=0;app.pgnCopied=false;app.playPremoves=[];app.blindfold=!!opts.blindfold;app.peek=false;app.careerOpp=opts.careerOpp||null;app.careerElo=opts.careerElo||null;app.careerScored=false;app.careerDelta=0;app.careerTour=!!opts.careerTour;app.careerRoundOpp=opts.roundOpp||null;app.careerOneoff=opts.oneoff||null;app.c960=opts.c960||null;app.endgame=opts.endgame||null;app.playBot=opts.bot||null;app.tiltEval=false;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=!!(opts.league);app.careerPro=!!(opts.pro);app.careerHintsLeft=opts.careerOpp?careerHintAllowance():0;app._fxKey=null;app._lastEvalCp=null;app._engOutOfBook=false;app._engRetry=0;app._evLow=null;app._evHigh=null;
   app.playBook=opts.bookId?byId.get(opts.bookId):(opts.book||null);
   app.playBookNode=opts.bookNode||(app.playBook?app.playBook.root:null);
   app.playClk=[];
@@ -12074,7 +12262,7 @@ const COACH_TYPES=[
   {spec:'Endgame guru',salary:60,emoji:'♜',desc:'smaller rating losses'},
 ];
 const SPONSOR_NAMES=['ChessGear','NeoBoard','Gambit Wear','Knightly Foods','Zugzwang Energy','OpenFile Tech','BlitzCola','Endgame Apparel','64 Squares','Caïssa Coffee'];
-function lifeInit(c){if(c.age==null)c.age=16;if(c.pace==null)c.pace=1;if(c.weeks==null)c.weeks=0;if(c.energy==null)c.energy=100;if(c.form==null)c.form=0;if(c.tilt==null)c.tilt=0;if(c.fame==null)c.fame=0;if(c.fans==null)c.fans=0;if(c.reputation==null)c.reputation=50;if(!c.coaches)c.coaches=[];if(c.prep==null)c.prep=0;if(!c.h2h)c.h2h={};if(c.sponsor===undefined)c.sponsor=null;if(c.objective===undefined)c.objective=null;if(c.retired==null)c.retired=false;if(c.pressPending===undefined)c.pressPending=null;if(c.rival===undefined)c.rival=null;if(!c.achievements)c.achievements=[];if(!c.news)c.news=[];if(c.preppedOpening===undefined)c.preppedOpening=null;if(c.tacticsTrained==null)c.tacticsTrained=0;if(c.xp==null)c.xp=0;if(!c.perks)c.perks={};if(Array.isArray(c.perks)){var _pm={};c.perks.forEach(function(_k){_pm[_k]=1;});c.perks=_pm;}if(c.season==null)c.season=Math.floor((c.weeks||0)/52)+1;if(!c.prepUsage)c.prepUsage={};if(c.protege===undefined)c.protege=null;if(c.winStreak==null)c.winStreak=0;if(c.bestWinStreak==null)c.bestWinStreak=0;if(c.unbeaten==null)c.unbeaten=0;if(c.weeksAtNo1==null)c.weeksAtNo1=0;if(c.noveltyCharge==null)c.noveltyCharge=1;if(c.noveltyArmed==null)c.noveltyArmed=false;if(c.noveltyCd==null)c.noveltyCd=0;if(!c.theory)c.theory={};if(c.refuted===undefined)c.refuted=null;if(c.trendy===undefined)c.trendy=null;if(c.youngGun===undefined)c.youngGun=null;if(c.scandal===undefined)c.scandal=null;if(c.subs==null)c.subs=0;if(c.collabCd==null)c.collabCd=0;if(!c.assets)c.assets=[];if(c.club===undefined)c.club=null;if(!c.books)c.books=[];if(c.backer===undefined)c.backer=null;if(c.fedCd==null)c.fedCd=0;if(c.broadcasts==null)c.broadcasts=0;if(c.academy===undefined)c.academy=null;if(c.gmsMade==null)c.gmsMade=0;if(!c.legendsBeaten)c.legendsBeaten=[];if(c.injury===undefined)c.injury=null;if(c.burnout==null)c.burnout=0;if(c.calendar===undefined)c.calendar=null;if(!c.calDone)c.calDone=[];if(c.transferred==null)c.transferred=false;if(c.dilemma===undefined)c.dilemma=null;if(c.mercDeeds==null)c.mercDeeds=0;if(c.heroDeeds==null)c.heroDeeds=0;if(c.lastBonusDay===undefined)c.lastBonusDay=null;if(c.skillPts==null)c.skillPts=0;if(c.lvlSeen==null)c.lvlSeen=charLevel(c);if(!c.circuit)c.circuit={pts:0,season:c.season||1};if(!c.social)c.social={followers:0,verified:false,posts:0,cd:0};if(!c.classicsStudied)c.classicsStudied=[];if(!c.roadDone)c.roadDone=[];if(!c.feed)c.feed=[];if(c.arc===undefined)c.arc=null;if(!c.arcsDone)c.arcsDone=[];if(!c.arcBadges)c.arcBadges=[];if(!c.home)c.home='hostel';if(c.health==null)c.health=100;if(c.mood==null)c.mood=62;if(c.day==null)c.day=0;if(!c.dayLog)c.dayLog=[];if(!c.weekLog)c.weekLog=[];if(c.debt==null)c.debt=0;if(c.lifeWeeks==null)c.lifeWeeks=0;if(!c.seasonStart)c.seasonStart=seasonSnapshot(c);if(c.seasonReview===undefined)c.seasonReview=null;if(!c.avatar)c.avatar=avatarDefaults(c);if(!c.avatarStyle)c.avatarStyle='char';if(c.simuls==null)c.simuls=0;if(c.simulPerfect==null)c.simulPerfect=0;if(!c.moments)c.moments=[];parkInit(c);autoInit(c);if(!c._seed){c.money=(c.money||0)+1500;c._seed=true;}}
+function lifeInit(c){wxInit(c);if(c.age==null)c.age=16;if(c.pace==null)c.pace=1;if(c.weeks==null)c.weeks=0;if(c.energy==null)c.energy=100;if(c.form==null)c.form=0;if(c.tilt==null)c.tilt=0;if(c.fame==null)c.fame=0;if(c.fans==null)c.fans=0;if(c.reputation==null)c.reputation=50;if(!c.coaches)c.coaches=[];if(c.prep==null)c.prep=0;if(!c.h2h)c.h2h={};if(c.sponsor===undefined)c.sponsor=null;if(c.objective===undefined)c.objective=null;if(c.retired==null)c.retired=false;if(c.pressPending===undefined)c.pressPending=null;if(c.rival===undefined)c.rival=null;if(!c.achievements)c.achievements=[];if(!c.news)c.news=[];if(c.preppedOpening===undefined)c.preppedOpening=null;if(c.tacticsTrained==null)c.tacticsTrained=0;if(c.xp==null)c.xp=0;if(!c.perks)c.perks={};if(Array.isArray(c.perks)){var _pm={};c.perks.forEach(function(_k){_pm[_k]=1;});c.perks=_pm;}if(c.season==null)c.season=Math.floor((c.weeks||0)/52)+1;if(!c.prepUsage)c.prepUsage={};if(c.protege===undefined)c.protege=null;if(c.winStreak==null)c.winStreak=0;if(c.bestWinStreak==null)c.bestWinStreak=0;if(c.unbeaten==null)c.unbeaten=0;if(c.weeksAtNo1==null)c.weeksAtNo1=0;if(c.noveltyCharge==null)c.noveltyCharge=1;if(c.noveltyArmed==null)c.noveltyArmed=false;if(c.noveltyCd==null)c.noveltyCd=0;if(!c.theory)c.theory={};if(c.refuted===undefined)c.refuted=null;if(c.trendy===undefined)c.trendy=null;if(c.youngGun===undefined)c.youngGun=null;if(c.scandal===undefined)c.scandal=null;if(c.subs==null)c.subs=0;if(c.collabCd==null)c.collabCd=0;if(!c.assets)c.assets=[];if(c.club===undefined)c.club=null;if(!c.books)c.books=[];if(c.backer===undefined)c.backer=null;if(c.fedCd==null)c.fedCd=0;if(c.broadcasts==null)c.broadcasts=0;if(c.academy===undefined)c.academy=null;if(c.gmsMade==null)c.gmsMade=0;if(!c.legendsBeaten)c.legendsBeaten=[];if(c.injury===undefined)c.injury=null;if(c.burnout==null)c.burnout=0;if(c.calendar===undefined)c.calendar=null;if(!c.calDone)c.calDone=[];if(c.transferred==null)c.transferred=false;if(c.dilemma===undefined)c.dilemma=null;if(c.mercDeeds==null)c.mercDeeds=0;if(c.heroDeeds==null)c.heroDeeds=0;if(c.lastBonusDay===undefined)c.lastBonusDay=null;if(c.skillPts==null)c.skillPts=0;if(c.lvlSeen==null)c.lvlSeen=charLevel(c);if(!c.circuit)c.circuit={pts:0,season:c.season||1};if(!c.social)c.social={followers:0,verified:false,posts:0,cd:0};if(!c.classicsStudied)c.classicsStudied=[];if(!c.roadDone)c.roadDone=[];if(!c.feed)c.feed=[];if(c.arc===undefined)c.arc=null;if(!c.arcsDone)c.arcsDone=[];if(!c.arcBadges)c.arcBadges=[];if(!c.home)c.home='hostel';if(c.health==null)c.health=100;if(c.mood==null)c.mood=62;if(c.day==null)c.day=0;if(!c.dayLog)c.dayLog=[];if(!c.weekLog)c.weekLog=[];if(c.debt==null)c.debt=0;if(c.lifeWeeks==null)c.lifeWeeks=0;if(!c.seasonStart)c.seasonStart=seasonSnapshot(c);if(c.seasonReview===undefined)c.seasonReview=null;if(!c.avatar)c.avatar=avatarDefaults(c);if(!c.avatarStyle)c.avatarStyle='char';if(c.simuls==null)c.simuls=0;if(c.simulPerfect==null)c.simulPerfect=0;if(!c.moments)c.moments=[];parkInit(c);autoInit(c);if(!c._seed){c.money=(c.money||0)+1500;c._seed=true;}}
 function maxEnergy(c){var base=c.age>=38?Math.max(72,100-Math.round((c.age-38)*2.5)):100;var e=base+(hasAsset(c,'gym')?8:0)+(hasAsset(c,'house')?12:0);e+=Math.round(((c.health==null?100:c.health)-75)/6);if(c.injury)e-=(c.injury.sev||1)*10;return Math.max(40,e);}
 function hasCoach(c,spec){return (c.coaches||[]).some(function(x){return x.spec===spec;});}
 function cbar(v,max,color){var p=Math.max(0,Math.min(100,v/max*100));return '<div style="height:7px;background:#1e293b;border-radius:5px;overflow:hidden;margin-top:3px"><i style="display:block;height:100%;width:'+p+'%;background:'+color+'"></i></div>';}
@@ -12304,7 +12492,7 @@ function leagueTeam(div,boards){
   const base=clubDivRating(div),t=[];
   for(let i=0;i<(boards||CLUB_BOARDS-1);i++){
     const r=Math.max(900,Math.min(2750,base-20-i*45+Math.round(gauss()*70)));
-    t.push({name:randName(),rating:r,flag:randFed().f,title:titleByRating(r)});
+    t.push({name:randName(),rating:r,flag:randFed().f,title:titleFor(r)});
   }
   // a captain fills the team sheet strongest first, so the boards are ordered
   t.sort(function(a,b){return b.rating-a.rating;});
@@ -12401,7 +12589,7 @@ function leagueMyMatch(c){
         return {name:m.name,rating:Math.max(900,str-20-i*45+Math.round(gauss()*70)),flag:m.flag};
       }));
     f.oppTeam.sort(function(a,b){return b.rating-a.rating;});
-    f.oppTeam.forEach(function(m,i){m.board=i+1;m.title=titleByRating(m.rating);});
+    f.oppTeam.forEach(function(m,i){m.board=i+1;m.title=titleFor(m.rating);});
   }
   return {fixture:f,home:pair.h==='you',oppId:oppId,oppClub:oppClub,oppTeam:f.oppTeam};
 }
@@ -12416,7 +12604,7 @@ function careerLeague(){
   const m=leagueMyMatch(c);
   if(!m||m.fixture.mine!=null)return;          // season over, or already played
   const b1=m.oppTeam[0];
-  const opp={name:b1.name,rating:b1.rating,title:b1.title||titleByRating(b1.rating),
+  const opp={name:b1.name,rating:b1.rating,title:b1.title!=null?b1.title:titleFor(b1.rating),
     flag:b1.flag,fed:'Club',id:'league',style:pickStyle()};
   app.careerFinish=null;
   const side=m.home?'w':'b';                   // home team has White on board one
@@ -12513,6 +12701,232 @@ function leagueSeasonEnd(c){
   next.history=L.history;
   next.last=L.last;
   c.club=next;
+}
+/* ---------------------------------------------------------------------------
+   THE PROFESSIONAL LEAGUES
+
+   For most professionals the money is not in the opens. It is in the leagues:
+   the Bundesliga, the French Top 12, the China Chess League, the 4NCL, where a
+   club pays a titled player a fee for every game and flies them in for the
+   weekend. The club league here stopped at a Division 1 of 2350s, so a strong
+   player had nowhere to go but prize money. A pro contract is a fee a game,
+   a board on an eight-board team decided by rating the way a captain decides
+   it, and seven weekends spread through the season. A weekend you are
+   somewhere else, a reserve plays and you are not paid.
+   --------------------------------------------------------------------------- */
+const PRO_LEAGUES=[
+  {id:'4ncl',name:'Four Nations Chess League',short:'4NCL',flag:'🏴',str:2380,mult:0.55,min:2300,
+   clubs:['Guildford','Wood Green','Manx Liberty','Cheddleton','White Rose','Barbican','Oxford','Blackthorne']},
+  {id:'top12',name:'French Top 12',short:'Top 12',flag:'🇫🇷',str:2470,mult:0.8,min:2400,
+   clubs:['Asnières','Clichy','Bischwiller','Mulhouse','Nice Alekhine','Vandœuvre','Bois-Colombes','Châlons']},
+  {id:'bundesliga',name:'Schachbundesliga',short:'Bundesliga',flag:'🇩🇪',str:2540,mult:1,min:2450,
+   clubs:['Baden-Baden','Werder Bremen','Deizisau','Hockenheim','Viernheim','Solingen','Dresden','Hamburger SK']},
+  {id:'ccl',name:'China Chess League',short:'CCL',flag:'🇨🇳',str:2600,mult:1.3,min:2550,
+   clubs:['Shanghai','Beijing','Shandong','Hangzhou','Chengdu','Shenzhen','Tianjin','Wuhan']}
+];
+const PRO_BOARDS=8;
+const PRO_WEEKS=[6,10,16,20,26,32,43];     // seven weekends, one for each other club
+function proLeague(id){return PRO_LEAGUES.filter(function(L){return L.id===id;})[0]||null;}
+/* A fee a game, steep in the rating the way appearance money is. */
+function proFee(r,L){return Math.max(100,Math.round((L?L.mult:1)*50*Math.exp((r-2300)/110)/10)*10);}
+function proTeam(str,n){
+  const t=[];
+  for(let i=0;i<n;i++){const r=Math.max(1900,Math.min(2820,Math.round(str+70-i*28+gauss()*35)));t.push({name:randName(),rating:r,title:titleFor(r),flag:randFed().f});}
+  return t.sort(function(a,b){return b.rating-a.rating;});
+}
+/* The offers on the table: one club from each league you are strong enough for. */
+function proOffers(c){
+  const r=youRating(c,'classical');
+  if(r==null||c.provisional||c.pro)return [];
+  return PRO_LEAGUES.filter(function(L){return r>=L.min;}).map(function(L){
+    const h=wpHash((c.name||'')+L.id+(c.season||1));
+    return {league:L.id,club:L.clubs[h%L.clubs.length],fee:proFee(r,L)};
+  });
+}
+function proSeason(c,leagueId,club){
+  const L=proLeague(leagueId),S=c.season||1,r=youRating(c,'classical')||L.str;
+  const clubs=[{id:'you',name:club,str:L.str}];
+  L.clubs.filter(function(n){return n!==club;}).slice(0,7).forEach(function(n,i){
+    clubs.push({id:'p'+i,name:n,str:Math.round(L.str+gauss()*45)});
+  });
+  const team=proTeam(L.str,PRO_BOARDS-1);
+  const board=1+team.filter(function(m){return m.rating>r;}).length;
+  return {league:L.id,club:club,season:S,fee:proFee(r,L),board:board,clubs:clubs,team:team,
+    fixtures:leagueSchedule(clubs.map(function(x){return x.id;})),round:0,
+    table:leagueBlankTable(clubs),earned:0,played:0,missed:0,history:[],last:null};
+}
+function proSign(leagueId){
+  const c=store.career;lifeInit(c);
+  const o=proOffers(c).filter(function(x){return x.league===leagueId;})[0];
+  if(!o)return;
+  const L=proLeague(leagueId);
+  c.pro=proSeason(c,leagueId,o.club);
+  pushNews(c,'✍️','You signed for '+o.club+' in the '+L.name+' — '+money(o.fee)+' a game, board '+c.pro.board+'.');
+  app.careerToast='✍️ '+o.club+' ('+L.short+') — '+money(o.fee)+' a game.';
+  save();render();
+}
+function proLeave(){const c=store.career;if(c.pro){pushNews(c,'🚪','You left '+c.pro.club+'.');c.pro=null;save();render();}}
+function proEventName(c){const P=c.pro,L=P&&proLeague(P.league);return P?P.club+' · '+(L?L.short:'league')+' round '+(P.round+1):'League match';}
+/* This weekend's match, if one is due. */
+function proDue(c){
+  const P=c.pro;if(!P||P.round>=P.fixtures.length)return null;
+  const w=weekOfSeason(c),due=PRO_WEEKS[P.round];
+  return w>=due?{round:P.round,week:due}:null;
+}
+function proMyMatch(c){
+  const P=c.pro;if(!P)return null;
+  const f=P.fixtures[P.round];if(!f)return null;
+  const pair=f.pairs.filter(function(x){return x.h==='you'||x.a==='you';})[0];
+  if(!pair)return null;
+  const oppId=pair.h==='you'?pair.a:pair.h,oc=leagueClub(P,oppId);
+  if(!f.oppTeam)f.oppTeam=proTeam(oc?oc.str:proLeague(P.league).str,PRO_BOARDS).map(function(m,i){m.board=i+1;return m;});
+  return {fixture:f,home:pair.h==='you',oppId:oppId,oppClub:oc,oppTeam:f.oppTeam,opp:f.oppTeam[P.board-1]};
+}
+function careerProPlay(){
+  const c=store.career;lifeInit(c);
+  if(c.tour||!proDue(c))return;
+  const m=proMyMatch(c);if(!m)return;
+  const o=m.opp,side=((m.home?0:1)+(c.pro.board-1))%2===0?'w':'b';
+  app.careerFinish=null;
+  startPlay(new Chess().fen(),side,null,
+    '✍️ '+c.pro.club+' vs '+(m.oppClub?m.oppClub.name:'the visitors')+' · board '+c.pro.board+' vs '+(o.title?o.title+' ':'')+o.name+' ('+o.rating+')',
+    {tc:tcById(FORMAT_TC['classical']||'30+20'),careerOpp:'oneoff',careerElo:o.rating,
+     roundOpp:{name:o.name,rating:o.rating,title:o.title,flag:o.flag,fed:'Club',id:'pro',style:pickStyle()},oneoff:'classical',pro:true});
+  applyCareerCondition();
+}
+/* Simulated from the two ratings, rated, and paid. */
+function careerProSim(){
+  const c=store.career;lifeInit(c);
+  if(c.tour||!proDue(c))return;
+  const m=proMyMatch(c);if(!m)return;
+  const myr=(youRating(c,'classical')||c.rating)+conditionMod(c),side=((m.home?0:1)+(c.pro.board-1))%2===0?'w':'b';
+  const E=1/(1+Math.pow(10,(m.opp.rating-myr-colourEdge(side))/400)),score=_simScore(c,E);
+  app.careerDelta=applyByFormat(c,'classical',m.opp.rating,score);
+  c.played=(c.played||0)+1;if(score===1)c.won=(c.won||0)+1;else if(score===0)c.lost=(c.lost||0)+1;else c.drawn=(c.drawn||0)+1;
+  archiveCareerGame(c,{name:m.opp.name,rating:m.opp.rating,title:m.opp.title,flag:m.opp.flag},score,'classical',proEventName(c),false);
+  pushRatingPoint(c);
+  proResult(score);
+  save();render();
+}
+function proResult(score,missed){
+  const c=store.career,P=c.pro;if(!P)return;
+  const m=proMyMatch(c);if(!m)return;
+  const f=m.fixture,L=proLeague(P.league),myR=youRating(c,'classical')||c.rating;
+  const lineup=P.team.slice(),me={name:c.name||'You',rating:myR,you:true};
+  lineup.splice(P.board-1,0,me);
+  f.boards=lineup.slice(0,PRO_BOARDS).map(function(pl,i){
+    const o=m.oppTeam[i];
+    if(pl.you){
+      if(missed){const res={name:randName()+' (reserve)',rating:Math.max(1900,P.team[P.team.length-1].rating-60)};
+        return {board:i+1,name:res.name,rating:res.rating,oppName:o.name,oppRating:o.rating,score:leagueSimBoard(res.rating,o.rating)};}
+      return {board:i+1,you:true,name:pl.name,rating:pl.rating,oppName:o.name,oppRating:o.rating,score:score};
+    }
+    return {board:i+1,name:pl.name,rating:pl.rating,oppName:o.name,oppRating:o.rating,score:leagueSimBoard(pl.rating,o.rating)};
+  });
+  const us=f.boards.reduce(function(a,b){return a+b.score;},0);
+  f.us=us;f.them=PRO_BOARDS-us;f.oppName=m.oppClub?m.oppClub.name:'the visitors';f.mine=missed?null:score;f.missed=!!missed;
+  f.others=[];
+  f.pairs.forEach(function(x){
+    if(x.h==='you'||x.a==='you')return;
+    const H=leagueClub(P,x.h),A=leagueClub(P,x.a);let hs=0;
+    for(let b=0;b<PRO_BOARDS;b++)hs+=leagueSimBoard((H?H.str:L.str)+70-b*28,(A?A.str:L.str)+70-b*28);
+    f.others.push({h:x.h,a:x.a,hs:hs,as:PRO_BOARDS-hs});
+  });
+  const add=function(id,bf,ba){const t=P.table[id]||(P.table[id]={w:0,d:0,l:0,pts:0,bf:0,ba:0});t.bf+=bf;t.ba+=ba;
+    if(bf>ba){t.w++;t.pts+=2;}else if(bf===ba){t.d++;t.pts+=1;}else t.l++;};
+  add('you',us,PRO_BOARDS-us);add(m.oppId,PRO_BOARDS-us,us);
+  f.others.forEach(function(o){add(o.h,o.hs,o.as);add(o.a,o.as,o.hs);});
+  f.played=true;
+  const won=us>PRO_BOARDS-us,drew=us===PRO_BOARDS-us;
+  if(missed){P.missed++;
+    pushNews(c,'✍️',P.club+(won?' beat ':drew?' drew with ':' lost to ')+f.oppName+' '+fmtScore(us)+'–'+fmtScore(PRO_BOARDS-us)+' — without you; a reserve took board '+P.board+', and there is no fee for a game you did not play.');}
+  else{
+    P.played++;P.earned+=P.fee;c.money=(c.money||0)+P.fee;
+    lifeSpendDays(c,2,{id:'event',e:'✍️'});      // a flight out, the game, a flight home — the club pays both
+    pushNews(c,'✍️',P.club+(won?' beat ':drew?' drew with ':' lost to ')+f.oppName+' '+fmtScore(us)+'–'+fmtScore(PRO_BOARDS-us)+
+      ' (you '+(score===1?'won':score===0?'lost':'drew')+' on board '+P.board+') · fee '+money(P.fee)+'.');
+  }
+  P.last={round:P.round+1,oppName:f.oppName,us:us,them:PRO_BOARDS-us,mine:missed?null:score};
+  P.round++;
+  if(P.round>=P.fixtures.length)proSeasonEnd(c);
+}
+function proStandings(P){return leagueStandings(P);}
+function proSeasonEnd(c){
+  const P=c.pro;if(!P||P.done)return;
+  const S=proStandings(P),place=S.findIndex(function(r){return r.you;})+1,L=proLeague(P.league);
+  const bonus=place===1?P.fee*3:place<=3?P.fee:0;
+  if(bonus)c.money=(c.money||0)+bonus;
+  const msg=place===1?'🏆 '+P.club+' are '+L.short+' champions!':P.club+' finished '+ordinal(place)+' of '+S.length+' in the '+L.short+'.';
+  pushNews(c,'✍️',msg+(bonus?' Bonus '+money(bonus)+'.':'')+' You played '+P.played+' of '+P.fixtures.length+' and earned '+money(P.earned+bonus)+'.');
+  pushFeed(c,'✍️',esc(msg),'you');
+  if(place===1){c.honors=c.honors||[];const hn=L.short+' Champion';if(c.honors.indexOf(hn)<0)c.honors.push(hn);}
+  P.history=(P.history||[]);
+  P.history.unshift({season:P.season,league:L.short,club:P.club,place:place,played:P.played,earned:P.earned+bonus});
+  if(P.history.length>12)P.history.length=12;
+  P.done=true;P.place=place;
+}
+/* Weekly: a weekend gone by without you is a weekend a reserve played. */
+function proTick(c){
+  const P=c&&c.pro;if(!P||P.done)return;
+  let guard=0;
+  while(P.round<P.fixtures.length&&guard++<10){
+    const next=PRO_WEEKS[P.round+1];
+    const over=next!=null?weekOfSeason(c)>=next:false;
+    if(!over)break;
+    proResult(null,true);
+  }
+}
+/* At the turn of the year: finish what is left, and a new season with the same club —
+   or no contract, if the rating has fallen out of the league. */
+function proRenew(c){
+  const P=c.pro;if(!P)return;
+  while(!P.done&&P.round<P.fixtures.length)proResult(null,true);
+  if(!P.done)proSeasonEnd(c);
+  const L=proLeague(P.league),r=youRating(c,'classical')||0;
+  if(r<L.min-100){pushNews(c,'✍️',P.club+' did not renew your contract.');c.pro=null;return;}
+  const next=proSeason(c,P.league,P.club);
+  next.history=P.history;
+  c.pro=next;
+  pushNews(c,'✍️',P.club+' renewed your contract for season '+(c.season||1)+' — '+money(next.fee)+' a game, board '+next.board+'.');
+}
+function careerProPanel(c){
+  const r=youRating(c,'classical');
+  if(!c.pro){
+    const offers=proOffers(c);
+    if(!offers.length){
+      if(r==null||r<2150)return '';
+      return '<div class="card" style="margin-bottom:12px"><div style="font-weight:700">✍️ Professional leagues</div>'+
+        '<div class="dim small" style="margin-top:3px">The leagues pay titled players a fee for every game — the 4NCL from '+PRO_LEAGUES[0].min+', the Bundesliga from '+PRO_LEAGUES[2].min+'. Nobody has made you an offer yet.</div></div>';
+    }
+    return '<div class="card" style="margin-bottom:12px"><div style="font-weight:700">✍️ Professional leagues</div>'+
+      '<div class="dim small" style="margin-top:3px;margin-bottom:4px">Clubs pay a fee for every game you play for them — seven weekends a season, flights and hotel on the club.</div>'+
+      offers.map(function(o){const L=proLeague(o.league);
+        return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border)">'+
+          '<span class="small">'+L.flag+' <b>'+esc(o.club)+'</b> <span class="dim">· '+esc(L.name)+'</span></span>'+
+          '<button class="btn sec sm" data-act="prosign" data-val="'+o.league+'">Sign · '+money(o.fee)+'/game</button></div>';}).join('')+'</div>';
+  }
+  const P=c.pro,L=proLeague(P.league),S=proStandings(P),due=proDue(c),m=due?proMyMatch(c):null;
+  const next=P.round<P.fixtures.length?PRO_WEEKS[P.round]:null;
+  let h='<div class="card" style="margin-bottom:12px">'+
+    '<div class="row" style="justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">'+
+      '<div style="min-width:0"><div style="font-weight:700">✍️ '+esc(P.club)+' <span class="dim small">'+L.flag+' '+esc(L.short)+'</span></div>'+
+      '<div class="dim small">Board '+P.board+' · '+money(P.fee)+' a game · season '+P.season+'</div></div>'+
+      '<div style="text-align:right"><div style="font-weight:800">'+money(P.earned)+'</div><div class="dim small">earned · '+P.played+' played'+(P.missed?' · '+P.missed+' missed':'')+'</div></div></div>';
+  if(P.last)h+='<div class="note" style="margin-top:8px">Round '+P.last.round+': '+fmtScore(P.last.us)+'–'+fmtScore(P.last.them)+' against '+esc(P.last.oppName)+
+    (P.last.mine==null?' — a reserve played your board.':' — you '+(P.last.mine===1?'won':P.last.mine===0?'lost':'drew')+' on board '+P.board+'.')+'</div>';
+  if(P.done)h+='<div class="dim small" style="margin-top:8px">🏁 Season over — '+ordinal(P.place)+' of '+S.length+'. The contract renews at the turn of the year.</div>';
+  else if(m){
+    h+='<div style="margin-top:9px;padding:9px 11px;border-radius:9px;border:1px solid var(--brand)44">'+
+      '<div style="font-weight:800">Round '+(P.round+1)+' of '+P.fixtures.length+' — '+(m.home?'home to ':'away at ')+esc(m.oppClub?m.oppClub.name:'the visitors')+'</div>'+
+      '<div class="dim small" style="margin-top:2px">Board '+P.board+' against '+(m.opp.title?m.opp.title+' ':'')+esc(m.opp.name)+' ('+m.opp.rating+'). This weekend — miss it and a reserve plays.</div>'+
+      '<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap">'+
+        '<button class="btn primary sm" data-act="proplay" '+(c.tour?'disabled':'')+'>▶ Play board '+P.board+'</button>'+
+        '<button class="btn sec sm" data-act="prosim" '+(c.tour?'disabled':'')+'>⚡ Simulate</button></div></div>';
+  } else if(next!=null)h+='<div class="dim small" style="margin-top:8px">Next match: round '+(P.round+1)+' in week '+next+(next>weekOfSeason(c)?' ('+(next-weekOfSeason(c))+' weeks)':'')+'.</div>';
+  h+=leagueTableCard(Object.assign({},P,{div:4,clubs:P.clubs,table:P.table}))
+    .replace('Top of the table goes up','Top of the table are the champions — a bonus of three fees');
+  h+='<div class="row" style="margin-top:9px"><button class="btn ghost sm" data-act="proleave">Leave the club</button></div>';
+  return h+'</div>';
 }
 /* ---- the panel ---- */
 function leagueBoardRow(b){
@@ -12695,7 +13109,7 @@ function careerDrama(kind){var c=store.career;lifeInit(c);
   save();render();}
 function rivalStake(c){return Math.max(200,Math.min(2500,Math.round((c.money||0)*0.25)));}
 function startRivalMatch(){var c=store.career;lifeInit(c);if(!c.rival||c.tour)return;var stake=rivalStake(c);if((c.money||0)<stake)return;
-  c.money-=stake;var rr=rivalRating(c)||c.rival.rating,games=4,field=[];for(var i=0;i<games;i++)field.push({name:c.rival.name,rating:rr,title:titleByRating(rr),flag:c.rival.flag,style:pickStyle()});
+  c.money-=stake;var rr=rivalRating(c)||c.rival.rating,games=4,field=[];for(var i=0;i<games;i++)field.push({name:c.rival.name,rating:rr,title:rivalTitle(c,rr),flag:c.rival.flag,style:pickStyle()});
   c.tour={id:'rivalmatch',name:'Grudge Match vs '+c.rival.name,emoji:'⚔️',rounds:games,round:0,field:field,results:[],normEligible:false,avg:rr,tier:5,format:'classical',champion:false,honor:null,kind:'match',var960:false,stake:stake,started:Date.now()};
   pushNews(c,'⚔️','You staked 💰'+stake+' on a grudge match against '+c.rival.name+'!');app.careerToast='⚔️ Grudge match on — 💰'+stake+' on the line!';save();render();}
 function careerMediaPanel(c){
@@ -13094,6 +13508,8 @@ function endOfWeek(c){
   c.weekLog=c.dayLog||[];c.dayLog=[];
   c.lifeWeeks=(c.lifeWeeks||0)+1;
   arcTick(c);
+  worldEventsTick(c);
+  proTick(c);
   pushNews(c,'📅','Week '+(c.weeks||0)+' done — bills 💰'+((c.bills&&c.bills.total)||0)+' paid.');
 }
 /* =========================================================================
@@ -13317,6 +13733,8 @@ function seasonRollover(c){
   // no season awards, no Grand Circuit champion, no shift in opening theory,
   // and the season calendar never cleared.
   seasonAwards(c,c.season);theoryDrift(c);circuitFinalize(c);c.calDone=[];c.calendar=null;
+  worldSeason(c);                                  // everybody else is a year older too
+  proRenew(c);
   pushNews(c,'🗓️','Season '+c.seasonReview.season+' is over — '+c.seasonReview.games+' games, '+c.seasonReview.won+' wins.');
   pushFeed(c,'🗓️','Season '+c.seasonReview.season+' ends. '+esc(c.name||'You')+': '+c.seasonReview.won+'W–'+c.seasonReview.lost+'L–'+c.seasonReview.drawn+'D.','you');
   magPublish(c,c.seasonReview);
@@ -13463,7 +13881,7 @@ function magWorld(c){
   const mine=rank.filter(function(p){return p.you;})[0];
   const myIdx=rank.findIndex(function(p){return p.you;});
   if(mine&&myIdx>=0)
-    out.push({e:'📈',t:'You finish the year ranked '+ordinal(myIdx+1)+' in the world.'});
+    out.push({e:'📈',t:'You finish the year ranked '+ordinal(mine.rank)+' in the world.'});
   if(c.rival&&c.rival.name){
     let rr=null;try{rr=rivalRating(c);}catch(e){}
     out.push({e:'🎯',t:rr
@@ -13843,7 +14261,7 @@ function pushFeed(c,e,t,k){if(!c)return;if(!c.feed)c.feed=[];const top=c.feed[0]
 const FEED_CITIES=['Reykjavík','Zagreb','Dubai','Gibraltar','Prague','Bucharest','Douglas','Sharjah','Biel','Wijk aan Zee','Saint-Louis','Astana','Chennai','Lisbon','Oslo','Belgrade'];
 const FEED_OPENINGS=['Najdorf','Berlin Wall','Grünfeld','Catalan','King’s Indian','London System','Sveshnikov','Caro-Kann','Nimzo-Indian','Italian Game','Dutch Defence','Slav'];
 function feedPick(a){return a[Math.floor(Math.random()*a.length)];}
-function feedName(p){const t=titleByRating(wpRating(p,'classical'));return (t?t+' ':'')+p.name;}
+function feedName(p){const t=wpTitle(p);return (t?t+' ':'')+p.name;}
 function feedStory(c){
   const w=buildWorld();if(!w.length)return null;
   const scored=w.map(p=>({p:p,ch:wpChange(p,'classical'),r:wpRating(p,'classical')}));
@@ -14079,6 +14497,7 @@ function worldHeadlines(c){var l=worldRanking(c,'classical').filter(function(p){
   var m=l.filter(function(p){return Math.abs(p.change)>=4;}).sort(function(a,b){return Math.abs(b.change)-Math.abs(a.change);});
   if(m[0])pushNews(c,m[0].change>0?'📈':'📉',m[0].name+' '+(m[0].change>0?'climbs':'slips')+' to '+m[0].rating+' ('+(m[0].change>0?'+':'')+m[0].change+')');}
 /* rivalry: a peer near your strength you measure yourself against */
+function rivalTitle(c,rr){var p=c.rival&&buildWorld().find(function(x){return x.id===c.rival.id;});return p?wpTitle(p):titleByRating(rr);}
 function rivalRating(c){if(!c.rival)return null;var p=buildWorld().find(function(x){return x.id===c.rival.id;});return p?wpRating(p,'classical'):c.rival.rating;}
 function maybeAssignRival(c){if(c.rival||(c.played||0)<6)return;var yr=youRating(c,'classical');if(yr==null)return;
   var cand=buildWorld().filter(function(p){return Math.abs(wpRating(p,'classical')-yr)<=70&&(!c.nemesis||p.name!==c.nemesis.name);});
@@ -14092,7 +14511,7 @@ const RIVAL_TAUNTS={youLead:['You caught me slipping — it won’t last.','Enjo
 function rivalStage(c){if(!c.rival)return 0;var h2=(c.h2h&&c.h2h[c.rival.name])||{w:0,l:0,d:0};var g=h2.w+h2.l+h2.d,i=c.rival.intensity||1,s=1;if(g>=3||i>=3)s=2;if(g>=6||i>=5)s=3;if(g>=10||i>=8)s=4;return s;}
 function rivalTaunt(c){if(!c.rival)return '';var h2=(c.h2h&&c.h2h[c.rival.name])||{w:0,l:0,d:0};var lead=h2.w-h2.l;var key=lead>0?'youLead':lead<0?'youTrail':'level';var pool=RIVAL_TAUNTS[key];return pool[(h2.w+h2.l+h2.d+(c.rival.intensity||0))%pool.length];}
 function rivalStoryTick(c){if(!c.rival)return;var s=rivalStage(c),seen=c.rival.stageSeen||1;if(s>seen){c.rival.stageSeen=s;var st=RIVAL_STAGES[s];pushNews(c,st.e,'Your rivalry with '+c.rival.name+' is now '+st.n.toUpperCase()+' — '+st.b);}}
-function startRivalFinale(){var c=store.career;lifeInit(c);if(!c.rival||c.tour)return;var rr=rivalRating(c)||c.rival.rating,games=6,field=[];for(var i=0;i<games;i++)field.push({name:c.rival.name,rating:rr,title:titleByRating(rr),flag:c.rival.flag,style:pickStyle()});c.tour={id:'rivalfinale',name:'Rivalry Finale vs '+c.rival.name,emoji:'⚔️',rounds:games,round:0,field:field,results:[],normEligible:false,avg:rr,tier:6,format:'classical',champion:false,honor:null,kind:'match',var960:false,started:Date.now()};pushNews(c,'⚔️','The rivalry with '+c.rival.name+' comes to a head — a 6-game finale to settle it once and for all!');app.careerToast='⚔️ Rivalry Finale — settle it over 6 games!';save();render();}
+function startRivalFinale(){var c=store.career;lifeInit(c);if(!c.rival||c.tour)return;var rr=rivalRating(c)||c.rival.rating,games=6,field=[];for(var i=0;i<games;i++)field.push({name:c.rival.name,rating:rr,title:rivalTitle(c,rr),flag:c.rival.flag,style:pickStyle()});c.tour={id:'rivalfinale',name:'Rivalry Finale vs '+c.rival.name,emoji:'⚔️',rounds:games,round:0,field:field,results:[],normEligible:false,avg:rr,tier:6,format:'classical',champion:false,honor:null,kind:'match',var960:false,started:Date.now()};pushNews(c,'⚔️','The rivalry with '+c.rival.name+' comes to a head — a 6-game finale to settle it once and for all!');app.careerToast='⚔️ Rivalry Finale — settle it over 6 games!';save();render();}
 function careerRivalryPanel(c){
   if(!c.rival)return (c.played||0)<6?'':'<div class="card" style="margin-bottom:12px"><div style="font-weight:700">🤺 Rivalry</div><div class="dim small" style="margin-top:4px">No active rival yet — keep competing and one will emerge from the pack near your rating.</div></div>';
   var rr=rivalRating(c),yr=youRating(c,'classical'),h2=(c.h2h&&c.h2h[c.rival.name])||{w:0,l:0,d:0};var lead=h2.w-h2.l;
@@ -14412,29 +14831,103 @@ function treatInjury(){var c=store.career;lifeInit(c);if(!c.injury)return;var co
   else app.careerToast='🩹 Treatment is helping — '+c.injury.weeksLeft+' wks to go (−💰'+cost+').';save();render();}
 function careerSabbatical(){var c=store.career;lifeInit(c);lifeSpendDays(c,56,{id:'rest',e:'🌴'});c.health=Math.min(100,(c.health||100)+25);c.mood=Math.min(100,(c.mood||62)+25);c.energy=maxEnergy(c);c.tilt=0;c.burnout=0;c.form=Math.round((c.form||0)*0.4);pushNews(c,'🌴','You took an 8-week sabbatical to recharge.');app.careerToast='🌴 Sabbatical over — fully rested and recharged.';save();render();}
 /* ===== Season calendar & planner (a non-invasive overlay that frames your year) ===== */
-function genCalendar(c){var yr=youRating(c,'classical')||c.rating||1400;
-  var elig=TOURNAMENTS.filter(function(t){return (!t.kind||t.kind!=='match')&&!t.requires&&t.minRating<=yr+150&&t.avg<=yr+360;});
-  var seen={},picks=[];elig.forEach(function(t){var key=eventFormat(t)+'_'+t.tier;if(!seen[key]){seen[key]=1;picks.push(t);}});
-  picks.sort(function(a,b){return a.tier-b.tier;});if(picks.length>8)picks=picks.slice(0,8);
-  var n=Math.max(1,picks.length),slots=[];for(var i=0;i<picks.length;i++){slots.push({wk:Math.round(4+(i+0.5)*(46/n)),id:picks[i].id});}
-  return {season:c.season||1,events:slots};}
+/* ---------------------------------------------------------------------------
+   THE CALENDAR
+
+   A named event is held in its week of the year, the way the real ones are:
+   Wijk aan Zee in January, the Candidates in the spring, Norway Chess at the
+   end of May, the Olympiad in September, the World Rapid and Blitz between
+   Christmas and New Year. You enter it that week or the week before, and not
+   otherwise — so a thirteen-day open in the wrong fortnight costs you
+   Reykjavik. The Olympiad, the Candidates and the title match are held in
+   even years and the World Cup and the Grand Swiss in odd ones, which is how
+   a World Cup final in one year becomes a Candidates place the next. Opens,
+   round-robins and club events run every week.
+   --------------------------------------------------------------------------- */
+const EVENT_WEEK={hastings:0,tatasteel:2,gibraltar:4,aeroflot:8,continental:11,candidates:13,reykjavik:15,
+  natch:18,norway:21,creatorcup:23,superbet:25,cityrapid:27,worldcup:29,dubai:33,grandswiss:35,olympiad:37,
+  qatar:40,fischerwc:42,indiarapid:45,indiablitz:46,wcc:47,worldrapid:50,worldblitz:51};
+const EVENT_YEARS={candidates:'even',olympiad:'even',wcc:'even',worldcup:'odd',grandswiss:'odd'};
+const FIRST_YEAR=2026;            // season one
+function seasonYear(c){return FIRST_YEAR-1+((c&&c.season)||1);}
+function weekOfSeason(c){return ((c&&c.weeks)||0)%52;}
+function heldThisSeason(id,c){
+  const p=EVENT_YEARS[id];if(!p)return true;
+  const y=seasonYear(c);return p==='even'?y%2===0:y%2===1;
+}
+function nextSeasonHeld(id,c){let s=((c&&c.season)||1)+1;while(!heldThisSeason(id,{season:s}))s++;return s;}
+/* Not this week, or not this year: why, or null. */
+function calendarLock(t,c){
+  const wk=EVENT_WEEK[t.id];
+  if(wk==null)return null;
+  if(!heldThisSeason(t.id,c))return 'next held season '+nextSeasonHeld(t.id,c);
+  const w=weekOfSeason(c);
+  if(w<wk-1)return 'opens week '+wk;
+  // the week before or the first days of its week — not the day it finishes
+  if(w>wk||(w===wk&&(c.day||0)>2))return 'was week '+wk+' · next season '+nextSeasonHeld(t.id,c);
+  return null;
+}
+/* A day spent the way the plan would spend it, without redrawing the screen. */
+function dayQuiet(c,id){
+  let p=placeById(id);
+  if(!p||placeBlocked(c,p))p=placeById('rest');
+  if(p.cost)c.money=(c.money||0)-p.cost;
+  p.fx(c);
+  c.dayLog=c.dayLog||[];c.dayLog.push({id:p.id,e:p.e});
+  c.day=(c.day||0)+1;
+  if(c.day>=7)endOfWeek(c);
+}
+/* Live the weeks until an event's week, the way your weekly plan says. */
+function careerWaitUntil(wk){
+  const c=store.career;lifeInit(c);
+  if(!c||c.tour)return 0;
+  const S=c.season||1,w0=c.weeks||0;let guard=0,stop=null;
+  // a league weekend on the way is somewhere you are expected, so the wait stops there
+  const dueAt=proDue(c)?c.pro.round:-1;
+  while((c.season||1)===S&&weekOfSeason(c)<wk&&guard++<400){
+    autoInit(c);
+    dayQuiet(c,autoPickDay(c)||'rest');
+    if(c.tour)break;
+    if(proDue(c)&&c.pro.round!==dueAt){stop=c.pro;break;}
+  }
+  const n=(c.weeks||0)-w0;
+  app.careerToast='⏩ '+n+' week'+(n===1?'':'s')+' later — week '+weekOfSeason(c)+' of season '+(c.season||1)+'.'+
+    (stop?' '+stop.club+' play this weekend — your board is waiting.':'');
+  checkAchievements(c);save();render();
+  return n;
+}
+/* This season's named events, in the order they come. */
+function calendarEvents(c){
+  return TOURNAMENTS.filter(function(t){return EVENT_WEEK[t.id]!=null&&heldThisSeason(t.id,c);})
+    .sort(function(a,b){return EVENT_WEEK[a.id]-EVENT_WEEK[b.id];});
+}
 function careerCalendarPanel(c){
   if(youRating(c,'classical')==null&&c.rating==null)return '';
-  if(!c.calendar||c.calendar.season!==(c.season||1))c.calendar=genCalendar(c);
-  if(!c.calendar.events.length)return '';
-  var done=c.calDone||[],wnow=(c.weeks||0)%52,nextIdx=-1;
-  c.calendar.events.forEach(function(e,i){if(nextIdx<0&&done.indexOf(e.id)<0&&e.wk>=wnow)nextIdx=i;});
-  var h='<div class="card" style="padding:0;margin-bottom:12px"><div style="padding:11px 13px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"><div style="font-weight:700">📅 Season '+(c.season||1)+' calendar</div><div class="dim small">week '+wnow+'/52</div></div>'+
-    '<div class="dim small" style="padding:8px 13px 2px">Your planned campaign for the year. Pace yourself — rest before the big events and don’t burn out chasing every open.</div>';
-  c.calendar.events.forEach(function(e,i){var t=TOURNAMENTS.find(function(x){return x.id===e.id;});if(!t)return;var isDone=done.indexOf(e.id)>=0,lock=tourLocked(t,c),isNext=(i===nextIdx);
-    var when=isDone?'done':(e.wk<wnow?'passed':((e.wk===wnow||isNext)?'up next':'in '+(e.wk-wnow)+' wks'));
-    h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 13px;border-top:1px solid var(--border)'+(isNext?';background:rgba(96,165,250,.10)':isDone?';opacity:.5':'')+'">'+
-      '<div class="dim small" style="width:38px;text-align:center">wk'+e.wk+'</div>'+
+  const w=weekOfSeason(c),S=c.season||1,done=c.calDone||[];
+  // the ones you could play in their week, plus the title events, which are the point of it all
+  const evs=calendarEvents(c).filter(function(t){return done.indexOf(t.id)>=0||!tourLocked(t,c,true)||t.cycle;});
+  let next=-1;
+  evs.forEach(function(t,i){if(next<0&&done.indexOf(t.id)<0&&!tourLocked(t,c,true)&&(EVENT_WEEK[t.id]>w||!calendarLock(t,c)))next=i;});
+  let h='<div class="card" style="padding:0;margin-bottom:12px"><div style="padding:11px 13px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">'+
+    '<div style="font-weight:700">📅 Season '+S+' · '+seasonYear(c)+'</div><div class="dim small">week '+w+' of 52</div></div>'+
+    '<div class="dim small" style="padding:8px 13px 2px">Named events are held in their week of the year. The Olympiad, the Candidates and the title match are in even years, the World Cup and the Grand Swiss in odd ones. Opens and round-robins run every week.</div>';
+  if(!evs.length)h+='<div class="dim small" style="padding:8px 13px 11px">Nothing on the circuit for you yet this season — the opens are where a rating is made.</div>';
+  evs.forEach(function(t,i){
+    const wk=EVENT_WEEK[t.id],isDone=done.indexOf(t.id)>=0,other=tourLocked(t,c,true),cal=calendarLock(t,c),open=!other&&!cal;
+    const when=isDone?'played':open?'<b style="color:var(--green)">this week</b>':wk<w?'passed':('in '+(wk-w)+' week'+(wk-w===1?'':'s'));
+    const right=isDone?'<span class="chip green" style="font-size:10px">✓</span>'
+      :open?(c.tour?'<span class="dim small">in an event</span>':'<button class="btn primary sm" data-act="careerjoin" data-val="'+t.id+'">Enter</button>')
+      :other?'<span class="dim small" style="max-width:120px;text-align:right">🔒 '+esc(other)+'</span>'
+      :(wk>w&&!c.tour)?'<button class="btn '+(i===next?'sec':'ghost')+' sm" data-act="calwait" data-val="'+wk+'" title="Live the weeks until it starts">⏩ Go to week '+wk+'</button>'
+      :'<span class="dim small">—</span>';
+    h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 13px;border-top:1px solid var(--border)'+(i===next?';background:rgba(96,165,250,.10)':isDone||(wk<w&&!open)?';opacity:.5':'')+'">'+
+      '<div class="dim small" style="width:38px;text-align:center">wk'+wk+'</div>'+
       '<div style="font-size:18px;width:24px;text-align:center">'+(isDone?'✅':t.emoji)+'</div>'+
       '<div style="flex:1;min-width:0"><div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(t.name)+'</div><div class="dim small">'+when+' · field '+t.avg+'</div></div>'+
-      (isDone?'<span class="chip green" style="font-size:10px">✓</span>':(lock?'<span class="dim small">🔒</span>':(c.tour?'<span class="dim small">—</span>':'<button class="btn '+(isNext?'primary':'ghost')+' sm" data-act="careerjoin" data-val="'+t.id+'">Enter</button>')))+
-      '</div>';});
-  return h+'</div>';}
+      right+'</div>';
+  });
+  return h+'</div>';
+}
 /* ===== Your persona: a playing style read from your own games (just like the
    opponents' styles), plus a personality read from your career choices ===== */
 function styleMetrics(c){var G=c.games||[],n=0,ply=0,cap=0,chk=0,decW=0,decL=0,draw=0,mateW=0,sharpW=0,grind=0;
@@ -14597,7 +15090,7 @@ function claimDaily(){var c=store.career;lifeInit(c);if(!dailyAvailable(c))retur
 function careerDailyPanel(c){if(!dailyAvailable(c))return '';var b=dailyBonusAmt(dayStreak());
   return '<div class="card" style="margin-bottom:12px;border-color:#22c55e;background:linear-gradient(90deg,rgba(34,197,94,.12),transparent)"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-weight:700">📅 Daily reward ready! <span class="dim small">'+b.streak+'-day streak · +💰'+b.amt+(b.xp?' &amp; +'+b.xp+' XP':'')+'</span></span><button class="btn primary sm" data-act="claimdaily">Claim</button></div></div>';}
 /* ===== Simulate a tournament game from the ratings instead of playing it out ===== */
-function _simRound(c){var tr=c.tour;finishDraw(tr);var opp=tr.field[tr.round];var myr=(youRating(c,tr.format||'classical')||(c.rating||1400))+conditionMod(c);
+function _simRound(c){var tr=c.tour;finishDraw(tr);var opp=tr.field[tr.round];var myr=(youRating(c,tr.format||'classical')||(c.rating||1400))+conditionMod(c)+(tr.wm?wmBeforeGame(c,tr):0);
   var side=tourColourOf(tr,tr.round);
   var E=1/(1+Math.pow(10,(opp.rating-myr-colourEdge(side))/400)),score=_simScore(c,E);
   app.careerFinish=null;app.careerOpp='tour';app.careerScored=false;app.careerTour=true;app.careerOneoff=null;app.careerRoundOpp=opp;app.careerElo=opp.rating;app.playMoves=[];app.c960=null;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=false;
@@ -15021,7 +15514,8 @@ function careerTabContent(c,tab){
     h+=careerDailyPanel(c);
     h+=careerQuestPanel(c);
     if(c.tour){h+=careerTourView(c);h+=careerScoutPanel(c);h+=careerPrepPanel(c);}
-    else{h+=careerLobby(c);h+=careerSimulPanel(c);h+=careerChallenges(c);h+=careerParkPanel(c);h+=careerCalendarPanel(c);h+=careerPrepPanel(c);}
+    else{if(proDue(c))h+=careerProPanel(c);   // a league weekend is not something to find on another tab
+      h+=careerLobby(c);h+=careerSimulPanel(c);h+=careerChallenges(c);h+=careerParkPanel(c);h+=careerCalendarPanel(c);h+=careerPrepPanel(c);}
   } else if(tab==='you'){
     h+=careerAvatarPanel(c);
     h+=careerCharacterPanel(c);
@@ -15048,6 +15542,7 @@ function careerTabContent(c,tab){
     h+=careerFedPanel(c);
     h+=careerAcademyPanel(c);
     h+=careerProtegePanel(c);
+    h+=careerProPanel(c);
     h+=careerClubPanel(c);
   } else if(tab==='world'){
     h+=careerFeedPanel(c);
@@ -15089,6 +15584,7 @@ function careerSetupView(){
     '<div class="row" style="justify-content:center"><button class="btn primary" data-act="careersetup">Begin career ▸</button></div>'+
     '</div></div>';
 }
+function fmtTb(v){return (Math.round(v*4)/4).toString().replace(/\.5$/,'½').replace(/\.25$/,'¼').replace(/\.75$/,'¾');}
 function careerFinishBanner(f){
   let x='';
   if(f.published)x+='<div style="color:var(--green);font-weight:700;margin-top:4px">🎉 You earned a published FIDE rating: '+f.rating+'!</div>';
@@ -15102,6 +15598,14 @@ function careerFinishBanner(f){
       (f.fee?' · entry '+money(f.fee):'')+(f.trip?' · travel &amp; hotel '+money(f.trip):'')+
       (cost?' · <b style="color:'+(net>=0?'var(--green)':'#f87171')+'">'+(net>=0?'+':'−')+money(Math.abs(net))+' on the trip</b>':'')+'</div>';
   }
+  // level on points: how it was settled
+  if(f.playoff)
+    x+='<div style="margin-top:4px;font-weight:700">⚔️ Level for first with '+esc(f.playoff.opp)+(f.playoff.tied>2?' and '+(f.playoff.tied-2)+' more':'')+
+      ' — '+(f.playoff.won?'you won':'you lost')+' the playoff <span class="dim" style="font-weight:600">'+
+      (f.playoff.stage==='armageddon'?'in armageddon':'in '+f.playoff.stage)+'</span></div>';
+  if(f.tie)
+    x+='<div class="dim small" style="margin-top:4px">Level on points with '+(f.tie.n-1)+' other'+(f.tie.n>2?'s':'')+' — '+
+      ordinal(f.tie.place)+' on '+f.tie.method+' ('+fmtTb(f.tie.mine)+(f.tie.mine<f.tie.best?', the best of you had '+fmtTb(f.tie.best):', the best of the group')+').</div>';
   // a match: how it was decided — early, or in the tiebreaks
   if(f.match){
     const M=f.match,spare=M.planned&&M.planned>f.rounds?M.planned-f.rounds:0;
@@ -15288,7 +15792,12 @@ const INVITE_EVENTS={supergm:{rank:18,fee:1500},tatasteel:{rank:14,fee:2200},sup
 function appearanceFee(t,c){var inv=INVITE_EVENTS[t&&t.id];if(!inv)return 0;return Math.round(inv.fee*(1+(c.fame||0)/120));}
 const ANNUAL_EVENTS=new Set(['natch','continental','olympiad','hastings','reykjavik','dubai','gibraltar','aeroflot','qatar',
   'grandswiss','tatasteel','superbet','norway','cityrapid','indiarapid','worldrapid','indiablitz','worldblitz','fischerwc','creatorcup']);
-function tourLocked(t,c){
+function tourLocked(t,c,noCal){
+  const why=tourLockedBy(t,c);
+  if(why||noCal)return why;
+  return calendarLock(t,c);
+}
+function tourLockedBy(t,c){
   // the Candidates and the title match are reached through the cycle, not by rating
   if(t.id==='candidates'||t.id==='wcc'||t.id==='worldcup'){
     if(c.provisional||c.rating==null)return 'needs a rating';
@@ -15305,8 +15814,14 @@ function tourLocked(t,c){
   var _ef=entryFee(t,c);if(_ef>(c.money||0))return 'entry fee '+money(_ef);
   return null;
 }
-function fedRank(c){var yr=youRating(c,'classical');if(yr==null)return null;var peers=buildWorld().filter(function(p){return p.fed===c.fed;});return peers.filter(function(p){return wpRating(p,'classical')>yr;}).length+1;}
-function olympiadSelected(c){var yr=youRating(c,'classical');if(yr==null||c.provisional)return {ok:false,why:'needs a rating'};if(yr<2200)return {ok:false,why:'needs 2200'};var fr=fedRank(c);if(fr!=null&&fr>3)return {ok:false,why:'be top-3 for '+c.fed};return {ok:true,rank:fr};}
+/* Where you stand in your federation. Its team is its top five, and a
+   squad steps down about 38 points a board from what it fields on board one
+   (see olySquad), so the place is read off that — the named world list has a
+   handful of players from each country, and being third of those was not the
+   same as being third in the country. */
+const OLY_TEAM_SIZE=5;
+function fedRank(c){var yr=youRating(c,'classical');if(yr==null)return null;var str=olyFedStrength(c.fed);return yr>=str?1:1+Math.ceil((str-yr)/38);}
+function olympiadSelected(c){var yr=youRating(c,'classical');if(yr==null||c.provisional)return {ok:false,why:'needs a rating'};if(yr<2200)return {ok:false,why:'needs 2200'};var fr=fedRank(c);if(fr!=null&&fr>OLY_TEAM_SIZE)return {ok:false,why:'be top '+OLY_TEAM_SIZE+' for '+c.fed+' (#'+fr+')'};return {ok:true,rank:fr};}
 function simOlympiadTeam(myPct){var mates=0;for(var i=0;i<3;i++)mates+=0.40+Math.random()*0.35;var teamPct=(myPct+mates)/4;var place=teamPct>=0.72?1:teamPct>=0.66?2:teamPct>=0.60?3:teamPct>=0.52?Math.ceil(4+Math.random()*3):Math.ceil(6+Math.random()*4);return {place:place,teamPct:teamPct};}
 function careerLobby(c){
   let h='<div class="card" style="padding:0;margin-bottom:12px"><div style="padding:11px 13px;font-weight:700;border-bottom:1px solid var(--border)">🏟️ Tournaments — choose an event</div>';
@@ -15339,8 +15854,8 @@ function careerChallenges(c){
   const star=stars[Math.floor(Math.random()*Math.min(8,stars.length))]||stars[0];
   const fmtBtns=['classical','rapid','blitz'].map(f=>'<button class="btn '+(f===fmt?'primary':'ghost')+' sm" data-act="chalfmt" data-val="'+f+'">'+fmtLabel(f)+'</button>').join(' ');
   const row=(tag,sub,x)=>'<div style="display:flex;align-items:center;gap:11px;padding:10px 13px;border-top:1px solid var(--border)">'+
-    '<div style="flex:0 0 auto;position:relative">'+oppAvatar({id:x.p.id,name:x.p.name,rating:x.rating,title:titleByRating(x.rating)},36)+(x.p.real?'<span style="position:absolute;right:-2px;bottom:-2px;font-size:11px">⭐</span>':'')+'</div>'+
-    '<div style="flex:1;min-width:0;cursor:pointer" data-act="profile" data-val="'+x.p.id+'"><div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(x.p.name)+' <span class="dim">'+(x.p.flag||'')+'</span> '+(titleByRating(x.rating)?'<span class="dim small" style="color:var(--brand2)">'+titleByRating(x.rating)+'</span>':'')+'</div><div class="dim small">'+tag+' · '+sub+' · <span style="color:var(--brand2)">view profile ›</span></div></div>'+
+    '<div style="flex:0 0 auto;position:relative">'+oppAvatar({id:x.p.id,name:x.p.name,rating:x.rating,title:wpTitle(x.p)},36)+(x.p.real?'<span style="position:absolute;right:-2px;bottom:-2px;font-size:11px">⭐</span>':'')+'</div>'+
+    '<div style="flex:1;min-width:0;cursor:pointer" data-act="profile" data-val="'+x.p.id+'"><div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(x.p.name)+' <span class="dim">'+(x.p.flag||'')+'</span> '+(wpTitle(x.p)?'<span class="dim small" style="color:var(--brand2)">'+wpTitle(x.p)+'</span>':'')+'</div><div class="dim small">'+tag+' · '+sub+' · <span style="color:var(--brand2)">view profile ›</span></div></div>'+
     '<div style="text-align:right;font-weight:800;width:48px">'+x.rating+'</div>'+
     '<button class="btn sec sm" data-act="careerchal" data-val="'+x.p.id+'">Play</button></div>';
   return '<div class="card" style="padding:0;margin-bottom:12px">'+
@@ -15482,7 +15997,7 @@ function startSimul(id){
   for(var i=0;i<s.boards;i++){
     var r=Math.max(800,Math.min(2600,Math.round(yr-s.gap+gauss()*s.spread)));
     var fed=randFed();
-    field.push({name:randName(),rating:r,title:titleByRating(r),fed:fed.c,flag:fed.f,style:pickStyle()});
+    field.push({name:randName(),rating:r,title:titleFor(r),fed:fed.c,flag:fed.f,style:pickStyle()});
   }
   field.sort(function(a,b){return a.rating-b.rating;});
   app.careerFinish=null;
@@ -15561,9 +16076,9 @@ function viewPlayer(){
   if(!p)return msgCard('Player not found','That player is no longer on the world list.','<button class="btn sec" data-act="nav" data-val="career">Back to career</button>');
   lifeInit(c);
   const rc=wpRating(p,'classical'),rr=wpRating(p,'rapid'),rb=wpRating(p,'blitz');
-  const title=titleByRating(rc);
+  const title=wpTitle(p);
   const opp={id:p.id,name:p.name,rating:rc,title:title,flag:p.flag,fed:p.fed};
-  const rank=worldRanking(c,'classical').findIndex(function(x){return x.id===p.id;})+1;
+  const rank=(worldRanking(c,'classical').find(function(x){return x.id===p.id;})||{}).rank||0;
   const ch=wpChange(p,'classical'),frm=wpForm(p);
   const h2h=(c.h2h&&c.h2h[p.name])||null;
   const isRival=!!(c.rival&&c.rival.name===p.name);
@@ -15578,7 +16093,8 @@ function viewPlayer(){
     oppAvatar(opp,76)+
     '<div style="flex:1;min-width:0">'+
       '<div style="font-weight:800;font-size:18px;overflow:hidden;text-overflow:ellipsis">'+(title?'<span style="color:var(--brand2)">'+title+'</span> ':'')+esc(p.name)+' <span style="font-size:15px">'+(p.flag||'')+'</span></div>'+
-      '<div class="dim small">'+esc(p.fed)+(p.real?' · ★ real-world player':'')+(rank>0?' · world #'+rank:'')+'</div>'+
+      '<div class="dim small">'+esc(p.fed)+' · age '+Math.floor(wpAge(p))+(p.real?' · ★ real-world player':'')+(rank>0?' · world #'+rank.toLocaleString():'')+
+        (p.junior?' · 🌱 on the list since season '+p.born:'')+'</div>'+
       '<div class="row" style="gap:5px;flex-wrap:wrap;margin-top:6px">'+
         (isRival?'<span class="chip" style="background:#7f1d1d44;border-color:#7f1d1d;font-size:10px">⚔️ Your rival</span>':'')+
         (isNemesis?'<span class="chip" style="background:#7c2d1244;border-color:#7c2d12;font-size:10px">😠 Nemesis</span>':'')+
@@ -15622,20 +16138,21 @@ function careerLeaderboard(c){
   const fmt=app.lbFormat||'classical';
   const list=worldRanking(c,fmt);
   const yi=list.findIndex(p=>p.you);
+  const wch=worldChampion(c),crown=p=>(wch&&p.name===wch.name)?' <span title="World Champion">👑</span>':'';
   const chHtml=ch=>ch>0?'<span style="color:#86efac">▲'+ch+'</span>':ch<0?'<span style="color:#f87171">▼'+(-ch)+'</span>':'<span class="dim">·</span>';
-  const rowHtml=(p,rank)=>'<div style="display:flex;align-items:center;gap:9px;padding:7px 2px;border-top:1px solid var(--border);'+(p.you?'background:rgba(96,165,250,.12);margin:0 -6px;padding-left:8px;padding-right:8px;border-radius:6px':'cursor:pointer')+'"'+(p.you?'':' data-act="profile" data-val="'+p.id+'"')+'>'+
-    '<div class="dim small" style="width:36px;font-weight:700">#'+rank+'</div>'+
+  const rowHtml=(p)=>'<div style="display:flex;align-items:center;gap:9px;padding:7px 2px;border-top:1px solid var(--border);'+(p.you?'background:rgba(96,165,250,.12);margin:0 -6px;padding-left:8px;padding-right:8px;border-radius:6px':'cursor:pointer')+'"'+(p.you?'':' data-act="profile" data-val="'+p.id+'"')+'>'+
+    '<div class="dim small" style="width:48px;font-weight:700">#'+p.rank.toLocaleString()+'</div>'+
     '<div style="width:22px;text-align:center">'+(p.flag||'')+'</div>'+
-    '<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:'+(p.you?'800':'600')+'">'+esc(p.name)+(p.you?' <span class="chip brand" style="font-size:9px">YOU</span>':(p.real?' <span class="dim" style="font-size:10px">★</span>':''))+'</div>'+
+    '<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:'+(p.you?'800':'600')+'">'+esc(p.name)+crown(p)+(p.you?' <span class="chip brand" style="font-size:9px">YOU</span>':(p.real?' <span class="dim" style="font-size:10px">★</span>':''))+'</div>'+
     '<div style="width:34px;text-align:right;font-size:10px;font-weight:700">'+(p.you?'':chHtml(p.change))+'</div>'+
-    '<div style="width:30px;text-align:center;font-weight:700;color:var(--brand2);font-size:11px">'+(titleByRating(p.rating)||'')+'</div>'+
+    '<div style="width:30px;text-align:center;font-weight:700;color:var(--brand2);font-size:11px">'+(p.title||'')+'</div>'+
     '<div style="width:48px;text-align:right;font-weight:800">'+p.rating+'</div></div>';
   let rows='';
-  list.slice(0,10).forEach((p,i)=>rows+=rowHtml(p,i+1));
-  if(yi>=10){rows+='<div class="dim small" style="text-align:center;padding:3px">⋯</div>';for(let i=Math.max(10,yi-2);i<=Math.min(list.length-1,yi+2);i++)rows+=rowHtml(list[i],i+1);}
+  list.slice(0,10).forEach(p=>rows+=rowHtml(p));
+  if(yi>=10){rows+='<div class="dim small" style="text-align:center;padding:3px">⋯</div>';for(let i=Math.max(10,yi-2);i<=Math.min(list.length-1,yi+2);i++)rows+=rowHtml(list[i]);}
   const fmtBtns=['classical','rapid','blitz'].map(f=>'<button class="btn '+(f===fmt?'primary':'ghost')+' sm" data-act="lbfmt" data-val="'+f+'">'+fmtLabel(f)+'</button>').join(' ');
   const yr=youRating(c,fmt);
-  const sub=yr==null?('Play a '+fmtLabel(fmt).toLowerCase()+' event to enter the world list.'):('You are <b>#'+(yi+1)+'</b> of '+list.length+' rated players with '+yr+'.');
+  const sub=yr==null?('Play a '+fmtLabel(fmt).toLowerCase()+' event to enter the world list.'):('You are <b>#'+list[yi].rank.toLocaleString()+'</b> in the world with '+yr+' — the places around you are the real list’s, not a count of the names shown.');
   const mv=worldMovers(fmt);
   const movers=(mv.up&&mv.up.ch>0?'📈 '+esc(mv.up.p.name.split(' ').pop())+' +'+mv.up.ch:'')+(mv.up&&mv.up.ch>0&&mv.dn&&mv.dn.ch<0?'  ·  ':'')+(mv.dn&&mv.dn.ch<0?'📉 '+esc(mv.dn.p.name.split(' ').pop())+' '+mv.dn.ch:'');
   return '<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px"><div style="font-weight:700">🌍 World Ranking</div><div class="row" style="gap:6px">'+fmtBtns+'<button class="btn sec sm" data-act="watchtop">🍿 Watch</button></div></div>'+
@@ -15646,9 +16163,9 @@ function matchScoreStrip(tr){
   var opp=tr.round-you;var total=tr.rounds,need=total/2+0.5;
   var oppName=(tr.field&&tr.field[0]&&tr.field[0].name)||'Champion';var shortName=(typeof short==='function')?short(oppName):oppName;
   var maxYou=you+(total-tr.round),youClinched=you>=need,oppClinched=opp>=need;
-  var status;
-  if(youClinched)status='<span style="color:var(--green);font-weight:800">🏆 You win the match — the crown is yours!</span>';
-  else if(oppClinched)status='<span style="color:#f87171;font-weight:800">The champion retains the title.</span>';
+  var status,title=tr.id==='wcc';
+  if(youClinched)status='<span style="color:var(--green);font-weight:800">🏆 '+(!title?'You win the match!':tr.defence?'You keep the crown!':'You win the match — the crown is yours!')+'</span>';
+  else if(oppClinched)status='<span style="color:#f87171;font-weight:800">'+(!title?esc(shortName)+' wins the match.':tr.defence?esc(shortName)+' takes your title.':'The champion retains the title.')+'</span>';
   else if(tr.round<total&&you+0.5>=need)status='<span style="color:var(--amber);font-weight:800">⚡ Match point — a win clinches it!</span>';
   else if(maxYou<need)status='<span style="color:#f87171">The title is out of reach — playing for pride.</span>';
   else status='<span class="dim">First to '+need+' wins the crown ('+(total-tr.round)+' games left).</span>';
@@ -15709,7 +16226,7 @@ function careerTourView(c){
   const tr=c.tour,done=tr.round,total=tr.rounds;
   const scoreTot=tr.results.reduce((s,r)=>s+r.score,0);
   let liveTpr='—';if(tr.results.length){const a=Math.round(tr.results.reduce((s,r)=>s+r.rating,0)/tr.results.length);liveTpr=String(Math.round(a+dpFromPct(scoreTot/tr.results.length)));}
-  let h=(tr.kind==='match'?matchScoreStrip(tr):tr.kind==='simul'?simulStrip(tr):'')+'<div class="card" style="margin-bottom:12px">'+
+  let h=(tr.kind==='match'?matchScoreStrip(tr)+(tr.wm?wmPanel(c,tr):''):tr.kind==='simul'?simulStrip(tr):'')+'<div class="card" style="margin-bottom:12px">'+
     '<div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px"><div style="min-width:0">'+
       '<div style="font-weight:800;font-size:17px">'+tr.emoji+' '+esc(tr.name)+'</div>'+
       '<div class="dim small">'+(tr.ko
@@ -16214,18 +16731,109 @@ function tourBulletinCard(tr){
     '</div>';
 }
 /* ---- tournament standings (the rest of the field plays each other too) ---- */
-function standingsSorted(tr){return tr.standings.slice().sort((a,b)=>b.score-a.score||b.rating-a.rating);}
+/* ---------------------------------------------------------------------------
+   TIEBREAKS
+
+   Players level on points were put in order of rating, so the higher-rated
+   player always took the trophy — and the norm, the qualifying place and the
+   title that came with it. Real events break a tie on the games. An open uses
+   Buchholz — the scores of the people you played, less the weakest (Cut-1),
+   then all of them — because a player level on points who met the stronger
+   field did the harder thing. A round-robin, where everybody met the same
+   field, uses Sonneborn-Berger: the scores of the people you beat, and half
+   of those you drew with. Then the number of wins. A title event does not
+   leave first place to arithmetic at all: it plays a playoff.
+   --------------------------------------------------------------------------- */
+function tbData(tr){
+  const by={};
+  (tr.standings||[]).forEach(function(p){by[p.id]={opp:[],res:[],wins:0,sb:0,bh:0,bh1:0,score:p.score||0};});
+  (tr.pairs||[]).forEach(function(g){
+    const a=by[g.a];if(!a)return;
+    if(!g.b){a.opp.push(null);a.res.push(g.s);return;}     // a bye counts as a game against yourself
+    const b=by[g.b];if(!b)return;
+    a.opp.push(g.b);a.res.push(g.s);b.opp.push(g.a);b.res.push(1-g.s);
+    if(g.s===1)a.wins++;else if(g.s===0)b.wins++;
+  });
+  Object.keys(by).forEach(function(id){
+    const d=by[id],os=d.opp.map(function(o){return o&&by[o]?by[o].score:d.score;});
+    d.bh=os.reduce(function(s,x){return s+x;},0);
+    d.bh1=os.length>1?d.bh-Math.min.apply(null,os):d.bh;
+    d.sb=d.opp.reduce(function(s,o,i){return s+(o&&by[o]?by[o].score*d.res[i]:0);},0);
+  });
+  return by;
+}
+function tbMethod(tr){return tr.sched?'Sonneborn-Berger':'Buchholz';}
+function standingsSorted(tr){
+  const T=(tr.pairs&&tr.pairs.length)?tbData(tr):null,rr=!!tr.sched,po=tr.playoff&&tr.playoff.winner;
+  return tr.standings.slice().sort(function(a,b){
+    const d=(b.score||0)-(a.score||0);
+    if(Math.abs(d)>1e-9)return d;
+    if(po){if(a.id===po)return -1;if(b.id===po)return 1;}
+    if(T){
+      const A=T[a.id]||{},B=T[b.id]||{},k1=rr?'sb':'bh1',k2=rr?'wins':'bh';
+      if(Math.abs((B[k1]||0)-(A[k1]||0))>1e-9)return (B[k1]||0)-(A[k1]||0);
+      if(Math.abs((B[k2]||0)-(A[k2]||0))>1e-9)return (B[k2]||0)-(A[k2]||0);
+      if((B.wins||0)!==(A.wins||0))return (B.wins||0)-(A.wins||0);
+    }
+    return b.rating-a.rating;
+  });
+}
+/* Events that settle a tie for first over the board, and how they start. */
+const PLAYOFF_EVENTS={candidates:'rapid',natch:'rapid',tatasteel:'blitz',worldrapid:'blitz',worldblitz:'blitz'};
+function playoffFirst(c,tr){
+  const from=PLAYOFF_EVENTS[tr.id];
+  if(!from||!tr.standings||tr.playoff)return tr.playoff||null;
+  const S=standingsSorted(tr),top=S.length?(S[0].score||0):0;
+  const tied=S.filter(function(p){return Math.abs((p.score||0)-top)<1e-9;});
+  if(tied.length<2)return null;
+  const W=buildWorld(),speed=function(p){
+    const q=W.filter(function(x){return x.name===p.name;})[0];
+    return {rating:p.rating,rapid:q?wpRating(q,'rapid'):p.rating,blitz:q?wpRating(q,'blitz'):p.rating};};
+  const me=tied.filter(function(p){return p.you;})[0];
+  if(me){
+    const opp=tied.filter(function(p){return !p.you;})[0],myR=youRating(c,'classical')||c.rating;
+    const A={rating:myR,rapid:c.ratingRapid||myR,blitz:c.ratingBlitz||myR},B=speed(opp);
+    const tb=koTiebreak(A,B,from);
+    tb.games.forEach(function(x){
+      if(x.fmt==='rapid')applyByFormat(c,'rapid',B.rapid,x.s);
+      else if(x.fmt==='blitz')applyByFormat(c,'blitz',B.blitz,x.s);
+    });
+    tr.playoff={winner:tb.aWins?'__you':opp.id,you:true,won:tb.aWins,opp:opp.name,stage:tb.stage,tied:tied.length};
+    pushNews(c,'⚔️','Level on '+fmtScore(top)+' with '+esc(opp.name)+(tied.length>2?' and others':'')+' — '+
+      (tb.aWins?'you won':'you lost')+' the playoff'+(tb.stage==='armageddon'?' in armageddon':' in '+tb.stage)+'.');
+  } else {
+    const a=tied[0],b=tied[1],tb=koTiebreak(speed(a),speed(b),from);
+    tr.playoff={winner:tb.aWins?a.id:b.id,you:false,a:a.name,b:b.name,stage:tb.stage,tied:tied.length};
+  }
+  return tr.playoff;
+}
+/* How your place was settled when you were level on points, for the banner. */
+function tieNote(tr){
+  if(!tr.standings)return null;
+  const S=standingsSorted(tr),i=S.findIndex(function(p){return p.you;});
+  if(i<0)return null;
+  const me=S[i],lvl=S.filter(function(p){return Math.abs((p.score||0)-(me.score||0))<1e-9;});
+  if(lvl.length<2)return null;
+  if(tr.playoff&&tr.playoff.you&&i<=1)return null;             // the playoff line says it
+  const T=tbData(tr),k=tr.sched?'sb':'bh1',v=function(p){return (T[p.id]||{})[k]||0;};
+  return {n:lvl.length,place:i+1,method:tbMethod(tr)+(tr.sched?'':' Cut-1'),mine:v(me),
+    best:Math.max.apply(null,lvl.map(v)),first:S.indexOf(lvl[0])+1};
+}
 function standingsRank(tr){const S=standingsSorted(tr);return S.findIndex(p=>p.you)+1;}
 function careerStandings(tr){
   if(!tr.standings)return '';
   const S=standingsSorted(tr),yi=S.findIndex(p=>p.you);
+  const T=(tr.pairs&&tr.pairs.length)?tbData(tr):null,tk=tr.sched?'sb':'bh1';
+  const anyTie=!!T&&S.some(function(p,i){return i>0&&Math.abs((p.score||0)-(S[i-1].score||0))<1e-9;});
   const row=(p,rank)=>'<div style="display:flex;align-items:center;gap:8px;padding:5px 2px;border-top:1px solid var(--border)'+(p.you?';background:rgba(96,165,250,.12);margin:0 -6px;padding-left:8px;padding-right:8px;border-radius:6px':'')+'">'+
     '<div class="dim small" style="width:20px;font-weight:700">'+rank+'</div>'+
     '<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:'+(p.you?'800':'600')+'">'+(p.title?p.title+' ':'')+esc(p.name)+(p.you?' <span class="chip brand" style="font-size:9px">YOU</span>':'')+' <span class="dim small">'+p.rating+'</span></div>'+
+    (anyTie?'<div class="dim small" style="width:38px;text-align:right" title="'+tbMethod(tr)+'">'+fmtTb((T[p.id]||{})[tk]||0)+'</div>':'')+
     '<div style="width:36px;text-align:right;font-weight:800">'+fmtScore(p.score||0)+'</div></div>';
   let rows='';const n=Math.min(S.length,8);for(let i=0;i<n;i++)rows+=row(S[i],i+1);
   if(yi>=n)rows+='<div class="dim small" style="text-align:center;padding:2px">⋯</div>'+row(S[yi],yi+1);
-  return '<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:6px"><div style="font-weight:700;font-size:12px;color:var(--brand2);margin-bottom:2px">📊 Standings</div>'+rows+'</div>';
+  return '<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:6px"><div style="font-weight:700;font-size:12px;color:var(--brand2);margin-bottom:2px">📊 Standings'+
+    (anyTie?' <span class="dim" style="font-weight:600">· ties broken on '+(tr.sched?'Sonneborn-Berger':'Buchholz Cut-1')+'</span>':'')+'</div>'+rows+'</div>';
 }
 /* ================= THE OLYMPIAD IS A TEAM EVENT =================
    The Olympiad was nine individual games with a sentence bolted on the end.
@@ -16297,7 +16905,7 @@ function olySquad(str,n,startBoard){
   const cap=(b0>1)?Math.max(1650,str-5):2850;
   for(let i=0;i<n;i++){
     const r=Math.max(1600,Math.min(2850,cap,Math.round(str-(b0+i-1)*38+gauss()*45)));
-    out.push({name:randName(),rating:r,title:titleByRating(r)});
+    out.push({name:randName(),rating:r,title:titleFor(r)});
   }
   out.sort(function(a,b){return b.rating-a.rating;});
   out.forEach(function(p,i){p.board=b0+i;});
@@ -17438,6 +18046,20 @@ function careerGames(c){
   return h;
 }
 /* ---- tournament flow ---- */
+const ELITE_AVG=2650;
+function eliteField(t,count){
+  const c=store.career;if(!c)return null;
+  const ch=(t.id==='candidates')?worldChampion(c):null;
+  let pool=worldRanking(c,'classical').filter(function(p){return !p.you&&!(ch&&!ch.you&&p.name===ch.name);});
+  if(t.id==='candidates')pool=pool.slice(0,count);
+  else{
+    pool=pool.filter(function(p){return Math.abs(p.rating-t.avg)<=2.5*t.spread;})
+      .map(function(p){return {p:p,k:Math.abs(p.rating-t.avg)+Math.abs(gauss())*t.spread};})
+      .sort(function(a,b){return a.k-b.k;}).slice(0,count).map(function(x){return x.p;});
+  }
+  if(pool.length<count)return null;
+  return pool.map(function(p){return {name:p.name,rating:p.rating,title:p.title||'GM',fed:p.fed,flag:p.flag,style:pickStyle(),wid:p.id,real:!!p.real};});
+}
 function makeField(t){
   const fmt=eventFormat(t);
   if(t.kind==='match'){ // World Championship: 14 games against the champion — or, if that is you, the challenger
@@ -17453,11 +18075,14 @@ function makeField(t){
     const players=[];
     for(let i=0;i<count;i++){
       const r=fieldRating(t);
-      const fed=t.natChamp?{c:store.career.fed,f:store.career.flag}:randFed();players.push({name:t.creator?pick(STREAMERS):randName(),rating:r,title:titleByRating(r),fed:fed.c,flag:fed.f,style:pickStyle()});
+      const fed=t.natChamp?{c:store.career.fed,f:store.career.flag}:randFed();players.push({name:t.creator?pick(STREAMERS):randName(),rating:r,title:t.creator?titleByRating(r):titleFor(r),fed:fed.c,flag:fed.f,style:pickStyle()});
     }
     return players;
   };
-  let players=gen();
+  // An elite round-robin is the elite: the players on the world list around
+  // the event's level, not seven invented names. The Candidates is the eight
+  // best players in the world who are not the champion.
+  let players=(t.rr&&t.avg>=ELITE_AVG)?(eliteField(t,count)||gen()):gen();
   // A norm round-robin is invited, not drawn: the organiser picks the field so
   // the norm is on offer, the way real ones are. Left to chance, one IM-norm
   // event in five could not give an IM norm whatever you scored.
@@ -17732,7 +18357,7 @@ function swissHall(t,size){
   for(let i=0;i<size-1;i++){
     const r=fieldRating(t);
     const fed=t.natChamp?{c:store.career.fed,f:store.career.flag}:randFed();
-    players.push({pid:'p'+i,name:t.creator?pick(STREAMERS):randName(),rating:r,title:titleByRating(r),
+    players.push({pid:'p'+i,name:t.creator?pick(STREAMERS):randName(),rating:r,title:t.creator?titleByRating(r):titleFor(r),
       fed:fed.c,flag:fed.f,style:pickStyle()});
   }
   // names in a hall of twenty have to be told apart
@@ -17876,15 +18501,18 @@ function koArmageddon(wBlitz,bBlitz){
 }
 /* Tiebreaks after 1–1: two rapid games, then two blitz, then armageddon.
    Scores are from A's point of view. */
-function koTiebreak(A,B){
+function koTiebreak(A,B,from){
   const games=[];
   const pair=function(fmt,ra,rb){
     const g1=bulSim(ra+WHITE_EDGE,rb),g2=1-bulSim(rb+WHITE_EDGE,ra);
     games.push({fmt:fmt,s:g1},{fmt:fmt,s:g2});
     return g1+g2;
   };
-  let s=pair('rapid',A.rapid||A.rating,B.rapid||B.rating);
-  if(s!==1)return {aWins:s>1,stage:'rapid',score:s,games:games};
+  let s;
+  if(from!=='blitz'){
+    s=pair('rapid',A.rapid||A.rating,B.rapid||B.rating);
+    if(s!==1)return {aWins:s>1,stage:'rapid',score:s,games:games};
+  }
   s=pair('blitz',A.blitz||A.rating,B.blitz||B.rating);
   if(s!==1)return {aWins:s>1,stage:'blitz',score:s,games:games};
   const aWhite=Math.random()<0.5;
@@ -17913,12 +18541,12 @@ function koInit(c,tr,t){
     const w=byId[p.id];
     return {id:p.id,name:p.name,fed:p.fed,flag:p.flag,real:!!p.real,rating:p.rating,
       rapid:w?wpRating(w,'rapid'):p.rating,blitz:w?wpRating(w,'blitz'):p.rating,
-      title:titleByRating(p.rating),style:pickStyle()};
+      title:p.title!=null?p.title:titleFor(p.rating),style:pickStyle()};
   });
   while(players.length<KO_SIZE-1){
     const r=Math.round(Math.max(KO_QUAL_MIN,KO_FLOOR-10-Math.abs(gauss())*110)),fed=randFed();
     players.push({id:'q'+players.length,name:randName(),fed:fed.c,flag:fed.f,real:false,qualifier:true,rating:r,
-      rapid:r+Math.round(gauss()*40),blitz:r+Math.round(gauss()*50),title:titleByRating(r),style:pickStyle()});
+      rapid:r+Math.round(gauss()*40),blitz:r+Math.round(gauss()*50),title:titleFor(r),style:pickStyle()});
   }
   const myR=youRating(c,'classical')||c.rating||2450;
   players.push({id:'__you',name:c.name||'You',fed:c.fed,flag:c.flag,you:true,rating:myR,
@@ -18057,6 +18685,128 @@ function koCard(tr){
     '</div>';
 }
 /* ---------------------------------------------------------------------------
+   THE TITLE MATCH IS AN EVENT OF ITS OWN
+
+   It was fourteen games in a row against a name. A world championship match
+   is three weeks of its own: a team of seconds hired months before, a rest
+   day after every two games, a press conference after every one, and the
+   constant worry that your preparation has walked out of the building. The
+   games still decide it — every one of these moves your chances by a few
+   points of rating, no more — but it is a match you live through now, and
+   the story of it is kept game by game.
+   --------------------------------------------------------------------------- */
+const WM_SECONDS=[
+  {id:'opening',e:'📖',n:'Opening specialist',fee:60000,elo:8,d:'New ideas for every game with White and a wall with Black.'},
+  {id:'engine',e:'🖥️',n:'Computer second',fee:40000,elo:5,d:'Nights of engine work on the lines you expect.'},
+  {id:'endgame',e:'♔',n:'Endgame expert',fee:30000,elo:4,d:'For the sixth hour, when the match is really decided.'},
+  {id:'psych',e:'🧘',n:'Sports psychologist',fee:20000,elo:0,d:'Takes the sting out of a loss: tilt halves after a defeat.'}
+];
+const WM_LEAK_BASE=0.02,WM_LEAK_PER=0.02;   // each person who knows your preparation is a way for it to get out
+function wmInit(tr){
+  tr.wm={seconds:[],teamSet:false,next:0,cur:0,prepFor:-1,story:[],rest:null,press:null,log:[]};
+  return tr.wm;
+}
+function wmSecond(id){return WM_SECONDS.filter(function(x){return x.id===id;})[0]||null;}
+function wmTeamElo(tr){return (tr.wm.seconds||[]).reduce(function(s,id){const x=wmSecond(id);return s+(x?x.elo:0);},0);}
+function wmHire(id){
+  const c=store.career,tr=c&&c.tour;if(!tr||!tr.wm||tr.wm.teamSet)return;
+  const x=wmSecond(id);if(!x)return;
+  const i=tr.wm.seconds.indexOf(id);
+  if(i>=0){tr.wm.seconds.splice(i,1);c.money=(c.money||0)+x.fee;}
+  else{if((c.money||0)<x.fee){app.careerToast='💸 '+x.n+' costs '+money(x.fee)+'.';render();return;}c.money-=x.fee;tr.wm.seconds.push(id);}
+  save();render();
+}
+function wmStart(){const c=store.career,tr=c&&c.tour;if(!tr||!tr.wm)return;tr.wm.teamSet=true;
+  if(tr.wm.seconds.length)pushNews(c,'👥','Your team for the match: '+tr.wm.seconds.map(function(id){return wmSecond(id).n.toLowerCase();}).join(', ')+'.');
+  save();render();}
+/* A rest day: rest, or prepare for the next game. */
+function wmRest(choice){
+  const c=store.career,tr=c&&c.tour;if(!tr||!tr.wm||!tr.wm.rest)return;
+  if(choice==='prep'){tr.wm.next+=10;c.energy=Math.max(0,(c.energy||0)-15);tr.wm.log.push('📚 You spent the rest day on preparation.');}
+  else{c.energy=Math.min(maxEnergy(c),(c.energy||0)+20);c.tilt=Math.max(0,(c.tilt||0)-15);tr.wm.log.push('🛌 You rested on the rest day.');}
+  tr.wm.rest=null;save();render();
+}
+/* The press conference after a game. */
+function wmPress(choice){
+  const c=store.career,tr=c&&c.tour;if(!tr||!tr.wm||!tr.wm.press)return;
+  const P=tr.wm.press,opp=(tr.field[0]||{}).name||'your opponent';
+  let line;
+  if(choice==='confident'){c.fame=Math.min(100,(c.fame||0)+2);if(P.score===1)tr.wm.next+=5;line='🎤 "I am playing well and I know it." '+(P.score===1?'The momentum is yours.':'Brave words after that game.');}
+  else if(choice==='mind'){
+    c.fame=Math.min(100,(c.fame||0)+4);c.reputation=Math.max(0,(c.reputation||50)-4);
+    if(Math.random()<0.5){tr.wm.next+=12;line='🎤 You needled '+opp+' in the press conference, and it got to them.';}
+    else{tr.wm.next-=8;line='🎤 You needled '+opp+' in the press conference — and they came back angry.';}
+  } else {c.reputation=Math.min(100,(c.reputation||50)+2);c.mood=Math.min(100,(c.mood||60)+3);line='🎤 A gracious press conference. The chess world noticed.';}
+  tr.wm.log.push(line);tr.wm.press=null;save();render();
+}
+/* Before a game: the pending choices take their default, and whatever your
+   team and the last few days have done is added up for this game. */
+function wmBeforeGame(c,tr){
+  const W=tr.wm;if(!W)return 0;
+  if(W.prepFor===tr.round)return W.cur;
+  if(W.rest)wmRestQuiet(c,W);
+  if(W.press){c.reputation=Math.min(100,(c.reputation||50)+1);W.press=null;}
+  W.teamSet=true;
+  let edge=wmTeamElo(tr)+W.next;W.next=0;
+  const leak=WM_LEAK_BASE+WM_LEAK_PER*W.seconds.length;
+  if(Math.random()<leak){edge-=15;W.log.push('🕵️ Your preparation for game '+(tr.round+1)+' leaked — they were ready for it.');
+    pushNews(c,'🕵️','Your preparation for game '+(tr.round+1)+' appears to have leaked.');}
+  else if(Math.random()<0.03){edge+=10;W.log.push('🕵️ A whisper of their preparation reached your team before game '+(tr.round+1)+'.');}
+  W.cur=edge;W.prepFor=tr.round;
+  return edge;
+}
+function wmRestQuiet(c,W){c.energy=Math.min(maxEnergy(c),(c.energy||0)+20);c.tilt=Math.max(0,(c.tilt||0)-15);W.rest=null;}
+/* After a game: the story, and the choices the next few days bring. */
+function wmAfterGame(c,tr,score){
+  const W=tr.wm;if(!W)return;
+  const g=tr.results.length,you=tr.results.reduce(function(s,r){return s+r.score;},0),opp=g-you;
+  const wasLevel=Math.abs((you-score)-(opp-(1-score)))<1e-9;
+  const name=((tr.field[0]||{}).name||'Your opponent').split(' ').pop();
+  const need=(W.planned||tr.rounds)/2+0.5;
+  let head;
+  if(you>=need)head=tr.defence?'You keep the world title':'You are the World Champion';
+  else if(opp>=need)head=tr.defence?name+' takes your title':name+' keeps the title';
+  else if(score===1)head=you===opp?'You level the match':you>opp?(wasLevel?(g===1?'You strike first':'You take the lead'):'You extend your lead'):'You pull one back';
+  else if(score===0)head=you===opp?name+' levels the match':opp>you?(wasLevel?(g===1?name+' strikes first':name+' takes the lead'):name+' extends the lead'):name+' pulls one back';
+  else head=pick(['A hard-fought draw','The defences hold','Honours even','A long draw — nobody blinks','A quick draw; both teams save their preparation']);
+  W.story.push({g:g,s:score,head:head,you:you,opp:opp,note:W.log.slice(-2).join(' ')});
+  W.log=[];
+  if(score!==0.5||you>=need||opp>=need)pushFeed(c,'👑','Game '+g+' of the title match: '+esc(head)+' ('+fmtScore(you)+'–'+fmtScore(opp)+').','you');
+  if(score===0&&W.seconds.indexOf('psych')>=0)c.tilt=Math.round((c.tilt||0)/2);
+  const over=you>=need||opp>=need||g>=tr.rounds;
+  if(!over){
+    W.press={game:g,score:score};
+    if(g%2===0)W.rest={after:g};
+  }
+}
+function wmPanel(c,tr){
+  const W=tr.wm;let h='<div class="card" style="margin-bottom:12px">';
+  if(!W.teamSet&&tr.round===0){
+    h+='<div style="font-weight:700">👥 Your team of seconds</div>'+
+      '<div class="dim small" style="margin:3px 0 6px">Hired now, paid now. Every second adds to your chances in every game — and is one more person who knows your preparation.</div>'+
+      WM_SECONDS.map(function(x){const on=W.seconds.indexOf(x.id)>=0;
+        return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--border)">'+
+          '<span class="small">'+x.e+' <b>'+esc(x.n)+'</b> <span class="dim">— '+esc(x.d)+'</span></span>'+
+          '<button class="btn '+(on?'primary':'sec')+' sm" data-act="wmhire" data-val="'+x.id+'">'+(on?'✓ Hired':money(x.fee))+'</button></div>';}).join('')+
+      '<div class="row" style="margin-top:8px;justify-content:space-between;align-items:center"><span class="dim small">Leak risk '+Math.round((WM_LEAK_BASE+WM_LEAK_PER*W.seconds.length)*100)+'% a game</span>'+
+      '<button class="btn primary sm" data-act="wmstart">Start the match</button></div>';
+    return h+'</div>';
+  }
+  if(W.rest)h+='<div style="font-weight:700">🛌 Rest day</div><div class="dim small" style="margin:3px 0 6px">Two games played. Rest, or spend the day on the next one?</div>'+
+    '<div class="row" style="gap:6px"><button class="btn sec sm" data-act="wmrest" data-val="rest">🛌 Rest (+energy, −tilt)</button><button class="btn sec sm" data-act="wmrest" data-val="prep">📚 Prepare (+next game, −energy)</button></div>';
+  if(W.press)h+='<div style="font-weight:700;'+(W.rest?'margin-top:10px':'')+'">🎤 Press conference after game '+W.press.game+'</div>'+
+    '<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px"><button class="btn sec sm" data-act="wmpress" data-val="gracious">🤝 Gracious</button>'+
+    '<button class="btn sec sm" data-act="wmpress" data-val="confident">💪 Confident</button><button class="btn sec sm" data-act="wmpress" data-val="mind">😏 Mind games</button></div>';
+  if(W.seconds.length&&!W.rest&&!W.press)h+='<div class="dim small">👥 Your team: '+W.seconds.map(function(id){const x=wmSecond(id);return x.e+' '+x.n.toLowerCase();}).join(', ')+'.</div>';
+  if(W.story.length)h+='<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:6px"><div class="small" style="font-weight:700;margin-bottom:2px">The match so far</div>'+
+    W.story.slice().reverse().map(function(st){
+      const col=st.s===1?'var(--green)':st.s===0?'#f87171':'var(--muted)';
+      return '<div class="small" style="padding:3px 0;border-top:1px solid var(--border)"><b style="color:'+col+'">G'+st.g+' '+(st.s===1?'1–0':st.s===0?'0–1':'½–½')+'</b> · '+esc(st.head)+
+        ' <span class="dim">('+fmtScore(st.you)+'–'+fmtScore(st.opp)+')</span>'+(st.note?'<div class="dim small">'+esc(st.note)+'</div>':'')+'</div>';}).join('')+'</div>';
+  if(h==='<div class="card" style="margin-bottom:12px">')return '';
+  return h+'</div>';
+}
+/* ---------------------------------------------------------------------------
    THE CHAMPIONSHIP CYCLE
 
    The road to the title was a pair of permanent keys. Qualifying for the
@@ -18077,6 +18827,7 @@ function koCard(tr){
    is decided, and one that ends level goes to rapid, blitz and armageddon.
    --------------------------------------------------------------------------- */
 const CYCLE_SEASONS=2;          // how long a qualification lasts, and how often a champion defends
+const DEFAULT_CHAMPION='gukesh'; // the champion when a career begins: D. Gukesh, champion since December 2024
 const CAND_RATING_RANK=3;       // the rating spot: the world top three
 function cycleInit(c){
   if(c.cycle)return c.cycle;
@@ -18096,7 +18847,7 @@ function cycleQualify(c,how){
 }
 /* A World Cup place: national champions, the top of each continental
    championship, and the top of the rating list — the champion is seeded. */
-const WC_RATING_RANK=40;
+const WC_RATING_RANK=60;         // a place on the real list: about 2680
 const WC_CONT_TOP=4;
 function wcQualify(c,how){
   const C=cycleInit(c);
@@ -18134,21 +18885,104 @@ function cycleHow(t){
     :t.id==='worldcup'?'national champion, continental top '+WC_CONT_TOP+' or world top '+WC_RATING_RANK
     :'win the Candidates';
 }
+/* The World Champion, whoever it is. */
+function worldChampion(c){
+  const C=cycleInit(c);
+  if(C.champ)return {you:true,name:c.name,fed:c.fed,flag:c.flag};
+  const R=worldRanking(c,'classical');
+  const at=function(name){return R.filter(function(p){return p.name===name;})[0];};
+  if(C.reigning){const now=at(C.reigning.name);return Object.assign({},C.reigning,now?{rating:now.rating,id:now.id}:{});}
+  const d=R.filter(function(p){return p.id===DEFAULT_CHAMPION;})[0]||R.filter(function(p){return !p.you;})[0];
+  return d?{id:d.id,name:d.name,fed:d.fed,flag:d.flag,rating:d.rating}:null;
+}
+/* This season's challenger when you are not it: whoever won the Candidates,
+   or failing that the best player in the world who is not the champion. */
+function worldChallenger(c){
+  const X=wxInit(c),S=c.season||1,ch=worldChampion(c);
+  const R=worldRanking(c,'classical').filter(function(p){return !p.you&&!(ch&&p.name===ch.name);});
+  if(X.cands&&X.cands.season===S&&!X.cands.you){
+    const now=R.filter(function(p){return p.name===X.cands.name;})[0];
+    if(now)return now;
+  }
+  return R[0]||null;
+}
 /* Who is across the board in the title match. */
 function wccOpponent(c){
   const C=cycleInit(c);
   if(C.champ){
-    // the challenger: the strongest player in the world who is not you
-    const top=worldRanking(c,'classical').filter(function(p){return !p.you;})[0];
+    const top=worldChallenger(c);
     return top?{name:top.name,rating:top.rating,title:'GM',fed:top.fed,flag:top.flag,style:'universal',challenger:true}:null;
   }
-  if(C.reigning){
-    // the one who took the title from you, at their rating today
-    const now=worldRanking(c,'classical').filter(function(p){return p.name===C.reigning.name;})[0];
-    return Object.assign({title:'GM',style:'universal'},C.reigning,now?{rating:now.rating}:{});
+  const ch=worldChampion(c);
+  return ch?{name:ch.name,rating:ch.rating,title:'GM',fed:ch.fed,flag:ch.flag,style:'universal'}:null;
+}
+/* A match between two others, simulated game by game; level goes to tiebreaks. */
+function simTitleMatch(A,B,games){
+  let a=0;
+  for(let g=0;g<games;g++){
+    const aWhite=g%2===0,E=1/(1+Math.pow(10,-((A.rating+(aWhite?WHITE_EDGE:-WHITE_EDGE))-B.rating)/400));
+    a+=simGame(E,'universal');
+    if(a>games/2||(g+1-a)>games/2)return {aWins:a>games/2,a:a,b:g+1-a,games:g+1,tb:null};
   }
-  const ch=WORLD_REAL[0];
-  return {name:ch.name,rating:ch.r,title:'GM',fed:ch.fed,flag:ch.flag,style:'universal'};
+  if(a*2!==games)return {aWins:a>games/2,a:a,b:games-a,games:games,tb:null};
+  const tb=koTiebreak(A,B);
+  return {aWins:tb.aWins,a:a,b:games-a,games:games,tb:tb.stage};
+}
+/* A double round-robin of eight, simulated. */
+function simCandidates(players){
+  const sc=players.map(function(){return 0;});
+  for(let i=0;i<players.length;i++)for(let j=0;j<players.length;j++){
+    if(i===j)continue;                             // i has White against j once
+    const E=1/(1+Math.pow(10,-((players[i].rating+WHITE_EDGE)-players[j].rating)/400)),s=simGame(E,'universal');
+    sc[i]+=s;sc[j]+=1-s;
+  }
+  const order=players.map(function(p,i){return {p:p,s:sc[i]};}).sort(function(a,b){return b.s-a.s||b.p.rating-a.p.rating;});
+  return order;
+}
+/* The rest of the world plays its cycle whether or not you are in it: three
+   weeks after the Candidates and the title match were due, if you did not
+   play them, they have been played without you. */
+function worldEventsTick(c){
+  if(!c||!c.setup)return;
+  const X=wxInit(c),C=cycleInit(c),S=c.season||1,w=weekOfSeason(c),done=c.calDone||[];
+  if(heldThisSeason('candidates',c)&&w>=EVENT_WEEK.candidates+3&&!(X.cands&&X.cands.season===S)&&done.indexOf('candidates')<0){
+    const ch=worldChampion(c);
+    const field=worldRanking(c,'classical').filter(function(p){return !p.you&&!(ch&&p.name===ch.name);}).slice(0,8);
+    if(field.length>=2){
+      const res=simCandidates(field),win=res[0].p;
+      X.cands={season:S,name:win.name,fed:win.fed,flag:win.flag,score:res[0].s};
+      const t=win.name+' wins the Candidates on '+fmtScore(res[0].s)+'/14 and will play '+(ch?ch.name:'the champion')+' for the title.';
+      pushNews(c,'♛',esc(t));pushFeed(c,'♛',esc(t),'world');
+      if(cycleValid(C.cand,c)){C.cand=null;pushNews(c,'♛','The Candidates went ahead without you — your place lapsed.');}
+    }
+  }
+  if(heldThisSeason('wcc',c)&&w>=EVENT_WEEK.wcc+3&&!(X.wcc&&X.wcc.season===S)&&done.indexOf('wcc')<0){
+    X.wcc={season:S};
+    const say=function(t){pushNews(c,'👑',esc(t));pushFeed(c,'👑',esc(t),'world');};
+    if(C.champ){
+      if(!cycleValid(C.defended,c)){
+        const chl=worldChallenger(c);
+        C.champ=false;C.lost=S;
+        C.reigning=chl?{name:chl.name,rating:chl.rating,fed:chl.fed,flag:chl.flag}:null;
+        say('You did not defend the world title, and it passes to '+(chl?chl.name:'your challenger')+'. You are a former World Champion.');
+      }
+    } else if(cycleValid(C.chall,c)){
+      C.chall=null;
+      const ch=worldChampion(c);
+      say('You did not take up your title match. '+(ch?ch.name:'The champion')+' keeps the title.');
+    } else {
+      const ch=worldChampion(c),chl=worldChallenger(c);
+      if(ch&&chl&&!ch.you){
+        const W=buildWorld(),full=function(p){const q=W.filter(function(x){return x.name===p.name;})[0];
+          return {name:p.name,rating:p.rating||2750,rapid:q?wpRating(q,'rapid'):p.rating,blitz:q?wpRating(q,'blitz'):p.rating};};
+        const m=simTitleMatch(full(ch),full(chl),14);
+        const sc=fmtScore(Math.max(m.a,m.b))+'–'+fmtScore(Math.min(m.a,m.b))+(m.tb?', then the '+m.tb+(m.tb==='armageddon'?'':' tiebreak'):'');
+        if(m.aWins)say(ch.name+' keeps the world title against '+chl.name+' — '+sc+'.');
+        else{C.reigning={name:chl.name,rating:chl.rating,fed:chl.fed,flag:chl.flag};say(chl.name+' is the new World Champion, beating '+ch.name+' '+sc+'.');}
+        X.wcc.result={champ:ch.name,chall:chl.name,kept:m.aWins};
+      }
+    }
+  }
 }
 /* A match stops when it is decided: more than half the games. */
 function matchDecided(tr){
@@ -18271,7 +19105,7 @@ function specStep(){const S=app.spec;if(!S||app.view!=='spectate'||S.paused||S.s
       render();setTimeout(specStep,650);});});}
 function viewSpectate(){const S=app.spec;if(!S)return viewCareer();
   const orient=S.flip?'black':'white';
-  const pl=(p,dot)=>'<div class="row" style="justify-content:space-between;align-items:center;padding:6px 2px"><div class="row" style="gap:7px;align-items:center"><span style="width:11px;height:11px;border-radius:50%;display:inline-block;background:'+dot+';border:1px solid #888"></span><b>'+esc(p.name)+'</b> <span class="dim">'+(p.flag||'')+'</span>'+(p.real?' <span class="dim" style="font-size:10px">★</span>':'')+'</div><span style="font-weight:800">'+(titleByRating(p.rating)?titleByRating(p.rating)+' ':'')+p.rating+'</span></div>';
+  const pl=(p,dot)=>'<div class="row" style="justify-content:space-between;align-items:center;padding:6px 2px"><div class="row" style="gap:7px;align-items:center"><span style="width:11px;height:11px;border-radius:50%;display:inline-block;background:'+dot+';border:1px solid #888"></span><b>'+esc(p.name)+'</b> <span class="dim">'+(p.flag||'')+'</span>'+(p.real?' <span class="dim" style="font-size:10px">★</span>':'')+'</div><span style="font-weight:800">'+(p.title?p.title+' ':'')+p.rating+'</span></div>';
   let mlist='';for(let k=0;k<S.moves.length;k++)mlist+=(k%2===0?(Math.floor(k/2)+1)+'. ':'')+esc(S.moves[k])+' ';
   let h='<div style="max-width:980px;margin:0 auto"><div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px"><div class="row" style="align-items:center"><button class="btn ghost sm" data-act="specexit">←</button><h1 style="font-size:18px">🍿 Spectator</h1></div><div class="row"><button class="btn sec sm" data-act="specpause">'+(S.paused?'▶ Resume':'⏸ Pause')+'</button><button class="btn ghost sm" data-act="specflip">⇅ Flip</button><button class="btn primary sm" data-act="specnew">↻ New game</button></div></div>';
   h+='<div class="layout"><div class="boardwrap">'+renderBoard(S.fen,orient,{last:S.last,interactive:false})+'</div><div>'+
@@ -18290,7 +19124,7 @@ function joinTournament(id){
   if(t.id==='olympiad')olyInit(c,c.tour);
   // a place in the Candidates is used up by playing it; a title match is a defence or a challenge
   if(t.id==='candidates'){const C=cycleInit(c);C.cand=null;C.candPlayed=c.season||1;}
-  if(t.id==='wcc')c.tour.defence=!!cycleInit(c).champ;
+  if(t.id==='wcc'){c.tour.defence=!!cycleInit(c).champ;wmInit(c.tour);}
   if(t.id==='worldcup')cycleInit(c).wc=null;
   // an open is a hall paired on score; a round-robin is laid out whole on the
   // first day; a knockout is a bracket
@@ -18333,6 +19167,7 @@ function playTourRound(){
   const c=store.career;if(!c.tour)return;const tr=c.tour;if(tr.round>=tr.rounds)return;
   app.careerFinish=null;
   const opp=tr.field[tr.round],side=tourColourOf(tr,tr.round);
+  const wmE=tr.wm?wmBeforeGame(c,tr):0;
   const tc=tcById(FORMAT_TC[tr.format||'classical']||'30+20');
   const g=tr.var960?c960Start():null;
   const prep=g?null:careerPrepBook(side);
@@ -18340,7 +19175,7 @@ function playTourRound(){
   if(!prep&&!g){oe=oppBookEdge(opp,side);if(oe){book=oe.book;bookNode=oe.bookNode;}}
   const title=tr.emoji+' '+tr.name+' · R'+(tr.round+1)+'/'+tr.rounds+' vs '+(opp.title?opp.title+' ':'')+opp.name+' ('+opp.rating+')'+(prep?' · 📕 prep':(oe&&oe.studyEdge>=0.5?' · 🔍 prepared':''));
   startPlay(g?g.fen:new Chess().fen(),side,prep?prep.id:null,title,
-    {tc,careerOpp:'tour',careerElo:opp.rating,careerTour:true,roundOpp:opp,c960:g?g.state:null,book:book,bookNode:bookNode});
+    {tc,careerOpp:'tour',careerElo:opp.rating-wmE,careerTour:true,roundOpp:opp,c960:g?g.state:null,book:book,bookNode:bookNode});
   app.careerBanter=oppBanter(c,opp);
   if(prep){app.careerPrepUsed=prep.id;app.careerNovelty=!!prep.novelty;}
   app.careerStudyEdge=oe?oe.studyEdge:0;
@@ -18350,7 +19185,7 @@ function playTourRound(){
 function startChallenge(id){
   const c=store.career,fmt=app.chalFormat||'classical';
   const p=buildWorld().find(x=>x.id===id);if(!p)return;
-  const rt=wpRating(p,fmt),opp={name:p.name,rating:rt,title:titleByRating(rt),flag:p.flag,fed:p.fed,id:p.id,style:pickStyle()};
+  const rt=wpRating(p,fmt),opp={name:p.name,rating:rt,title:wpTitle(p),flag:p.flag,fed:p.fed,id:p.id,style:pickStyle()};
   app.careerFinish=null;
   const side=Math.random()<0.5?'w':'b';
   const prep=careerPrepBook(side);
@@ -18597,13 +19432,14 @@ function careerResult(score){
     const delta=applyByFormat(c,fmt,opp.rating,score);app.careerDelta=delta;
     c.played=(c.played||0)+1;if(score===1)c.won=(c.won||0)+1;else if(score===0)c.lost=(c.lost||0)+1;else c.drawn=(c.drawn||0)+1;
     if(fmt==='classical'&&c.provisional)publishRating(c);
-    archiveCareerGame(c,opp,score,fmt,app.careerLeague?leagueEventName(c):'One-off',!!app.c960);pushRatingPoint(c);
+    archiveCareerGame(c,opp,score,fmt,app.careerPro?proEventName(c):app.careerLeague?leagueEventName(c):'One-off',!!app.c960);pushRatingPoint(c);
     worldTick();const newTitles=checkTitles(c);
     const res=score===1?'beat':score===0?'lost to':'drew with';
-    c.history=c.history||[];c.history.unshift({name:(app.careerLeague?'Club match: ':'Challenge: ')+res+' '+opp.name,emoji:app.careerLeague?'🛡️':'🎯',score:score,rounds:1,avg:opp.rating,tpr:opp.rating,norms:[],date:Date.now(),format:fmt,oneoff:true});
+    c.history=c.history||[];c.history.unshift({name:(app.careerPro?'League match: ':app.careerLeague?'Club match: ':'Challenge: ')+res+' '+opp.name,emoji:app.careerPro?'✍️':app.careerLeague?'🛡️':'🎯',score:score,rounds:1,avg:opp.rating,tpr:opp.rating,norms:[],date:Date.now(),format:fmt,oneoff:true});
     app.careerFinish={name:'One-off vs '+opp.name,emoji:'🎯',score:score,rounds:1,avg:opp.rating,tpr:opp.rating,norms:[],newTitles:newTitles,honors:[],published:false,rating:youRating(c,fmt),place:null,format:fmt,oneoff:true};
     momentsFromFinish(c,app.careerFinish);
     if(app.careerLeague){leagueResult(score);app.careerLeague=false;}
+    if(app.careerPro){proResult(score);app.careerPro=false;}
     if(app.careerLegend){var ln=app.careerLegend;if(score===1){c.legendsBeaten=c.legendsBeaten||[];if(c.legendsBeaten.indexOf(ln)<0)c.legendsBeaten.push(ln);c.fame=Math.min(100,c.fame+8);addXp(c,60);unlockAch(c,'legendslayer');pushNews(c,'🎭','You BEAT '+ln+' in an exhibition — a result for the history books!');toastAdd('🎭 You beat '+ln+'!');}else{c.fame=Math.min(100,c.fame+2);pushNews(c,'🎭','You played an exhibition game against '+ln+'.');}app.careerLegend=null;}
     checkAchievements(c);markActiveDay();save();return;
   }
@@ -18622,6 +19458,7 @@ function careerResult(score){
   if(c.nemesis&&opp.name===c.nemesis.name&&score===1)c.nemesis=null;
   tr.round=(tr.round||0)+1;
   if(tr.ko)koAfterGame(c,tr);                     // a knockout decides its match after game two
+  if(tr.wm){tr.wm.planned=tr.wm.planned||tr.rounds;wmAfterGame(c,tr,score);}
   if(tr.kind==='match')matchAfterGame(c,tr);        // a match stops when it is decided
   swissEnsure(tr);                                // …and the next round's pairings go up
   c.played=(c.played||0)+1;if(score===1)c.won=(c.won||0)+1;else if(score===0)c.lost=(c.lost||0)+1;else c.drawn=(c.drawn||0)+1;
@@ -18654,6 +19491,7 @@ function finalizeTournament(c){
   // a match is won on more than half the points — or, level, in the tiebreaks
   const matchWon=tr.kind==='match'?(tr.tb?!!tr.tb.won:scoreTot>games/2):false;
   const olyM=tr.oly?olyMedals(tr.oly):null;
+  if(!tr.oly&&!tr.ko&&tr.kind!=='match')playoffFirst(c,tr);   // a tie for first in a title event is played off
   const place=tr.kind==='match'?(matchWon?1:2):tr.ko?koPlace(tr):(olyM&&olyM.place)?olyM.place:(tr.standings?standingsRank(tr):simulatePlace(tr.field,scoreTot,games));
   const won1st=tr.kind==='match'?matchWon:(place===1);
   let gainedHonors=[];
@@ -18668,6 +19506,10 @@ function finalizeTournament(c){
     cycleQualify(c,tr.ko?'reaching the final of the World Cup':(place===1?'winning ':'finishing '+ordinal(place)+' at ')+'the '+def.name);
   }
   if(tr.id==='candidates'&&won1st)cycleInit(c).chall=c.season||1;
+  if(tr.id==='candidates'){
+    const _X=wxInit(c),_w=won1st?null:(tr.standings?standingsSorted(tr).filter(function(p){return !p.you;})[0]:null);
+    _X.cands=won1st?{season:c.season||1,you:true,name:c.name}:(_w?{season:c.season||1,name:_w.name,flag:_w.flag}:null);
+  }
   if(tr.id==='wcc')cycleAfterMatch(c,tr,won1st,!!tr.tb);
   // Olympiad: your board score plus simulated team-mates decides a team medal
   // The Olympiad's medals come off the real nations table and a real ranking of
@@ -18740,7 +19582,8 @@ function finalizeTournament(c){
   gainedNorms.forEach(function(k){pushFeed(c,'📜',esc(c.name||'You')+' scores a '+k+' norm at '+esc(tr.name)+'.','you');});
   app.careerFinish={name:tr.name,emoji:tr.emoji,score:scoreTot,rounds:games,avg:avgOpp,tpr:tpr,norms:gainedNorms,newTitles:newTitles,honors:gainedHonors,published:published,rating:youRating(c,fmt),place:place,format:fmt,xt:(c.history[0]&&c.history[0].xt)||null,
     missed:missedNorms,prize:prize,shared:_pz.shared,olyPay:app._olyPay||0,
-    match:tr.kind==='match'?{won:matchWon,tb:tr.tb||null,planned:tr.planned||null}:null};
+    match:tr.kind==='match'?{won:matchWon,tb:tr.tb||null,planned:tr.planned||null}:null,
+    playoff:(tr.playoff&&tr.playoff.you)?tr.playoff:null,tie:tieNote(tr)};
   app._olyPay=0;
   momentsFromFinish(c,app.careerFinish);      // the event is over: keep what was worth keeping
   lifeAfterEvent(tr,place,games);

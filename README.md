@@ -490,11 +490,90 @@ country finished, not where you finished among the nine board ones you played,
 which had also been handing out an "Olympiad Board Medal" to anyone who topped
 that list.
 
-Not done yet: a player's title is still read straight off their rating, where
-in life titles lag and lead ratings both ways; the Olympiad is held every
-season rather than every other; the World Cup is 128 players rather than 206
-with byes for the top seeds; and the calendar's weeks are advice — you can enter
-any event in any week of the season.
+**12. The calendar is the real one.** Any event could be entered in any week.
+A named event is now held in its week of the year — Hastings at New Year, Wijk
+aan Zee in January, the Candidates in the spring, Norway Chess at the end of
+May, the Olympiad in September, the title match in November, the World Rapid
+and Blitz between Christmas and New Year — and you enter it that week or the
+week before, not otherwise. With events taking real days, that makes clashes:
+a thirteen-day open in the wrong fortnight costs you Reykjavik. The calendar
+shows the season and its year, what is coming, and a "Go to week" button that
+lives the weeks in between on your weekly plan. Opens, round-robins and club
+events still run every week.
+
+**13. Some events are every other year.** The Olympiad, the Candidates and the
+title match are held in even years and the World Cup and the Grand Swiss in odd
+ones, as they are. Season one is 2026. It is what makes the cycle a cycle: a
+World Cup final in 2027 is a place in the Candidates of 2028.
+
+**14. The world list is the size of the world.** The list of names is a couple
+of hundred players, from the top down to club level, so there is always
+somebody near you; counted by position in it, a 2480 was the 62nd best player
+in the world. Places are now read off the depth of the real list of active
+players: a 2480 is about 1,300th, a 2560 about 350th, a 2200 about 9,000th,
+and above 2750 the list is the world. Invitations and the rating places for the
+World Cup (now the world top 60, about 2680) and the Candidates use the real
+place. Olympiad selection is your federation's top five — read off the strength
+the country fields, since the named list holds only a few players from each.
+
+**15. Titles are earned.** Everybody else's title was their rating that minute:
+2500 and you were a grandmaster, 2499 and you were not. Anonymous players now
+draw a title from how the real list is spread at their rating — at 2460 nearly
+half are grandmasters and most of the rest IMs; at 2620 everybody is a
+grandmaster; at 2150 most have none. Everyone on the world list keeps the title
+they have, is promoted a season or two after the rating gets there, and never
+loses one.
+
+**16. The field lives.** The world list was the same people for ever, and the
+rising stars rose only as far as a drift that pulled them back. Every player now
+has an age and a talent, and a season moves a rating the way a career does —
+quickly in the teens, flat in the late twenties, down from the late thirties.
+Players retire from forty on; five teenagers rated 2250–2550 and three club
+players join the list every season, and ten years later the teenagers are a
+couple of hundred points better. The rest of the world plays its own title
+cycle: if you are not in the Candidates, it is played without you three weeks
+after its week, its winner plays the champion, and the title can change hands.
+The champion when a career begins is Gukesh, who has held it since December
+2024. A champion who does not defend the title in its year loses it. And the
+elite round-robins are the elite: Wijk aan Zee, Norway Chess and the rest are
+players off the world list around the event's level, and the Candidates is the
+seven best players in the world who are not the champion.
+
+**17. Ties are broken on the games.** Players level on points were put in order
+of rating, so the higher-rated player took the trophy, the norm, the qualifying
+place and the title. An open now uses Buchholz Cut-1, then Buchholz, then wins;
+a round-robin uses Sonneborn-Berger, then wins; and the standings show the
+tiebreak column once there is a tie. The Candidates, a national championship,
+Wijk aan Zee and the World Rapid and Blitz play a tie for first off — rapid then
+blitz then armageddon (blitz first where the event is), rated as they are — and
+the finish banner says how your place was settled.
+
+**18. The professional leagues pay.** For most professionals the money is in
+the leagues, not the opens, and the club league here stopped at a Division 1
+of 2350s. A strong player now gets offers from the 4NCL (from 2300), the French
+Top 12 (2400), the Bundesliga (2450) and the China Chess League (2550): a fee
+for every game — about 💰310 a game for a 2500 in the Bundesliga, 💰1,900 for a
+2700 — a board on an eight-board team where your rating puts you, and seven
+weekends through the season, flights on the club. A weekend you are somewhere
+else — at a tournament, say — a reserve plays and you are not paid. Champions get a bonus, and the
+contract renews each season unless your rating falls out of the league.
+
+**19. The title match is an event of its own.** It was fourteen games against a
+name. You now pick your seconds before game one — an opening specialist, a
+computer second, an endgame expert, a sports psychologist — each paid for and
+each worth a few points of rating in every game, and each one more person who
+knows your preparation: it leaks two per cent of the time, plus two for every
+second. After every two games there is a rest day to rest or prepare; after
+every game a press conference, gracious, confident or needling, and needling
+can get to your opponent or come back at you. The story of the match is kept
+game by game ("You strike first", "Gukesh levels the match"), and when the
+champion is you, losing it reads as losing your title.
+
+Not done yet: the Olympiad team and the national championship are drawn from
+the federation's strength rather than from named compatriots on the world list;
+the World Cup is 128 players rather than 206 with byes for the top seeds; and
+the opens are still a hall of about twenty invented players rather than people
+off the world list.
 
 ## The Olympiad is a team event
 
@@ -1239,7 +1318,7 @@ launch builds nothing.
 
 ## Tests
 
-Fifty-five suites, about 5,250 checks, plus fourteen browser suites that drive the real app with the real engine.
+Fifty-five suites, about 5,300 checks, plus fourteen browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
@@ -1277,9 +1356,14 @@ players level on points; that a year of weeks is a year and an event costs the
 days and the fare it should; and the championship cycle end to end — a place
 that lapses, a Candidates that uses it up, a title match that stops when it is
 decided or goes to tiebreaks at 7–7, a defence against somebody other than
-yourself, and a lost title. Several of its checks are statistical, and each was
-run ten times in a row before it was trusted. `visual-cycle.mjs` walks the same
-cycle in a browser, from a locked Candidates to the reign.
+yourself, and a lost title; the calendar and its weeks, the even and odd years,
+places on the real list, earned titles, a world that ages, retires and brings
+up juniors, Buchholz and Sonneborn-Berger on hand-built crosstables, playoffs,
+the pro leagues' fees and missed weekends, and the title match's seconds,
+leaks, rest days and press conferences. Several of its checks are statistical,
+and each was run ten times in a row before it was trusted. `visual-cycle.mjs`
+walks the same cycle in a browser, from a locked Candidates through the
+calendar's "Go to week" to the seconds, the press conference and the reign.
 
 `validate-olympiad.mjs` plays thirty Olympiads and checks the books balance —
 every match hands out exactly two match points and four game points, no nation

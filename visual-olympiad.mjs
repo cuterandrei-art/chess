@@ -35,7 +35,7 @@ await page.click('[data-act="careersetup"]'); await page.waitForTimeout(500);
 await page.evaluate(()=>{
   const H=window.__APPHOOK__,c=H.store.career;
   H.lifeInit(c);
-  c.name='Ada Marín';c.fed='ROU';c.flag='🇷🇴';
+  c.name='Ada Marín';c.fed='ROU';c.flag='🇷🇴';c.season=1;c.weeks=37;c.day=0;   // an Olympiad year, in September
   c.rating=2610;c.ratingRapid=2570;c.ratingBlitz=2555;c.provisional=false;
   c.played=80;c.won=40;c.drawn=25;c.lost=15;c.titles=['CM','FM','IM','GM'];
   H.save();H.render();
