@@ -1038,6 +1038,44 @@ app in a browser against positions whose answers are known independently
 (mates both ways, a queen up each way, finished games, stepping faster than
 the engine can answer, and a game with one known blunder).
 
+## Search
+
+Thirty-odd screens, 29 openings and their courses, puzzles by theme,
+endgames, classic games, a master database, your studies and your own
+imported games, and until now no way to look any of it up. The 🔍 in the top
+bar, `/` or Ctrl+K opens one box over all of it. Matching ignores case,
+accents and apostrophes, so "reti" finds the Réti and "queens gambit" finds
+the Queen's Gambit. It ranks the start of a word first and understands what
+people call things: "fen" finds the analysis board, "notifications" finds
+Reminders, "backup" finds moving your progress. Results come grouped, and
+↑ ↓ Enter and Esc work from the keyboard. An opening opens in the explorer, a
+tactic opens its puzzles, a setting opens Settings at its card, and one of
+your own games opens on the analysis board. Nothing is built or fetched to
+answer: searching all 29 openings builds none of them.
+
+## Reduced motion
+
+The piece slide, the confetti and the interface's small transitions are
+decoration, and for some people movement on screen brings on nausea or
+dizziness. That is what the system's *reduce motion* setting is for, and
+the app ignored it. **Settings → Motion** now defaults to *Follow my device*.
+It changes the moment the device setting does, with no reload, and the
+card says what the device is set to. *Full* and *Reduced* override it either
+way. Reduced motion stops the piece slide and the confetti, and switches off
+every CSS animation and transition. In Chromium with the device asking for
+less, the piece landing on e4 is never touched, and a button's transition
+reads `0s` instead of `0.15s`.
+
+The phone header also fits on one row again, from 320 px up. It had been
+wrapping onto two rows below 390 px. The menu button there is just ☰ (the
+bottom bar already says "More"), and the narrowest phones keep only the logo.
+
+`validate-search.mjs` covers the finding, the keyboard, where each kind of
+result opens, and all three motion settings, including a device that changes
+its mind.
+
+---
+
 ## Play a friend on the same device
 
 Every game used to go to the engine. **Play → Play a friend on this device**
@@ -1201,7 +1239,7 @@ launch builds nothing.
 
 ## Tests
 
-Fifty-four suites, about 5,200 checks, plus fourteen browser suites that drive the real app with the real engine.
+Fifty-five suites, about 5,250 checks, plus fourteen browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —

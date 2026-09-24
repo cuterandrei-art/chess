@@ -41,6 +41,10 @@
   .menubtn .mlabel{color:var(--brand2)}
   .instbtn{flex:0 0 auto;white-space:nowrap}
   @media(max-width:700px){.instbtn .mlabel{display:none}}
+  /* a phone's header holds back, the name, search, install and the menu on one row:
+     the bottom bar already says "More", and the narrowest phones keep just the logo */
+  @media(max-width:480px){.menubtn .mlabel{display:none}.menubtn{padding:8px 11px}.navright{gap:6px}.topin{gap:8px}}
+  @media(max-width:370px){.brand .bt{display:none}}
   .menupanel .instrow{grid-column:1/-1;background:var(--brand);color:#fff;font-weight:700}
   .menupanel .xferrow{grid-column:1/-1}
   .menubtn .caret{margin-left:2px;color:var(--muted);font-size:11px;transition:transform .15s}
@@ -55,6 +59,15 @@
   .confetti{position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden}
   .confetti i{position:absolute;top:-14px;width:9px;height:14px;border-radius:2px;opacity:.92;animation:conffall linear forwards}
   @keyframes conffall{to{transform:translateY(104vh) rotate(720deg);opacity:.8}}
+  html[data-motion="reduced"] *,html[data-motion="reduced"] *::before,html[data-motion="reduced"] *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  html[data-motion="reduced"] .confetti{display:none}
+  .srchbox{position:fixed;left:50%;top:8vh;transform:translateX(-50%);z-index:999;width:min(620px,calc(100vw - 24px));max-height:84vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+  .srchrow{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:7px 8px;border:0;border-radius:9px;background:transparent;color:var(--text);font:inherit;cursor:pointer}
+  .srchrow:hover,.srchrow.on{background:var(--panel2)}
+  .srchrow.on{outline:1px solid var(--brand)}
+  .srchrow .se{width:24px;text-align:center;flex:none}
+  .srchrow .st{display:flex;flex-direction:column;min-width:0}
+  .srchrow .st b,.srchrow .st span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .topnav{display:none;gap:2px;align-items:center}
   .topnav button{background:transparent;border:0;color:var(--muted);font:inherit;font-weight:700;padding:8px 12px;border-radius:9px;cursor:pointer}
   .topnav button:hover{background:#16223b;color:var(--text)}
@@ -4233,7 +4246,7 @@ function applySceneBg(){
   var sc=SCENES[k]||SCENES.none;
   document.documentElement.style.setProperty('--scene-bg',sc.bg||'none');
 }
-function applyAppTheme(){const t=APP_THEMES[store.settings.appTheme]||APP_THEMES.midnight;const r=document.documentElement.style;
+function applyAppTheme(){applyMotion();const t=APP_THEMES[store.settings.appTheme]||APP_THEMES.midnight;const r=document.documentElement.style;
   try{document.documentElement.setAttribute('data-ui',t.ui||'');}catch(e){}
   applySceneBg();
   r.setProperty('--bg',t.bg);r.setProperty('--panel',t.panel);r.setProperty('--panel2',t.panel2);r.setProperty('--border',t.border);
@@ -5479,8 +5492,9 @@ function render(){
     nav.map(v=>'<button data-act="nav" data-val="'+v+'" class="'+(app.view===v?'active':'')+'">'+navIcon(v)+' '+label(v)+'</button>').join('');
   const head='<header class="top"><div class="topin">'+
     '<button class="btn ghost sm" data-act="back" title="Back" style="margin-right:2px'+((app.navHist&&app.navHist.length)?'':';visibility:hidden')+'">←</button>'+
-    '<div class="brand" data-act="nav" data-val="career"><span class="mark">♞</span>Chess<span style="color:var(--brand2)">Career</span></div>'+
+    '<div class="brand" data-act="nav" data-val="career" aria-label="Chess Career"><span class="mark">♞</span><span class="bt">Chess<span style="color:var(--brand2)">Career</span></span></div>'+
     '<div class="navright">'+topnav+
+      '<button class="btn ghost sm" data-act="srchopen" title="Search (/)" aria-label="Search">🔍</button>'+
       (installStatus()==='installed'?'':'<button class="btn primary sm instbtn" data-act="install" title="Install Chess Career as an app" aria-label="Install the app">⬇<span class="mlabel" style="margin-left:5px">Install</span></button>')+
       '<div class="menu">'+
         '<button class="menubtn'+(app.menuOpen?' open':'')+'" data-act="menutoggle">☰ <span class="mlabel">More</span></button>'+
@@ -5534,7 +5548,7 @@ function render(){
   // a redraw from something in the background (the engine, a sync) must not
   // throw you out of the text field you are typing in
   let _kf=null;try{const ae=document.activeElement;if(ae&&ae.id&&/^(INPUT|TEXTAREA)$/.test(ae.tagName)&&ae.type!=='file'&&ae.type!=='checkbox'){_kf={id:ae.id,s:null,e:null};try{_kf.s=ae.selectionStart;_kf.e=ae.selectionEnd;}catch(e){}}}catch(e){}
-  document.getElementById('app').innerHTML=chrome+'<div class="wrap">'+body+'</div>'+confirmOverlay()+promoOverlay()+xferSheet()+'<input id="importfile" type="file" accept="application/json,.json" style="display:none">';
+  document.getElementById('app').innerHTML=chrome+'<div class="wrap">'+body+'</div>'+confirmOverlay()+promoOverlay()+xferSheet()+srchSheet()+'<input id="importfile" type="file" accept="application/json,.json" style="display:none">';
   if(_kf){try{const el=document.getElementById(_kf.id);if(el&&el!==document.activeElement){el.focus({preventScroll:true});if(_kf.s!=null&&el.setSelectionRange)el.setSelectionRange(_kf.s,_kf.e);}}catch(e){}}
   srNode();                       // outside #app, so a redraw never wipes it
   if(app.view==='play'&&app.playStatus==='over'&&resultKind(app.playResult)==='win'&&app._fxKey!==app.playResult){app._fxKey=app.playResult;confetti();}
@@ -9911,6 +9925,7 @@ function viewSettings(){
     rowSet('Board size','Drag to resize the board.','<input type="range" min="300" max="760" step="10" value="'+(store.settings.boardSize||520)+'" data-setting="boardSize">')+
     rowSet('Move sounds','',(store.settings.sound!==false?'<input type="checkbox" data-setting="sound" checked>':'<input type="checkbox" data-setting="sound">'))+
     rowSet('Sound theme','',('<select data-setting="soundTheme">'+['classic','soft','wood','marimba'].map(function(k){return '<option value="'+k+'"'+((store.settings.soundTheme||'classic')===k?' selected':'')+'>'+k[0].toUpperCase()+k.slice(1)+'</option>';}).join('')+'</select>'))+
+    '<div id="motionrow">'+rowSet('Motion','The piece slide, confetti and small interface animations. “Follow my device” uses its reduce-motion setting (it is '+(osReducedMotion()?'on':'off')+' here).','<select data-setting="motion"><option value="auto"'+(motionPref()==='auto'?' selected':'')+'>Follow my device</option><option value="full"'+(motionPref()==='full'?' selected':'')+'>Full motion</option><option value="reduced"'+(motionPref()==='reduced'?' selected':'')+'>Reduced motion</option></select>')+'</div>'+
     rowSet('Smooth animations','Slide pieces when a move is played.',(store.settings.anim!==false?'<input type="checkbox" data-setting="anim" checked>':'<input type="checkbox" data-setting="anim">'))+
     rowSet('Vibration (mobile)','Haptic feedback on moves & captures.',(store.settings.haptics?'<input type="checkbox" data-setting="haptics" checked>':'<input type="checkbox" data-setting="haptics">'))+
     rowSet('Board arrows','Right-click or long-press to draw arrows & highlight squares; left-click clears them.','')+'</div>'+
@@ -10082,7 +10097,7 @@ const SOUND_THEMES={classic:{type:'triangle',move:300,capture:170,check:620},sof
 function sfx(type){if(!store.settings.sound)return;try{_actx=_actx||new (window.AudioContext||window.webkitAudioContext)();const o=_actx.createOscillator(),g=_actx.createGain();o.connect(g);g.connect(_actx.destination);const t=_actx.currentTime;const th=SOUND_THEMES[store.settings.soundTheme]||SOUND_THEMES.classic;o.type=th.type;o.frequency.value=type==='capture'?th.capture:type==='check'?th.check:th.move;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.12,t+0.008);g.gain.exponentialRampToValueAtTime(0.0001,t+0.13);o.start(t);o.stop(t+0.14);}catch(e){}}
 function sfxSan(san){if(!san)return;var ty=/[+#]/.test(san)?'check':/x/.test(san)?'capture':'move';sfx(ty);if(store.settings.haptics&&navigator.vibrate){try{navigator.vibrate(ty==='capture'?18:ty==='check'?[10,28,10]:9);}catch(e){}}}
 function resultKind(txt){txt=txt||'';if(/you won|you win/i.test(txt))return 'win';if(/you lost|wins\.|resigned/i.test(txt))return 'loss';if(/draw/i.test(txt))return 'draw';return 'over';}
-function confetti(n){try{if(typeof document==='undefined'||!document.body)return;var wrap=document.createElement('div');wrap.className='confetti';var cols=['#f59e0b','#22c55e','#1c84f5','#ec4899','#a855f7','#eab308','#38bdf8'];n=n||90;for(var i=0;i<n;i++){var p=document.createElement('i');p.style.left=(Math.random()*100)+'vw';p.style.background=cols[i%cols.length];p.style.animationDelay=(Math.random()*0.5)+'s';p.style.animationDuration=(1.6+Math.random()*1.5)+'s';p.style.opacity=0.6+Math.random()*0.4;wrap.appendChild(p);}document.body.appendChild(wrap);setTimeout(function(){if(wrap.parentNode)wrap.parentNode.removeChild(wrap);},3400);}catch(e){}}
+function confetti(n){try{if(typeof document==='undefined'||!document.body||motionReduced())return;var wrap=document.createElement('div');wrap.className='confetti';var cols=['#f59e0b','#22c55e','#1c84f5','#ec4899','#a855f7','#eab308','#38bdf8'];n=n||90;for(var i=0;i<n;i++){var p=document.createElement('i');p.style.left=(Math.random()*100)+'vw';p.style.background=cols[i%cols.length];p.style.animationDelay=(Math.random()*0.5)+'s';p.style.animationDuration=(1.6+Math.random()*1.5)+'s';p.style.opacity=0.6+Math.random()*0.4;wrap.appendChild(p);}document.body.appendChild(wrap);setTimeout(function(){if(wrap.parentNode)wrap.parentNode.removeChild(wrap);},3400);}catch(e){}}
 
 /* ---- drag-and-drop (pointer based; works with mouse + touch) ---- */
 function curFen(){return app.view==='analysis'?anaFen():app.view==='explore'?exFen():app.view==='train'?app.fen:app.view==='play'?(app.playStack?app.playStack[app.playView]:app.playFen):app.view==='puzzles'?(app.pz?app.pz.fenNow:null):app.view==='eglesson'?(app.egLesson?app.egLesson.fen:null):app.view==='clearn'?(app.cl?app.cl.fen:null):null;}
@@ -10203,7 +10218,7 @@ window.addEventListener('pointerup',onPUp);
 document.getElementById('app').addEventListener('contextmenu',function(e){if(e.target.closest&&e.target.closest('.board'))e.preventDefault();});
 /* Smooth piece glide (FLIP): pieces slide from their old square to the new one
    with a chess.com-like ease; castling also glides the rook. */
-function animateLast(){var b=document.querySelector('.board[data-last]');if(!b)return;var dl=b.getAttribute('data-last')||'';var key=(b.getAttribute('data-fen')||'')+'|'+dl;if(dl.length<4){app._animKey=key;return;}if(app._animKey===key)return;app._animKey=key;if(store.settings.anim===false)return;
+function animateLast(){var b=document.querySelector('.board[data-last]');if(!b)return;var dl=b.getAttribute('data-last')||'';var key=(b.getAttribute('data-fen')||'')+'|'+dl;if(dl.length<4){app._animKey=key;return;}if(app._animKey===key)return;app._animKey=key;if(store.settings.anim===false||motionReduced())return;
   var from=dl.slice(0,2),to=dl.slice(2,4);var EASE='transform .18s cubic-bezier(.22,.65,.3,1)';
   function slide(fromSq,toSq){var ts=b.querySelector('[data-sq="'+toSq+'"]'),fs=b.querySelector('[data-sq="'+fromSq+'"]');if(!ts||!fs)return false;var pc=ts.querySelector('.pc,.piece');if(!pc)return false;
     var fr=fs.getBoundingClientRect(),tr=ts.getBoundingClientRect();var dx=fr.left-tr.left,dy=fr.top-tr.top;if(!dx&&!dy)return false;
@@ -10502,6 +10517,9 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='xferopen'){app.menuOpen=false;app.xfer={open:true};render();}
   else if(act==='xferclose'){app.xfer=null;render();}
   else if(act==='xferapply')applyReceived();
+  else if(act==='srchopen')srchOpen();
+  else if(act==='srchclose')srchClose();
+  else if(act==='srchgo')srchRun(val);
   else if(act==='anaload'){const ta=document.getElementById('ana-in');anaLoadText(ta?ta.value:(app.anaText||''));}
   else if(act==='anastart'){app.anaErr=null;anaOpen(ANA_START,[],0,'Analysis board');}
   else if(act==='anainput'){if(app.ana){app.ana.input=true;app.anaErr=null;render();const ta=document.getElementById('ana-in');if(ta)ta.focus();}}
@@ -10580,6 +10598,7 @@ document.getElementById('app').addEventListener('change',e=>{
     else if(ds==='coords')store.settings.coords=e.target.checked;
     else if(ds==='sound')store.settings.sound=e.target.checked;
     else if(ds==='anim')store.settings.anim=e.target.checked;
+    else if(ds==='motion')store.settings.motion=(e.target.value==='full'||e.target.value==='reduced')?e.target.value:'auto';
     else if(ds==='haptics')store.settings.haptics=e.target.checked;
     else if(ds==='boardSize')store.settings.boardSize=+e.target.value;
     else if(ds==='blunderWarn')store.settings.blunderWarn=e.target.checked;
@@ -10598,7 +10617,8 @@ document.getElementById('app').addEventListener('change',e=>{
     r.onload=()=>receiveBackup(String(r.result||''),'file');
     r.readAsText(f);e.target.value='';}
 });
-document.getElementById('app').addEventListener('input',e=>{if(e.target&&e.target.id==='ana-in'){app.anaText=e.target.value;return;}const ds=e.target.dataset&&e.target.dataset.setting;if(ds==='boardSize'){store.settings.boardSize=+e.target.value;document.body.style.setProperty('--bw',store.settings.boardSize+'px');}});
+document.getElementById('app').addEventListener('input',e=>{if(e.target&&e.target.id==='ana-in'){app.anaText=e.target.value;return;}
+  if(e.target&&e.target.id==='srch-q'&&app.srch){app.srch.q=e.target.value;app.srch.sel=0;srchUpdate();return;}const ds=e.target.dataset&&e.target.dataset.setting;if(ds==='boardSize'){store.settings.boardSize=+e.target.value;document.body.style.setProperty('--bw',store.settings.boardSize+'px');}});
 
 /* ============================ Stockfish engine ============================ */
 /* ---------------------------------------------------------------------------
@@ -19894,6 +19914,147 @@ function splitPGNGames(pgn){pgn=(pgn||'').replace(/\r/g,'');const lines=pgn.spli
   for(const ln of lines){if(/^\[Event /.test(ln)&&cur.length&&seenMoves){parts.push(cur.join('\n'));cur=[];seenMoves=false;}if(!/^\[/.test(ln)&&ln.trim()!=='')seenMoves=true;cur.push(ln);}
   if(cur.length)parts.push(cur.join('\n'));return parts.filter(p=>/\[Event|\d\.|[KQRBN]/.test(p));}
 
+/* ---------------------------------------------------------------------------
+   Motion. The piece glide, the confetti and the interface's small transitions
+   are decoration, and for some people movement on screen brings on nausea or
+   dizziness — which is what the system's "reduce motion" setting is for. The
+   app followed none of it. 'auto' (the default) now follows the device and
+   changes with it; 'full' and 'reduced' override it either way.
+   --------------------------------------------------------------------------- */
+function motionPref(){var m=store.settings.motion;return m==='full'||m==='reduced'?m:'auto';}
+function osReducedMotion(){try{return !!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);}catch(e){return false;}}
+function motionReduced(){var m=motionPref();return m==='reduced'||(m==='auto'&&osReducedMotion());}
+function applyMotion(){try{document.documentElement.setAttribute('data-motion',motionReduced()?'reduced':'full');}catch(e){}}
+(function(){try{var mq=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)');if(!mq)return;
+  var f=function(){applyMotion();if(typeof render==='function')render();};
+  if(mq.addEventListener)mq.addEventListener('change',f);else if(mq.addListener)mq.addListener(f);}catch(e){}})();
+
+/* ---------------------------------------------------------------------------
+   Search. Thirty-odd screens, 29 openings and their courses, puzzles by theme,
+   endgames, classic games, a master database, your studies and your own
+   imported games — and no way to look any of it up. "/" or Ctrl+K (or the 🔍
+   in the top bar) opens one box over all of it. Matching ignores case and
+   accents and ranks the start of a word first. Nothing is built, fetched or
+   loaded to answer: an opening is found by its name, not by building it.
+   --------------------------------------------------------------------------- */
+function srchNorm(t){return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/['\u2019`]/g,'').replace(/[^a-z0-9#+ ]+/g,' ').replace(/\s+/g,' ').trim();}
+const SRCH_SCREENS=[
+  ['career','🏆','Career','Your career: tournaments, rating, titles','fide elo norms gm im'],
+  ['dashboard','📊','Dashboard','Due reviews, mastery, streak','stats progress'],
+  ['play','♟️','Play vs the engine','Stockfish or a bot, any time control','game computer bot blitz rapid'],
+  ['play#passcard','👥','Play a friend on this device','Two players, one board','pass and play two player hotseat'],
+  ['puzzles','🧩','Puzzles','25,000 tactics, rated','tactics'],
+  ['learn','📚','Learn','Everything for studying','study'],
+  ['courses','📘','Guided opening courses','Move by move, chapter by chapter','lessons'],
+  ['train','🎓','Train your repertoire','Review what is due, learn new lines','drill spaced repetition srs review'],
+  ['library','📖','Opening library','Add openings to your repertoire','repertoire openings'],
+  ['endgames','♟️','Endgames','Lessons and positions to win or hold','ending'],
+  ['classics','🏛️','Classic games','The famous games, move by move','immortal opera'],
+  ['guess','🎯','Guess the move','Play along with a master game',''],
+  ['blindfold','🙈','Blindfold','Play without seeing the pieces','visualisation'],
+  ['daily','📅','Daily puzzle','One a day',''],
+  ['review','🔍','Game Review','Accuracy, mistakes and blunders','analyse pgn'],
+  ['analysis','🔬','Analysis board','Paste a FEN or a PGN','fen pgn position engine setup'],
+  ['brilliancy','💎','Brilliancies','Your best moves, collected',''],
+  ['report','📝','Report','How your training is going',''],
+  ['import','📥','Import your games','Build a course from your own games','chess.com lichess'],
+  ['tracker','📡','Chess.com tracker','Your real games and rating','chesscom lichess stats'],
+  ['studies','📚','Studies','Your own annotated studies','chapters'],
+  ['masters','👑','Master games','A database of master games','database'],
+  ['magazine','📰','Sixty-Four, the magazine','Your season, written up','news'],
+  ['hall','🏛️','The hall','Finished careers',''],
+  ['settings','⚙️','Settings','Board, pieces, sounds, engine','options preferences'],
+  ['settings#remindcard','🔔','Reminders','A notification when reviews are due','notifications notify alert'],
+  ['settings#xfercard','⇄','Move progress to another device','Send it from here, open it there','backup export import sync transfer phone pc'],
+  ['settings#motionrow','🌀','Motion','Reduce motion: piece sliding, confetti','animation accessibility reduced motion'],
+  ['install','⬇','Install the app','On this PC or phone','pwa home screen'],
+  ['career@play','🏆','Career: play','Next event, today’s plan','tournament round'],
+  ['career@you','🙂','Career: you','Profile, style, unlocks','avatar'],
+  ['career@progress','📈','Career: progress','Rating, titles, norms','history'],
+  ['career@life','🧳','Career: life','Money, home, health, the week','rent energy'],
+  ['career@world','🌍','Career: world','Rankings and rivals','rating list'],
+  ['career@media','📺','Career: media','Press, fans, streaming','news'],
+  ['career@legacy','📜','Career: legacy','Records and the hall','']
+];
+function srchIndex(){
+  var out=[],add=function(g,e,t,s,k,run){out.push({g:g,e:e,t:t,s:s||'',k:' '+srchNorm(t+' '+(s||'')+' '+(k||'')),tn:' '+srchNorm(t),run:run});};
+  SRCH_SCREENS.forEach(function(x){add('Screens',x[1],x[2],x[3],x[4],function(){srchGoScreen(x[0]);});});
+  BUILT.forEach(function(o){add('Openings','📖',o.name,(o.eco?o.eco+' · ':'')+(o.side==='white'?'White':'Black')+' · '+(o.category||''),'opening '+(o.eco||''),
+    function(){app.exId=o.id;app.exPath=[];app.exFlip=false;app.sel=null;app.exFree=null;app._exKey=null;go('explore');});});
+  try{Object.keys(OPENING_COURSES).forEach(function(id){var c=OPENING_COURSES[id];if(!c||!c.name)return;
+    add('Courses','📘',c.name+' — course',c.tagline||'','guided lesson chapters',function(){var d=courseDone(id),n=courseChapters(id).length,ci=0;while(ci<n&&d.indexOf(ci)>=0)ci++;clStart(id,Math.min(ci,Math.max(0,n-1)),false);});});}catch(e){}
+  MOTIFS.forEach(function(m){add('Puzzles',m.e,m.n+' puzzles',m.d,'tactic motif theme',function(){app.view='puzzles';app.pzFilter={type:'motif',motif:m.k};app.pz=null;pzNext();});});
+  ENDGAMES.forEach(function(x){add('Endgames',x.emoji||'♟️',x.name,x.cat,'endgame ending '+(x.goal||''),
+    function(){if(EG_LESSONS[x.id])egLessonStart(x.id);else startPlay(x.fen,x.side,null,x.emoji+' '+x.name,{tc:tcById('unlimited')});});});
+  CLASSICS.forEach(function(c){add('Classic games',c.emoji||'🏛️',c.title,c.w+' – '+c.b+', '+c.y,(c.open||'')+' '+(c.ev||''),function(){app.classicId=c.id;app.classicPly=0;app.classicFlip=false;go('classics');});});
+  MASTERGAMES.forEach(function(g,i){add('Master games','👑',g.w+' – '+g.b,(g.e||'')+(g.y?' '+g.y:'')+(g.o?' · '+g.o:'')+' · '+g.r,g.p||'',function(){app.mGame=i;app.mIdx=0;app.mFlip=false;go('masters');});});
+  (store.studies||[]).forEach(function(st){add('Your studies','📚',st.name||'Study',((st.chapters||[]).length||0)+' chapters','study',function(){openStudy(st.id);});});
+  (store.myGames||[]).forEach(function(g){if(!g||!g.moves)return;var r=g.result===1?'won':g.result===0?'lost':'drew';
+    add('Your games','♟️','vs '+(g.opp||'?'),(g.color==='w'?'White':'Black')+' · you '+r+(g.date?' · '+new Date(g.date).toISOString().slice(0,10):'')+(g.tc?' · '+g.tc:''),'my game '+(g.src||''),
+      function(){anaOpen(null,g.moves,0,'You vs '+(g.opp||'?'));});});
+  return out;}
+const SRCH_CAP={'Screens':7,'Openings':6,'Courses':4,'Puzzles':4,'Endgames':4,'Classic games':4,'Master games':5,'Your studies':4,'Your games':6};
+function srchFind(q,index){
+  var toks=srchNorm(q).split(' ').filter(Boolean);index=index||srchIndex();
+  if(!toks.length)return index.filter(function(r){return r.g==='Screens';}).slice(0,8);
+  var hits=[];
+  index.forEach(function(r){var sc=0;
+    for(var i=0;i<toks.length;i++){var t=toks[i];
+      if(r.tn.indexOf(' '+t)>=0)sc+=6;else if(r.k.indexOf(' '+t)>=0)sc+=3;else if(r.k.indexOf(t)>=0)sc+=1;else return;}
+    if(r.tn.indexOf(' '+toks.join(' '))===0)sc+=5;
+    hits.push({r:r,sc:sc});});
+  hits.sort(function(a,b){return b.sc-a.sc;});
+  var per={},out=[],order=Object.keys(SRCH_CAP);
+  hits.forEach(function(h){var g=h.r.g;per[g]=(per[g]||0)+1;if(per[g]<=SRCH_CAP[g])out.push(h.r);});
+  // keep each group together, the group with the best hit first (sort is stable, so ranks hold inside a group)
+  var first={};out.forEach(function(r,i){if(first[r.g]==null)first[r.g]=i;});
+  out.sort(function(a,b){return first[a.g]-first[b.g];});
+  return out.slice(0,36);}
+function srchGoScreen(key){
+  if(key==='install'){app.installOpen=true;if(typeof installNow==='function'&&installStatus()==='ready')installNow();else render();return;}
+  var tab=null,anchor=null;
+  if(key.indexOf('@')>0){tab=key.split('@')[1];key=key.split('@')[0];}
+  if(key.indexOf('#')>0){anchor=key.split('#')[1];key=key.split('#')[0];}
+  if(key==='train'){startTraining('all');return;}
+  if(key==='play')app.playFen=null;
+  if(tab)app.careerTab=tab;
+  go(key);
+  if(anchor){var el=document.getElementById(anchor);if(el){try{el.scrollIntoView({block:'start',behavior:motionReduced()?'auto':'smooth'});}catch(e){}}}}
+function srchOpen(){app.srch={q:'',sel:0,index:srchIndex()};app.menuOpen=false;render();
+  var el=document.getElementById('srch-q');if(el)try{el.focus();}catch(e){}}
+function srchClose(){app.srch=null;render();}
+function srchRun(i){var S=app.srch;if(!S)return;var list=srchFind(S.q,S.index);var r=list[+i];if(!r)return;app.srch=null;r.run();}
+function srchResults(){
+  var S=app.srch;if(!S)return '';var list=srchFind(S.q,S.index);
+  if(!list.length)return '<div class="dim small" style="padding:14px 4px">Nothing matches “'+esc(S.q)+'”.</div>';
+  var h='',last=null;
+  list.forEach(function(r,i){
+    if(r.g!==last){h+='<div class="dim" style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin:10px 4px 4px">'+esc(S.q?r.g:'Go to')+'</div>';last=r.g;}
+    h+='<button class="srchrow'+(i===S.sel?' on':'')+'" data-act="srchgo" data-val="'+i+'" role="option"'+(i===S.sel?' aria-selected="true"':'')+'>'+
+      '<span class="se">'+r.e+'</span><span class="st"><b>'+esc(r.t)+'</b>'+(r.s?'<span class="dim small">'+esc(r.s)+'</span>':'')+'</span></button>';});
+  return h;}
+function srchSheet(){
+  if(!app.srch)return '';
+  return '<div class="menuscrim" data-act="srchclose" style="z-index:998;background:rgba(2,6,16,.62)"></div>'+
+    '<div class="card srchbox" role="dialog" aria-label="Search">'+
+    '<div class="row" style="gap:8px;align-items:center"><span aria-hidden="true">🔍</span><input id="srch-q" type="search" autocomplete="off" spellcheck="false" placeholder="Search openings, puzzles, games, screens…" value="'+esc(app.srch.q)+'" style="flex:1;min-width:0" aria-controls="srch-res">'+
+    '<button class="btn ghost sm" data-act="srchclose" aria-label="Close">Esc</button></div>'+
+    '<div id="srch-res" role="listbox" style="margin-top:6px;overflow:auto;max-height:min(60vh,520px)">'+srchResults()+'</div>'+
+    '<div class="dim small" style="margin-top:8px">↑ ↓ to choose · Enter to open · Esc to close · “/” opens this from anywhere</div></div>';}
+function srchUpdate(){var el=document.getElementById('srch-res');if(el)el.innerHTML=srchResults();}
+/* Keys for the search box, and "/" or Ctrl+K to open it. Runs before anything else sees the key. */
+function srchKey(e){
+  var inText=e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)&&e.target.id!=='srch-q';
+  if(!app.srch){
+    if(!inText&&((e.key==='/'&&!e.ctrlKey&&!e.metaKey&&!e.altKey)||((e.ctrlKey||e.metaKey)&&(e.key==='k'||e.key==='K')))){e.preventDefault();srchOpen();return true;}
+    return false;}
+  var S=app.srch,n=srchFind(S.q,S.index).length;
+  if(e.key==='Escape'){e.preventDefault();srchClose();return true;}
+  if(e.key==='ArrowDown'){e.preventDefault();S.sel=Math.min(n-1,S.sel+1);srchUpdate();return true;}
+  if(e.key==='ArrowUp'){e.preventDefault();S.sel=Math.max(0,S.sel-1);srchUpdate();return true;}
+  if(e.key==='Enter'){e.preventDefault();srchRun(S.sel);return true;}
+  return false;}
+
 /* =========================================================================
    ANALYSIS BOARD — any position, from anywhere
 
@@ -20319,6 +20480,7 @@ document.addEventListener('visibilitychange',function(){
   if(document.visibilityState==='hidden'&&app.view==='play')playSave(true);
 });
 window.addEventListener('keydown',e=>{
+  if(srchKey(e))return;
   // a focused board takes the arrows, Enter and Escape before anything else
   if(!(e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))&&kbHandle(e))return;
   // typing a name and pressing Enter is the obvious gesture; the rest of the

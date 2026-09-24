@@ -127,7 +127,8 @@ ok(/installListen\(\);/.test(script),'the app starts listening for the browserâ€
 ok(/window\.__deferredInstall/.test(script),'and picks up an offer the page caught before it booted');
 ok(/installStatus\(\)==='installed'\?'':'<button class="btn primary sm instbtn" data-act="install"/.test(script),
   'the header shows the button until the app is installed');
-ok(/'<div class="navright">'\+topnav\+\n\s*\(installStatus/.test(script),
+// the same row as More: inside .navright, after the nav (search may sit between them)
+ok(/'<div class="navright">'\+topnav\+\n(\s*'<button[^\n]*\n)?\s*\(installStatus/.test(script),
   'and it sits beside More rather than stacked under it');
 ok(/installStatus\(\)==='installed'\?'':'<button class="instrow" data-act="install"/.test(script),
   'the More menu carries a labelled entry too, for narrow screens');
