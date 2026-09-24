@@ -10234,6 +10234,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='questclaim'){var qq=questsEnsure();var qit=qq.items.find(function(x){return x.id===val;});if(qit&&qit.prog>=qit.goal&&!qit.claimed){qit.claimed=true;var qc=store.career;lifeInit(qc);qc.money=(qc.money||0)+qit.cash;addXp(qc,qit.xp);app.careerToast='🗓️ Quest complete: '+qit.text+' — +💰'+qit.cash+', +'+qit.xp+' XP.';save();render();}}
   else if(act==='roadclaim'){var rdc=store.career;lifeInit(rdc);if(!rdc.roadDone)rdc.roadDone=[];var rst=ROADMAP.find(function(x){return x.id===val;});if(rst&&rst.test(rdc)&&rdc.roadDone.indexOf(val)<0){rdc.roadDone.push(val);rdc.money=(rdc.money||0)+(rst.cash||0);addXp(rdc,rst.xp||0);app.careerToast='🧭 Milestone reached: '+rst.t+' — +💰'+(rst.cash||0)+', +'+(rst.xp||0)+' XP.';if(typeof confetti==='function')confetti(90);save();render();}}
   else if(act==='botstart'){var bt=botById(val);if(bt){var bs=Math.random()<0.5?'w':'b';startPlay(new Chess().fen(),bs,null,'🤖 '+bt.emoji+' '+bt.name+' ('+botRating(bt,tcCategory(tcById(store.settings.tcId||'unlimited')))+') · '+styleById(bt.style).emoji+' '+styleById(bt.style).name,{bot:bt,tcId:store.settings.tcId||'unlimited'});}}
+  else if(act==='prematch'&&app.pass){const P=app.pass;startPlay(app.c960?c960Start().fen:new Chess().fen(),'w',null,'👥 '+P.b+' vs '+P.w,{tc:app.tc,pass:{w:P.b,b:P.w,flip:P.flip}});}
   else if(act==='prematch'){var s2=app.playSide==='w'?'b':'w';if(app.playBot){var pb=app.playBot;startPlay(new Chess().fen(),s2,null,'🤖 '+pb.emoji+' '+pb.name+' ('+botRating(pb,tcCategory(tcById(store.settings.tcId||'unlimited')))+') · '+styleById(pb.style).emoji+' '+styleById(pb.style).name,{bot:pb,tcId:store.settings.tcId||'unlimited'});}else{startPlay(new Chess().fen(),s2,app.playOpening,'Free game',{tcId:store.settings.tcId||'unlimited'});}}
   else if(act==='cfirst'){app.classicPly=0;render();}
   else if(act==='cback'){app.classicPly=Math.max(0,(app.classicPly||0)-1);render();}
@@ -10289,8 +10290,11 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='drawall'){var _da=store.career.tour;if(_da){finishDraw(_da);save();render();}}
   else if(act==='expmove'){exMakeMove(val.slice(0,2),val.slice(2,4),val[4]||'q');}
   else if(act==='explay'){const o=byId.get(app.exId);const cur=exCurrent();startPlay(cur.fen,o.side==='white'?'w':'b',o.id,o.name,{tc:tcById(store.settings.tcId||'unlimited'),book:o,bookNode:cur});}
+  else if(act==='pnew'&&app.pass){startPlay(app._playStartFen||new Chess().fen(),'w',null,app.playTitle,{tc:app.tc,pass:app.pass});}
   else if(act==='pnew'){if(app.c960){const g=c960Start();startPlay(g.fen,app.playSide||'w',null,'🎲 Chess960 · vs engine',{tc:app.tc,c960:g.state});}else startPlay(app._playStartFen||new Chess().fen(),app.playSide||'w',app.playOpening||null,app.playTitle||'Free game',{tc:app.tc,bookId:(app.playBook?app.playBook.id:null)});}
   else if(act==='p960'){app.c960setup=!app.c960setup;render();}
+  else if(act==='ppstart')passStart();
+  else if(act==='ppflip'){store.settings.passFlip=!passFlipOn();save();render();}
   else if(act==='egstart'){const e=ENDGAMES.find(x=>x.id===val);if(e)startPlay(e.fen,e.side,null,e.emoji+' '+e.name+' — '+(e.goal==='draw'?'hold the draw':'win'),{tc:tcById('unlimited'),endgame:{id:e.id,goal:e.goal,name:e.name}});}
   else if(act==='eglesson'){egLessonStart(val);}
   else if(act==='clstart'){clStart(val,+(idx||0),false);}
@@ -10377,7 +10381,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='plast')playSeekTo(app.playStack.length-1);
   else if(act==='pseek')playSeekTo(+val);
   else if(act==='pundo')playUndo();
-  else if(act==='phint')playHint();
+  else if(act==='phint'&&!app.pass)playHint();
   else if(act==='pblind'){app.blindfold=!app.blindfold;app.peek=false;render();}
   else if(act==='ppeek'){app.peek=!app.peek;render();}
   else if(act==='blindstart'){const c=val==='r'?(Math.random()<0.5?'w':'b'):val;startPlay(new Chess().fen(),c,null,'Blindfold game',{blindfold:true});}
@@ -11016,6 +11020,7 @@ function updateClockDOM(){if(!app.clock)return;const active=clockRunningSide();
     el.textContent=fmtClock(app.clock[c]);el.classList.toggle('active',active===c);el.classList.toggle('low',app.clock[c]<=15000);}}
 function addIncrement(mover){if(app.clock){app.clock[mover]+=app.clock.inc;app.clock.lastTs=performance.now();}}
 function flagFall(side){stopClockTick();app.playStatus='over';
+  if(app.pass){app.playResult=passResult('time',side);render();return;}
   app.playResult=(side===app.playSide)?'You lost on time. ⏱':'Stockfish lost on time — you win! 🎉';careerResult(side===app.playSide?0:1);render();}
 /* ---- material / captured pieces ---- */
 function material(fen){const pm=pmap(fen);const cnt={w:{p:0,n:0,b:0,r:0,q:0},b:{p:0,n:0,b:0,r:0,q:0}};
@@ -11027,7 +11032,7 @@ function material(fen){const pm=pmap(fen);const cnt={w:{p:0,n:0,b:0,r:0,q:0},b:{
 function capStr(cap,white){const G=white?WPIECE:PIECE;let s='';for(const t of ['q','r','b','n','p'])for(let i=0;i<cap[t];i++)s+=G[t];return s;}
 function playerStrip(color,fen,lvl){
   const isYou=color===app.playSide;const opp=app.careerRoundOpp;const cat=tcCategory(app.tc);
-  const nm=isYou?'You':(app.careerElo?((opp&&opp.title?opp.title+' ':'')+((opp&&opp.name)||'Opponent')+' ('+app.careerElo+')'+(opp&&opp.style?' · '+styleById(opp.style).emoji+' '+styleById(opp.style).name:''))
+  const nm=app.pass?((color==='w'?'♔ ':'♚ ')+passName(color)):isYou?'You':(app.careerElo?((opp&&opp.title?opp.title+' ':'')+((opp&&opp.name)||'Opponent')+' ('+app.careerElo+')'+(opp&&opp.style?' · '+styleById(opp.style).emoji+' '+styleById(opp.style).name:''))
     :(app.playBot?(app.playBot.emoji+' '+app.playBot.name+' ('+botRating(app.playBot,cat)+')')
                  :('Stockfish · '+lvl.label)));
   const mat=material(fen);const captured=color==='w'?capStr(mat.wCap,false):capStr(mat.bCap,true);
@@ -11665,7 +11670,8 @@ function playSnapshot(){
       novelty:!!app.careerNovelty,studyEdge:app.careerStudyEdge||0,
       tourId:(store.career&&store.career.tour)?store.career.tour.id:null,
       round:(store.career&&store.career.tour)?store.career.tour.round:null},
-    park:app.parkBet?{id:app.parkBet.id,stake:app.parkBet.stake,double:!!app.parkBet.double}:null};
+    park:app.parkBet?{id:app.parkBet.id,stake:app.parkBet.stake,double:!!app.parkBet.double}:null,
+    pass:app.pass||null};
 }
 /* Written at move boundaries, and again when the app is about to go away —
    that second one is the whole point on a phone. */
@@ -11719,7 +11725,7 @@ function resumeAge(g){
 function resumeWhere(g){
   // the move about to be played, the way a scoresheet counts it
   const n=Math.floor((g.moves.length||0)/2)+1;
-  const turn=turnOf(g.fen)===g.side?'your move':'their move';
+  const turn=g.pass?((turnOf(g.fen)==='w'?g.pass.w:g.pass.b)+' to move'):turnOf(g.fen)===g.side?'your move':'their move';
   return 'move '+n+' · '+turn;
 }
 function resumeCard(onlyCareer){
@@ -11758,6 +11764,8 @@ function playResume(){
   app._fxKey=null;app._lastEvalCp=null;app._engOutOfBook=false;app._engRetry=0;
   app._evLow=null;app._evHigh=null;
   app.blindfold=!!g.blindfold;app.c960=g.c960||null;app.endgame=g.endgame||null;app.playBot=g.bot||null;
+  app.pass=g.pass&&g.pass.w?Object.assign({},g.pass):null;app.passWinner=null;
+  if(app.pass){app.playSide=turnOf(g.fen);app.playFlip=app.pass.flip?false:(app.playSide==='b');}
   const cr=g.career||{};
   app.careerOpp=cr.opp||null;app.careerElo=cr.elo||null;app.careerTour=!!cr.tour;
   app.careerRoundOpp=cr.roundOpp||null;app.careerOneoff=cr.oneoff||null;app.careerLeague=!!cr.league;
@@ -11782,9 +11790,54 @@ function playResume(){
   if(app.playStatus==='engine')setTimeout(engineMove,420);
   return true;
 }
+/* ---- pass-and-play: two people, one device ----
+   Every game used to go to the engine. With app.pass set, "your side" is simply
+   whoever is to move: after each move the turn — and, if asked, the board —
+   passes to the other player, the engine is never called, and hints and
+   blunder warnings stay off so neither player gets help the other does not.
+   Clocks, take-backs, the resume slot, Game Review and PGN all carry on as
+   they are, with the players' names where "you" and "Stockfish" would be. */
+function passName(side){var P=app.pass;return (P&&P[side])||(side==='w'?'White':'Black');}
+function passOther(side){return side==='w'?'b':'w';}
+function passStart(){
+  var w=((document.getElementById('pp-w')||{}).value||'').trim().slice(0,24)||'White';
+  var b=((document.getElementById('pp-b')||{}).value||'').trim().slice(0,24)||'Black';
+  store.settings.passW=w;store.settings.passB=b;save();
+  var flip=passFlipOn(),tc=tcById(store.settings.tcId||'unlimited');
+  var P={w:w,b:b,flip:flip};
+  if(app.c960setup){var g=c960Start();startPlay(g.fen,'w',null,'👥 '+w+' vs '+b+' · Chess960',{tc:tc,c960:g.state,pass:P});}
+  else startPlay(new Chess().fen(),'w',null,'👥 '+w+' vs '+b,{tc:tc,pass:P});}
+function passFlipOn(){var v=store.settings.passFlip;if(v===true||v===false)return v;
+  // a phone is handed across; a laptop between two people is not
+  try{return (navigator.maxTouchPoints||0)>0;}catch(e){return false;}}
+/* The move is made: the other player's turn, and their side of the board. */
+function passHandOver(){
+  app.playSide=turnOf(app.playFen);app.playStatus='play';
+  app.playFlip=app.pass&&app.pass.flip?false:(app.playSide==='b');
+  render();}
+function passResult(kind,side){
+  // kind: 'mate' (side is mated), 'resign' (side resigns), 'time' (side's flag fell)
+  var loser=side,winner=passOther(side);app.passWinner=winner;
+  if(kind==='mate')return 'Checkmate — '+passName(winner)+' wins the game! 🏆';
+  if(kind==='resign')return passName(loser)+' resigns — '+passName(winner)+' wins the game.';
+  return passName(loser)+'’s flag fell — '+passName(winner)+' wins the game on time. ⏱';}
+function passSetupCard(){
+  var flip=passFlipOn();
+  return '<div class="card" id="passcard" style="max-width:540px;width:100%;text-align:left;margin-top:12px">'+
+    '<div style="font-weight:800;font-size:17px">👥 Play a friend on this device</div>'+
+    '<div class="muted small" style="margin:4px 0 10px">Two players, one board, no engine and no hints. Uses the time control above.</div>'+
+    '<div class="row" style="gap:8px;flex-wrap:wrap">'+
+      '<div style="flex:1;min-width:130px"><div class="dim small" style="margin-bottom:3px">♔ White</div><input id="pp-w" type="text" maxlength="24" placeholder="White" value="'+esc(store.settings.passW||'')+'" style="width:100%"></div>'+
+      '<div style="flex:1;min-width:130px"><div class="dim small" style="margin-bottom:3px">♚ Black</div><input id="pp-b" type="text" maxlength="24" placeholder="Black" value="'+esc(store.settings.passB||'')+'" style="width:100%"></div></div>'+
+    rowSet('Turn the board','Each player sees the board from their own side — for passing a phone back and forth. Off for a screen between you.',
+      '<button class="btn '+(flip?'primary':'ghost')+' sm" data-act="ppflip">'+(flip?'On':'Off')+'</button>')+
+    '<div class="row" style="justify-content:center;margin-top:8px"><button class="btn primary" data-act="ppstart">Start the game</button></div></div>';}
 /* ---- resign / draw offer ---- */
-function resignGame(){if(app.playStatus!=='play'&&app.playStatus!=='engine')return;stopClockTick();app.playStatus='over';app.playResult='You resigned — Stockfish wins.';app.playSel=null;careerResult(0);render();}
+function resignGame(){if(app.playStatus!=='play'&&app.playStatus!=='engine')return;
+  if(app.pass){const who=turnOf(app.playFen);uiConfirm(passName(who)+' resigns?',function(){stopClockTick();app.playStatus='over';app.playResult=passResult('resign',who);app.playSel=null;render();});return;}
+  stopClockTick();app.playStatus='over';app.playResult='You resigned — Stockfish wins.';app.playSel=null;careerResult(0);render();}
 function offerDraw(){if(app.playStatus!=='play')return;
+  if(app.pass){uiConfirm('Agree a draw? '+passName('w')+' and '+passName('b')+' both have to want it.',function(){stopClockTick();app.playStatus='over';app.passWinner='d';app.playResult='Draw agreed. 🤝';render();});return;}
   if(offerDrawHuman())return;
   const ev=app.playEval;let cp=0;
   if(ev){const s=ev.stm==='w'?1:-1;cp=ev.t==='mate'?(ev.v*s>0?9999:-9999):ev.v*s;}
@@ -11792,12 +11845,13 @@ function offerDraw(){if(app.playStatus!=='play')return;
   else{app.drawMsg='Stockfish declined the draw.';render();setTimeout(()=>{app.drawMsg=null;if(app.view==='play')render();},2200);}}
 /* ---- PGN export ---- */
 function pgnResult(){const r=app.playResult||'';if(/draw/i.test(r))return '1/2-1/2';
+  if(app.pass)return app.passWinner==='w'?'1-0':app.passWinner==='b'?'0-1':'*';
   if(/you win|you won|Stockfish (?:lost|resigns)/i.test(r))return app.playSide==='w'?'1-0':'0-1';
   if(/you lost|you resigned|Stockfish wins/i.test(r))return app.playSide==='w'?'0-1':'1-0';return '*';}
 function buildPGN(){const startFen=app._playStartFen||(new Chess()).fen();const std=startFen===(new Chess()).fen();
   const youWhite=app.playSide==='w';const res=pgnResult();
   const hdr=['[Event "OpeningTrainer game"]','[Site "OpeningTrainer"]','[Date "'+new Date().toISOString().slice(0,10).replace(/-/g,'.')+'"]',
-    '[White "'+(youWhite?'You':'Stockfish')+'"]','[Black "'+(youWhite?'Stockfish':'You')+'"]','[Result "'+res+'"]'];
+    '[White "'+(app.pass?passName('w'):(youWhite?'You':'Stockfish'))+'"]','[Black "'+(app.pass?passName('b'):(youWhite?'Stockfish':'You'))+'"]','[Result "'+res+'"]'];
   if(app.tc&&app.tc.base)hdr.push('[TimeControl "'+app.tc.base+(app.tc.inc?'+'+app.tc.inc:'')+'"]');
   if(!std)hdr.push('[FEN "'+startFen+'"]','[SetUp "1"]');
   const startWhite=turnOf(startFen)==='w';let body='';
@@ -11811,6 +11865,8 @@ function copyPGN(){const pgn=buildPGN();const done=()=>{app.pgnCopied=true;rende
 function fallbackCopy(text,done){try{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();document.execCommand('copy');ta.remove();done();}catch(e){alert(text);}}
 
 function startPlay(fen,side,openingId,title,opts){opts=opts||{};
+  app.pass=opts.pass?Object.assign({},opts.pass):null;app.passWinner=null;
+  if(app.pass){side=turnOf(fen);app.playBot=null;}
   app.view='play';app.playFen=fen;app._playStartFen=fen;app.playSide=side;app.playOpening=openingId||null;
   app.playTitle=title||'Free game';app.playFlip=false;app.playStack=[fen];app.playMoves=[];app.playView=0;app.playLast=null;app.playSel=null;app.careerBanter=null;app.careerReaction=null;
   app.playHint=null;app.playEval=null;app.playResult=null;app.careerStory=null;app.engineErr=false;app.drawMsg=null;app.blunderNote=null;app.coachNote=null;app.whyNot=null;app.oppDraw=null;app.oppSaid=null;app._oppLost=0;app._drawCd=0;app.pgnCopied=false;app.playPremoves=[];app.blindfold=!!opts.blindfold;app.peek=false;app.careerOpp=opts.careerOpp||null;app.careerElo=opts.careerElo||null;app.careerScored=false;app.careerDelta=0;app.careerTour=!!opts.careerTour;app.careerRoundOpp=opts.roundOpp||null;app.careerOneoff=opts.oneoff||null;app.c960=opts.c960||null;app.endgame=opts.endgame||null;app.playBot=opts.bot||null;app.tiltEval=false;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=!!(opts.league);app.careerHintsLeft=opts.careerOpp?careerHintAllowance():0;app._fxKey=null;app._lastEvalCp=null;app._engOutOfBook=false;app._engRetry=0;app._evLow=null;app._evHigh=null;
@@ -11824,6 +11880,7 @@ function startPlay(fen,side,openingId,title,opts){opts=opts||{};
     botSide:null,botRate:0,botBudget:0,botUsed:0,botFrom:null};Engine.load();}
   else app.clock=null;
   stopClockTick();
+  if(app.pass)app.playFlip=app.pass.flip?false:(side==='b');
   app.playStatus=(turnOf(fen)===side)?'play':'engine';render();startClockTick();
   if(app.playStatus==='engine')setTimeout(engineMove,300);
 }
@@ -11847,7 +11904,8 @@ function checkOver(){const c=new Chess(app.playFen);
   const threefold=repCount(app.playFen)>=3;                              // tracked from the game's position history
   if(!(mate||stale||insuf||fifty||threefold))return false;
   app.playStatus='over';stopClockTick();
-  if(mate){const lost=(c.turn()===app.playSide);app.playResult=lost?'Checkmate — you lost.':'Checkmate — you won! 🎉';careerResult(lost?0:1);}
+  if(mate&&app.pass){app.playResult=passResult('mate',c.turn());}
+  else if(mate){const lost=(c.turn()===app.playSide);app.playResult=lost?'Checkmate — you lost.':'Checkmate — you won! 🎉';careerResult(lost?0:1);}
   else{
     if(stale)app.playResult='Draw by stalemate.';
     else if(insuf)app.playResult='Draw — insufficient material.';
@@ -11957,15 +12015,19 @@ function playMove(from,to){
   if(app.c960)c960UpdateRights(app.playSide,from);
   app.playStack.push(m.fen);app.playMoves.push({from,to,san:m.san});app.playFen=m.fen;app.playLast={from,to};app.playSel=null;app.playHint=null;app.playView=app.playStack.length-1;
   advanceBook(from,to);addIncrement(app.playSide);playNoteClock();boothMove();sfxSan(m.san);
-  if(store.settings.blunderWarn!==false){
+  if(store.settings.blunderWarn!==false&&!app.pass){
     var _bl=vxCostOf(app.playStack[app.playStack.length-2]||app._playStartFen,m.san);
     app.blunderNote=(_bl&&_bl.net>=2)?('⚠️ That drops material — '+_bl.san+' wins the '+VX_NAME[_bl.captured]+'.'):null;
     if(app.blunderNote)Voice.say(app.blunderNote);
   } else app.blunderNote=null;
-  if(checkOver()){render();return true;}app.playStatus='engine';render();setTimeout(engineMove,260);return true;}
+  if(checkOver()){render();return true;}
+  if(app.pass){passHandOver();return true;}
+  app.playStatus='engine';render();setTimeout(engineMove,260);return true;}
 function playUndo(){const st=app.playStack;if(!st||st.length<=1)return;
-  do{st.pop();app.playMoves.pop();}while(st.length>1&&turnOf(st[st.length-1])!==app.playSide);
+  if(app.pass){st.pop();app.playMoves.pop();app.playSide=turnOf(st[st.length-1]);if(app.playClk&&app.playClk.length>app.playMoves.length)app.playClk.length=app.playMoves.length;}
+  else do{st.pop();app.playMoves.pop();}while(st.length>1&&turnOf(st[st.length-1])!==app.playSide);
   app.playFen=st[st.length-1];app.playLast=null;app.playSel=null;app.playHint=null;app.playEval=null;app.playResult=null;app.playView=st.length-1;app.playStatus='play';app.playPremoves=[];
+  if(app.pass)app.playFlip=app.pass.flip?false:(app.playSide==='b');
   recomputeBook();if(app.clock)app.clock.lastTs=performance.now();startClockTick();render();}
 /* ---- non-destructive game navigation (review history without changing the game) ---- */
 function playIsLive(){return !app.playStack||app.playView>=app.playStack.length-1;}
@@ -19255,6 +19317,7 @@ function viewPlay(){
         rowSet('🎲 Chess960','Fischer Random — a shuffled back rank. Castle by tapping your king then your rook. (Disables the opening book.)','<button class="btn '+(app.c960setup?'primary':'ghost')+' sm" data-act="p960">'+(app.c960setup?'On':'Off')+'</button>')+
       '</div>'+
       '<div class="row" style="justify-content:center;gap:8px"><button class="btn primary" data-act="pstart" data-val="w">Play as White ♔</button><button class="btn sec" data-act="pstart" data-val="b">Play as Black ♚</button><button class="btn ghost" data-act="pstart" data-val="r">🎲 Random</button></div>'+
+      '</div>'+passSetupCard()+'<div style="max-width:540px;width:100%">'+
       botGallery()+
       '</div></div>';
   }
@@ -19269,9 +19332,9 @@ function viewPlay(){
   const evalHtml=(ev&&live&&store.settings.showEval&&!app.tiltEval)?'<div class="row" style="justify-content:space-between;margin-bottom:5px"><span class="dim small">Evaluation</span><span class="small" style="font-weight:800">'+esc(evalLabel(ev))+'</span></div><div class="evalbar"><i style="width:'+evalPct(ev.t,ev.v,ev.stm)+'%"></i></div>':'';
   let status;
   if(!live)status='<div style="font-weight:800;color:var(--amber)">⏪ Reviewing — move '+app.playView+' of '+lastIdx+'</div>';
-  else if(app.playStatus==='over'){var rk=resultKind(app.playResult);var rc=rk==='win'?'var(--green)':rk==='loss'?'#f87171':'var(--muted)';var re=rk==='win'?'🎉':rk==='loss'?'😞':'🤝';status='<div class="card" style="border-color:'+rc+';text-align:center;padding:14px 12px"><div style="font-size:30px;line-height:1">'+re+'</div><div style="font-weight:800;font-size:16px;color:'+rc+';margin-top:4px">'+esc(app.playResult||'Game over')+'</div>'+(app.careerOpp&&app.careerStory?'<div class="dim small" style="margin-top:6px">'+app.careerStory.e+' '+esc(app.careerStory.t)+'</div>':'')+'<div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap;margin-top:11px">'+((app.playMoves&&app.playMoves.length)?'<button class="btn sec sm" data-act="revplay">🔬 Review game</button>':'')+(!app.careerOpp?'<button class="btn primary sm" data-act="prematch">↻ Rematch</button><button class="btn sec sm" data-act="nav" data-val="play">New game</button>':'')+'</div>'+'</div>'+((app.oppSaid)?'<div class="note" style="margin-top:8px;border-color:#f59e0b3d;background:#f59e0b14;color:#fde68a">🤝 <b>'+esc((app.careerRoundOpp&&app.careerRoundOpp.name)||'Your opponent')+':</b> “'+esc(app.oppSaid)+'”</div>':'')+((app.careerOpp&&app.careerReaction)?'<div class="note" style="margin-top:8px;border-color:#a855f73d;background:#a855f714;color:#e9d5ff">💬 <b>'+esc(app.careerReaction.who)+':</b> “'+esc(app.careerReaction.line)+'”</div>':'')+(app.careerOpp?careerPlayFooter():'')+(app.endgame?endgameVerdict():'');}
+  else if(app.playStatus==='over'){var rk=app.pass?(app.passWinner==='w'||app.passWinner==='b'?'win':'draw'):resultKind(app.playResult);var rc=rk==='win'?'var(--green)':rk==='loss'?'#f87171':'var(--muted)';var re=app.pass&&rk==='win'?'🏆':rk==='win'?'🎉':rk==='loss'?'😞':'🤝';status='<div class="card" style="border-color:'+rc+';text-align:center;padding:14px 12px"><div style="font-size:30px;line-height:1">'+re+'</div><div style="font-weight:800;font-size:16px;color:'+rc+';margin-top:4px">'+esc(app.playResult||'Game over')+'</div>'+(app.careerOpp&&app.careerStory?'<div class="dim small" style="margin-top:6px">'+app.careerStory.e+' '+esc(app.careerStory.t)+'</div>':'')+'<div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap;margin-top:11px">'+((app.playMoves&&app.playMoves.length)?'<button class="btn sec sm" data-act="revplay">🔬 Review game</button>':'')+(!app.careerOpp?'<button class="btn primary sm" data-act="prematch">↻ Rematch</button><button class="btn sec sm" data-act="nav" data-val="play">New game</button>':'')+'</div>'+'</div>'+((app.oppSaid)?'<div class="note" style="margin-top:8px;border-color:#f59e0b3d;background:#f59e0b14;color:#fde68a">🤝 <b>'+esc((app.careerRoundOpp&&app.careerRoundOpp.name)||'Your opponent')+':</b> “'+esc(app.oppSaid)+'”</div>':'')+((app.careerOpp&&app.careerReaction)?'<div class="note" style="margin-top:8px;border-color:#a855f73d;background:#a855f714;color:#e9d5ff">💬 <b>'+esc(app.careerReaction.who)+':</b> “'+esc(app.careerReaction.line)+'”</div>':'')+(app.careerOpp?careerPlayFooter():'')+(app.endgame?endgameVerdict():'');}
   else if(app.playStatus==='engine'){var pq=(app.playPremoves||[]).length;status='<div class="muted">Stockfish is thinking… '+(pq?'<span style="color:var(--brand2)">'+pq+' premove'+(pq>1?'s':'')+' queued</span> <span class="dim">· tap an empty square to cancel</span>':'<span class="dim">tap or drag to queue premoves</span>')+'</div>';}
-  else{var _chk='';try{var _cc=new Chess(app.playFen);if(_cc.inCheck&&_cc.inCheck())_chk=' <span style="color:#f87171">— check!</span>';}catch(e){}status='<div style="font-weight:800;color:var(--brand2)">Your move ('+(app.playSide==='w'?'White':'Black')+').'+_chk+'</div>';}
+  else{var _chk='';try{var _cc=new Chess(app.playFen);if(_cc.inCheck&&_cc.inCheck())_chk=' <span style="color:#f87171">— check!</span>';}catch(e){}status='<div style="font-weight:800;color:var(--brand2)">'+(app.pass?esc(passName(app.playSide))+' to move':'Your move')+' ('+(app.playSide==='w'?'White':'Black')+').'+_chk+'</div>';}
   const interactive=live&&app.playStatus==='play'&&turnOf(app.playFen)===app.playSide;
   const blind=app.blindfold&&!app.peek;
   const oppColor=app.playSide==='w'?'b':'w';
@@ -19279,8 +19342,8 @@ function viewPlay(){
   const det=detectOpening(app.playMoves.slice(0,app.playView).map(m=>m.san));
   const openingLine=det?'<span class="chip brand">📖 '+esc(det.name)+'</span>'+(det.comment?'<span class="dim small" style="margin-left:6px">'+esc(det.comment)+'</span>':''):'';
   const inBook=app.playBookNode&&app.playBookNode.children&&app.playBookNode.children.length&&app.playStatus!=='over';
-  let h='<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap"><div class="row" style="align-items:center"><button class="btn ghost sm" data-act="nav" data-val="library">←</button><h1 style="font-size:18px">Play vs Stockfish</h1><span class="chip brand">'+esc(app.playTitle)+'</span></div>'+
-    '<div class="row"><span class="chip">'+(app.tc&&app.tc.base?app.tc.cat+' '+app.tc.label:'No clock')+'</span><span class="chip">'+(app.careerElo?'Opponent '+app.careerElo:'Lvl: '+lvl.label)+'</span></div></div>';
+  let h='<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap"><div class="row" style="align-items:center"><button class="btn ghost sm" data-act="nav" data-val="library">←</button><h1 style="font-size:18px">'+(app.pass?'Two players':'Play vs Stockfish')+'</h1><span class="chip brand">'+esc(app.playTitle)+'</span></div>'+
+    '<div class="row"><span class="chip">'+(app.tc&&app.tc.base?app.tc.cat+' '+app.tc.label:'No clock')+'</span>'+(app.pass?'':'<span class="chip">'+(app.careerElo?'Opponent '+app.careerElo:'Lvl: '+lvl.label)+'</span>')+'</div></div>';
   // Everything above the board is fixed for the whole game, so the board never
   // moves. Anything that can appear or vanish mid-game goes in the notice rail
   // underneath it (see noticeRail below).
@@ -19313,7 +19376,7 @@ function viewPlay(){
     tbHtml+
     boothPanel()+
     '<div class="card" style="margin-top:12px"><div class="l" style="text-transform:uppercase;font-size:11px;letter-spacing:.08em;color:var(--muted)">Moves</div><div class="moves" style="margin-top:6px;line-height:2.1">'+playMoveList()+'</div></div>'+
-    '<div class="card" style="margin-top:12px"><div class="row"><button class="btn sec sm" data-act="phint" '+((interactive&&(!app.careerOpp||(app.careerHintsLeft||0)>0))?'':'disabled')+'>'+(app.careerOpp?('💡 Tactic ('+(app.careerHintsLeft||0)+')'):'💡 Hint')+'</button><button class="btn sec sm" data-act="pundo" '+(app.playStack.length>1?'':'disabled')+'>↶ Take back</button><button class="btn ghost sm" data-act="pflip">⇅ Flip</button><button class="btn '+(app.tiltEval?'ghost':(store.settings.showEval?'primary':'ghost'))+' sm" data-act="toggleeval" title="'+(app.tiltEval?'On tilt — the eval bar is locked this game':'Show/hide the engine evaluation')+'"'+(app.tiltEval?' disabled':'')+'>'+(app.tiltEval?'😖 Tilt':'📊 Eval')+'</button><button class="btn '+(app.blindfold?'primary':'ghost')+' sm" data-act="pblind">🙈 Blindfold</button>'+(app.blindfold?'<button class="btn ghost sm" data-act="ppeek">'+(app.peek?'🙈 Hide':'👁 Peek')+'</button>':'')+'</div>'+(app.blindfold?'<div class="dim small" style="margin-top:6px">🙈 Blindfold on — pieces hidden. Visualise the position; tap squares to move. Use 👁 Peek if you get stuck.</div>':'')+
+    '<div class="card" style="margin-top:12px"><div class="row"><button class="btn sec sm" data-act="phint" '+((interactive&&!app.pass&&(!app.careerOpp||(app.careerHintsLeft||0)>0))?'':'disabled')+(app.pass?' title="No hints between two players"':'')+'>'+(app.careerOpp?('💡 Tactic ('+(app.careerHintsLeft||0)+')'):'💡 Hint')+'</button><button class="btn sec sm" data-act="pundo" '+(app.playStack.length>1?'':'disabled')+'>↶ Take back</button><button class="btn ghost sm" data-act="pflip">⇅ Flip</button><button class="btn '+(app.tiltEval?'ghost':(store.settings.showEval?'primary':'ghost'))+' sm" data-act="toggleeval" title="'+(app.tiltEval?'On tilt — the eval bar is locked this game':'Show/hide the engine evaluation')+'"'+(app.tiltEval?' disabled':'')+'>'+(app.tiltEval?'😖 Tilt':'📊 Eval')+'</button><button class="btn '+(app.blindfold?'primary':'ghost')+' sm" data-act="pblind">🙈 Blindfold</button>'+(app.blindfold?'<button class="btn ghost sm" data-act="ppeek">'+(app.peek?'🙈 Hide':'👁 Peek')+'</button>':'')+'</div>'+(app.blindfold?'<div class="dim small" style="margin-top:6px">🙈 Blindfold on — pieces hidden. Visualise the position; tap squares to move. Use 👁 Peek if you get stuck.</div>':'')+
     '<div class="row" style="margin-top:8px"><button class="btn sec sm" data-act="pdraw" '+(app.playStatus==='play'?'':'disabled')+'>½ Offer draw</button><button class="btn danger sm" data-act="presign" '+((app.playStatus==='play'||app.playStatus==='engine')?'':'disabled')+'>⚑ Resign</button><button class="btn ghost sm" data-act="ppgn" '+(app.playMoves.length?'':'disabled')+'>'+(app.pgnCopied?'✓ Copied':'⧉ Copy PGN')+'</button></div>'+
     '<div class="row" style="margin-top:8px"><button class="btn sec sm" style="flex:1" data-act="revplay" '+(app.playMoves.length?'':'disabled')+'>🔍 Game Review</button><button class="btn sec sm" style="flex:1" data-act="anafromplay" '+(app.playStatus==='play'||app.playStatus==='engine'?'disabled title="After the game"':'')+'>🔬 Analyse</button></div>'+
     '<div class="row" style="margin-top:8px"><button class="btn sec sm" data-act="pnew">⟳ Rematch</button><button class="btn ghost sm" data-act="psetup">⚙ New game</button>'+(app.playOpening?'<button class="btn ghost sm" data-act="explore" data-val="'+app.playOpening+'">Opening</button>':'')+'</div>'+

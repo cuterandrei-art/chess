@@ -1038,6 +1038,28 @@ app in a browser against positions whose answers are known independently
 (mates both ways, a queen up each way, finished games, stepping faster than
 the engine can answer, and a game with one known blunder).
 
+## Play a friend on the same device
+
+Every game used to go to the engine. **Play → Play a friend on this device**
+takes two names and starts a game between the two of you, with no engine and
+no hints. After each move the turn passes to the other player. On a phone the
+board turns round for them too. That is the default on touch screens, and it
+can be switched off for a laptop between two people. Blunder warnings and
+hints stay off, because they would help one player and not the other.
+
+It uses the time control chosen above it, so both players get a clock. A
+take-back undoes one move and gives the turn back to the player who made it.
+Resigning is confirmed by the player to move, and a draw is agreed by both.
+Results name the winner: "Checkmate — Radu wins the game! 🏆". The PGN
+carries both names and the right result. **Rematch** swaps colours. Game
+Review and the analysis board work afterwards as for any game, and an
+unfinished game waits in the resume slot like any other. Chess960 works too.
+
+`validate-pass.mjs` plays whole games through it and checks that the engine
+is never asked for anything.
+
+---
+
 ## The analysis board
 
 Everything else analyses the app's own positions: your games, your repertoire,
@@ -1179,7 +1201,7 @@ launch builds nothing.
 
 ## Tests
 
-Fifty-three suites, about 5,150 checks, plus fourteen browser suites that drive the real app with the real engine.
+Fifty-four suites, about 5,200 checks, plus fourteen browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
