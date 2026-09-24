@@ -19,6 +19,8 @@ const X=new Function(script+'\nreturn {store,app,ccIsOnline,ccAccount,ccConnecte
    must not lock the feature out */
 const onlineFlag={v:true};
 // the app reads a bare `navigator`, which inside this harness is Node's own
+// Node 21 gave globalThis a `navigator`; Node 20, which CI runs, has none.
+if(!globalThis.navigator||typeof globalThis.navigator!=='object')globalThis.navigator={};
 Object.defineProperty(globalThis.navigator,'onLine',{get:()=>onlineFlag.v,configurable:true});
 ok(X.ccIsOnline()===true,'the browser reporting online is taken at face value');
 onlineFlag.v=false; ok(X.ccIsOnline()===false,'and so is offline');

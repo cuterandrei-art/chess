@@ -13,6 +13,8 @@ globalThis.ResizeObserver=class{observe(){}unobserve(){}disconnect(){}}; globalT
 dom.window.__PUZZLES=[];
 /* the harness controls what the "browser" claims to be */
 const ENV={proto:'https:',ua:'Mozilla/5.0 (Windows NT 10.0) Chrome/126 Safari/537.36',standalone:false,platform:'Win32',touch:0};
+// Node 21 gave globalThis a `navigator`; Node 20, which CI runs, has none.
+if(!globalThis.navigator||typeof globalThis.navigator!=='object')globalThis.navigator={};
 Object.defineProperty(globalThis.navigator,'userAgent',{get:()=>ENV.ua,configurable:true});
 Object.defineProperty(globalThis.navigator,'platform',{get:()=>ENV.platform,configurable:true});
 Object.defineProperty(globalThis.navigator,'maxTouchPoints',{get:()=>ENV.touch,configurable:true});

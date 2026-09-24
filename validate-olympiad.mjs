@@ -115,8 +115,12 @@ ok(weakO.myBoard===X.OLY_BOARDS,'a 2200 playing for India is put on board four')
 ok(weakTeam[0].rating>2550,'with a real board one in front of them ('+weakTeam[0].rating+')');
 ok(X.olyNation(weakO,'me').str===X.olyFedStrength('IND'),
   'and the team is as strong as the country, not as weak as you');
-ok(weakT.field.every(o=>o.rating<2650),
-  'so the players you actually face are other board fours, not the world top ten');
+// A strong nation's board four really can be 2650+ (the USA's sits around
+// 2626 ± 45), so the claim is that nobody you face is world-top-ten strength
+// and that the field as a whole is board-four strength.
+const weakAvg=weakT.field.reduce((a,o)=>a+o.rating,0)/weakT.field.length;
+ok(weakT.field.every(o=>o.rating<2740)&&weakAvg<2600,
+  'so the players you actually face are other board fours, not the world top ten (best '+Math.max(...weakT.field.map(o=>o.rating))+', average '+Math.round(weakAvg)+')');
 /* a 2800 is board one and drags the team up */
 let bigC=career('ROU',2800),bigT=tour(9),bigO=X.olyInit(bigC,bigT);
 ok(bigO.myBoard===1,'a 2800 is board one');
