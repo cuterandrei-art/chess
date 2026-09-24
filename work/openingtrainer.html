@@ -51,6 +51,58 @@
   @keyframes conffall{to{transform:translateY(104vh) rotate(720deg);opacity:.8}}
   html[data-motion="reduced"] *,html[data-motion="reduced"] *::before,html[data-motion="reduced"] *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
   html[data-motion="reduced"] .confetti{display:none}
+  .newsfab{position:fixed;z-index:80;width:52px;height:52px;border-radius:50%;border:1px solid var(--border);background:var(--panel);color:var(--text);box-shadow:0 6px 22px rgba(0,0,0,.45);font-size:24px;display:flex;align-items:center;justify-content:center;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;padding:0}
+  .newsfab.has{border-color:#f97316;box-shadow:0 0 0 3px rgba(249,115,22,.25),0 6px 22px rgba(0,0,0,.45)}
+  .newsfab.on{border-color:var(--brand)}
+  .newsfab .nbadge{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#ef4444;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;pointer-events:none}
+  .newspeek{position:fixed;z-index:79;max-width:min(280px,calc(100vw - 90px));padding:7px 11px;border-radius:12px;background:#991b1b;color:#fff;font-size:12px;line-height:1.3;box-shadow:0 6px 18px rgba(0,0,0,.4);cursor:pointer;animation:npeek .35s ease-out}
+  @keyframes npeek{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .newspanel{position:fixed;z-index:81;display:flex;flex-direction:column;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.55);overflow:hidden}
+  .newspanel .nhdr{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px 6px}
+  .newspanel .nchips{display:flex;gap:5px;overflow-x:auto;padding:0 12px 8px;scrollbar-width:none}
+  .newspanel .nchip{flex:0 0 auto;border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer}
+  .newspanel .nchip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+  .newspanel .nlist{overflow:auto;padding:0 12px 12px;overscroll-behavior:contain}
+  .nart{padding:9px 0;border-top:1px solid var(--border);cursor:pointer}
+  .nart .nmeta{font-size:10.5px;color:var(--dim);letter-spacing:.2px}
+  .nart .nhead{font-weight:700;font-size:14px;line-height:1.3;margin-top:2px}
+  .nart.fresh .nhead::after{content:'NEW';margin-left:6px;font-size:9px;font-weight:800;color:#f97316;vertical-align:middle}
+  .nart .ndeck{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .nart.open .ndeck{display:block;-webkit-line-clamp:unset}
+  .nart .nquote{font-style:italic;font-size:12.5px;margin-top:6px;padding-left:9px;border-left:3px solid var(--brand);color:var(--text)}
+  .ntbl{width:100%;border-collapse:collapse;margin-top:6px;font-size:12px}
+  .ntbl td{padding:2px 4px;border-top:1px solid var(--border)}
+  .ntbl tr.nyou td{background:rgba(96,165,250,.14);font-weight:700}
+  .streamcard{border-color:#ef444466}
+  .streamcard .sstats{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .streamcard .live{color:#ef4444;font-weight:800;animation:lvblink 1.6s infinite}
+  @keyframes lvblink{50%{opacity:.45}}
+  .chatbox{margin-top:8px;height:230px;overflow-y:auto;background:rgba(0,0,0,.18);border:1px solid var(--border);border-radius:10px;padding:6px 8px;font-size:12.5px;line-height:1.45;overscroll-behavior:contain}
+  .chatbox.short{height:130px}
+  .chatbox .cm{padding:1px 0;word-wrap:break-word}
+  .chatbox .cm.sys{color:var(--dim);font-style:italic}
+  .chatbox .cm.me{background:rgba(96,165,250,.12);border-radius:6px;padding:2px 5px;margin:2px 0}
+  .chatbox .cm.q{background:rgba(234,179,8,.10);border-radius:6px;padding:2px 5px;margin:2px 0}
+  .chatbox .cm.alert{border-radius:6px;padding:3px 6px;margin:3px 0;font-weight:600}
+  .chatbox .cm.sub{background:rgba(168,85,247,.18);color:#e9d5ff}
+  .chatbox .cm.tip{background:rgba(34,197,94,.15);color:#bbf7d0}
+  .chatbox .cm.raid{background:rgba(249,115,22,.2);color:#fed7aa}
+  .chatbox .cban{border:0;background:transparent;cursor:pointer;font-size:12px;padding:0 3px;opacity:.8}
+  .sqa{margin-top:8px;padding:7px 9px;border-radius:10px;background:rgba(234,179,8,.10);border:1px solid rgba(234,179,8,.35)}
+  .spoll{margin-top:8px;padding:7px 9px;border-radius:10px;border:1px solid var(--border)}
+  .spbar{position:relative;display:flex;justify-content:space-between;padding:3px 7px;margin:3px 0;border-radius:6px;background:rgba(255,255,255,.04);overflow:hidden;font-size:12.5px}
+  .spbar span{position:absolute;left:0;top:0;bottom:0;background:rgba(96,165,250,.25)}
+  .spbar b,.spbar i{position:relative}
+  .ssum{margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(96,165,250,.08);border:1px solid var(--border)}
+  .scompose{margin-top:10px;padding:9px 10px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.02)}
+  .scompose .nchip{border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer}
+  .scompose .nchip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+  .spreview{padding:8px 10px;border-radius:8px;background:rgba(96,165,250,.08);font-size:13.5px;line-height:1.45}
+  .spost{padding:9px 0;border-top:1px solid var(--border);font-size:13px;line-height:1.4}
+  .spost.mine{background:rgba(96,165,250,.05);margin:0 -8px;padding-left:8px;padding-right:8px;border-radius:8px}
+  .sreplies{margin:6px 0 0 10px;border-left:2px solid var(--border);padding-left:9px}
+  .sreply{padding:5px 0}
+  .sreply .sme{color:var(--brand2);margin-top:2px}
   .srchbox{position:fixed;left:50%;top:8vh;transform:translateX(-50%);z-index:999;width:min(620px,calc(100vw - 24px));max-height:84vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.6)}
   .srchrow{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:7px 8px;border:0;border-radius:9px;background:transparent;color:var(--text);font:inherit;cursor:pointer}
   .srchrow:hover,.srchrow.on{background:var(--panel2)}
@@ -4464,7 +4516,8 @@ function worldFeds(){
 }
 const POOL_TOP=40;        // a federation's players from its best down, below its famous names
 const POOL_CLUB=24;       // and its club players, 1000 to 2100
-/* Generic, made-up names for the fictional field (no real chess players). */
+/* Generic, made-up names for the people around a career who are not on the
+   world list — coaches, parents, sponsors — and a last resort for natName. */
 const GEN_FNAMES=['Tom','Jack','Emma','Olivia','Noah','Liam','Ava','Mia','Leo','Max','Ben','Sam','Kate','Lucy','Jake','Ryan','Cole','Finn','Zoe','Ella','Jay','Nina','Rosa','Sven','Lars','Bram','Kai','Theo','Ravi','Dev','Niko','Aldo','Bruno','Hugo','Yan','Tim','Joel','Eric','Ruben','Pablo','Toni','Milo','Otto','Vince','Greg','Paul','Nora','Iris','Dana','Karl'];
 const GEN_LNAMES=['Baker','Hughes','Wood','Hart','Day','Lane','Reed','Cole','Frost','Stone','Park','Vos','Berg','Dahl','Ruiz','Mora','Costa','Bauer','Klein','Roth','Weber','Meyer','Lang','Bach','Faber','Kraus','Sandu','Marin','Toma','Cruz','Soto','Vega','Ortiz','Marsh','Webb','Boyd','Ford','Glen','Quinn','Tate','Vance','Wren','Knox','Pike','Rhodes','Sloan','Vale','Yates','Hale','Beck'];
 function randName(){return pick(GEN_FNAMES)+' '+pick(GEN_LNAMES);}
@@ -4510,19 +4563,19 @@ function baseWorld(){
   if(_world)return _world;
   const out=WORLD_REAL.map(p=>({id:p.id,name:p.name,fed:p.fed,flag:p.flag,real:true,r:p.r,r0:p.r,rr:p.rr!=null?p.rr:p.r-30,rb:p.rb!=null?p.rb:p.r-45}));
   // deterministic fictional field from 2700 down to ~1100 so there are always rivals
-  const rnd=mulberry32(0x5eed1234);const used={};
+  // named the way their federation names people, like everybody below them
+  const rnd=mulberry32(0x5eed1234),rname=mulberry32(0x6e616d65),taken={};
+  out.forEach(function(p){taken[p.name]=1;});
   let r=2700;const n=150;
   for(let i=0;i<n;i++){
     r-=2+rnd()*((r>2400?9:r>1800?13:18));
     if(r<1080)break;
-    let nm;do{nm=GEN_FNAMES[Math.floor(rnd()*GEN_FNAMES.length)][0]+'. '+GEN_LNAMES[Math.floor(rnd()*GEN_LNAMES.length)];}while(used[nm]&&Object.keys(used).length<GEN_FNAMES.length*GEN_LNAMES.length);
-    used[nm]=1;const fed=FEDS[1+Math.floor(rnd()*(FEDS.length-1))];
+    const fed=FEDS[1+Math.floor(rnd()*(FEDS.length-1))],nm=natName(fed.c,rname,taken);
     const rr=Math.round(r-20+rnd()*40-10),rb=Math.round(r-35+rnd()*70-15);
     out.push({id:'f'+i,name:nm,fed:fed.c,flag:fed.f,real:false,r:Math.round(r),r0:Math.round(r),rr,rb});
   }
   // each federation's own players: its depth below the names everybody knows,
   // stepping down the way a national list does, then its club players
-  const taken={};out.forEach(function(p){taken[p.name]=1;});
   worldFeds().forEach(function(F){
     const rg=mulberry32(wpHash('pool|'+F.c)),str=olyFedStrength(F.c);
     const known=WORLD_REAL.filter(function(p){return p.fed===F.c;}).length;
@@ -4641,6 +4694,7 @@ function worldGame(c,A,B,fmt,o){
   const d=bulDrawRate(E,worldDrawBase((sA+sB)/2));
   const pw=Math.max(0,Math.min(1-d,E-d/2)),x=Math.random();
   const s=x<pw?1:(x<pw+d?0.5:0);
+  if(_wgWatch)wgWatchGame(A,B,fmt,s);          // a named event: is this the shock of the week?
   if(!o.unrated){
     const rA=wpRating(A,fmt),rB=wpRating(B,fmt);
     worldApply(c,A,fmt,s,rB);worldApply(c,B,fmt,1-s,rA);
@@ -4851,12 +4905,14 @@ function worldSeason(c){
     const t=titlePromote(p,now);
     if(t&&Math.random()<0.7){
       X.titles[p.id]=t;
-      if(t==='GM'&&wpAge(p)<=21)notes.push({e:'🎖️',t:p.name+' ('+p.fed+') becomes a grandmaster at '+Math.floor(wpAge(p))+'.'});
+      if(t==='GM'&&wpAge(p)<=21)notes.push({e:'🎖️',t:p.name+' ('+p.fed+') becomes a grandmaster at '+Math.floor(wpAge(p))+'.',
+        h:p.name+' becomes a grandmaster at '+Math.floor(wpAge(p)),d:p.name+' ('+p.fed+') is rated '+now+'; the title is confirmed with the new season.',pid:p.id});
     }
     // and one day, the last game
     if(!keep[p.id]&&p.name!==champ&&p.id!==DEFAULT_CHAMPION&&Math.random()<retireChance(wpAge(p),now)){
       X.retired[p.id]=S;
-      if(p.real||now>=2650)notes.push({e:'🎗️',t:p.name+' retires from classical chess at '+Math.floor(wpAge(p))+'.'});
+      if(p.real||now>=2650)notes.push({e:'🎗️',t:p.name+' retires from classical chess at '+Math.floor(wpAge(p))+'.',
+        h:p.name+' retires from classical chess',d:p.name+' ('+p.fed+') leaves the list at '+Math.floor(wpAge(p))+', rated '+now+'.'});
     }
   });
   // strength stays on the rating scale: the list's average strength is put
@@ -4873,9 +4929,11 @@ function worldSeason(c){
   let best=null;
   for(let i=0;i<JUNIORS_PER_SEASON;i++){const j=wxNewPlayer(c,X,'junior',i);if(!best||j.r>best.r)best=j;}
   worldFeds().forEach(function(F,i){for(let k=0;k<NEWCOMERS_PER_FED;k++)wxNewPlayer(c,X,'club',i*10+k,F);});
-  if(best)notes.push({e:'🌱',t:'New on the list: '+best.name+' of '+best.fed+', '+best.age0+' years old and rated '+best.r+'.'});
+  if(best)notes.push({e:'🌱',t:'New on the list: '+best.name+' of '+best.fed+', '+best.age0+' years old and rated '+best.r+'.',
+    h:'New on the list: '+best.name+', '+best.age0,d:best.name+' of '+best.fed+' comes onto the list at '+best.r+', the highest-rated of this year’s '+JUNIORS_PER_SEASON+' juniors.',pid:best.id});
   X.v++;
-  notes.forEach(function(n){pushFeed(c,n.e,esc(n.t),'world');});
+  notes.forEach(function(n){pushFeed(c,n.e,esc(n.t),'world',true);
+    wirePush(c,{cat:'people',e:n.e,src:'review',h:n.h||n.t,d:n.d||'',pid:n.pid||null});});
   X.log.unshift({season:S,notes:notes.map(function(n){return n.e+' '+n.t;})});
   if(X.log.length>10)X.log.length=10;
   return notes;
@@ -5972,7 +6030,7 @@ function render(){
   // a redraw from something in the background (the engine, a sync) must not
   // throw you out of the text field you are typing in
   let _kf=null;try{const ae=document.activeElement;if(ae&&ae.id&&/^(INPUT|TEXTAREA)$/.test(ae.tagName)&&ae.type!=='file'&&ae.type!=='checkbox'){_kf={id:ae.id,s:null,e:null};try{_kf.s=ae.selectionStart;_kf.e=ae.selectionEnd;}catch(e){}}}catch(e){}
-  document.getElementById('app').innerHTML=chrome+'<div class="wrap">'+body+'</div>'+confirmOverlay()+promoOverlay()+xferSheet()+srchSheet()+'<input id="importfile" type="file" accept="application/json,.json" style="display:none">';
+  document.getElementById('app').innerHTML=chrome+'<div class="wrap">'+body+'</div>'+confirmOverlay()+promoOverlay()+xferSheet()+srchSheet()+newsBoard()+'<input id="importfile" type="file" accept="application/json,.json" style="display:none">';
   if(_kf){try{const el=document.getElementById(_kf.id);if(el&&el!==document.activeElement){el.focus({preventScroll:true});if(_kf.s!=null&&el.setSelectionRange)el.setSelectionRange(_kf.s,_kf.e);}}catch(e){}}
   srNode();                       // outside #app, so a redraw never wipes it
   if(app.view==='play'&&app.playStatus==='over'&&resultKind(app.playResult)==='win'&&app._fxKey!==app.playResult){app._fxKey=app.playResult;confetti();}
@@ -5981,6 +6039,7 @@ function render(){
   // keep the game on disk while it is being played, and drop it the moment it
   // is finished — one place, so no ending can forget to clean up after itself
   if(app.view==='play')playSave();
+  {const _sc=document.getElementById('streamchat');if(_sc)_sc.scrollTop=_sc.scrollHeight;}
   a11yTick();
   animateLast();
 }
@@ -10916,7 +10975,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='xttog'){app.xtOpen=!app.xtOpen;render();}
   else if(act==='xtfin'){app.xtFin=!app.xtFin;render();}
   else if(act==='xthist'){var _xi=parseInt(val,10);app.xtHist=(app.xtHist===_xi)?null:_xi;render();}
-  else if(act==='profile'){if(val)profileOpen(val);}
+  else if(act==='profile'){if(val){app.newsOpen=false;profileOpen(val);}}
   else if(act==='specvs'){var _sp=buildWorld().filter(function(x){return x.id===val;})[0];if(_sp){var _fmt='classical';var _list=worldRanking(store.career,_fmt).filter(function(x){return !x.you&&x.id!==val;});var _o=_list[Math.floor(Math.random()*Math.min(12,_list.length))]||_list[0];if(_o)startSpectate({id:_sp.id,name:_sp.name,flag:_sp.flag,rating:wpRating(_sp,_fmt),real:_sp.real},_o);}}
   else if(act==='doday'){doDay(val);var _ac=store.career;if(_ac&&_ac.auto&&_ac.auto.week&&(_ac.day||0)>0&&!_ac.tour){autoRunWeek(_ac);save();render();}}
   else if(act==='autoplan'){var _ap=store.career;autoInit(_ap).plan=val;save();render();}
@@ -10934,6 +10993,27 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='parkdouble'){var _pd=app.parkDouble;if(_pd){var _h=parkById(_pd.id);if(_h){var _i=_h.stakes.indexOf(parkStakeOf(_h));app.parkStake=Math.min(_h.stakes.length-1,(_i<0?0:_i)+1);}app.parkDouble=null;startParkGame(_pd.id);}}
   else if(act==='simulstart')startSimul(val);
   else if(act==='feedall'){app.feedAll=!app.feedAll;render();}
+  else if(act==='socialpick'){app.socialDraft={key:val};render();}
+  else if(act==='socialtone'){socialPickTone(val);}
+  else if(act==='socialpost'){socialDoPost();}
+  else if(act==='socialcancel'){app.socialDraft=null;render();}
+  else if(act==='socialopen'){app.socialOpen=app.socialOpen===+val?-1:+val;render();}
+  else if(act==='socialall'){app.socialAll=!app.socialAll;render();}
+  else if(act==='socialans'){const _p=String(val).split(':');socialAnswer(_p[0],_p[1],_p[2]);}
+  else if(act==='socialfrom'||act==='socialstream'){const _c=store.career;if(_c){const _k=act==='socialfrom'?'n'+val:(socialDrafts(_c).filter(function(d){return d.ctx==='stream';})[0]||{}).key;
+    app.socialDraft=_k?{key:_k}:null;app.newsOpen=false;app.careerTab='media';go('career');}}
+  else if(act==='streamgo'){streamStart(false);render();}
+  else if(act==='streamauto'){const _c=store.career;if(_c){_c.streamAuto=!_c.streamAuto;save();render();}}
+  else if(act==='streamans'){streamAnswer(val);}
+  else if(act==='streampoll'){streamPoll();}
+  else if(act==='streamban'){streamBan(val);}
+  else if(act==='streamclip'){streamClip();}
+  else if(act==='newstoggle'){if(Date.now()-_newsDraggedAt<400)return;newsToggle();}
+  else if(act==='newscat'){app.newsCat=val;app.newsRead=null;app.newsMore=false;render();}
+  else if(act==='newsread'){app.newsRead=app.newsRead===+val?null:+val;render();}
+  else if(act==='newsmore'){app.newsMore=true;render();}
+  else if(act==='newshide'){store.settings.newsFab=false;app.newsOpen=false;save();render();}
+  else if(act==='newsshow'){store.settings.newsFab=true;app.newsOpen=true;wireInit(store.career);app.newsSeenAt=store.career.wireSeen||0;store.career.wireSeen=store.career.wireN;save();render();}
   else if(act==='brildel'){(store.brilliancies||[]).splice(parseInt(val,10),1);save();render();}
   else if(act==='arcchoice'){arcChoose(store.career,parseInt(val,10));save();render();}
   else if(act==='chalfmt'){app.chalFormat=val;render();}
@@ -12023,6 +12103,7 @@ function boothAdd(g,kind,f){
 /* The hook the board calls after every move, human or engine. */
 function boothMove(){
   try{const g=boothGameOf();if(g)boothTick(g,(app.playMoves||[]).length);}catch(e){}
+  try{streamMove();}catch(e){}                 // and the chat, if you are live
 }
 /* Called once per move played. Says at most one thing, about the most
    interesting fact, and stays quiet when nothing happened. */
@@ -12338,12 +12419,14 @@ function startPlay(fen,side,openingId,title,opts){opts=opts||{};
   app.playClk=[];
   app.booth=null;
   _resumeSig=null;                      // a new game replaces any saved one
+  streamReset();                        // whatever was live ended with the last game
   const tc=opts.tc||tcById((opts.tcId)||'unlimited');app.tc=tc;
   if(tc.base>0){app.clock={w:tc.base*1000,b:tc.base*1000,inc:tc.inc*1000,lastTs:performance.now(),
     botSide:null,botRate:0,botBudget:0,botUsed:0,botFrom:null};Engine.load();}
   else app.clock=null;
   stopClockTick();
   if(app.pass)app.playFlip=app.pass.flip?false:(side==='b');
+  if(app.careerOpp&&store.career&&store.career.streamAuto)streamStart(true);
   app.playStatus=(turnOf(fen)===side)?'play':'engine';render();startClockTick();
   if(app.playStatus==='engine')setTimeout(engineMove,300);
 }
@@ -12517,7 +12600,7 @@ const COACH_TYPES=[
   {spec:'Endgame guru',salary:60,emoji:'♜',desc:'smaller rating losses'},
 ];
 const SPONSOR_NAMES=['ChessGear','NeoBoard','Gambit Wear','Knightly Foods','Zugzwang Energy','OpenFile Tech','BlitzCola','Endgame Apparel','64 Squares','Caïssa Coffee'];
-function lifeInit(c){wxInit(c);wrInit(c);if(c.age==null)c.age=16;if(c.pace==null)c.pace=1;if(c.weeks==null)c.weeks=0;if(c.energy==null)c.energy=100;if(c.form==null)c.form=0;if(c.tilt==null)c.tilt=0;if(c.fame==null)c.fame=0;if(c.fans==null)c.fans=0;if(c.reputation==null)c.reputation=50;if(!c.coaches)c.coaches=[];if(c.prep==null)c.prep=0;if(!c.h2h)c.h2h={};if(c.sponsor===undefined)c.sponsor=null;if(c.objective===undefined)c.objective=null;if(c.retired==null)c.retired=false;if(c.pressPending===undefined)c.pressPending=null;if(c.rival===undefined)c.rival=null;if(!c.achievements)c.achievements=[];if(!c.news)c.news=[];if(c.preppedOpening===undefined)c.preppedOpening=null;if(c.tacticsTrained==null)c.tacticsTrained=0;if(c.xp==null)c.xp=0;if(!c.perks)c.perks={};if(Array.isArray(c.perks)){var _pm={};c.perks.forEach(function(_k){_pm[_k]=1;});c.perks=_pm;}if(c.season==null)c.season=Math.floor((c.weeks||0)/52)+1;if(!c.prepUsage)c.prepUsage={};if(c.protege===undefined)c.protege=null;if(c.winStreak==null)c.winStreak=0;if(c.bestWinStreak==null)c.bestWinStreak=0;if(c.unbeaten==null)c.unbeaten=0;if(c.weeksAtNo1==null)c.weeksAtNo1=0;if(c.noveltyCharge==null)c.noveltyCharge=1;if(c.noveltyArmed==null)c.noveltyArmed=false;if(c.noveltyCd==null)c.noveltyCd=0;if(!c.theory)c.theory={};if(c.refuted===undefined)c.refuted=null;if(c.trendy===undefined)c.trendy=null;if(c.youngGun===undefined)c.youngGun=null;if(c.scandal===undefined)c.scandal=null;if(c.subs==null)c.subs=0;if(c.collabCd==null)c.collabCd=0;if(!c.assets)c.assets=[];if(c.club===undefined)c.club=null;if(!c.books)c.books=[];if(c.backer===undefined)c.backer=null;if(c.fedCd==null)c.fedCd=0;if(c.broadcasts==null)c.broadcasts=0;if(c.academy===undefined)c.academy=null;if(c.gmsMade==null)c.gmsMade=0;if(!c.legendsBeaten)c.legendsBeaten=[];if(c.injury===undefined)c.injury=null;if(c.burnout==null)c.burnout=0;if(c.calendar===undefined)c.calendar=null;if(!c.calDone)c.calDone=[];if(c.transferred==null)c.transferred=false;if(c.dilemma===undefined)c.dilemma=null;if(c.mercDeeds==null)c.mercDeeds=0;if(c.heroDeeds==null)c.heroDeeds=0;if(c.lastBonusDay===undefined)c.lastBonusDay=null;if(c.skillPts==null)c.skillPts=0;if(c.lvlSeen==null)c.lvlSeen=charLevel(c);if(!c.circuit)c.circuit={pts:0,season:c.season||1};if(!c.social)c.social={followers:0,verified:false,posts:0,cd:0};if(!c.classicsStudied)c.classicsStudied=[];if(!c.roadDone)c.roadDone=[];if(!c.feed)c.feed=[];if(c.arc===undefined)c.arc=null;if(!c.arcsDone)c.arcsDone=[];if(!c.arcBadges)c.arcBadges=[];if(!c.home)c.home='hostel';if(c.health==null)c.health=100;if(c.mood==null)c.mood=62;if(c.day==null)c.day=0;if(!c.dayLog)c.dayLog=[];if(!c.weekLog)c.weekLog=[];if(c.debt==null)c.debt=0;if(c.lifeWeeks==null)c.lifeWeeks=0;if(!c.seasonStart)c.seasonStart=seasonSnapshot(c);if(c.seasonReview===undefined)c.seasonReview=null;if(!c.avatar)c.avatar=avatarDefaults(c);if(!c.avatarStyle)c.avatarStyle='char';if(c.simuls==null)c.simuls=0;if(c.simulPerfect==null)c.simulPerfect=0;if(!c.moments)c.moments=[];parkInit(c);autoInit(c);if(!c._seed){c.money=(c.money||0)+1500;c._seed=true;}}
+function lifeInit(c){wxInit(c);wrInit(c);if(c.age==null)c.age=16;if(c.pace==null)c.pace=1;if(c.weeks==null)c.weeks=0;if(c.energy==null)c.energy=100;if(c.form==null)c.form=0;if(c.tilt==null)c.tilt=0;if(c.fame==null)c.fame=0;if(c.fans==null)c.fans=0;if(c.reputation==null)c.reputation=50;if(!c.coaches)c.coaches=[];if(c.prep==null)c.prep=0;if(!c.h2h)c.h2h={};if(c.sponsor===undefined)c.sponsor=null;if(c.objective===undefined)c.objective=null;if(c.retired==null)c.retired=false;if(c.pressPending===undefined)c.pressPending=null;if(c.rival===undefined)c.rival=null;if(!c.achievements)c.achievements=[];if(!c.news)c.news=[];if(c.preppedOpening===undefined)c.preppedOpening=null;if(c.tacticsTrained==null)c.tacticsTrained=0;if(c.xp==null)c.xp=0;if(!c.perks)c.perks={};if(Array.isArray(c.perks)){var _pm={};c.perks.forEach(function(_k){_pm[_k]=1;});c.perks=_pm;}if(c.season==null)c.season=Math.floor((c.weeks||0)/52)+1;if(!c.prepUsage)c.prepUsage={};if(c.protege===undefined)c.protege=null;if(c.winStreak==null)c.winStreak=0;if(c.bestWinStreak==null)c.bestWinStreak=0;if(c.unbeaten==null)c.unbeaten=0;if(c.weeksAtNo1==null)c.weeksAtNo1=0;if(c.noveltyCharge==null)c.noveltyCharge=1;if(c.noveltyArmed==null)c.noveltyArmed=false;if(c.noveltyCd==null)c.noveltyCd=0;if(!c.theory)c.theory={};if(c.refuted===undefined)c.refuted=null;if(c.trendy===undefined)c.trendy=null;if(c.youngGun===undefined)c.youngGun=null;if(c.scandal===undefined)c.scandal=null;if(c.subs==null)c.subs=0;if(c.collabCd==null)c.collabCd=0;if(!c.assets)c.assets=[];if(c.club===undefined)c.club=null;if(!c.books)c.books=[];if(c.backer===undefined)c.backer=null;if(c.fedCd==null)c.fedCd=0;if(c.broadcasts==null)c.broadcasts=0;if(c.academy===undefined)c.academy=null;if(c.gmsMade==null)c.gmsMade=0;if(!c.legendsBeaten)c.legendsBeaten=[];if(c.injury===undefined)c.injury=null;if(c.burnout==null)c.burnout=0;if(c.calendar===undefined)c.calendar=null;if(!c.calDone)c.calDone=[];if(c.transferred==null)c.transferred=false;if(c.dilemma===undefined)c.dilemma=null;if(c.mercDeeds==null)c.mercDeeds=0;if(c.heroDeeds==null)c.heroDeeds=0;if(c.lastBonusDay===undefined)c.lastBonusDay=null;if(c.skillPts==null)c.skillPts=0;if(c.lvlSeen==null)c.lvlSeen=charLevel(c);if(!c.circuit)c.circuit={pts:0,season:c.season||1};if(!c.social)c.social={followers:0,verified:false,posts:0,cd:0};if(!c.classicsStudied)c.classicsStudied=[];if(!c.roadDone)c.roadDone=[];if(!c.feed)c.feed=[];wireInit(c);if(c.arc===undefined)c.arc=null;if(!c.arcsDone)c.arcsDone=[];if(!c.arcBadges)c.arcBadges=[];if(!c.home)c.home='hostel';if(c.health==null)c.health=100;if(c.mood==null)c.mood=62;if(c.day==null)c.day=0;if(!c.dayLog)c.dayLog=[];if(!c.weekLog)c.weekLog=[];if(c.debt==null)c.debt=0;if(c.lifeWeeks==null)c.lifeWeeks=0;if(!c.seasonStart)c.seasonStart=seasonSnapshot(c);if(c.seasonReview===undefined)c.seasonReview=null;if(!c.avatar)c.avatar=avatarDefaults(c);if(!c.avatarStyle)c.avatarStyle='char';if(c.simuls==null)c.simuls=0;if(c.simulPerfect==null)c.simulPerfect=0;if(!c.moments)c.moments=[];parkInit(c);autoInit(c);if(!c._seed){c.money=(c.money||0)+1500;c._seed=true;}}
 function maxEnergy(c){var base=c.age>=38?Math.max(72,100-Math.round((c.age-38)*2.5)):100;var e=base+(hasAsset(c,'gym')?8:0)+(hasAsset(c,'house')?12:0);e+=Math.round(((c.health==null?100:c.health)-75)/6);if(c.injury)e-=(c.injury.sev||1)*10;return Math.max(40,e);}
 function hasCoach(c,spec){return (c.coaches||[]).some(function(x){return x.spec===spec;});}
 function cbar(v,max,color){var p=Math.max(0,Math.min(100,v/max*100));return '<div style="height:7px;background:#1e293b;border-radius:5px;overflow:hidden;margin-top:3px"><i style="display:block;height:100%;width:'+p+'%;background:'+color+'"></i></div>';}
@@ -12540,6 +12623,11 @@ function lifeAfterGame(score){var c=store.career;lifeInit(c);
   if(c.rival&&app.careerRoundOpp&&app.careerRoundOpp.name===c.rival.name){
     if(score===1){unlockAch(c,'rivalwin');c.reputation=Math.min(100,c.reputation+6);c.fame=Math.min(100,c.fame+2);pushNews(c,'😤','You beat your rival '+c.rival.name+'!');}
     else if(score===0){c.tilt=Math.min(100,c.tilt+8);c.rival.intensity=(c.rival.intensity||1)+1;pushNews(c,'😖','Your rival '+c.rival.name+' got the better of you.');}
+    if(score!==0.5){const hh=c.h2h[c.rival.name]||{w:0,l:0,d:0};
+      wirePush(c,{cat:'you',e:score===1?'😤':'😖',src:'daily',h:(function(){const me=c.name||'You',rv=c.rival.name;
+          if(score===1)return hh.l>=hh.w?me+' gets one back on '+rv:hh.w>1?me+' beats '+rv+' again':me+' beats rival '+rv;
+          return hh.w>=hh.l?rv+' hits back against '+me:hh.l>1?rv+' beats '+me+' again':rv+' draws first blood against '+me;})(),
+        d:'The rivalry goes on. Head to head it is now '+hh.w+'–'+hh.l+(hh.d?' with '+hh.d+' draw'+(hh.d>1?'s':''):'')+', from '+(c.name||'your')+(c.name?'’s':'')+' side.'});}
     rivalStoryTick(c);}
   if(score===1&&app.careerPrepUsed){unlockAch(c,'booked');pushNews(c,'📕','Your home preparation paid off in a win.');}
   // living theory: win with a novelty in a line and it can become "named after you"
@@ -12643,6 +12731,433 @@ function careerContentEvent(k){var c=store.career;lifeInit(c);var ev=CONTENT_EVE
   var mk=marketMul(c);var earn=Math.round((ev.earnB+Math.random()*ev.earnV)*mk),sg=Math.round((ev.subB+Math.random()*ev.subV)*mk);
   c.money=(c.money||0)+earn;c.subs=(c.subs||0)+sg;c.fans=Math.round((c.fans||0)+Math.round(sg*0.6));c.fame=Math.min(100,c.fame+ev.fame);
   pushNews(c,ev.e,'You ran a '+ev.n+' stream — +'+sg+' subs.');app.careerToast=ev.e+' '+ev.n+' — +💰'+earn+', +'+sg+' subs.';save();render();}
+/* ================= LIVE: STREAMING THE GAME YOU ARE PLAYING =================
+   Streaming used to be a button that paid out a number. Now you go live with
+   the game in front of you, and a chat watches it with you.
+
+   The chat reads what the commentary booth reads — the move list, what came
+   off the board, the clocks — and never the engine. A viewer can only be
+   excited about the knight you took, never warn you about the one that is
+   hanging, and the moves chat begs you to play are the moves chat always begs
+   for (checks and captures), not good ones. Everything else it talks about is
+   your career: your rating, the standings, the event, your rival, the last
+   time you met this opponent, the question it has been wanting to ask. In
+   rapid and classical it keeps talking while you think; in blitz it only has
+   time to react.
+
+   You are not a spectator of your own stream. Answer the question pinned to
+   the top, put your next move to a vote, time out the troll, clip the moment.
+   The viewer count follows the game — a sacrifice brings people in, a quiet
+   endgame lets them drift — and the subscribers, the tips and the clip that
+   goes round are yours when the game ends. */
+const STREAM_USERS=['pawnstorm_88','KnightRider','e4enjoyer','LondonLover','NimzoNerd','zwischenzug_zoe','BishopPairBob','ChessMom42',
+  'GrandpaGambit','caro_kann_carl','fianchetto_fan','TheRealEnPassant','hangingpawns','blundercheck','mateIn2','fork_lift','skewer_steve',
+  'opposition_olga','rookLift','lucena_lucy','philidor_phil','tempo_tim','pinnedknight','bongcloud_believer','dutchStonewall','najdorf_nina',
+  'sicilian_sam','outpost_oscar','zugzwang_zed','kingwalk_kev','tactics_tara','h_pawn_harry','doubled_pawns','backrank_ben','smothered_mate',
+  'windmill_wendy','prophylaxis_pete','isolani_ivy','minority_max','twomovesahead'];
+const STREAM_TROLLS=['ratingfarmer','ez_clap_99','engine_detector','tilt_master','ratio_king','free_elo_4u'];
+const STREAM_KEEP=40;
+const CHAT={
+  intro:['hi chat 👋','LIVE LET’S GO','{opp} ({oppR})?? big game','first time catching a game live!','good luck!! 🍀','{event} stream 🔥','{gapLine}'],
+  opening:['the {name} 📖','{name}!! prep check','oh I know this one','book moves go brrr','I play the {name} too 😅','is this home prep?'],
+  firstblood:{m:['first blood 🩸','trades already','taking things 😤'],t:['they took first','trade back?','hmm 🤔']},
+  queentaken:{m:['THE QUEEN 😱😱','WE TOOK THE QUEEN','clip it clip it','no way 😳'],t:['THE QUEEN??','nooo the queen 💀','tell me that was a trade','F']},
+  bigcapture:{m:['the {piece}!!','free {piece}?','big capture 💪'],t:['{piece} gone 😬','that was a whole {piece}','hmm the {piece}']},
+  sac:{m:['SACRIFICE?! 🔥','sac sac sac','we are COOKING 🍳','trust the process','absolute madness','this is why I watch'],t:['they gave up a piece??','trap? 👀','free material or trap?','careful…']},
+  queensoff:['queens off 😴','endgame grind time','technique time now','no queens, no fun','ok now it is a real game'],
+  castled:{m:['castled 🏰','king safety first','good, king tucked away'],t:['they castled','opponent’s king is safe now']},
+  opposite:['opposite sides = pawn storms 🌪️','RACE','this is going to get sharp'],
+  firstcheck:{m:['CHECK','check!! 😤','spite check lol'],t:['check…','uh oh, check','king walk incoming?']},
+  longthink:{m:['take your time','chat is getting nervous','the clock… ⏰','deep think 🤔','calculating everything'],t:['opponent is sweating 😅','they are in the tank','long think = they are worried','what are they thinking about']},
+  scramble:{m:['TIME TROUBLE ⏰⏰','move faster!!','flag danger','hands shaking?'],t:['they are low on time!!','flag them 🚩','keep it messy, they have no time']},
+  materialup:['up material 💪','convert it!','don’t blunder now pls','we’re winning?? 👀'],
+  materialdown:['down material 💀','swindle time','copium','compensation (probably)'],
+  promote:{m:['NEW QUEEN 👑','promotion!!','the pawn made it'],t:['they queened 😰','new queen for them…']},
+  move40:['move 40 😮‍💨','made the time control','breathe'],
+  mate:{m:['CHECKMATE!!!','GGGGGG','WHAT A FINISH','🏆🏆🏆'],t:['mated 💀','F','that is mate…']},
+  quiet:['what is the plan here chat?','positional masterclass','so tense','who is better? (no engine pls)','I would push the h-pawn','this is a grind'],
+  win:['GG!!','LET’S GOOO','W','{opp} deleted','clip the whole game','W STREAM'],
+  loss:['F','unlucky','we go again','still a great stream','next one ❤️'],
+  draw:['draw, fair','half a point is a point','solid','peace treaty 🤝'],
+  idle:['hydrate 💧','hi from {country}!','first time here, love the channel','lurker here 👋','gl gl','🍿🍿','I have homework but this is more important',
+        'chat is so quiet','what’s your favourite opening?','{opp} looks focused','this is so relaxing'],
+  troll:['{opp} is going to crush you lol','ez','uninstall 😂','engine? 🤖','ratio','free elo for {opp}','boring','nobody is watching this']
+};
+const STREAM_QA=[
+  {k:'rival',need:function(c){return !!c.rival;},q:'what do you think of {rival}?',a:[
+    {l:'Respect. A great player.',t:'Respect. {rival} is a great player.',fx:{rep:2,hype:2},chat:['classy','respect ❤️']},
+    {l:'Overrated. I’ll prove it.',t:'Overrated. I will prove it over the board.',fx:{rep:-3,fame:1,rival:1,hype:9,quote:1},chat:['OHHHH','spicy 🌶️','clip that','drama 🍿']},
+    {l:'No comment 🤐',t:'No comment.',fx:{hype:1},chat:['lol','diplomatic']}]},
+  {k:'prep',q:'how much do you prepare for a game like this?',a:[
+    {l:'Hours. Every line.',t:'Hours. I looked at every line.',fx:{rep:1,hype:1},chat:['grinder mentality','respect']},
+    {l:'I winged it 😅',t:'Honestly? I winged it.',fx:{hype:4},chat:['LMAO','based','relatable']},
+    {l:'Secret 🤫',t:'That is a secret.',fx:{hype:2},chat:['prep leak when','🤫']}]},
+  {k:'goal',q:'what is the goal this season?',a:[
+    {l:'The world top 100',t:'The world top hundred. Watch me.',fx:{hype:4,fame:1},chat:['LETS GO','we believe']},
+    {l:'Just enjoy chess',t:'Just to enjoy the chess.',fx:{rep:2,hype:1},chat:['wholesome','❤️']},
+    {l:'World Champion 👑',t:'World Champion. Why not?',fx:{hype:6,rep:-1},chat:['KING','delusional (affectionate)','clip it']}]},
+  {k:'tip',q:'any tip for a 1200 player?',a:[
+    {l:'Tactics every day',t:'Tactics, every day. Boring, and it works.',fx:{rep:2,hype:1},chat:['noted 📝','true']},
+    {l:'Play the London 😂',t:'Play the London and never look back.',fx:{hype:5},chat:['LMAO','the London 💀','based']},
+    {l:'Quit while you can',t:'Quit while you still can.',fx:{rep:-2,hype:6},chat:['😂😂','too real']}]},
+  {k:'opp',q:'is {opp} tough?',a:[
+    {l:'Very. I’m nervous',t:'Very. I am a bit nervous, to be honest.',fx:{rep:1,hype:2},chat:['you got this','❤️']},
+    {l:'We’ll see 😎',t:'We will see after the game.',fx:{hype:4},chat:['confident','😎']},
+    {l:'Another opponent',t:'Just another opponent.',fx:{hype:3,rep:-1},chat:['cold','ice in the veins']}]},
+  {k:'next',need:function(c){return !!streamNextEvent(c);},q:'are you playing the {next}?',a:[
+    {l:'Yes, see you there',t:'Yes — see you at the {next}.',fx:{hype:2,fans:30},chat:['hype','I’ll watch']},
+    {l:'Not decided',t:'Not decided yet.',fx:{hype:1},chat:['please play it']},
+    {l:'If the sponsor pays',t:'If somebody pays for the flight.',fx:{hype:3},chat:['LOL','💸']}]},
+  {k:'drink',q:'what are you drinking?',a:[
+    {l:'Coffee. Lots.',t:'Coffee. A lot of coffee.',fx:{hype:1},chat:['☕☕','same']},
+    {l:'Water, stay healthy',t:'Water. Hydrate, chat.',fx:{hype:1,rep:1},chat:['hydrate 💧','responsible']},
+    {l:'Tears 😭',t:'My own tears.',fx:{hype:4},chat:['LMAO','😭😭']}]}
+];
+function streamPick(a){return a[Math.floor(Math.random()*a.length)];}
+function streamHue(u){let h=0;for(let i=0;i<u.length;i++)h=(h*31+u.charCodeAt(i))>>>0;return 'hsl('+(h%360)+',70%,65%)';}
+function streamChatty(){return !app.tc||!app.tc.base||app.tc.base>=600;}          // rapid and slower
+function streamNextEvent(c){
+  const w0=weekOfSeason(c);
+  return calendarEvents(c).filter(function(t){return EVENT_WEEK[t.id]!=null&&EVENT_WEEK[t.id]>w0&&!(c.tour&&c.tour.id===t.id);})
+    .sort(function(a,b){return EVENT_WEEK[a.id]-EVENT_WEEK[b.id];})[0]||null;
+}
+/* How many people would come, before anything has happened. */
+function streamBase(c){
+  const opp=app.careerRoundOpp;
+  let v=4+(c.subs||0)*0.06+(c.fans||0)*0.004+(c.fame||0)*3+((c.social&&c.social.followers)||0)*0.004;
+  if(c.tour)v*=1+(c.tour.tier||0)*0.12;
+  if(opp&&c.rival&&opp.name===c.rival.name)v*=1.6;
+  if(opp&&opp.rating>=2700)v*=1.4;
+  return Math.max(3,Math.round(v));
+}
+function streamVars(c,S){
+  const opp=app.careerRoundOpp||{},tr=c.tour,my=youRating(c,app.careerOneoff||(tr&&tr.format)||'classical')||c.rating||0;
+  const gap=(opp.rating&&my)?opp.rating-my:0;
+  const nx=streamNextEvent(c);
+  return {opp:opp.name||'the opponent',oppR:opp.rating||'?',event:(tr&&tr.name)||app.playTitle||'this game',rival:(c.rival&&c.rival.name)||'your rival',
+    country:streamPick(['Brazil','India','Romania','Canada','Spain','Norway','Chile','Kenya','Vietnam','Poland','Egypt','Mexico']),
+    next:nx?nx.name:'next event',
+    gapLine:gap>=100?('they are '+gap+' points higher 😬 upset incoming?'):gap<=-100?('we are the favourite by '+(-gap)+', no pressure'):'dead even on paper'};
+}
+function streamFill(s,v){return String(s).replace(/\{(\w+)\}/g,function(_,k){return v[k]!=null?v[k]:'';});}
+function streamSay(S,u,t,k,extra){
+  const m=Object.assign({id:++S.n,u:u,t:t,k:k||'chat'},extra||{});
+  S.chat.push(m);if(S.chat.length>STREAM_KEEP)S.chat.shift();
+  return m;
+}
+function streamChat(S,line,v,k){
+  const t=streamFill(line,v||{});
+  if(S.chat.slice(-12).some(function(m){return m.t===t;}))return null;      // chat does not say the same thing twice in a minute
+  const u=k==='troll'?streamPick(STREAM_TROLLS):(Math.random()<0.3&&S.regulars.length?streamPick(S.regulars):streamPick(STREAM_USERS));
+  return streamSay(S,u,t,k);
+}
+/* Going live. `auto` when the career goes live for every game on its own. */
+function streamStart(auto){
+  const c=store.career;if(!c||!c.setup||!app.careerOpp)return null;
+  if(app.stream&&app.stream.on)return app.stream;
+  const base=streamBase(c),late=(app.playMoves||[]).length;
+  c.stream=c.stream||{sessions:0,peak:0,regulars:[],best:null};
+  const S=app.stream={on:true,n:0,chat:[],base:base,viewers:Math.max(2,Math.round(base*(late?0.35:0.5))),peak:0,sum:0,ticks:0,
+    hype:late?4:10,subs:0,tips:0,raid:null,qa:null,qaAt:Date.now()+(streamChatty()?9000:1e12),poll:null,moment:null,clip:null,
+    tox:0,bans:0,ply:late,st:{},regulars:(c.stream.regulars||[]).slice(0,6),answered:[],quotes:[],started:Date.now(),next:Date.now()+2500,done:false,auto:!!auto};
+  const v=streamVars(c,S);
+  streamSay(S,'','🔴 Live — '+(app.playTitle||'career game'),'sys');
+  for(let i=0;i<(streamChatty()?3:1);i++)streamChat(S,streamPick(CHAT.intro),v);
+  streamTimer(true);
+  return S;
+}
+function streamTimer(on){
+  if(app._streamTimer){clearInterval(app._streamTimer);app._streamTimer=null;}
+  if(on&&typeof window!=='undefined'&&window.setInterval)app._streamTimer=setInterval(streamIdle,1000);
+}
+/* A new game, or leaving one: whatever was live is over. */
+function streamReset(){if(app.stream&&app.stream.on&&!app.stream.done)streamFinish(null,'left');streamTimer(false);app.stream=null;}
+/* Every move: chat reacts to what happened on the board. */
+function streamMove(){
+  const S=app.stream,c=store.career;if(!S||!S.on||S.done||!c)return;
+  const g=boothGameOf();if(!g)return;
+  const ply=(g.moves||[]).length;if(ply<=S.ply)return;
+  S.ply=ply;
+  const facts=boothFacts(g,ply,S.st),v=streamVars(c,S);
+  // taking back a queen is a trade, not a catastrophe
+  let f=facts[0];
+  if(f&&f.k==='queentaken'){const qo=facts.filter(function(x){return x.k==='queensoff';})[0];if(qo)f=qo;}
+  const mine=((ply%2===1)===(g.side==='w'));
+  // what has been said is not said twice, the same way the booth keeps track
+  if(f){
+    if(f.k==='firstblood')S.st.firstBlood=true;
+    if(f.k==='firstcheck')S.st.firstCheck=true;
+    if(f.k==='scramble')S.st.scramble=true;
+    if(f.k==='opening')S.st.opening=true;
+    if(f.k==='materialup')S.st.matSaid='up';
+    if(f.k==='materialdown')S.st.matSaid='down';
+  }
+  const san=String((g.moves[ply-1]||{}).san||'');
+  if(/x/.test(san))S.st.firstBlood=true;
+  if(/^O-O/.test(san)){S.st.castled=true;S.st.castledLong=/^O-O-O/.test(san);}
+  // the poll closes on your move
+  if(mine&&S.poll){
+    const top=S.poll.opts.slice().sort(function(a,b){return b.v-a.v;})[0];
+    if(top&&top.san===san){S.hype=Math.min(100,S.hype+10);streamChat(S,streamPick(['CHAT PLAYS CHESS 💪','WE PICKED THAT','chat was right!!','democracy works']),v);}
+    else streamChat(S,streamPick(['ignored chat 😭','we voted for '+(top?top.san:'…')+' 😤','chat is always wrong anyway']),v);
+    S.poll=null;
+  }
+  if(!f||(!streamChatty()&&f.w<45)){S.hype=Math.max(0,S.hype-1);return;}
+  const L=CHAT[f.k];if(!L)return;
+  const pool=Array.isArray(L)?L:(f.mine?L.m:L.t);
+  if(!pool||!pool.length)return;
+  const vv=Object.assign({},v,{name:f.name||'',piece:f.piece||'piece'});
+  const n=f.w>=70?3:f.w>=45?2:1;
+  for(let i=0,tries=0;i<n&&tries<8;tries++)if(streamChat(S,streamPick(pool),vv))i++;
+  S.hype=Math.min(100,S.hype+Math.round(f.w/6));
+  // the moments worth clipping
+  if(f.w>=55&&f.k!=='scramble')S.moment={label:streamMomentLabel(f,v),ply:ply,san:san,big:f.w>=65,until:Date.now()+30000};
+  streamPaint();
+}
+function streamMomentLabel(f,v){
+  const who=f.mine?'you':v.opp;
+  return f.k==='sac'?(f.mine?'Your sacrifice':'The sacrifice by '+v.opp)
+    :f.k==='queentaken'?(f.mine?'Taking the queen':'Losing the queen')
+    :f.k==='mate'?'The mate':f.k==='promote'?'A new queen for '+who
+    :f.k==='opposite'?'Castling on opposite sides':f.k==='queensoff'?'The queens come off'
+    :f.k==='bigcapture'?'The '+(f.piece||'rook')+' comes off':'Move '+f.moveNo;
+}
+/* Between moves: chat keeps talking while you think — in longer games. */
+function streamIdle(){
+  const S=app.stream,c=store.career;
+  if(!S||!S.on||S.done||!c){streamTimer(false);return;}
+  if(app.view!=='play'||app.playStatus==='over')return;
+  const now=Date.now();
+  // the audience moves whether or not anybody types
+  S.ticks++;
+  const target=S.base*(0.75+S.hype/45);
+  S.viewers=Math.max(1,Math.round(S.viewers+(target-S.viewers)*0.12+(Math.random()-0.5)*Math.max(1,S.viewers*0.04)));
+  S.peak=Math.max(S.peak,S.viewers);S.sum+=S.viewers;
+  if(S.ticks%6===0)S.hype=Math.max(0,S.hype-1);
+  if(S.moment&&now>S.moment.until)S.moment=null;
+  const v=streamVars(c,S);
+  // a troll left in the chat poisons it
+  S.chat.forEach(function(m){if(m.k==='troll'&&!m.banned&&!m.counted&&S.n-m.id>=4){m.counted=true;S.tox++;}});
+  if(Math.random()<Math.min(0.35,S.viewers/1500)){S.subs++;const u=streamPick(STREAM_USERS);streamSay(S,u,'⭐ '+u+' just subscribed!','sub');
+    if(S.regulars.indexOf(u)<0&&S.regulars.length<8)S.regulars.push(u);}
+  if(Math.random()<Math.min(0.2,S.viewers/2500)){const amt=streamPick([2,5,5,10,10,20,50]);S.tips+=amt;const u=streamPick(STREAM_USERS);
+    streamSay(S,u,'💸 '+u+' tipped '+money(amt)+': “'+streamFill(streamPick(['good luck in this one','for the coffee ☕','play the Bongcloud next','that last move 🔥','from {country} ❤️']),v)+'”','tip');}
+  if(!S.raid&&S.viewers>=40&&Math.random()<0.004){const r=streamPick(STREAMERS),n=Math.round(S.viewers*(0.3+Math.random()*0.8));
+    S.raid={who:r,n:n};S.viewers+=n;S.hype=Math.min(100,S.hype+8);streamSay(S,r,'🚀 '+r+' is raiding with '+n+' viewers!','raid');}
+  if(now<S.next){streamPaint(true);return;}
+  const chatty=streamChatty();
+  S.next=now+(chatty?2200+Math.random()*3500:8000+Math.random()*6000);
+  if(!chatty){streamPaint(true);return;}
+  // the pinned question
+  if(!S.qa&&now>=S.qaAt){
+    const Q=STREAM_QA.filter(function(q){return S.answered.indexOf(q.k)<0&&(!q.need||q.need(c));});
+    if(Q.length){const q=streamPick(Q),u=streamPick(S.regulars.length?S.regulars:STREAM_USERS);
+      S.qa={k:q.k,u:u,q:streamFill(q.q,v)};streamSay(S,u,S.qa.q,'q');}
+    S.qaAt=now+45000+Math.random()*30000;
+  }
+  const r=Math.random(),yourTurn=app.playStatus==='play'&&turnOf(app.playFen)===app.playSide;
+  const trollP=Math.min(0.12,0.02+S.viewers/4000+((c.rival&&(app.careerRoundOpp||{}).name===c.rival.name)?0.04:0));
+  if(r<trollP)streamChat(S,streamPick(CHAT.troll),v,'troll');
+  else if(yourTurn&&r<0.32){const bs=streamBackseat();if(bs)streamChat(S,streamPick(['{m}!!','just play {m}','{m} wins (trust me)','{m} {m} {m}','have you considered {m}?']),Object.assign({},v,{m:bs}));}
+  else if(r<0.55){const x=streamContext(c,S,v);if(x)streamChat(S,x,v);}
+  else if(r<0.7&&S.ply>=16)streamChat(S,streamPick(CHAT.quiet),v);
+  else streamChat(S,streamPick(CHAT.idle),v);
+  if(yourTurn&&S.poll)S.poll.opts.forEach(function(o){o.v+=Math.round(Math.random()*S.viewers*0.04*o.w);});
+  streamPaint();
+}
+/* The moves chat wants: checks first, then captures, then a pawn push —
+   never the engine's opinion. */
+function streamBackseat(){
+  try{
+    const ms=new Chess(app.playFen).moves();
+    const ch=ms.filter(function(m){return /\+/.test(m);}),cp=ms.filter(function(m){return /x/.test(m);}),pw=ms.filter(function(m){return /^[a-h][1-8]$/.test(m);});
+    const pool=ch.length&&Math.random()<0.6?ch:cp.length&&Math.random()<0.6?cp:pw.length?pw:ms;
+    return pool.length?streamPick(pool):null;
+  }catch(e){return null;}
+}
+/* Chat knows your career: the standings, the rating, this opponent. */
+function streamContext(c,S,v){
+  const opp=app.careerRoundOpp||{},tr=c.tour,out=[];
+  const my=youRating(c,app.careerOneoff||(tr&&tr.format)||'classical')||c.rating;
+  if(my)out.push('road to '+(Math.floor(my/100)+1)*100+'! 📈','rating check: '+my);
+  if(tr&&tr.results&&tr.results.length){const sc=tr.results.reduce(function(s,r){return s+r.score;},0);
+    out.push('we’re on '+fmtScore(sc)+'/'+tr.results.length+' in the '+tr.name,'win this and we’re right up there');
+    if(tr.normEligible)out.push('norm watch 👀');}
+  const h=c.h2h&&opp.name?c.h2h[opp.name]:null;
+  if(h&&(h.w||h.l||h.d))out.push(h.w>h.l?'you beat '+opp.name+' last time!':h.l>h.w?opp.name+' got you last time 😬 revenge':'this matchup is always close');
+  else if(opp.name)out.push('first time vs '+opp.name+'?');
+  if(opp.id){const rk=wireRankOf(c,opp.id);if(rk)out.push(opp.name+' is world #'+rk.toLocaleString()+' btw');}
+  if(opp.fed&&opp.fed!==c.fed)out.push(opp.fed+' vs '+c.fed+' 🌍');
+  if(c.rival&&opp.name!==c.rival.name)out.push(c.rival.name+' is probably watching 👀');
+  if(c.rival&&opp.name===c.rival.name)out.push('RIVAL GAME 🔥🔥','we cannot lose this one','the whole chat hates '+opp.name+' today');
+  if(app.careerPro||app.careerLeague)out.push('for the club!! 🛡️','the team needs this point');
+  if(c.subs)out.push('how many subs are we at? '+(c.subs+S.subs).toLocaleString()+'!');
+  const nx=streamNextEvent(c);if(nx)out.push('are you playing the '+nx.name+'?');
+  return out.length?streamPick(out):null;
+}
+/* ---- what you do on your own stream ---- */
+function streamAnswer(i){
+  const S=app.stream,c=store.career;if(!S||!S.qa||!c)return;
+  const q=STREAM_QA.filter(function(x){return x.k===S.qa.k;})[0],a=q&&q.a[+i];if(!a)return;
+  const v=streamVars(c,S);
+  const said=streamFill(a.t,v);
+  streamSay(S,c.name||'You',said,'you');
+  (a.chat||[]).forEach(function(t){streamChat(S,t,v);});
+  const fx=a.fx||{};
+  S.hype=Math.min(100,S.hype+(fx.hype||0)*2);
+  if(fx.rep)c.reputation=Math.max(0,Math.min(100,(c.reputation||50)+fx.rep));
+  if(fx.fame)c.fame=Math.min(100,(c.fame||0)+fx.fame);
+  if(fx.fans)c.fans=(c.fans||0)+fx.fans;
+  if(fx.rival&&c.rival)c.rival.intensity=(c.rival.intensity||1)+fx.rival;
+  if(fx.quote)S.quotes.push(said);
+  S.answered.push(S.qa.k);S.qa=null;
+  save();render();
+}
+function streamPoll(){
+  const S=app.stream;if(!S||S.poll||S.done)return;
+  if(!(app.playStatus==='play'&&turnOf(app.playFen)===app.playSide))return;
+  let ms=[];try{ms=new Chess(app.playFen).moves();}catch(e){}
+  if(ms.length<2)return;
+  const opts=[],take=function(list,w){const f=list.filter(function(m){return !opts.some(function(o){return o.san===m;});});if(f.length&&opts.length<3)opts.push({san:streamPick(f),v:0,w:w});};
+  take(ms.filter(function(m){return /\+/.test(m);}),1.6);
+  take(ms.filter(function(m){return /x/.test(m);}),1.3);
+  while(opts.length<Math.min(3,ms.length))take(ms,1);
+  S.poll={opts:opts};
+  streamSay(S,store.career.name||'You','📊 Chat, what’s the move? '+opts.map(function(o){return o.san;}).join(' · '),'you');
+  S.hype=Math.min(100,S.hype+4);
+  render();
+}
+function streamBan(id){
+  const S=app.stream;if(!S)return;
+  const m=S.chat.filter(function(x){return x.id===+id;})[0];if(!m||m.banned)return;
+  m.banned=true;S.bans++;if(m.counted)S.tox=Math.max(0,S.tox-1);
+  streamSay(S,'','🔨 '+m.u+' was timed out','sys');
+  streamChat(S,streamPick(['bye 👋','W mod','get out','🔨🔨']),{});
+  render();
+}
+function streamClip(){
+  const S=app.stream;if(!S||!S.moment)return;
+  S.clip={label:S.moment.label,ply:S.moment.ply,san:S.moment.san,big:S.moment.big};S.moment=null;
+  streamSay(S,'','✂️ Clipped: '+S.clip.label+' ('+S.clip.san+')','sys');
+  streamChat(S,streamPick(['that’s going viral','CLIP IT 📸','peak content']),{});
+  render();
+}
+/* The game is over, and so is the stream: what it earned. `score` null when
+   the stream ends without a result (the game was left). */
+function streamFinish(score,reason){
+  const S=app.stream,c=store.career;if(!S||!S.on||S.done||!c)return null;
+  S.done=true;streamTimer(false);
+  const v=streamVars(c,S);
+  if(score!=null){const L=score===1?CHAT.win:score===0?CHAT.loss:CHAT.draw;for(let i=0;i<3;i++)streamChat(S,streamPick(L),v);
+    if(score===1)S.hype=Math.min(100,S.hype+15);}
+  const avg=S.ticks?Math.round(S.sum/S.ticks):S.viewers;
+  S.peak=Math.max(S.peak,S.viewers);
+  const plies=(app.playMoves||[]).length,mk=marketMul(c);
+  const ads=Math.round(avg*0.3*Math.max(1,plies/40)*mk);
+  const subs=S.subs+Math.round(S.peak*(score===1?0.03:0.015));
+  const earn=S.tips+ads;
+  c.subs=(c.subs||0)+subs;c.money=(c.money||0)+earn;
+  c.fans=Math.round((c.fans||0)+subs*0.8+S.peak*0.05);
+  if(c.social)c.social.followers=(c.social.followers||0)+Math.round(S.peak*0.1+subs*0.5);
+  if(S.peak>=1000)c.fame=Math.min(100,(c.fame||0)+1);
+  // a toxic chat gets to you
+  let tilted=false;
+  if(S.tox>=3){c.tilt=Math.min(100,(c.tilt||0)+5);c.mood=Math.max(0,(c.mood||62)-3);tilted=true;}
+  // the clip goes round, or does not
+  let viral=false;
+  if(S.clip){viral=S.clip.big&&Math.random()<(score===1?0.45:0.3);
+    if(viral){const g=Math.round(S.peak*4+200);if(c.social)c.social.followers=(c.social.followers||0)+g;c.fame=Math.min(100,(c.fame||0)+2);unlockAch(c,'viral');}}
+  c.stream=c.stream||{sessions:0,peak:0,regulars:[],best:null};
+  const R=c.stream;
+  R.sessions=(R.sessions||0)+1;R.peak=Math.max(R.peak||0,S.peak);
+  R.regulars=S.regulars.slice(0,8);
+  R.last={peak:S.peak,avg:avg,subs:subs,tips:S.tips,ads:ads,clip:S.clip,viral:viral,opp:v.opp,score:score,w:c.weeks||0,bans:S.bans,tox:S.tox,tilted:tilted,quotes:S.quotes.slice(0,2)};
+  if(!R.best||S.peak>R.best.peak)R.best={peak:S.peak,opp:v.opp,w:c.weeks||0};
+  S.summary=R.last;
+  pushNews(c,'🔴','Stream vs '+v.opp+': peak '+S.peak.toLocaleString()+' viewers, +'+subs+' subscribers, '+money(earn)+'.');
+  const nm=c.name||'You';
+  if(viral)wirePush(c,{cat:'media',e:'✂️',src:'daily',hot:1,h:'Clip of '+nm+'’s '+S.clip.label.toLowerCase()+' goes viral',
+    d:'The moment ('+S.clip.san+') against '+v.opp+' was clipped live and shared everywhere. The stream peaked at '+S.peak.toLocaleString()+' viewers.'});
+  else if(S.peak>=500&&S.peak===R.peak)wirePush(c,{cat:'media',e:'🔴',src:'daily',h:nm+'’s stream draws a record '+S.peak.toLocaleString()+' viewers',
+    d:'The game against '+v.opp+' was the most watched stream '+nm+' has had.'});
+  if(S.quotes.length)wirePush(c,{cat:'media',e:'🎙️',src:'daily',h:'On stream, '+nm+' says: “'+S.quotes[0]+'”',
+    d:'Asked by a viewer during the game against '+v.opp+'. It did not take long to reach the people it was about.'});
+  if(reason!=='left')save();
+  return R.last;
+}
+/* ---- on screen ---- */
+function streamMsg(m){
+  if(m.k==='sys')return '<div class="cm sys">'+esc(m.t)+'</div>';
+  if(m.k==='sub'||m.k==='tip'||m.k==='raid')return '<div class="cm alert '+m.k+'">'+esc(m.t)+'</div>';
+  const col=m.k==='you'?'var(--brand2)':streamHue(m.u);
+  return '<div class="cm'+(m.k==='you'?' me':'')+(m.k==='q'?' q':'')+(m.banned?' banned':'')+'"><b style="color:'+col+'">'+esc(m.u)+(m.k==='you'?' 🎥':'')+'</b> '+
+    (m.banned?'<i class="dim">message deleted</i>':esc(m.t))+
+    (m.k==='troll'&&!m.banned&&!(app.stream&&app.stream.done)?' <button class="cban" data-act="streamban" data-val="'+m.id+'" title="Time out">🔨</button>':'')+'</div>';
+}
+function streamStats(S){
+  return '<span class="live">● LIVE</span> <span>👁 '+S.viewers.toLocaleString()+'</span> <span class="dim">· peak '+S.peak.toLocaleString()+'</span> '+
+    '<span>⭐ +'+S.subs+'</span> <span>💸 '+money(S.tips)+'</span>';
+}
+function streamQa(S){
+  if(!S.qa||S.done)return '';
+  const q=STREAM_QA.filter(function(x){return x.k===S.qa.k;})[0];if(!q)return '';
+  return '<div class="sqa"><div class="small">📌 <b style="color:'+streamHue(S.qa.u)+'">'+esc(S.qa.u)+'</b> asks: '+esc(S.qa.q)+'</div>'+
+    '<div class="row" style="gap:5px;flex-wrap:wrap;margin-top:5px">'+q.a.map(function(a,i){
+      return '<button class="btn sec sm" data-act="streamans" data-val="'+i+'">'+esc(a.l)+'</button>';}).join('')+'</div></div>';
+}
+function streamPollHtml(S){
+  if(!S.poll||S.done)return '';
+  const tot=S.poll.opts.reduce(function(s,o){return s+o.v;},0)||1;
+  return '<div class="spoll"><div class="small" style="margin-bottom:4px">📊 <b>Chat’s move</b> <span class="dim">— closes when you move</span></div>'+
+    S.poll.opts.map(function(o){const p=Math.round(o.v*100/tot);
+      return '<div class="spbar"><span style="width:'+p+'%"></span><b>'+esc(o.san)+'</b><i>'+p+'%</i></div>';}).join('')+'</div>';
+}
+function streamSummary(S){
+  const R=S.summary;if(!R)return '';
+  return '<div class="ssum"><div style="font-weight:700;margin-bottom:4px">📺 Stream over</div>'+
+    '<div class="small">Peak <b>'+R.peak.toLocaleString()+'</b> · average '+R.avg.toLocaleString()+' · <b>+'+R.subs+'</b> subscribers · '+money(R.tips)+' in tips + '+money(R.ads)+' ads</div>'+
+    (R.clip?'<div class="small" style="margin-top:3px">✂️ Clip: '+esc(R.clip.label)+' ('+esc(R.clip.san)+')'+(R.viral?' — <b style="color:#f97316">it went viral 🚀</b>':' — a few hundred views')+'</div>':'')+
+    (R.tilted?'<div class="small" style="margin-top:3px;color:#fca5a5">The trolls got to you (tilt +5). Time them out next time.</div>':R.bans?'<div class="small dim" style="margin-top:3px">'+R.bans+' timed out. Chat thanks you.</div>':'')+
+    (typeof socialDraftFrom==='function'?'<div style="margin-top:6px"><button class="btn sec sm" data-act="socialstream">📲 Post about the stream</button></div>':'')+'</div>';
+}
+function streamPanel(){
+  const c=store.career;
+  if(!c||!c.setup||!app.careerOpp||!app.playFen)return '';
+  const S=app.stream;
+  if(!S||!S.on){
+    if(app.playStatus==='over')return '';
+    const base=streamBase(c);
+    return '<div class="card streamoff" style="margin-top:12px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px">'+
+      '<div><b>📺 Stream this game</b><div class="dim small">About '+base.toLocaleString()+' would tune in. '+(streamChatty()?'Chat talks through the game with you.':'In blitz, chat can only react.')+'</div></div>'+
+      '<button class="btn primary sm" data-act="streamgo">🔴 Go live</button></div>'+
+      '<label class="small dim" style="display:flex;gap:6px;align-items:center;margin-top:6px"><input type="checkbox" data-act="streamauto" '+(c.streamAuto?'checked':'')+'> Go live for every career game</label></div>';
+  }
+  const chatty=streamChatty();
+  return '<div class="card streamcard" id="streampanel" style="margin-top:12px">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap"><div class="sstats small" id="streamstats">'+streamStats(S)+'</div>'+
+      (!S.done&&S.moment?'<button class="btn primary sm" data-act="streamclip">✂️ Clip that</button>':'')+'</div>'+
+    '<div id="streamqa">'+streamQa(S)+'</div><div id="streampoll">'+streamPollHtml(S)+'</div>'+
+    '<div class="chatbox'+(chatty?'':' short')+'" id="streamchat">'+S.chat.slice(-(chatty?18:8)).map(streamMsg).join('')+'</div>'+
+    (!S.done?'<div class="row" style="gap:6px;margin-top:6px;flex-wrap:wrap">'+
+      (chatty?'<button class="btn ghost sm" data-act="streampoll" '+((!S.poll&&app.playStatus==='play'&&turnOf(app.playFen)===app.playSide)?'':'disabled')+'>📊 Poll chat on my move</button>':'<span class="dim small">Blitz: chat can barely keep up.</span>')+
+      '</div>':streamSummary(S))+
+    '</div>';
+}
+/* Between redraws the chat is painted in place, so the board is never redrawn
+   for somebody saying hello. */
+function streamPaint(statsOnly){
+  const S=app.stream;if(!S||typeof document==='undefined')return;
+  const st=document.getElementById('streamstats');if(st)st.innerHTML=streamStats(S);
+  if(statsOnly)return;
+  const box=document.getElementById('streamchat');
+  if(box){box.innerHTML=S.chat.slice(-(streamChatty()?18:8)).map(streamMsg).join('');box.scrollTop=box.scrollHeight;}
+  const qa=document.getElementById('streamqa');if(qa){const h=streamQa(S);if(qa.getAttribute('data-sig')!==String(S.qa&&S.qa.q)){qa.innerHTML=h;qa.setAttribute('data-sig',String(S.qa&&S.qa.q));}}
+  const pl=document.getElementById('streampoll');if(pl)pl.innerHTML=streamPollHtml(S);
+  if(S.moment&&!document.querySelector('[data-act="streamclip"]')&&document.getElementById('streampanel')){
+    const row=document.getElementById('streamstats');
+    if(row&&row.parentNode){const b=document.createElement('button');b.className='btn primary sm';b.setAttribute('data-act','streamclip');b.textContent='✂️ Clip that';row.parentNode.appendChild(b);}
+  }
+}
 /* ===== Social media: grow a following with posts; results & viral hits spike it,
    sponsored posts turn reach into cash, hot takes trade respect for reach. ===== */
 function fmtFollowers(n){n=n||0;return n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'k':''+n;}
@@ -12661,20 +13176,293 @@ function socialPost(kind){var c=store.career;lifeInit(c);var s=c.social,viral=Ma
   if(viral){c.fame=Math.min(100,c.fame+3);unlockAch(c,'viral');pushNews(c,'📲','Your post went VIRAL — +'+fmtFollowers(g)+' followers!');msg+=' — VIRAL! 🚀';}
   if((s.followers||0)>=10000&&!s.verified){s.verified=true;pushNews(c,'✅','Passed 10,000 followers — now verified.');toastAdd('✅ Verified');}
   checkAchievements(c);app.careerToast=msg+' · +'+fmtFollowers(g)+' followers';save();render();}
-function careerSocialPanel(c){var s=c.social||{followers:0},f=s.followers||0,canSpon=f>=2000&&(s.cd||0)<=0;
-  return '<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">📲 Social media</div><div class="dim small">'+fmtFollowers(f)+' followers'+(s.verified?' <span style="color:#38bdf8">✓</span>':'')+'</div></div>'+
-    '<div class="dim small" style="margin-top:4px">Grow a following with posts — big results &amp; viral hits spike your numbers, sponsored posts turn reach into cash, and spicy takes win followers but cost respect.</div>'+
-    '<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:8px">'+
-      '<button class="btn sec sm" data-act="social" data-val="flex">📸 Highlight</button>'+
-      '<button class="btn sec sm" data-act="social" data-val="hottake">🔥 Hot take</button>'+
-      '<button class="btn sec sm" data-act="social" data-val="wholesome">💚 Wholesome</button>'+
-      '<button class="btn sec sm" data-act="social" data-val="analysis">🧠 Analysis</button>'+
-      '<button class="btn '+(canSpon?'primary':'ghost')+' sm" data-act="social" data-val="sponsored" '+(canSpon?'':'disabled')+'>🤝 Sponsored'+(f<2000?' (2k+)':((s.cd||0)>0?' (cooldown)':''))+'</button>'+
-    '</div></div>';}
+/* ================= THE TIMELINE =================
+   Posting was five buttons that each added a number. Now there is a
+   timeline. What you can post about is what just happened — the event you
+   finished, the game of the day, the stream, the article the paper wrote, the
+   next event, your rival — and you choose how to say it: humble, confident,
+   spicy, funny or with some actual chess in it. The words are written from
+   the facts, and the tone decides who answers: fans, trolls, the player you
+   beat, your rival, a journalist who wants a quote, your sponsor. Some of
+   them want an answer, and what you answer has consequences — a clap-back
+   wins followers and costs respect; firing back at your rival turns up the
+   rivalry and ends up in the tabloid; a quote given to the press is printed.
+   The people on the world list post too: the winners of the big events, your
+   rival after a win, your compatriots when you win. */
+const SOCIAL_TL=40;
+const SOCIAL_TONES=[
+  {k:'humble',e:'🙏',n:'Humble',reach:0.9,rep:2,fame:0},
+  {k:'confident',e:'😎',n:'Confident',reach:1.15,rep:0,fame:1},
+  {k:'spicy',e:'🔥',n:'Spicy',reach:1.8,rep:-4,fame:2},
+  {k:'funny',e:'😂',n:'Funny',reach:1.4,rep:1,fame:1},
+  {k:'insight',e:'🧠',n:'Chess',reach:1,rep:2,fame:0}
+];
+const SOCIAL_TEXT={
+  event:{
+    humble:['Very happy with the {event}: {score}/{rounds}. Some luck too, I know. Thank you to the organisers 🙏','{place} at the {event}. Learned a lot this week. Back to work 🙏'],
+    confident:['{event} ✅ {score}/{rounds}. This is just the start 😎','{place} at the {event}. Next time the trophy comes home 😎'],
+    spicy:['{score}/{rounds}. Some people said I did not belong at the {event}. 🏆🔥','{place}. The pairings did me no favours, but fine 🔥'],
+    funny:['Won the {event} and still lost my hotel key card twice 😂','{place} at the {event}. My coach has stopped answering my messages 😂'],
+    insight:['My {event} in one line: {score}/{rounds}, a {tpr} performance. The openings worked; the clock management did not 🧠','{place} at the {event}, {tpr} performance. Three games decided it — notes on the channel 🧠']},
+  game:{
+    humble:['A good win against {opp} today. Respect to a great opponent 🙏'],
+    confident:['{opp} ✅ Next.'],
+    spicy:['Told you. {opp} 🔥'],
+    funny:['Me after {last}: 🕺🕺'],
+    insight:['The key moment against {opp} was {last}. Everything after it played itself 🧠']},
+  stream:{
+    humble:['Thank you to the {peak} of you who watched the game today ❤️'],
+    confident:['{peak} watching live. We are just getting started 📺'],
+    spicy:['Chat said I could not do it. Chat was wrong 🔥'],
+    funny:['Chat’s advice today: forty different checks. Chat, please 😂'],
+    insight:['{clip} — here is what I was thinking when I played it 🧠']},
+  news:{
+    humble:['Kind words 🙏 “{h}”'],
+    confident:['Read all about it 😎 “{h}”'],
+    spicy:['Took them long enough to notice. “{h}” 🔥'],
+    funny:['My family has already framed this 😂 “{h}”'],
+    insight:['On “{h}”: there is more to that story than the headline 🧠']},
+  next:{
+    humble:['Heading to the {event} next. Hoping to play good chess 🙏'],
+    confident:['{event}: I am coming for the title 😎'],
+    spicy:['Looked at the {event} field. Not worried 🔥'],
+    funny:['Packed for the {event}: three chess books, zero clean socks 😂'],
+    insight:['Preparing for the {event}. New ideas in my openings, you will see 🧠']},
+  rival:{
+    humble:['Big respect to {rival}. Always the hardest game of the season 🙏'],
+    confident:['Me against {rival}: {w}–{l}. The scoreboard does the talking 😎'],
+    spicy:['{rival} knows. 🔥'],
+    funny:['{rival} and I are just two friends who want to destroy each other 😂'],
+    insight:['Why my games against {rival} are always sharp — a thread 🧠']},
+  training:{
+    humble:['Six hours of endgames today. The work never stops 🙏'],
+    confident:['New preparation ready. Nobody is safe 😎'],
+    spicy:['Hot take: the London is fine and you are all scared of it 🔥'],
+    funny:['Me: one hour of study. Also me, eight hours later: watching bullet 😂'],
+    insight:['Rook endgames: the one rule everybody forgets — keep the rook active 🧠']}
+};
+function socialInit(c){
+  if(!c.social)c.social={followers:0,verified:false,posts:0,cd:0};
+  const s=c.social;if(!s.tl)s.tl=[];if(s.n==null)s.n=0;if(!s.used)s.used={};
+  return s;
+}
+function socialHandle(name){return '@'+String(name||'you').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'').slice(0,18)||'@player';}
+function socialFill(t,v){return String(t).replace(/\{(\w+)\}/g,function(_,k){return v[k]!=null?v[k]:'';});}
+/* What there is to post about right now, from what actually happened. */
+function socialDrafts(c){
+  const s=socialInit(c),w=c.weeks||0,out=[];
+  const h=(c.history||[])[0];
+  if(h&&!h.oneoff&&h.date&&!s.used['ev'+h.date])
+    out.push({key:'ev'+h.date,ctx:'event',e:h.place===1?'🏆':'📋',l:(h.place===1?'You won the ':ordinal(h.place||0)+' at the ')+h.name,
+      v:{event:h.name,score:fmtScore(h.score),rounds:h.rounds,place:ordinal(h.place||0),tpr:h.tpr||'',won:h.place===1}});
+  const g=(c.games||[])[0];
+  if(g&&g.result===1&&g.date&&!s.used['g'+g.date])
+    out.push({key:'g'+g.date,ctx:'game',e:g.bri?'✨':'♟',l:'Your win against '+g.opp,v:{opp:g.opp,last:(g.moves&&g.moves.length?g.moves[g.moves.length-1].san:'the last move')}});
+  const R=c.stream&&c.stream.last;
+  if(R&&R.w!=null&&w-R.w<=2&&!s.used['st'+R.w+R.opp])
+    out.push({key:'st'+R.w+R.opp,ctx:'stream',e:'📺',l:'Your stream against '+R.opp+' ('+R.peak.toLocaleString()+' peak)',
+      v:{peak:R.peak.toLocaleString(),clip:R.clip?R.clip.label+' ('+R.clip.san+')':'The game',opp:R.opp}});
+  // the story you asked to post about from the news board, or the latest about you
+  const want=(app.socialDraft&&/^n\d+$/.test(app.socialDraft.key||''))?+app.socialDraft.key.slice(1):null;
+  const a=(c.wire||[]).filter(function(x){return want?x.id===want:(x.cat==='you'&&w-x.w<=3);})[0];
+  if(a&&!s.used['n'+a.id])out.push({key:'n'+a.id,ctx:'news',e:'📰',l:'“'+a.h+'”',v:{h:a.h}});
+  const nx=streamNextEvent(c);
+  if(nx&&!s.used['nx'+nx.id+(c.season||1)])out.push({key:'nx'+nx.id+(c.season||1),ctx:'next',e:nx.emoji||'🗓️',l:'The '+nx.name+' is coming up',v:{event:nx.name}});
+  if(c.rival){const r=(c.h2h&&c.h2h[c.rival.name])||{w:0,l:0,d:0};
+    out.push({key:'rv'+w,ctx:'rival',e:'⚔️',l:'Your rival, '+c.rival.name,v:{rival:c.rival.name,w:r.w||0,l:r.l||0}});}
+  out.push({key:'tr'+w,ctx:'training',e:'📚',l:'Your training',v:{}});
+  return out.slice(0,5);
+}
+function socialDraftFrom(c,key){return socialDrafts(c).filter(function(d){return d.key===key;})[0]||null;}
+function socialCompose(c,d,tone){
+  const T=SOCIAL_TEXT[d.ctx]||SOCIAL_TEXT.training,L=T[tone]||T.humble;
+  let pool=L;
+  if(d.ctx==='event'&&L.length>1)pool=[d.v.won?L[0]:L[1]];
+  return socialFill(pool[Math.floor(Math.random()*pool.length)],d.v);
+}
+function socialPoster(c){return {n:c.name||'You',h:socialHandle(c.name),f:c.flag||'',you:1,v:!!(c.social&&c.social.verified)};}
+function socialPlayer(p){return {n:p.name,h:socialHandle(p.name),f:p.flag||'',pid:p.id||null,v:!!(p.real||wpRating(p,'classical')>=2600)};}
+function socialFan(){return {n:streamPick(STREAM_USERS),h:null,f:'',kind:'fan'};}
+/* Posting: the reach, the numbers, and who answers. */
+function socialPublish(c,d,tone,text){
+  const s=socialInit(c),T=SOCIAL_TONES.filter(function(x){return x.k===tone;})[0]||SOCIAL_TONES[0];
+  const f=s.followers||0;
+  const ctxMul=d.ctx==='event'&&d.v.won?2:d.ctx==='news'?1.5:d.ctx==='stream'?1.4:d.ctx==='game'?1.3:1;
+  const viral=Math.random()<(tone==='spicy'?0.15:tone==='funny'?0.1:0.06);
+  const reach=Math.round((30+f*(0.06+Math.random()*0.08))*T.reach*ctxMul*(viral?4:1)*(1+(c.fame||0)/100));
+  const post={id:++s.n,a:socialPoster(c),t:text,w:c.weeks||0,likes:Math.round(reach*(0.25+Math.random()*0.1)),rts:0,tone:tone,ctx:d.ctx,viral:viral,rp:[]};
+  post.rts=Math.round(post.likes*(0.06+Math.random()*0.08));
+  const gain=Math.round(reach*0.08+(viral?reach*0.1:0));
+  s.followers=f+gain;s.posts=(s.posts||0)+1;
+  c.fans=Math.round((c.fans||0)+gain*0.3);
+  c.reputation=Math.max(0,Math.min(100,(c.reputation||50)+T.rep));
+  c.fame=Math.min(100,(c.fame||0)+T.fame+(viral?3:0));
+  if(tone==='insight')addXp(c,4);
+  if(tone==='spicy'&&d.ctx==='rival'&&c.rival)c.rival.intensity=(c.rival.intensity||1)+1;
+  if(d.key)s.used[d.key]=1;
+  socialReplies(c,post,d);
+  s.tl.unshift(post);if(s.tl.length>SOCIAL_TL)s.tl.length=SOCIAL_TL;
+  if(viral){unlockAch(c,'viral');pushNews(c,'📲','Your post went viral — +'+fmtFollowers(gain)+' followers.');
+    wirePush(c,{cat:'media',e:'📲',src:'daily',h:(c.name||'You')+'’s post goes viral',d:'“'+text+'” — '+fmtFollowers(post.likes)+' likes and counting.'});}
+  if(s.followers>=10000&&!s.verified){s.verified=true;pushNews(c,'✅','You passed 10,000 followers — now verified.');}
+  checkAchievements(c);
+  return post;
+}
+const SOCIAL_FAN={
+  humble:['so deserved ❤️','humble champ','this is why I follow you','❤️❤️'],
+  confident:['LET’S GO','main character energy 😎','we believe','W'],
+  spicy:['OHHH 🍿','somebody call the fire department','the drama 😭','say it louder'],
+  funny:['😂😂😂','too real','this is the content I follow you for','LMAO'],
+  insight:['great thread','bookmarked 📌','more of this please','learned something today']
+};
+const SOCIAL_TROLL=['overrated','lucky','who?','ratio','your opponents blundered, not you','delete this','engine user? 🤖'];
+function socialReplies(c,post,d){
+  const rp=post.rp,tone=post.tone;
+  const add=function(a,t,acts){rp.push({id:rp.length+1,a:a,t:t,likes:Math.round(post.likes*(0.01+Math.random()*0.05)),acts:acts||null,done:null});};
+  const fans=1+Math.floor(Math.random()*2);
+  for(let i=0;i<fans;i++)add(socialFan(),streamPick(SOCIAL_FAN[tone]||SOCIAL_FAN.humble),i===0?[['heart','❤️ Like it']]:null);
+  // somebody from the list, who has something to do with it
+  const I=worldIndex(),opp=d.v&&d.v.opp?I.name[d.v.opp]:null;
+  if(d.ctx==='game'&&opp)add(socialPlayer(opp),tone==='spicy'?'Rematch whenever you want.':'Well played today 🤝',[['thank','Thank them']]);
+  if(d.ctx==='event'&&d.v.won){
+    const mates=worldRanking(c,'classical').filter(function(p){return !p.you&&p.fed===c.fed;}).slice(0,6);
+    const m=mates.length?I.id[streamPick(mates).id]:null;
+    if(m)add(socialPlayer(m),'Congratulations, well deserved 👏',[['thank','Thank them']]);
+  }
+  if(c.rival&&(tone==='spicy'||d.ctx==='rival')&&(tone==='spicy'||Math.random()<0.5)){
+    const rp0=I.id[c.rival.id]||I.name[c.rival.name];
+    add(rp0?socialPlayer(rp0):{n:c.rival.name,h:socialHandle(c.rival.name),f:c.rival.flag||''},
+      streamPick(['Keep talking 🙂','See you over the board.','Cute.'].concat(((c.h2h&&c.h2h[c.rival.name])||{}).l?['Bold words from somebody I beat.']:[],
+        ((c.h2h&&c.h2h[c.rival.name])||{}).w?['You got lucky once. Once.']:[])),[['laugh','Laugh it off'],['fire','Fire back'],['match','Challenge them']]);
+  }
+  if(tone==='spicy'||(tone!=='humble'&&Math.random()<0.45))            // a spicy post always finds one
+    add({n:streamPick(STREAM_TROLLS),h:null,f:'',kind:'troll'},streamPick(SOCIAL_TROLL),[['ignore','Ignore'],['clap','Clap back'],['block','Block']]);
+  if(tone==='spicy'||(d.ctx==='event'&&d.v.won&&Math.random()<0.6)){
+    const O=tone==='spicy'?OUTLETS.daily:OUTLETS.gazette;
+    add({n:O.n,h:null,f:O.e,kind:'press',v:1},'Can we quote you on this for tomorrow’s edition?',[['quote','Give a quote'],['decline','No comment']]);
+  }
+  if(c.sponsor&&tone!=='spicy'&&Math.random()<0.6)add({n:c.sponsor.name,h:null,f:'💼',kind:'sponsor',v:1},'Proud to support you! 💼',null);
+  if(tone==='spicy'&&c.sponsor)add({n:c.sponsor.name,h:null,f:'💼',kind:'sponsor',v:1},'Please call us.',null);
+}
+/* Answering a reply. */
+const SOCIAL_ANSWERS={
+  heart:{t:'❤️',fx:{fans:10}},
+  thank:{t:'Thank you! 🙏',fx:{rep:1}},
+  ignore:{t:null,fx:{}},
+  clap:{t:'Imagine being this angry at a chess player 😂',fx:{rep:-2,fame:1,followers:40}},
+  block:{t:null,fx:{}},
+  laugh:{t:'😂 See you over the board.',fx:{rep:1}},
+  fire:{t:'Your results say otherwise.',fx:{rep:-3,fame:2,rival:1,followers:120,story:'fire'}},
+  match:{t:'Money match. Any time. Name the stake.',fx:{fame:1,rival:1,story:'match'}},
+  quote:{t:null,fx:{fame:1,story:'quote'}},
+  decline:{t:'No comment 🤐',fx:{}}
+};
+function socialAnswer(pid,rid,k){
+  const c=store.career;if(!c)return;const s=socialInit(c);
+  const post=s.tl.filter(function(x){return x.id===+pid;})[0];if(!post)return;
+  const r=post.rp.filter(function(x){return x.id===+rid;})[0];if(!r||r.done||!r.acts)return;
+  if(!r.acts.some(function(a){return a[0]===k;}))return;
+  const A=SOCIAL_ANSWERS[k];if(!A)return;
+  r.done=k;
+  if(A.t)r.me=A.t;
+  const fx=A.fx||{},nm=c.name||'You';
+  if(fx.rep)c.reputation=Math.max(0,Math.min(100,(c.reputation||50)+fx.rep));
+  if(fx.fame)c.fame=Math.min(100,(c.fame||0)+fx.fame);
+  if(fx.fans)c.fans=(c.fans||0)+fx.fans;
+  if(fx.followers)s.followers=(s.followers||0)+fx.followers;
+  if(fx.rival&&c.rival)c.rival.intensity=(c.rival.intensity||1)+fx.rival;
+  if(fx.story==='fire'&&c.rival)wirePush(c,{cat:'media',e:'🔥',src:'daily',hot:1,h:nm+' and '+c.rival.name+' trade shots online',
+    d:c.rival.name+' answered “'+post.t+'” with “'+r.t+'”, and '+nm+' was not going to leave it there: “'+A.t+'”'});
+  if(fx.story==='match'&&c.rival){wirePush(c,{cat:'media',e:'⚔️',src:'daily',h:nm+' challenges '+c.rival.name+' to a money match',
+    d:'It started as a post and ended as an offer: “'+A.t+'” The grudge match can be arranged from the Media tab.'});
+    pushNews(c,'⚔️','You challenged '+c.rival.name+' to a money match — it can be set up in Media & drama.');}
+  if(fx.story==='quote'){r.me='(quote given)';
+    wirePush(c,{cat:'media',e:'🗞️',src:post.tone==='spicy'?'daily':'gazette',h:nm+': “'+post.t.replace(/\s*[\u{1F300}-\u{1FAFF}☀-➿]+/gu,'').trim()+'”',
+      d:'Speaking after posting it online. '+(post.tone==='spicy'?'Not everybody will like it.':'')});}
+  save();render();
+}
+/* The people on the list post too. */
+function socialNpcPost(c,p,text){
+  if(!c||!p)return null;
+  const s=socialInit(c);
+  const post={id:++s.n,a:socialPlayer(p),t:text,w:c.weeks||0,likes:Math.round(200+Math.random()*(p.real?20000:3000)),rts:0,rp:[],npc:1};
+  post.rts=Math.round(post.likes*0.08);
+  s.tl.unshift(post);if(s.tl.length>SOCIAL_TL)s.tl.length=SOCIAL_TL;
+  return post;
+}
+/* ---- on screen ---- */
+function socialAuthor(a){
+  return '<b>'+(a.f?a.f+' ':'')+esc(a.n)+'</b>'+(a.v?' <span style="color:#38bdf8">✓</span>':'')+(a.h?' <span class="dim">'+esc(a.h)+'</span>':'')+
+    (a.kind==='troll'?' <span class="chip" style="font-size:9px;padding:0 5px">troll</span>':'');
+}
+function socialPostHtml(c,p){
+  const open=app.socialOpen===p.id||p.rp.some(function(r){return r.acts&&!r.done&&!r.a.you;})&&p.a.you&&(c.weeks||0)-p.w<=1;
+  return '<div class="spost'+(p.a.you?' mine':'')+'">'+
+    '<div class="small">'+socialAuthor(p.a)+' <span class="dim">· '+feedAgo(p,c)+'</span></div>'+
+    '<div style="margin:3px 0 4px">'+esc(p.t)+'</div>'+
+    '<div class="dim small">♥ '+fmtFollowers(p.likes)+' · 🔁 '+fmtFollowers(p.rts)+' · 💬 '+p.rp.length+(p.viral?' · <b style="color:#f97316">viral 🚀</b>':'')+
+      (p.rp.length?' · <button class="btn ghost sm" style="padding:1px 7px;font-size:11px" data-act="socialopen" data-val="'+p.id+'">'+(open?'Hide replies':'Replies')+'</button>':'')+'</div>'+
+    (open?'<div class="sreplies">'+p.rp.map(function(r){
+      return '<div class="sreply"><div class="small">'+socialAuthor(r.a)+'</div><div class="small">'+esc(r.t)+'</div>'+
+        (r.me?'<div class="small sme">↳ '+esc(c.name||'You')+': '+esc(r.me)+'</div>':'')+
+        (r.done==='block'?'<div class="small dim">↳ blocked</div>':r.done==='ignore'?'<div class="small dim">↳ ignored</div>':'')+
+        (r.acts&&!r.done?'<div class="row" style="gap:5px;flex-wrap:wrap;margin-top:4px">'+r.acts.map(function(a){
+          return '<button class="btn sec sm" data-act="socialans" data-val="'+p.id+':'+r.id+':'+a[0]+'">'+esc(a[1])+'</button>';}).join('')+'</div>':'')+
+        '</div>';}).join('')+'</div>':'')+
+    '</div>';
+}
+function socialComposer(c){
+  const D=app.socialDraft;
+  if(D&&D.text){
+    return '<div class="scompose"><div class="dim small" style="margin-bottom:4px">'+esc(D.e+' '+D.l)+' · '+esc((SOCIAL_TONES.filter(function(t){return t.k===D.tone;})[0]||{}).n||'')+'</div>'+
+      '<div class="spreview">'+esc(D.text)+'</div>'+
+      '<div class="row" style="gap:6px;margin-top:6px;flex-wrap:wrap"><button class="btn primary sm" data-act="socialpost">📲 Post</button>'+
+      '<button class="btn ghost sm" data-act="socialtone" data-val="'+D.tone+'">🔄 Reword</button>'+
+      SOCIAL_TONES.filter(function(t){return t.k!==D.tone;}).map(function(t){return '<button class="btn ghost sm" data-act="socialtone" data-val="'+t.k+'">'+t.e+'</button>';}).join('')+
+      '<button class="btn ghost sm" data-act="socialcancel">✕</button></div></div>';
+  }
+  const ds=socialDrafts(c),sel=D&&D.key?D.key:(ds[0]&&ds[0].key);
+  return '<div class="scompose"><div class="dim small" style="margin-bottom:5px">Post about…</div>'+
+    '<div class="row" style="gap:5px;flex-wrap:wrap">'+ds.map(function(d){
+      return '<button class="nchip'+(d.key===sel?' on':'')+'" data-act="socialpick" data-val="'+esc(d.key)+'">'+d.e+' '+esc(d.l.length>38?d.l.slice(0,36)+'…':d.l)+'</button>';}).join('')+'</div>'+
+    '<div class="dim small" style="margin:8px 0 5px">…and say it how?</div>'+
+    '<div class="row" style="gap:5px;flex-wrap:wrap">'+SOCIAL_TONES.map(function(t){
+      return '<button class="btn sec sm" data-act="socialtone" data-val="'+t.k+'">'+t.e+' '+t.n+'</button>';}).join('')+'</div></div>';
+}
+function careerSocialPanel(c){
+  const s=socialInit(c),f=s.followers||0,canSpon=f>=2000&&(s.cd||0)<=0;
+  const tl=s.tl.slice(0,app.socialAll?SOCIAL_TL:6);
+  return '<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">📲 Social media</div>'+
+    '<div class="dim small">'+fmtFollowers(f)+' followers'+(s.verified?' <span style="color:#38bdf8">✓</span>':'')+' · '+esc(socialHandle(c.name))+'</div></div>'+
+    '<div class="dim small" style="margin-top:4px">Post about what just happened, in your own voice. Who answers depends on how you say it — and some of them want an answer back.</div>'+
+    socialComposer(c)+
+    '<div style="margin-top:10px">'+(tl.length?tl.map(function(p){return socialPostHtml(c,p);}).join(''):'<div class="dim small">Your timeline is empty. Post something.</div>')+'</div>'+
+    (s.tl.length>6?'<button class="btn ghost sm" data-act="socialall" style="margin-top:6px">'+(app.socialAll?'▴ Less':'▾ Older posts')+'</button>':'')+
+    '<div class="row" style="gap:6px;margin-top:8px"><button class="btn '+(canSpon?'sec':'ghost')+' sm" data-act="social" data-val="sponsored" '+(canSpon?'':'disabled')+'>🤝 Sponsored post'+(f<2000?' (2k followers)':((s.cd||0)>0?' (cooldown)':''))+'</button></div>'+
+    '</div>';
+}
+function socialPickTone(tone){
+  const c=store.career;if(!c)return;
+  const D=app.socialDraft||{},key=D.key||(socialDrafts(c)[0]||{}).key,d=socialDraftFrom(c,key);if(!d)return;
+  app.socialDraft={key:d.key,e:d.e,l:d.l,tone:tone,text:socialCompose(c,d,tone)};
+  render();
+}
+function socialDoPost(){
+  const c=store.career,D=app.socialDraft;if(!c||!D||!D.text)return;
+  const d=socialDraftFrom(c,D.key);if(!d){app.socialDraft=null;render();return;}
+  const p=socialPublish(c,d,D.tone,D.text);
+  app.socialDraft=null;app.socialOpen=p.id;
+  app.careerToast='📲 Posted — ♥ '+fmtFollowers(p.likes)+(p.viral?' · VIRAL 🚀':'');
+  save();render();
+}
 function careerStreamPanel(c){
   var subs=c.subs||0,estd=Math.round(15+subs*0.04+(c.fans||0)*0.02);
   var h='<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">🎬 Streaming &amp; content</div><div class="dim small">📺 '+subs.toLocaleString()+' subscribers · ~💰'+estd+'/stream</div></div>'+
-    '<div class="dim small" style="margin-top:4px">Grow a channel alongside your chess career — it pays the bills and boosts your fame, but eats training time. Collabs &amp; the Creator Cup (in Tournaments) grow it fastest.</div>'+
+    '<div class="dim small" style="margin-top:4px">Grow a channel alongside your chess career — it pays the bills and boosts your fame, but eats training time. Collabs &amp; the Creator Cup (in Tournaments) grow it fastest. '+
+      'Or go live during a career game: chat watches it with you, asks you things and votes on your moves.</div>'+
+    (c.stream&&c.stream.sessions?'<div class="small" style="margin-top:6px">🔴 '+c.stream.sessions+' game'+(c.stream.sessions>1?'s':'')+' streamed · best '+c.stream.best.peak.toLocaleString()+' viewers (against '+esc(c.stream.best.opp)+')'+
+      (c.stream.last?' · last: peak '+c.stream.last.peak.toLocaleString()+', +'+c.stream.last.subs+' subs':'')+'</div>':'')+
+    '<label class="small dim" style="display:flex;gap:6px;align-items:center;margin-top:6px"><input type="checkbox" data-act="streamauto" '+(c.streamAuto?'checked':'')+'> Go live for every career game</label>'+
     '<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:8px">'+
     '<button class="btn sec sm" data-act="careerstream" '+(c.energy>=12?'':'disabled')+'>📺 Stream</button>'+
     '<button class="btn sec sm" data-act="careercollab" '+((subs>=300&&(c.collabCd||0)<=0&&c.energy>=12)?'':'disabled')+'>🤝 Celebrity collab'+(subs<300?' (300 subs)':((c.collabCd||0)>0?' (cooldown '+c.collabCd+')':''))+'</button>'+
@@ -13170,7 +13958,7 @@ function proRoundPlay(c,lid,mine){
     G.done=true;
     const S=proTable(G)[0],L=proLeague(lid);
     G.champ=S?S.name:null;
-    if(S&&!(P&&S.name===P.club))pushFeed(c,'🏆',esc(S.name)+' win the '+esc(L.name)+'.','world');
+    if(S&&!(P&&S.name===P.club))pushFeed(c,'🏆',esc(S.name)+' win the '+esc(L.name)+'.','world',true);
     if(P)proSeasonEnd(c);
   }
   return yours;
@@ -14625,64 +15413,417 @@ function toastAdd(s){
 }
 function pushNews(c,e,t){if(!c.news)c.news=[];c.news.unshift({e:e,t:t,w:c.weeks||0});if(c.news.length>8)c.news.length=8;}
 /* ================= LIVING CHESS WORLD =================
-   The circuit keeps playing without you. Every rating period a few of the
-   world's moves become stories — surges, slumps, upsets, books, transfers —
-   and your own results get reported back, so the world feels like it is
-   watching. Items live in c.feed (newest first, capped). */
-function pushFeed(c,e,t,k){if(!c)return;if(!c.feed)c.feed=[];const top=c.feed[0];if(top&&top.t===t)return;c.feed.unshift({e:e,t:t,k:k||'world',w:c.weeks||0,ts:Date.now()});if(c.feed.length>40)c.feed.length=40;}
-const FEED_CITIES=['Reykjavík','Zagreb','Dubai','Gibraltar','Prague','Bucharest','Douglas','Sharjah','Biel','Wijk aan Zee','Saint-Louis','Astana','Chennai','Lisbon','Oslo','Belgrade'];
-const FEED_OPENINGS=['Najdorf','Berlin Wall','Grünfeld','Catalan','King’s Indian','London System','Sveshnikov','Caro-Kann','Nimzo-Indian','Italian Game','Dutch Defence','Slav'];
+   The one-line ticker on the World tab. Items live in c.feed (newest first,
+   capped); the ones that are news go to the news board as well. */
+function pushFeed(c,e,t,k,noWire){if(!c)return;if(!c.feed)c.feed=[];const top=c.feed[0];if(top&&top.t===t)return;c.feed.unshift({e:e,t:t,k:k||'world',w:c.weeks||0,ts:Date.now()});if(c.feed.length>40)c.feed.length=40;
+  if(!noWire)wireFromFeed(c,e,t,k);}   // and the board gets it as a short story, unless a longer one covers it
 function feedPick(a){return a[Math.floor(Math.random()*a.length)];}
 function feedName(p){const t=wpTitle(p);return (t?t+' ':'')+p.name;}
+/* A line for the ticker, read off the list as it stands: who is moving, the
+   youngest and oldest at the top, each country's number one, who is playing
+   the most, what the last events meant — and you. Only facts. */
 function feedStory(c){
   const w=buildWorld();if(!w.length)return null;
-  const scored=w.map(p=>({p:p,ch:wpChange(p,'classical'),r:wpRating(p,'classical')}));
-  const byCh=scored.slice().sort((a,b)=>b.ch-a.ch);
+  const L=worldRanking(c,'classical').filter(function(p){return !p.you;});
+  const I=worldIndex().id;
+  const scored=L.slice(0,300).map(function(p){return {p:p,ch:p.change,r:p.rating};});
+  const byCh=scored.slice().sort(function(a,b){return b.ch-a.ch;});
   const up=byCh[0],dn=byCh[byCh.length-1];
-  const rnd=()=>scored[Math.floor(Math.random()*scored.length)];
-  const kinds=['surge','slump','upset','event','book','transfer','quote','prodigy','record'];
+  const X=wxInit(c),S=c.season||1;
+  const kinds=['surge','slump','prodigy','veteran','fed','busy','result','result','top','next'];
   if(!c.provisional&&c.rating!=null)kinds.push('you','you');
+  if(c.rival)kinds.push('rival');
   switch(feedPick(kinds)){
     case 'surge': if(!up||up.ch<4)return null;
-      return ['📈',feedName(up.p)+' is surging — +'+up.ch+' this period, up to '+up.r+'.','world'];
+      return ['📈',feedName(up.p)+' is up '+up.ch+' this season, to '+up.r+'.','world'];
     case 'slump': if(!dn||dn.ch>-4)return null;
-      return ['📉',feedName(dn.p)+' drops '+(-dn.ch)+' points after a rough run ('+dn.r+').','world'];
-    case 'upset': {const a=rnd(),b=rnd();if(a.r-b.r<120)return null;
-      return ['😮',feedName(b.p)+' ('+b.r+') stunned '+feedName(a.p)+' in the '+feedPick(FEED_CITIES)+' Open.','world'];}
-    case 'event': {const a=rnd();const rounds=7+Math.floor(Math.random()*3);const sc=(rounds*0.65+Math.random()*rounds*0.2).toFixed(1).replace(/\.0$/,'');
-      return ['🏆',feedName(a.p)+' wins the '+feedPick(FEED_CITIES)+' Masters with '+sc+'/'+rounds+'.','world'];}
-    case 'book': {const a=rnd();
-      return ['📚',feedName(a.p)+' publishes a new repertoire book on the '+feedPick(FEED_OPENINGS)+'.','world'];}
-    case 'transfer': {const a=rnd();const f=FEDS[1+Math.floor(Math.random()*(FEDS.length-1))];if(f.c===a.p.fed)return null;
-      return ['🏳️',feedName(a.p)+' transfers federation from '+a.p.fed+' to '+f.c+'.','world'];}
-    case 'quote': {const a=rnd();const qs=['“I’m playing for the win in every game now.”','“Classical chess is not dying — the players are just faster.”','“I studied twelve hours a day for this event.”','“Preparation is 90% of modern chess. The rest is nerve.”','“I don’t fear anyone at the board.”'];
-      return ['🎙️',feedName(a.p)+': '+feedPick(qs),'world'];}
-    case 'prodigy': {const a=rnd();if(a.r<2000)return null;const age=11+Math.floor(Math.random()*5);
-      return ['👶','Prodigy watch: '+a.p.name+' ('+age+') crosses '+a.r+' — the youngest ever in '+a.p.fed+'.','world'];}
-    case 'record': {const a=rnd();
-      return ['📊',feedName(a.p)+' is unbeaten in '+(14+Math.floor(Math.random()*30))+' classical games.','world'];}
+      return ['📉',feedName(dn.p)+' is down '+(-dn.ch)+' this season, at '+dn.r+'.','world'];
+    case 'prodigy': {let best=null;L.slice(0,400).forEach(function(q){const p=I[q.id];if(!p)return;const a=wpAge(p);if(a<18&&(!best||q.rating>best.q.rating))best={q:q,a:Math.floor(a)};});
+      if(!best)return null;
+      return ['👶','Prodigy watch: '+best.q.name+' ('+best.q.fed+'), '+best.a+', is the highest-rated player under eighteen — '+best.q.rating+', world #'+best.q.rank+'.','world'];}
+    case 'veteran': {let best=null;L.slice(0,100).forEach(function(q){const p=I[q.id];if(!p)return;const a=wpAge(p);if(!best||a>best.a)best={q:q,a:Math.floor(a)};});
+      if(!best||best.a<40)return null;
+      return ['🧓','At '+best.a+', '+best.q.name+' is the oldest player in the world top hundred — '+best.q.rating+', #'+best.q.rank+'.','world'];}
+    case 'fed': {const F=feedPick(worldFeds()),top=L.filter(function(q){return q.fed===F.c;})[0];if(!top)return null;
+      return ['🏳️','Number one in '+F.c+': '+feedName(top)+', on '+top.rating+' — world #'+top.rank+'.','world'];}
+    case 'top': {if(L.length<3)return null;
+      return ['🏅','Top of the list: '+L.slice(0,3).map(function(q){return q.name+' '+q.rating;}).join(', ')+' — '+(L[0].rating-L[2].rating)+' points from first to third.','world'];}
+    case 'next': {const w0=weekOfSeason(c),nx=calendarEvents(c).filter(function(t){return EVENT_WEEK[t.id]!=null&&EVENT_WEEK[t.id]>w0;})
+        .sort(function(a,b){return EVENT_WEEK[a.id]-EVENT_WEEK[b.id];})[0];
+      if(!nx)return null;
+      return ['🗓️','Coming up: the '+nx.name+' in week '+EVENT_WEEK[nx.id]+'.','world'];}
+    case 'busy': {let best=null;buildWorld().forEach(function(p){const R=c.wr&&c.wr[p.id];if(R&&R[3]&&(!best||R[3]>best.g))best={p:p,g:R[3],pts:R[4]};});
+      if(!best||best.g<10)return null;
+      return ['🗓️',best.p.name+' has played '+best.g+' rated games this season, the most of anybody, and scored '+fmtScore(best.pts)+'.','world'];}
+    case 'result': {const R=(X.results||[]).filter(function(r){return r.s===S&&r.winner&&r.winner.id;})[0];if(!R)return null;
+      const p=I[R.winner.id];if(!p)return null;
+      return ['🗞️',R.winner.name+' is still the talk of the '+R.name+' — and is now '+wpRating(p,'classical')+'.','world'];}
+    case 'rival': {const p=worldPlayerOf(c,c.rival);if(!p)return null;
+      return ['⚔️','Your rival '+feedName(p)+' is on '+wpRating(p,'classical')+', '+(wpChange(p,'classical')>=0?'+':'')+wpChange(p,'classical')+' this season.','you'];}
     case 'you': {const rk=worldRank(c,'classical');if(rk==null)return null;
       const nm=esc(c.name||'You');
       if(rk<=1)return ['👑','The chess world has stopped asking who is best. '+nm+' is world number one.','you'];
       if(rk<=10)return ['🗞️','Pundits ask whether '+nm+' (world #'+rk+') can take the crown this cycle.','you'];
       if(rk<=60)return ['🔎','Scouts have '+nm+' on the shortlist of players to watch — world #'+rk+'.','you'];
-      return ['📰',nm+' is climbing the world list quietly at #'+rk+'.','you'];}
+      return ['📰',nm+' is climbing the world list quietly at #'+rk.toLocaleString()+'.','you'];}
   }
   return null;
 }
 function feedTick(c){if(!c||!c.setup)return;const n=1+Math.floor(Math.random()*2);
-  for(let i=0;i<n;i++){const s=feedStory(c);if(s)pushFeed(c,s[0],s[1],s[2]);}}
+  for(let i=0;i<n;i++){const s=feedStory(c);if(s)pushFeed(c,s[0],s[1],s[2],true);}}   // ticker lines, not news
 function feedAgo(it,c){const dw=(c.weeks||0)-(it.w||0);return dw<=0?'now':(dw===1?'1 week ago':dw+' weeks ago');}
 function careerFeedPanel(c){
   var _fg=0;while((c.feed||[]).length<6&&_fg++<12)feedTick(c);
   const items=(c.feed||[]).slice(0,app.feedAll?40:12);
   if(!items.length)return '';
-  return '<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:700">🌍 The chess world</div><span class="dim small">live circuit feed</span></div>'+
+  wireInit(c);const _un=wireUnread(c);
+  return '<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px"><div style="font-weight:700">🌍 The chess world</div>'+
+    '<button class="btn '+(_un?'primary':'ghost')+' sm" data-act="newsshow">📰 News board'+(_un?' ('+_un+' new)':'')+'</button></div>'+
+    (store.settings.newsFab===false?'<div class="dim small" style="margin:-4px 0 8px">The floating news button is hidden — opening the board brings it back.</div>':'')+
     items.map(function(it){return '<div class="row" style="gap:9px;align-items:flex-start;padding:6px 0;border-top:1px solid var(--border)'+(it.k==='you'?';background:rgba(96,165,250,.08);margin:0 -6px;padding-left:6px;padding-right:6px;border-radius:6px':'')+'">'+
       '<span style="font-size:17px;flex:0 0 auto">'+it.e+'</span>'+
       '<span style="flex:1;min-width:0"><span class="small">'+esc(it.t)+'</span><span class="dim small" style="display:block;font-size:10px">'+feedAgo(it,c)+'</span></span></div>';}).join('')+
     '<div style="margin-top:8px"><button class="btn ghost sm" data-act="feedall">'+(app.feedAll?'▴ Show less':'▾ Show more')+'</button></div></div>';
 }
+/* ================= THE NEWS BOARD =================
+   The chess world has a press now, and it only reports what happened. Every
+   story on the board is written from something the simulation did: an event
+   the world played that week, a shock result inside it, the monthly rating
+   list read off live ratings, a league weekend, a title confirmed, a
+   retirement, the juniors coming onto the list, your own tournaments, your
+   games of the day and what your channel and your posts got up to. Nothing is
+   invented to fill space; a quiet week is a quiet board.
+
+   The outlets are fictional and each has a beat — results, the list, league
+   nights, the tabloid that lives on social media, and the paper at home that
+   follows you. The board floats over every screen as a button with a count of
+   what you have not read; drag it wherever it is out of the way. */
+const WIRE_MAX=90;
+const OUTLETS={
+  gazette:{n:'The Sixty-Four Gazette',e:'🗞️',col:'#eab308'},
+  wire:{n:'Board Wire',e:'📡',col:'#38bdf8'},
+  review:{n:'Rook & Pawn Review',e:'📰',col:'#a78bfa'},
+  desk:{n:'The Rating Desk',e:'📊',col:'#34d399'},
+  league:{n:'League Night',e:'🛡️',col:'#60a5fa'},
+  daily:{n:'Zugzwang Daily',e:'🔥',col:'#f97316'},
+  home:{n:'The Home Courier',e:'🏠',col:'#f472b6'}
+};
+const WIRE_CATS=[['all','All'],['you','You'],['results','Results'],['ratings','Ratings'],['leagues','Leagues'],['people','People'],['media','Media']];
+const WIRE_MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function unesc(s){return String(s==null?'':s).replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&');}
+function wireInit(c){if(!c.wire)c.wire=[];if(c.wireN==null)c.wireN=0;if(c.wireSeen==null)c.wireSeen=0;return c.wire;}
+/* One story. Headlines are plain text; the board escapes them. */
+function wirePush(c,a){
+  if(!c||!a||!a.h)return null;
+  wireInit(c);
+  const h=String(a.h),w=c.weeks||0;
+  if(c.wire.some(function(x){return x.h===h&&x.w===w;}))return null;     // the same story once
+  const it={id:++c.wireN,w:w,s:c.season||1,cat:a.cat||'results',e:a.e||'📰',h:h,src:a.src||'wire'};
+  if(a.d)it.d=String(a.d);
+  if(a.q)it.q=String(a.q);
+  if(a.tbl)it.tbl=a.tbl;
+  if(a.hot)it.hot=1;
+  if(a.me)it.me=1;
+  if(a.pid)it.pid=a.pid;
+  c.wire.unshift(it);
+  if(c.wire.length>WIRE_MAX)c.wire.length=WIRE_MAX;
+  return it;
+}
+function wireUnread(c){return (c&&c.wire)?c.wire.filter(function(x){return x.id>(c.wireSeen||0);}).length:0;}
+/* The one-line feed items become short stories on the board too, filed by
+   what they are about. */
+const WIRE_HOT={'👑':1,'♛':1};
+const WIRE_EMOJI_CAT={'🎖️':'people','🎗️':'people','🌱':'people','🌍':'ratings','📈':'ratings','📉':'ratings',
+  '✍️':'leagues','📲':'media','🎬':'media'};
+function wireFromFeed(c,e,t,k){
+  const cat=k==='you'?'you':(WIRE_EMOJI_CAT[e]||'results');
+  const src=cat==='you'?'home':cat==='people'?'review':cat==='ratings'?'desk':cat==='leagues'?'league':cat==='media'?'daily':'wire';
+  return wirePush(c,{cat:cat,e:e,h:unesc(t),src:src,hot:!!WIRE_HOT[e]});
+}
+function wireRankOf(c,id){const l=worldRanking(c,'classical');for(let i=0;i<l.length;i++)if(l[i].id===id)return l[i].rank;return null;}
+function wireWho(p){const t=wpTitle(p);return (t?t+' ':'')+p.name;}
+function wirePick(a){return a[Math.floor(Math.random()*a.length)];}
+function wireCap(s){s=String(s||'');return s.charAt(0).toUpperCase()+s.slice(1);}
+const WIRE_QUOTES={
+  win:['“I was not thinking about first place until the last round.”','“My seconds deserve half of this.”',
+       '“I played the openings badly all week and the middlegames well. That will do.”','“Every game was a fight. That is how I want to play.”',
+       '“Honestly, I am tired. Ask me tomorrow.”','“I only looked at the standings this morning.”'],
+  run:['“I felt like I could calculate anything this week.”','“It is the best chess I have played.”',
+       '“When it goes like this you do not ask why. You just keep playing.”'],
+  edge:['“It was close. I needed some luck in the last round, and I got it.”','“Half a point is enough.”',
+        '“I was nervous all day. You do not want to think about tiebreaks.”'],
+  out:['“Nobody expected anything from me. That helped.”','“I came here to gain a few rating points.”','“I am still not sure it happened.”'],
+  young:['“My school gave me the week off. I think they will give me another.”','“I just try to play good moves. It is not complicated.”',
+         '“My coach told me not to look at the ratings of the people I play.”']
+};
+/* A named event the world played: who won it, how, and what it means. */
+function wireEvent(c,t,rows,of,extra){
+  if(!rows||!rows[0]||!rows[0].p)return null;
+  const X=wxInit(c),S=c.season||1,fmt=eventFormat(t),w=rows[0].p,sec=rows[1]&&rows[1].p;
+  const nm=w.name,wr=wpRating(w,fmt),age=Math.floor(wpAge(w));
+  const seed=1+rows.filter(function(x){return x.p!==w&&wpRating(x.p,fmt)>wr;}).length;
+  const wins=(X.results||[]).filter(function(R){return R.s===S&&R.winner&&R.winner.id===w.id;}).length;
+  const margin=(sec&&of)?rows[0].s-rows[1].s:null;
+  const rival=!!(c.rival&&(c.rival.id===w.id||c.rival.name===nm));
+  const home=w.fed===c.fed;
+  let h,qk='win';
+  if(t.id==='worldcup')h=nm+' wins the World Cup';
+  else if(rival)h='Your rival '+nm+' wins the '+t.name;
+  else if(age<=18&&wr>=2350){h=age+'-year-old '+nm+' wins the '+t.name;qk='young';}
+  else if(seed>=6&&rows.length>=8){h='Outsider '+nm+' takes the '+t.name;qk='out';}
+  else if(wins>=3)h=nm+' wins again: a '+ordinal(wins)+' title this season, at the '+t.name;
+  else if(margin!=null&&margin>=1.5){h=nm+' runs away with the '+t.name;qk='run';}
+  else if(margin!=null&&margin>=1){h=nm+' wins the '+t.name+' a full point clear';qk='run';}
+  else if(margin===0){h=nm+' wins the '+t.name+' on tiebreaks';qk='edge';}
+  else if(margin===0.5&&sec){h=nm+' edges '+sec.name+' to win the '+t.name;qk='edge';}
+  else h=nm+' wins the '+t.name;
+  let d=wireWho(w)+' ('+w.fed+', '+wr+')';
+  if(t.id==='worldcup')d+=' won the knockout'+(extra?', '+extra:'')+'.';
+  else{
+    d+=of?' finished on '+fmtScore(rows[0].s)+'/'+of:' won';
+    if(margin!=null&&sec)d+=margin>0?', '+fmtScore(margin)+' ahead of '+sec.name:', level with '+sec.name+' and first on tiebreaks';
+    d+='.';
+    if(extra)d+=' '+wireCap(extra)+'.';
+  }
+  if(seed===2&&rows.length>=6)d+=' Only one player in the field was rated higher.';
+  else if(seed>2&&rows.length>=6)d+=' '+(seed<=4?'Only ':'')+(seed-1)+' players in the field were rated higher.';
+  if(wins>=2)d+=' That makes '+wins+' titles this season.';
+  const rk=wireRankOf(c,w.id);if(rk)d+=' '+nm+' is world number '+rk.toLocaleString()+'.';
+  if(home&&!rival)d+=' A win for '+c.fed+'.';
+  const it=wirePush(c,{cat:'results',e:t.emoji||'🏆',src:(t.tier||0)>=7?'gazette':'wire',h:h,d:d,q:nm+': '+wirePick(WIRE_QUOTES[qk]),
+    pid:w.id,hot:(t.tier||0)>=8||rival,me:rival||home});
+  // and the winner says so online
+  if(((t.tier||0)>=7||rival||home)&&Math.random()<0.7)
+    socialNpcPost(c,w,rival&&(c.rival.intensity||1)>=3?t.name+' 🏆 '+socialHandle(c.name)+', were you watching?'
+      :wirePick(['Very happy to win the '+t.name+'! Thank you everybody 🙏🏆','The '+t.name+' 🏆 What a week.','Tired, happy. '+t.name+' champion 🏆']));
+  return it;
+}
+/* The biggest shock of a named event, caught as the games are played: the
+   lowest-rated winner of a game against somebody far above them. */
+let _wgWatch=null;
+function wireWatch(t){_wgWatch={t:t,min:t.rr?150:350,floor:Math.max(2400,(t.avg||2400)-60),best:null};}
+function wgWatchGame(A,B,fmt,s){
+  const W=_wgWatch;if(!W||s===0.5)return;
+  const win=s===1?A:B,los=s===1?B:A,rw=wpRating(win,fmt),rl=wpRating(los,fmt),gap=rl-rw;
+  if(gap>=W.min&&rl>=W.floor&&(!W.best||gap>W.best.gap))W.best={w:win,l:los,rw:rw,rl:rl,gap:gap};
+}
+function wireShock(c){
+  const W=_wgWatch;_wgWatch=null;
+  if(!W||!W.best||!c)return null;
+  const b=W.best;
+  return wirePush(c,{cat:'results',e:'😮',src:'wire',h:'Shock at the '+W.t.name+': '+b.w.name+' beats '+b.l.name,
+    d:wireWho(b.w)+' ('+b.w.fed+', '+b.rw+') beat '+wireWho(b.l)+' ('+b.l.fed+', '+b.rl+'), '+b.gap+' points higher on the list.',
+    pid:b.w.id,me:!!(c.rival&&(c.rival.id===b.l.id||c.rival.id===b.w.id))});
+}
+/* The national championships all finish in the same week: one round-up, and
+   the paper at home on yours. */
+function wireNationals(c,prevMine){
+  const X=wxInit(c),S=c.season||1,C=X.natChamps||{},I=worldIndex().id;
+  const list=Object.keys(C).filter(function(k){return C[k].season===S;}).map(function(k){
+    const p=I[C[k].id];return {fed:k,id:C[k].id,name:C[k].name,score:C[k].score,of:C[k].of,r:p?wpRating(p,'classical'):0};});
+  if(!list.length)return null;
+  list.sort(function(a,b){return b.r-a.r;});
+  wirePush(c,{cat:'results',e:'🎖️',src:'gazette',h:'Champions crowned in '+list.length+' federations',
+    d:'The national championships are over. '+list.slice(0,8).map(function(x){return x.fed+': '+x.name+' ('+fmtScore(x.score)+'/'+x.of+')';}).join(' · ')+'.'});
+  const mine=list.filter(function(x){return x.fed===c.fed;})[0];
+  if(mine){
+    const again=prevMine&&prevMine.id===mine.id;
+    wirePush(c,{cat:'results',e:'🎖️',src:'home',me:1,pid:mine.id,
+      h:again?mine.name+' keeps the '+c.fed+' title':mine.name+' is the new '+c.fed+' champion',
+      d:mine.name+' ('+mine.r+') won the national championship on '+fmtScore(mine.score)+'/'+mine.of+'.'+
+        (prevMine&&!again?' Last year’s champion was '+prevMine.name+'.':'')});
+  }
+  return list;
+}
+/* The rating list, once a month. Ratings here are live — every game moves
+   them — so the list is a snapshot of them on the first of the month, the way
+   the published list is, and the story is what moved since the last one. */
+function wireListTick(c){
+  if(!c||!c.setup)return null;
+  const X=wxInit(c),wk=(c.weeks||0)+1,y=Math.floor(wk/52),m=Math.floor((wk%52)*12/52),key=y*12+m;
+  if(X.listKey===key)return null;
+  const first=X.listKey==null;X.listKey=key;
+  // ranks are places on the real list; the top hundred is the first hundred places
+  const L=worldRanking(c,'classical'),snap=X.listSnap||{},now={};
+  L.forEach(function(p){if(p.rank<=150)now[p.id]=[p.rating,p.rank];});
+  X.listSnap=now;
+  const month=WIRE_MONTHS[m],year=FIRST_YEAR+y;
+  const tbl=L.slice(0,10).map(function(p){const o=snap[p.id];
+    return {n:p.name,f:p.flag||'',t:p.title||'',r:p.rating,d:(o&&!first)?p.rating-o[0]:null,k:(o&&!first)?o[1]-p.rank:null,you:p.you?1:0};});
+  let up=null,dn=null,climb=null,entered=null;
+  L.forEach(function(p){
+    if(p.rank>100)return;
+    const o=snap[p.id];
+    if(!o){if(!first&&p.rank<=10&&!entered)entered=p;return;}
+    const dr=p.rating-o[0],dk=o[1]-p.rank;
+    if(!up||dr>up.dr)up={p:p,dr:dr};
+    if(!dn||dr<dn.dr)dn={p:p,dr:dr};
+    if(!climb||dk>climb.dk)climb={p:p,dk:dk};
+    if(p.rank<=10&&o[1]>10&&!entered)entered=p;
+  });
+  const no1=L[0];if(!no1)return null;
+  const was1=Object.keys(snap).filter(function(id){return snap[id][1]===1;})[0];
+  const newNo1=!first&&was1&&was1!==no1.id;
+  let h;
+  if(first)h=no1.name+' heads the '+month+' rating list';
+  else if(newNo1)h=no1.name+' is the new world number one on the '+month+' list';
+  else if(entered)h=entered.name+' breaks into the world top ten';
+  else if(climb&&climb.dk>=8)h=climb.p.name+' climbs '+climb.dk+' places on the '+month+' list';
+  else h=no1.name+' stays on top of the '+month+' list';
+  let d='The '+month+' '+year+' list, top ten below.';
+  if(!first&&up&&up.dr>0)d+=' Biggest gain in the top hundred: '+up.p.name+', +'+up.dr+' to '+up.p.rating+'.';
+  if(!first&&dn&&dn.dr<0)d+=' Biggest fall: '+dn.p.name+', −'+(-dn.dr)+' to '+dn.p.rating+'.';
+  const yr=c.rating!=null&&!c.provisional?worldRank(c,'classical'):null;
+  if(yr)d+=' '+(c.name||'You')+': world number '+yr.toLocaleString()+' on '+c.rating+'.';
+  return wirePush(c,{cat:'ratings',e:'📊',src:'desk',h:h,d:d,tbl:tbl,hot:newNo1,me:(no1.you||(entered&&entered.you)||(climb&&climb.p.you&&climb.dk>=8))?1:0});
+}
+/* A league weekend: every league that played, in one piece — the one you play
+   in first. */
+function wireLeagues(c){
+  const X=wxInit(c),Ls=X.leagues||{},mine=c.pro&&c.pro.league;
+  X.wlg=X.wlg||{};
+  const done=[];
+  PRO_LEAGUES.forEach(function(L){
+    const G=Ls[L.id];if(!G||!G.last)return;
+    const key=G.season+'.'+G.last.round;
+    if(X.wlg[L.id]===key)return;
+    X.wlg[L.id]=key;
+    done.push({L:L,G:G,T:proTable(G)});
+  });
+  if(!done.length)return null;
+  done.sort(function(a,b){return (b.L.id===mine)-(a.L.id===mine)||b.L.str-a.L.str;});
+  const fin=done.filter(function(x){return x.G.done;})[0],x0=fin||done[0],T=x0.T;
+  let h;
+  if(fin)h=fin.G.champ+' are '+fin.L.short+' champions';
+  else if(T[1]&&T[1].pts===T[0].pts)h=x0.L.short+', round '+x0.G.last.round+': '+T[0].name+' and '+T[1].name+' level at the top';
+  else h=x0.L.short+', round '+x0.G.last.round+': '+T[0].name+' lead on '+T[0].pts+' points';
+  const d=done.map(function(x){
+    return x.L.short+', round '+x.G.last.round+' — '+x.G.last.results.map(function(r){return r.h+' '+fmtScore(r.hs)+'–'+fmtScore(r.as)+' '+r.a;}).join(', ')+
+      '. '+(x.G.done?'Champions: '+x.G.champ:'Top: '+x.T[0].name+' '+x.T[0].pts)+'.';}).join('\n');
+  return wirePush(c,{cat:'leagues',e:'🛡️',src:'league',h:h,d:d,me:done.some(function(x){return x.L.id===mine;})?1:0,hot:!!fin&&fin.L.id===mine});
+}
+/* Your own event, the way the paper at home — or, at the top, everybody —
+   writes it up. */
+function wireYourEvent(c,tr,o){
+  const nm=c.name||'You',tier=tr.tier||0,place=o.place,games=o.games,sc=o.score;
+  const an=function(k){return /^[AEFHILMNORSX]/.test(k)?'an ':'a ';};
+  let h;
+  if(tr.kind==='match')h=place===1?nm+' wins the '+tr.name:nm+' loses the '+tr.name;
+  else if(place===1)h=tier>=8?'Triumph for '+nm+' at the '+tr.name:nm+' wins the '+tr.name;
+  else if(o.norms&&o.norms.length)h=nm+' makes '+an(o.norms[0])+o.norms[0]+' norm at the '+tr.name;
+  else if(place<=3)h=nm+' finishes '+ordinal(place)+' at the '+tr.name;
+  else if(games>=5&&o.avg&&o.tpr<o.avg-150)h='A week to forget for '+nm+' at the '+tr.name;
+  else h=nm+' ends '+ordinal(place)+' at the '+tr.name;
+  let d=nm+' scored '+fmtScore(sc)+'/'+games+(o.avg?' against an average rating of '+o.avg+', a performance of '+o.tpr:'')+'.';
+  if(o.prize)d+=' Prize money: '+money(o.prize)+'.';
+  if(o.rating)d+=' '+(o.fmt==='classical'?'Rating':wireCap(o.fmt)+' rating')+' now '+o.rating+'.';
+  if(o.titles&&o.titles.length)d+=' And the title is confirmed: '+o.titles.join(', ')+'.';
+  const it=wirePush(c,{cat:'you',e:place===1?'🏆':(tr.emoji||'📋'),src:tier>=6?'gazette':'home',h:h,d:d,hot:place===1&&tier>=6});
+  // a win gets noticed by the people you play with
+  if(place===1&&tier>=3){
+    const I=worldIndex().id,mates=worldRanking(c,'classical').filter(function(p){return !p.you&&p.fed===c.fed;}).slice(0,8);
+    const m=mates.length?I[wirePick(mates).id]:null;
+    if(m)socialNpcPost(c,m,'Congratulations to '+socialHandle(c.name)+' on the '+tr.name+' 👏');
+  }
+  return it;
+}
+/* ---- the board on screen ---- */
+function newsFabOn(){
+  const c=store.career;
+  return !!(c&&c.setup&&!c.retired&&store.settings.newsFab!==false&&app.view!=='onboard');
+}
+function newsView(){const d=document.documentElement;return {w:(d&&d.clientWidth)||window.innerWidth||400,h:(d&&d.clientHeight)||window.innerHeight||700};}   // inside the scrollbar
+function newsPos(){
+  const V=newsView(),vw=V.w,vh=V.h,p=app.newsPos||store.settings.newsPos||null;
+  let x=p?p.x*vw:vw-66,y=p?p.y*vh:vh-150;
+  x=Math.max(6,Math.min(vw-58,x));y=Math.max(6,Math.min(vh-58,y));
+  return {x:Math.round(x),y:Math.round(y),vw:vw,vh:vh};
+}
+function wireAgo(c,x){const dw=(c.weeks||0)-(x.w||0);return dw<=0?'this week':dw===1?'last week':dw+' weeks ago';}
+function wireTable(t){
+  return '<table class="ntbl">'+t.map(function(r,i){
+    const dd=r.d==null?'':(r.d>0?'<span style="color:#22c55e">+'+r.d+'</span>':r.d<0?'<span style="color:#ef4444">−'+(-r.d)+'</span>':'<span class="dim">=</span>');
+    const kk=r.k==null||r.k===0?'':(r.k>0?' <span style="color:#22c55e">▲'+r.k+'</span>':' <span style="color:#ef4444">▼'+(-r.k)+'</span>');
+    return '<tr'+(r.you?' class="nyou"':'')+'><td>'+(i+1)+'</td><td>'+r.f+' '+(r.t?'<span class="dim">'+esc(r.t)+'</span> ':'')+esc(r.n)+kk+'</td><td style="text-align:right">'+r.r+'</td><td style="text-align:right">'+dd+'</td></tr>';}).join('')+'</table>';
+}
+function newsArticle(c,x){
+  const O=OUTLETS[x.src]||OUTLETS.wire,fresh=x.id>(app.newsSeenAt||0),open=app.newsRead===x.id;
+  return '<div class="nart'+(fresh?' fresh':'')+(open?' open':'')+'" data-act="newsread" data-val="'+x.id+'">'+
+    '<div class="nmeta"><span style="color:'+O.col+'">'+O.e+' '+esc(O.n)+'</span> · '+wireAgo(c,x)+
+      (x.hot?' · <b style="color:#ef4444">BREAKING</b>':'')+'</div>'+
+    '<div class="nhead">'+x.e+' '+esc(x.h)+'</div>'+
+    (x.d?'<div class="ndeck">'+esc(x.d).replace(/\n/g,'<br>')+'</div>':'')+
+    (open&&x.q?'<div class="nquote">'+esc(x.q)+'</div>':'')+
+    (open&&x.tbl?wireTable(x.tbl):'')+
+    (open&&x.pid?'<div style="margin-top:6px"><button class="btn ghost sm" data-act="profile" data-val="'+esc(x.pid)+'">👤 Profile</button></div>':'')+
+    (open&&x.cat==='you'&&typeof socialDraftFrom==='function'?'<div style="margin-top:6px"><button class="btn ghost sm" data-act="socialfrom" data-val="'+x.id+'">📲 Post about it</button></div>':'')+
+    '</div>';
+}
+function newsPanel(c,P){
+  const f=app.newsCat||'all',Wd=Math.min(400,P.vw-16);
+  const left=Math.max(8,Math.min(P.vw-Wd-8,P.x+52-Wd));
+  const below=P.y<P.vh/2;
+  const pos=below?'top:'+(P.y+60)+'px;':'bottom:'+(P.vh-P.y+8)+'px;';
+  const maxH=Math.max(220,below?(P.vh-P.y-72):(P.y-16));
+  const items=c.wire.filter(function(x){return f==='all'||x.cat===f||(f==='you'&&x.me);});
+  const shown=items.slice(0,app.newsMore?WIRE_MAX:25);
+  return '<div class="newspanel" role="dialog" aria-label="News board" style="left:'+left+'px;'+pos+'width:'+Wd+'px;max-height:'+maxH+'px">'+
+    '<div class="nhdr"><div><b>📰 News board</b> <span class="dim small">week '+(weekOfSeason(c)+1)+' · '+seasonYear(c)+'</span></div>'+
+      '<button class="btn ghost sm" data-act="newstoggle" aria-label="Close">✕</button></div>'+
+    '<div class="nchips">'+WIRE_CATS.map(function(k){
+      return '<button class="nchip'+(f===k[0]?' on':'')+'" data-act="newscat" data-val="'+k[0]+'">'+k[1]+'</button>';}).join('')+'</div>'+
+    '<div class="nlist">'+(shown.length?shown.map(function(x){return newsArticle(c,x);}).join(''):
+      '<div class="dim small" style="padding:14px 0">Nothing yet. The press writes about what happens — play, or let a week go by.</div>')+
+      (items.length>shown.length?'<button class="btn ghost sm" data-act="newsmore" style="margin-top:8px">▾ Older stories ('+(items.length-shown.length)+')</button>':'')+
+      '<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border)"><button class="btn ghost sm" data-act="newshide">Hide the button</button> '+
+      '<span class="dim small">— bring it back from the World tab</span></div>'+
+    '</div></div>';
+}
+function newsBoard(){
+  if(!newsFabOn())return '';
+  const c=store.career;wireInit(c);
+  const P=newsPos(),open=!!app.newsOpen;
+  if(open)c.wireSeen=c.wireN;                       // what arrives while you read is read
+  const n=wireUnread(c),top=c.wire[0];
+  let h='<button id="newsfab" class="newsfab'+(n?' has':'')+(open?' on':'')+'" data-act="newstoggle" style="left:'+P.x+'px;top:'+P.y+'px" '+
+    'aria-label="News board'+(n?', '+n+' unread':'')+'" title="News board — drag to move">📰'+(n?'<span class="nbadge">'+(n>9?'9+':n)+'</span>':'')+'</button>';
+  if(!open&&top&&top.hot&&top.id>(c.wireSeen||0)){
+    const right=P.x>P.vw/2;
+    h+='<div class="newspeek" data-act="newstoggle" style="top:'+(P.y+8)+'px;'+(right?'right:'+(P.vw-P.x+8):'left:'+(P.x+60))+'px">'+
+      '<b>BREAKING</b> · '+esc(top.h)+'</div>';
+  }
+  if(open)h+=newsPanel(c,P);
+  return h;
+}
+function newsToggle(){
+  const c=store.career;if(!c)return;wireInit(c);
+  if(!app.newsOpen){app.newsOpen=true;app.newsSeenAt=c.wireSeen||0;c.wireSeen=c.wireN;app.newsRead=null;app.newsMore=false;save();}
+  else app.newsOpen=false;
+  render();
+}
+/* Dragging the button: it follows the finger, and where it is let go is where
+   it lives, on every screen, as a share of the window so it survives a resize. */
+let _newsDrag=null,_newsDraggedAt=0;
+document.addEventListener('pointerdown',function(e){
+  const f=e.target&&e.target.closest?e.target.closest('#newsfab'):null;if(!f)return;
+  const r=f.getBoundingClientRect();
+  _newsDrag={dx:e.clientX-r.left,dy:e.clientY-r.top,x0:e.clientX,y0:e.clientY,moved:false};
+},true);
+window.addEventListener('pointermove',function(e){
+  const D=_newsDrag;if(!D)return;
+  if(!D.moved&&Math.abs(e.clientX-D.x0)+Math.abs(e.clientY-D.y0)<7)return;
+  D.moved=true;
+  const V=newsView(),vw=V.w,vh=V.h;
+  const x=Math.max(6,Math.min(vw-58,e.clientX-D.dx)),y=Math.max(6,Math.min(vh-58,e.clientY-D.dy));
+  app.newsPos={x:x/vw,y:y/vh};
+  const f=document.getElementById('newsfab');if(f){f.style.left=x+'px';f.style.top=y+'px';}
+  document.querySelectorAll('.newspeek,.newspanel').forEach(function(el){el.style.visibility='hidden';});
+  if(e.cancelable)e.preventDefault();
+},{passive:false});
+window.addEventListener('pointerup',function(){
+  const D=_newsDrag;_newsDrag=null;
+  if(D&&D.moved){_newsDraggedAt=Date.now();store.settings.newsPos=app.newsPos;save();render();}
+});
 /* ================= SEASON STORY ARCS =================
    A career should have chapters, not just numbers. An arc unlocks when you
    reach its stage, then plays out over several goals with a decision in the
@@ -14768,7 +15909,7 @@ function arcStart(c){
   var a=pool[0];
   c.arc={id:a.id,ch:0,base:arcSnapshot(c),choices:[],since:c.weeks||0};
   pushNews(c,a.e,'A new chapter opens: '+a.t);
-  pushFeed(c,a.e,'Storyline: '+a.t+' — '+a.b,'you');
+  pushFeed(c,a.e,'Storyline: '+a.t+' — '+a.b,'you',true);   // the story of your career, not news
   toastAdd(a.e+' New story arc — '+a.t);
   return true;
 }
@@ -14788,7 +15929,7 @@ function arcFinish(c){
   c.arcBadges=c.arcBadges||[];if(a.reward.badge&&c.arcBadges.indexOf(a.reward.badge)<0)c.arcBadges.push(a.reward.badge);
   c.money=(c.money||0)+(a.reward.money||0);addXp(c,a.reward.xp||0);c.fame=Math.min(100,(c.fame||0)+(a.reward.fame||0));
   pushNews(c,'🎬','Story complete — '+a.t+'. You are now known as “'+a.reward.badge+'”.');
-  pushFeed(c,'🎬',esc(c.name||'You')+' closes a chapter: '+a.t+'.','you');
+  pushFeed(c,'🎬',esc(c.name||'You')+' closes a chapter: '+a.t+'.','you',true);   // the story of your career, not news
   toastAdd('🎬 '+a.t+' complete — 💰'+(a.reward.money||0)+' · “'+a.reward.badge+'”');
   confetti(60);
 }
@@ -14809,7 +15950,7 @@ function arcChoose(c,idx){
   opt.fx(c);
   c.arc.choices.push(opt.l);
   pushNews(c,'🧭','You chose: '+opt.l);
-  pushFeed(c,'🧭',esc(c.name||'You')+' — '+opt.l+'.','you');
+  pushFeed(c,'🧭',esc(c.name||'You')+' — '+opt.l+'.','you',true);   // the story of your career, not news
   arcAdvance(c);
   arcTick(c);
 }
@@ -17820,7 +18961,10 @@ function archiveCareerGame(c,opp,score,fmt,eventName,c960on){
   var bri=false;
   if(score===1){var last=moves[moves.length-1],myr=youRating(c,fmt)||opp.rating;
     var quickMate=last&&/#/.test(last.san||'')&&moves.length<=30,upset=opp.rating>=myr+120;
-    if(quickMate||upset){bri=true;lifeInit(c);var briPrize=Math.round(150+(c.fame||0)*10);c.money=(c.money||0)+briPrize;c.fame=Math.min(100,(c.fame||0)+3);c.fans=Math.round((c.fans||0)+40+(c.fame||0));addXp(c,8);unlockAch(c,'brilliancy');pushNews(c,'✨','Game of the Day (+💰'+briPrize+' brilliancy prize) — your '+(quickMate?'attacking miniature':'upset')+' over '+esc(opp.name)+'!');}}
+    if(quickMate||upset){bri=true;lifeInit(c);var briPrize=Math.round(150+(c.fame||0)*10);c.money=(c.money||0)+briPrize;c.fame=Math.min(100,(c.fame||0)+3);c.fans=Math.round((c.fans||0)+40+(c.fame||0));addXp(c,8);unlockAch(c,'brilliancy');pushNews(c,'✨','Game of the Day (+💰'+briPrize+' brilliancy prize) — your '+(quickMate?'attacking miniature':'upset')+' over '+esc(opp.name)+'!');
+      wirePush(c,{cat:'you',e:'✨',src:'review',hot:1,h:'Game of the day: '+(c.name||'You')+' beats '+opp.name,
+        d:(quickMate?'Mate on move '+Math.ceil(moves.length/2)+', finished with '+last.san+'.':'A win against a player '+(opp.rating-myr)+' points higher on the list.')+
+          (eventName&&eventName!=='One-off'?' It came at the '+eventName+'.':'')+' The brilliancy prize is '+money(briPrize)+'.'});}}
   c.games.unshift({moves:moves,startFen:app._playStartFen||null,opp:opp.name,oppRating:opp.rating,
     oppTitle:opp.title||'',result:score,color:app.playSide,format:fmt,event:eventName,date:Date.now(),
     c960:!!c960on,bri:bri,
@@ -19542,7 +20686,8 @@ function worldResult(c,t,rows,of,extra){
   const R={s:c.season||1,w:weekOfSeason(c),id:t.id,name:t.name,emoji:t.emoji,winner:{id:w.id,name:w.name,fed:w.fed,flag:w.flag},score:rows[0].s,of:of,
     second:rows[1]?{name:rows[1].p.name,fed:rows[1].p.fed}:null,note:extra||''};
   X.results.unshift(R);if(X.results.length>60)X.results.length=60;
-  if((t.tier||0)>=4||t.champion)pushFeed(c,t.emoji||'🏆',esc(w.name)+' ('+w.fed+') wins the '+esc(t.name)+(of?' with '+fmtScore(rows[0].s)+'/'+of:'')+(extra?' — '+esc(extra):'')+'.','world');
+  if((t.tier||0)>=4||t.champion)pushFeed(c,t.emoji||'🏆',esc(w.name)+' ('+w.fed+') wins the '+esc(t.name)+(of?' with '+fmtScore(rows[0].s)+'/'+of:'')+(extra?' — '+esc(extra):'')+'.','world',true);
+  wireEvent(c,t,rows,of,extra);
   return R;
 }
 function worldSwissEvent(c,t,busy){
@@ -19567,6 +20712,7 @@ function worldNationals(c,t,busy){
   const X=wxInit(c),S=c.season||1,mine=c.fed;
   const youIn=(c.tour&&c.tour.id==='natch')||(c.calDone||[]).indexOf('natch')>=0;
   X.natChamps=X.natChamps||{};
+  const prevMine=X.natChamps[mine]?Object.assign({},X.natChamps[mine]):null;
   worldFeds().forEach(function(F){
     if(F.c===mine&&youIn)return;
     const L=worldRanking(c,'classical').filter(function(p){return !p.you&&p.fed===F.c&&!busy[p.id];});
@@ -19582,6 +20728,7 @@ function worldNationals(c,t,busy){
   });
   const R={s:S,w:weekOfSeason(c),id:'natch',name:'National championships',emoji:'🎖️',winner:null,note:Object.keys(X.natChamps).length+' federations crowned their champions'};
   X.results=X.results||[];X.results.unshift(R);if(X.results.length>60)X.results.length=60;
+  wireNationals(c,prevMine);
 }
 /* The Olympiad, when you are not in it: every nation's best four. */
 function worldOlympiad(c,busy){
@@ -19611,9 +20758,14 @@ function worldOlympiad(c,busy){
   X.results.unshift({s:c.season||1,w:weekOfSeason(c),id:'olympiad',name:t.name,emoji:t.emoji,winner:{name:nations[0].c,fed:nations[0].c,flag:nations[0].f},
     score:nations[0].mp,of:18,note:medal});
   if(X.results.length>60)X.results.length=60;
-  pushFeed(c,'🤝','Olympiad: '+medal+'.','world');
+  pushFeed(c,'🤝','Olympiad: '+medal+'.','world',true);
   const mine=nations.findIndex(function(n){return n.c===c.fed;});
   if(mine>=0)pushNews(c,'🤝',esc(c.fed)+' finished '+ordinal(mine+1)+' at the Olympiad — without you.');
+  const top4=nations[0].squad.map(function(p){return p.name;}).join(', ');
+  wirePush(c,{cat:'results',e:'🤝',src:'gazette',hot:1,me:mine>=0?1:0,
+    h:nations[0].c+' win the Olympiad',
+    d:'The final table: '+medal+'. The winning team: '+top4+', on '+nations[0].mp+' match points of 18.'+
+      (mine>=0?' '+c.fed+' finished '+ordinal(mine+1)+' of '+nations.length+'.':'')});
   return nations;
 }
 /* The World Cup, when you are not in it. */
@@ -19667,19 +20819,24 @@ function worldWeek(c){
     if(EVENT_WEEK[t.id]!==w)return;
     if((c.tour&&c.tour.id===t.id)||done.indexOf(t.id)>=0)return;      // you are in it: it is your event
     if(t.id==='candidates'||t.id==='wcc'||t.creator)return;            // the cycle has its own; the charity event is not rated
+    wireWatch(t);
     if(t.id==='olympiad')worldOlympiad(c,busy);
     else if(t.id==='worldcup')worldKnockout(c,busy);
     else if(t.natChamp)worldNationals(c,t,busy);
     else if(t.rr)worldRoundRobinEvent(c,t,busy);
     else worldSwissEvent(c,t,busy);
+    wireShock(c);
   });
+  _wgWatch=null;
   worldEventsTick(c);
   worldCircuit(c,busy);
   proWeek(c);
+  wireLeagues(c);
   // the top of the list, when it changes hands
   const X=wxInit(c),top=worldRanking(c,'classical').filter(function(p){return !p.you;})[0];
-  if(top&&X.no1&&X.no1!==top.id)pushFeed(c,'🌍',esc(top.name)+' is the new world number one, on '+top.rating+'.','world');
+  if(top&&X.no1&&X.no1!==top.id)pushFeed(c,'🌍',esc(top.name)+' is the new world number one on the live list, on '+top.rating+'.','world');
   if(top)X.no1=top.id;
+  wireListTick(c);                  // and on the first of the month, the list
 }
 /* The rest of the world plays its cycle whether or not you are in it: when the
    Candidates' week and the title match's week end, if you did not play them,
@@ -20170,6 +21327,7 @@ function careerResult(score){
   const _fmt=(c.tour&&c.tour.format)||app.careerOneoff||'classical';
   const _opp=app.careerRoundOpp||(c.tour&&c.tour.field&&c.tour.field[c.tour.round])||null;
   boothFinish(boothGameOf(),score,app.playResult||'');
+  streamFinish(score,app.playResult||'');
   app.careerStory=gameStory({score:score,plies:(app.playMoves||[]).length,
     low:app._evLow,high:app._evHigh,result:app.playResult||''});
   if(app.careerStory&&!app.parkBet){
@@ -20334,8 +21492,10 @@ function finalizeTournament(c){
     // the grid outlives the tournament object, for the recent events at least
     xt:xtSnapshot(tr)});
   xtPrune(c);
-  if(!tr.oly)pushFeed(c,won1st?'🏆':'📋',esc(c.name||'You')+(won1st?' WINS ':' finishes '+ordinal(place)+' at ')+esc(tr.name)+' with '+fmtScore(scoreTot)+'/'+games+' (TPR '+tpr+').','you');
-  gainedNorms.forEach(function(k){pushFeed(c,'📜',esc(c.name||'You')+' scores a '+k+' norm at '+esc(tr.name)+'.','you');});
+  if(!tr.oly)pushFeed(c,won1st?'🏆':'📋',esc(c.name||'You')+(won1st?' WINS ':' finishes '+ordinal(place)+' at ')+esc(tr.name)+' with '+fmtScore(scoreTot)+'/'+games+' (TPR '+tpr+').','you',true);
+  gainedNorms.forEach(function(k){pushFeed(c,'📜',esc(c.name||'You')+' scores a '+k+' norm at '+esc(tr.name)+'.','you',true);});
+  if(!tr.oly&&!tr.simul)wireYourEvent(c,tr,{place:won1st?1:place,games:games,score:scoreTot,avg:avgOpp,tpr:tpr,norms:gainedNorms,titles:newTitles,
+    prize:prize,rating:youRating(c,fmt),fmt:fmt});
   app.careerFinish={name:tr.name,emoji:tr.emoji,score:scoreTot,rounds:games,avg:avgOpp,tpr:tpr,norms:gainedNorms,newTitles:newTitles,honors:gainedHonors,published:published,rating:youRating(c,fmt),place:place,format:fmt,xt:(c.history[0]&&c.history[0].xt)||null,
     missed:missedNorms,prize:prize,shared:_pz.shared,olyPay:app._olyPay||0,
     match:tr.kind==='match'?{won:matchWon,tb:tr.tb||null,planned:tr.planned||null}:null,
@@ -20993,6 +22153,7 @@ function viewPlay(){
       (app.drawMsg?'<div class="dim small" style="margin-top:6px">'+esc(app.drawMsg)+'</div>':'')+
       (!live?'<div class="row" style="margin-top:10px"><button class="btn primary sm" data-act="plast">▶▶ Jump to live</button></div>':'')+'</div>'+
     tbHtml+
+    streamPanel()+
     boothPanel()+
     '<div class="card" style="margin-top:12px"><div class="l" style="text-transform:uppercase;font-size:11px;letter-spacing:.08em;color:var(--muted)">Moves</div><div class="moves" style="margin-top:6px;line-height:2.1">'+playMoveList()+'</div></div>'+
     '<div class="card" style="margin-top:12px"><div class="row"><button class="btn sec sm" data-act="phint" '+((interactive&&!app.pass&&(!app.careerOpp||(app.careerHintsLeft||0)>0))?'':'disabled')+(app.pass?' title="No hints between two players"':'')+'>'+(app.careerOpp?('💡 Tactic ('+(app.careerHintsLeft||0)+')'):'💡 Hint')+'</button><button class="btn sec sm" data-act="pundo" '+(app.playStack.length>1?'':'disabled')+'>↶ Take back</button><button class="btn ghost sm" data-act="pflip">⇅ Flip</button><button class="btn '+(app.tiltEval?'ghost':(store.settings.showEval?'primary':'ghost'))+' sm" data-act="toggleeval" title="'+(app.tiltEval?'On tilt — the eval bar is locked this game':'Show/hide the engine evaluation')+'"'+(app.tiltEval?' disabled':'')+'>'+(app.tiltEval?'😖 Tilt':'📊 Eval')+'</button><button class="btn '+(app.blindfold?'primary':'ghost')+' sm" data-act="pblind">🙈 Blindfold</button>'+(app.blindfold?'<button class="btn ghost sm" data-act="ppeek">'+(app.peek?'🙈 Hide':'👁 Peek')+'</button>':'')+'</div>'+(app.blindfold?'<div class="dim small" style="margin-top:6px">🙈 Blindfold on — pieces hidden. Visualise the position; tap squares to move. Use 👁 Peek if you get stuck.</div>':'')+
@@ -22070,6 +23231,7 @@ document.addEventListener('visibilitychange',function(){
 });
 window.addEventListener('keydown',e=>{
   if(srchKey(e))return;
+  if(e.key==='Escape'&&app.newsOpen){app.newsOpen=false;render();return;}     // the news board closes like any sheet
   // a focused board takes the arrows, Enter and Escape before anything else
   if(!(e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))&&kbHandle(e))return;
   // typing a name and pressing Enter is the obvious gesture; the rest of the

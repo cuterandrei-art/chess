@@ -39,7 +39,7 @@ const X=new Function(script+'\nreturn {store,app,simGame,SIM_DRAW,_simScore,_sim
   'wmInit,wmHire,wmStart,wmBeforeGame,wmAfterGame,wmRest,wmPress,wmPanel,wmTeamElo,WM_SECONDS,WM_LEAK_BASE,WM_LEAK_PER,matchScoreStrip,'+
   'olympiadSelected,fedRank,wpRating,wpStrength,worldGame,worldApply,worldVsYou,worldWeek,worldCircuit,simSwiss,simRoundRobin,'+
   'proLeagues,proLeagueOf,proTable,proBoard,proMyMatch,candidatesField,specRate,tourBoardGame,koGame,wrOf,wrInit,wpK,oppStrength,OLY_BOARDS,'+
-  'worldPick,swissHall,fieldFedRule,NAME_BANKS,worldFeds,POOL_TOP,POOL_CLUB,baseWorld,olyInit,olyMyTeam,olyNation,fedPlayers,koInit,KO_SIZE,worldTick};')();
+  'worldPick,swissHall,fieldFedRule,NAME_BANKS,NAME_FAMILY_FIRST,worldFeds,POOL_TOP,POOL_CLUB,baseWorld,olyInit,olyMyTeam,olyNation,fedPlayers,koInit,KO_SIZE,worldTick};')();
 /* Named events are held in their week of the year: put the career there (and
    in a year the event is held) before entering one. */
 function atEvent(c,id){
@@ -1327,11 +1327,15 @@ ok(W.length>1800,'the world list is '+W.length+' players, not two hundred');
 ok(feds.every(F=>W.filter(p=>p.fed===F.c&&!p.club).length>=X.POOL_TOP&&W.filter(p=>p.fed===F.c&&p.club).length>=X.POOL_CLUB),
   'every federation has its own players, from its best down to its club players');
 ok(new Set(W.map(p=>p.name)).size===W.length,'and nobody on it shares a name with anybody else');
-// (the hundred and fifty players the list always had keep the names saved careers know them by)
-const ger=W.filter(p=>p.fed==='GER'&&/^[gk]GER/.test(p.id)).slice(0,30);
+const ger=W.filter(p=>p.fed==='GER'&&!p.real).slice(0,30);
 ok(ger.every(p=>X.NAME_BANKS.GER[1].some(l=>p.name.endsWith(l))),'a German is called something German ('+ger[0].name+', '+ger[1].name+')');
 const chn=W.filter(p=>/^[gk]CHN/.test(p.id)&&/^[A-Z][a-z]+ [A-Z][a-z]+/.test(p.name));
 ok(chn.length>=30,'and a Chinese player has the family name first ('+chn[0].name+')');
+// the hundred and fifty the list always had are named like everybody else now
+const nat=p=>{const B=X.NAME_BANKS[p.fed];if(!B)return false;
+  return X.NAME_FAMILY_FIRST[p.fed]?B[0].some(f=>p.name.indexOf(f+' ')===0):B[1].some(l=>p.name.endsWith(' '+l));};
+const F150=W.filter(p=>/^f\d+$/.test(p.id));
+ok(F150.length>=140&&F150.every(nat),'the '+F150.length+' players the list always had carry names from their own federations ('+F150.slice(0,3).map(p=>p.name+' '+p.fed).join(', ')+')');
 ok(JSON.stringify(X.baseWorld().map(p=>p.name))===JSON.stringify(X.baseWorld().map(p=>p.name)),'the same world every time it loads');
 // nobody's rating moves by itself any more
 const kp=W.find(p=>p.club),kr0=X.wpRating(kp,'classical');

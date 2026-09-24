@@ -626,10 +626,78 @@ the champion and challenger, your country's champion, each event's winner and
 the four leagues; a profile shows a player's games and points this season. A
 save holding all of it is about a hundred kilobytes.
 
-Not done yet: FIDE publishes a rating list once a month, and ratings here are
-live; the World Cup is 128 players rather than 206 with byes for the top seeds;
-and the hundred and fifty players the list always had keep the generic names
-saved careers know them by.
+The hundred and fifty players the list always had — the fictional field from
+2700 down — were the last people on it with stock names ("T. Baker", "K.
+Vale") and a federation drawn at random. They are named from their own
+federation's name bank now, the same way the national pools are, so a
+Brazilian is called Vieira and an Indian Das. It changes who they are, so a
+career from before this version still finds them by their ids, but the names
+it remembers are gone; a new career starts with the new ones.
+
+**22. The press prints what happened, the chat watches your game, and a post
+gets answered.** The world's "news" was a feed that made itself up — somebody
+winning a Reykjavík Masters nobody played, a transfer that never went through,
+a book on the Najdorf by a player who does not exist — posted after every game
+you played. The streaming was a button that paid out a number, and social media
+five buttons that each added one.
+
+*The news board.* A 📰 button floats over every screen, with a count of what you
+have not read; drag it anywhere and it stays there, on every screen, through a
+resize. It opens the board: stories filed by five made-up outlets, each on its
+beat — *The Sixty-Four Gazette* for the big events, *Board Wire* for the rest
+and for shocks, *The Rating Desk* for the list, *League Night* for the pro
+leagues, *Zugzwang Daily* for social media and streams, and *The Home Courier*
+following you. Every story is written from something the simulation did: each
+event the world played that week, with the winner's score, margin, seed,
+titles this season, world rank and a quote; the biggest upset inside it,
+caught as the games are played (a 1,958 beating a 2,645 in the Dubai Open is
+printed with both ratings); the monthly rating list, a snapshot of the live
+ratings on the first of the month with the top ten, who moved and by how much,
+and where you are; every league weekend's results and the champions; the
+national championships' round-up and your country's champion; the Olympiad
+table; new grandmasters, retirements and the juniors coming onto the list; and
+your own events, games of the day, rivalry results, clips and quotes. Filters
+split it into You, Results, Ratings, Leagues, People and Media; a list opens to
+its table, a story to the player's profile, and one about you to a post about
+it. A season with you doing nothing is about fifty stories. The ticker on the
+World tab says only true things now — who is up this season, the youngest and
+oldest near the top, each country's number one, who has played the most, what
+comes next on the calendar.
+
+*Going live.* Before or during any career game, go live (or tick "go live for
+every career game"). The chat reads what the commentary booth reads — the
+moves, what came off the board, the clocks — and never the engine, so it can
+scream at a sacrifice but cannot warn you that a knight is hanging, and the
+moves it begs you to play are the moves chat always begs for: checks, captures,
+a pawn push. It knows your career: your rating and the next hundred, the
+standings of the event you are in, whether you beat this opponent last time,
+their world rank, your rival (a rival game is the one the whole chat turns up
+for), the next event. In rapid and classical it keeps talking while you think;
+in blitz it only has time to react. You run it: a viewer's question gets pinned
+and you answer it — call your rival overrated and the rivalry goes up and the
+tabloid prints it — you can put your next move to a vote and chat is delighted
+when you play its pick, trolls can be timed out (leave them and they tilt you),
+and after a sacrifice, a queen or a mate there is a moment to clip. The viewers
+follow the game: a sacrifice brings people in, a quiet endgame lets them drift,
+a raid can arrive. When the game ends, so does the stream: peak and average
+viewers, subscribers, tips and ad money, and a clip that may go viral.
+
+*The timeline.* The Media tab's social panel is a timeline. What you can post
+about is what just happened — the event you finished, your last win, the
+stream, a story the paper wrote about you, the next event, your rival — and
+you choose the voice: humble, confident, spicy, funny or with some chess in
+it. The post is written from the facts ("My Gibraltar Masters in one line:
+7½/10, a 2640 performance…"), and the voice decides who answers: fans, a
+compatriot off the world list when you win, the player you beat, your rival
+when you poke them, trolls, a journalist wanting a quote, your sponsor. Some
+replies want an answer: clap back at a troll (followers, less respect), fire
+back at your rival (the rivalry, and a story about it), challenge them to a
+money match, give the press a quote (printed). The winners of the big events
+post too, and your rival will ask whether you were watching.
+
+Not done yet: pairings and the World tab use live ratings, not the monthly
+list the board prints; the World Cup is 128 players rather than 206 with byes
+for the top seeds; the chat does not see the game you watch as a spectator.
 
 ## The Olympiad is a team event
 
@@ -1376,7 +1444,7 @@ launch builds nothing.
 
 ## Tests
 
-Fifty-five suites, about 5,400 checks, plus fourteen browser suites that drive the real app with the real engine.
+Fifty-six suites, about 5,500 checks, plus fifteen browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
@@ -1422,6 +1490,22 @@ leaks, rest days and press conferences. Several of its checks are statistical,
 and each was run ten times in a row before it was trusted. `visual-cycle.mjs`
 walks the same cycle in a browser, from a locked Candidates through the
 calendar's "Go to week" to the seconds, the press conference and the reign.
+
+`validate-media.mjs` checks the press, the stream and the timeline against
+the state they claim to report: that every event the world played in a season
+is a story with its real winner in the headline, that a "shock" is a real game
+with both ratings printed and 150 or more points between them, that the rating
+list comes out once a month with the top ten as it stands, that the ticker's
+ages match the list, that no outlet is a real one; that nothing the chat says is
+read from the engine, that it reacts to Morphy's Opera game (the sacrifice and
+the mate), talks about this game and this career while you think in a
+classical game and stays quiet in blitz, that the moves it begs for are legal,
+that a poll resolves on your move, that trolls left alone tilt you and that the
+stream pays when it ends; that a post is written from the facts and answered by
+the people it should be — your rival, a compatriot off the list, a journalist —
+and that answering them has consequences. `visual-media.mjs` drags the news
+button across the screen, opens a list, streams a game against your rival in
+a browser, answers a viewer, resigns into the summary, and posts about it.
 
 `validate-olympiad.mjs` plays thirty Olympiads and checks the books balance —
 every match hands out exactly two match points and four game points, no nation

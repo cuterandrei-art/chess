@@ -142,7 +142,7 @@ ok(boardsAt[2200]>3.5,'and a 2200 in that side essentially always board four');
    place in your federation's top five on the world list, and most careers get
    there below board one, so most of a career is spent down the order */
 let lowBoards=0,checked=0;
-['ROU','SRB','BRA','VIE','TUR'].forEach(function(fed){
+['ROU','SRB','BRA','VIE','TUR','CRO','GEO','PHI','HUN','CZE'].forEach(function(fed){
   [2250,2350,2450].forEach(function(r){
     const cc=career(fed,r);
     if(!X.store.career)X.store.career=cc;
