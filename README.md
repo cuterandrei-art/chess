@@ -369,6 +369,15 @@ without the opposition says exactly what was missing, and a norm round-robin
 is now invited so that the norm is on offer — left to chance, one IM-norm
 event in five could not give an IM norm whatever you scored.
 
+The norms you have made are on the Progress tab's **📜 Your norms** card (the
+Titles card on the career page has a button to it). Each norm is listed on its
+own — the event, the month and season it was made in, the score, the
+performance against what it needed, the opposition's average and the title it
+counts toward (a GM norm is an IM norm too) — and tapping one opens every
+requirement it met, with the numbers. Above them, each title shows how many of
+its three norms are done and whether the rating is there yet. A career with no
+norms gets an explanation of what a norm is and what one takes instead.
+
 **4. Ratings are worked out the way FIDE works them out.** Three things. A
 junior is rated at K=40 until the end of the year they turn eighteen, as long
 as they stay under 2300 — a career starts at sixteen, and its first two years
@@ -605,9 +614,9 @@ its rapid and blitz tiebreaks, playoffs, the Candidates and the title match,
 the pro and club league boards, and the engine games you watch. Your own games
 count for the other side too — beat somebody and their rating drops by the
 formula. A rising junior is underrated until their results catch up (a
-prodigy's first rating is forty below their strength; a season of about fifty
-games brings that to under twenty), a declining star is overrated until theirs
-do, and simulated games and the engine play people off the list at their true
+prodigy's first rating is forty below their strength; sixty rated games close
+about three-quarters of a forty-point gap), a declining star is overrated until
+theirs do, and simulated games and the engine play people off the list at their true
 strength.
 
 The world keeps its own calendar. At the end of every week it plays that

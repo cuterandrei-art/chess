@@ -20,7 +20,7 @@ const X=new Function(script+'\nreturn {store,app,simGame,SIM_DRAW,_simScore,_sim
   'tourColours,tourColourOf,colourOk,colourEdge,colourDot,COL_REPEAT,WHITE_EDGE,'+
   'freshCareer,lifeInit,applyRatedGame,applyByFormat,joinTournament,TOURNAMENTS,careerTourView,'+
   'playTourRound,stopClockTick,careerResult,finishDraw,NORM_BARS,NORM_TH,normRa,normCheck,normOpps,normExempt,'+
-  'eventNorms,eventNormMisses,normTracker,careerFinishBanner,makeField,dpFromPct,'+
+  'eventNorms,eventNormMisses,normTracker,careerFinishBanner,careerNorms,makeField,dpFromPct,'+
   'kFactor,ratingRef,publishRating,INIT_HYP_RATING,INIT_HYP_GAMES,'+
   'rrPairs,rrOrient,rrValid,rrSchedule,rrColourSeqs,rrInit,rrLabel,rrCard,rrRoundPairs,xtGrid,standingsSorted,tourDrawPanel,tourLocked,'+
   'swissEligible,swissHallSize,swissInit,swissPairMe,swissEnsure,swissMet,swissCard,swissOppEstimate,normOutlook,drawRevealed,'+
@@ -37,7 +37,7 @@ const X=new Function(script+'\nreturn {store,app,simGame,SIM_DRAW,_simScore,_sim
   'tbData,standingsSorted,playoffFirst,tieNote,PLAYOFF_EVENTS,careerStandings,'+
   'PRO_LEAGUES,PRO_WEEKS,proOffers,proFee,proSign,proDue,proMyMatch,careerProSim,proTick,proRenew,careerProPanel,'+
   'wmInit,wmHire,wmStart,wmBeforeGame,wmAfterGame,wmRest,wmPress,wmPanel,wmTeamElo,WM_SECONDS,WM_LEAK_BASE,WM_LEAK_PER,matchScoreStrip,'+
-  'olympiadSelected,fedRank,wpRating,wpStrength,worldGame,worldApply,worldVsYou,worldWeek,worldCircuit,simSwiss,simRoundRobin,'+
+  'olympiadSelected,fedRank,wpRating,wpStrength,worldGame,worldIndex,worldApply,worldVsYou,worldWeek,worldCircuit,simSwiss,simRoundRobin,'+
   'proLeagues,proLeagueOf,proTable,proBoard,proMyMatch,candidatesField,specRate,tourBoardGame,koGame,wrOf,wrInit,wpK,oppStrength,OLY_BOARDS,'+
   'worldPick,swissHall,fieldFedRule,NAME_BANKS,NAME_FAMILY_FIRST,worldFeds,POOL_TOP,POOL_CLUB,baseWorld,olyInit,olyMyTeam,olyNation,fedPlayers,koInit,KO_SIZE,worldTick};')();
 /* Named events are held in their week of the year: put the career there (and
@@ -245,6 +245,33 @@ ok(miss.length>=1&&miss[0].Rp>=2600,'and the event knows it was a norm-strength 
 const trOld=JSON.parse(JSON.stringify(trGood));trOld.results.forEach(r=>{delete r.fed;});
 ok(X.normOpps(trOld).every((o,i)=>o.fed===good[i].fed),'an older save fills federations in from the field');
 ok(X.eventNorms(me,trOld).join()==='GM','and still awards what it earned');
+
+/* a norm is kept whole — when it was made, the score, everything it met —
+   and the card shows each one on its own */
+{
+  X.store.career=X.freshCareer();const nc=X.store.career;X.lifeInit(nc);
+  Object.assign(nc,{setup:true,name:'Ada Marín',fed:'ROU',gender:'open',rating:2480,provisional:false,peak:2480,season:2,weeks:52+14,day:0,money:100000,titles:['CM','FM']});
+  X.joinTournament('gmrr');
+  ok(nc.tour&&nc.tour.id==='gmrr','(a GM-norm round-robin to finish)');
+  nc.tour.field=good.map((p,i)=>Object.assign({name:'Opp '+i},p));
+  nc.tour.results=trGood.results.map((r,i)=>Object.assign({name:'Opp '+i},r));
+  nc.tour.round=nc.tour.rounds=9;nc.tour.normEligible=true;
+  X.finalizeTournament(nc);
+  const n0=(nc.norms||[])[0];
+  ok(n0&&n0.type==='GM'&&n0.s===2&&n0.w===14&&n0.score===6.5,'the norm remembers when in the career it was made, and the score');
+  ok(n0.req&&n0.req.length===8&&n0.req.every(r=>r[4]===1),'and every requirement it met, with the numbers');
+  X.app.normOpen=null;
+  let card=X.careerNorms(nc);
+  ok(/GM norm 1/.test(card)&&/GM-Norm Round-Robin/.test(card)&&/April 2027/.test(card),'the card lists it on its own: the event, and the month it was made');
+  ok(/6½\/9/.test(card)&&/2600 needed/.test(card),'with the score and the performance it needed');
+  ok(/Counts toward the GM and the IM titles/.test(card),'and says a GM norm is an IM norm too');
+  ok(/<b[^>]*>GM<\/b>.*?1\/3 norms/.test(card)&&/<b[^>]*>IM<\/b>.*?1\/3 norms/.test(card),'each title shows how many of its three norms are made');
+  X.app.normOpen=0;card=X.careerNorms(nc);
+  ok(/GMs: <b>3<\/b>/.test(card)&&/Foreign federations: <b>\d+<\/b>/.test(card),'tapped, it opens to every requirement it met');
+  X.app.normOpen=null;
+  X.store.career=X.freshCareer();const e0=X.store.career;X.lifeInit(e0);e0.setup=true;
+  ok(/What is a norm|A <b>norm<\/b> is one tournament/.test(X.careerNorms(e0))&&/2600\+/.test(X.careerNorms(e0)),'with no norms yet, the card explains what one is and what it takes');
+}
 
 /* the finish banner says why */
 const ban=X.careerFinishBanner({name:'Riga Open',emoji:'🏟️',score:6.5,rounds:9,tpr:2616,place:3,norms:[],
@@ -1230,12 +1257,12 @@ ok(Math.abs(T.A.sb-(1+1))<1e-9&&Math.abs(T.B.sb-(0+1))<1e-9,'in a round-robin it
 // the playoff
 c=bc(2760,1,13);
 const tr={id:'candidates',standings:[{id:'__you',name:'Ada Marín',rating:2760,score:9,you:true},{id:'p1',name:'Rival One',rating:2770,score:9},{id:'p2',name:'Three',rating:2750,score:7}],pairs:[]};
-const rap=c.ratingRapid,bl=c.ratingBlitz;
+const rg=(c.ratedRapid||0)+(c.ratedBlitz||0);
 const po=X.playoffFirst(c,tr);
 ok(po&&po.you&&po.opp==='Rival One','level for first in the Candidates: a playoff against the other leader');
 ok(X.standingsSorted(tr)[0].id===(po.won?'__you':'p1'),'and its winner is first');
 ok(['rapid','blitz','armageddon'].indexOf(po.stage)>=0,'decided in rapid, then blitz, then armageddon ('+po.stage+')');
-ok(c.ratingRapid!==rap||c.ratingBlitz!==bl,'and the playoff games are rated, as they are');
+ok((c.ratedRapid||0)+(c.ratedBlitz||0)>rg,'and the playoff games are rated, as they are ('+((c.ratedRapid||0)+(c.ratedBlitz||0)-rg)+' rated games)');
 ok(X.PLAYOFF_EVENTS.tatasteel==='blitz','Wijk aan Zee plays its playoff in blitz');
 ok(X.playoffFirst(c,{id:'intl',standings:tr.standings,pairs:[]})===null,'an open does not play one');
 ok(/Level for first with Rival One/.test(X.careerFinishBanner({name:'x',score:9,rounds:14,playoff:po})),'the finish says what happened');
@@ -1435,14 +1462,17 @@ ok(jw/jn>0.7,'a player two hundred points better than their rating scores like i
 console.log('\n— D2 · every result around you counts —');
 c=dc(2300);X.joinTournament('intl');
 let tr=c.tour;
-const hb={};tr.hall.forEach(h=>{hb[h.wid]=R0(wp(h.wid));});
+const hb={},hg={};tr.hall.forEach(h=>{hb[h.wid]=R0(wp(h.wid));hg[h.wid]=(X.wrOf(wp(h.wid))||[])[3]||0;});
 X.app.careerOpp='tour';X.app.careerScored=false;X.app.careerTour=true;X.app.careerOneoff=null;X.app.careerRoundOpp=tr.field[0];X.app.playMoves=[];
 const opp0=tr.field[0],oppB=R0(wp(opp0.wid));
 X.careerResult(1);
 const games1=tr.pairs.filter(g=>g.r===1&&g.a!=='__you'&&g.b);
 const std=id=>tr.standings.find(p=>p.id===id);
-let moved=0;games1.forEach(g=>{[g.a,g.b].forEach(id=>{const w=std(id).wid;if(Math.abs(R0(wp(w))-hb[w])>0.05)moved++;});});
-ok(games1.length>=8&&moved>=games1.length*2-2,'the '+games1.length+' boards beside yours were rated games: '+moved+' ratings moved');
+// counted by the rating record's games, since a draw between two players on
+// the same rating is a rated game that moves neither of them
+let moved=0,counted=0;games1.forEach(g=>{[g.a,g.b].forEach(id=>{const w=std(id).wid;
+  if(Math.abs(R0(wp(w))-hb[w])>0.05)moved++;if(((X.wrOf(wp(w))||[])[3]||0)===hg[w]+1)counted++;});});
+ok(games1.length>=8&&counted===games1.length*2,'the '+games1.length+' boards beside yours were rated games: all '+counted+' players have one more rated game ('+moved+' ratings moved)');
 ok(R0(wp(opp0.wid))<oppB,'and beating '+opp0.name+' cost them rating ('+Math.round(oppB)+' → '+Math.round(R0(wp(opp0.wid)))+')');
 // a challenge off the list
 c=dc(2500);const Ch=wp('gUSA5'),cr0=R0(Ch);
@@ -1493,7 +1523,22 @@ for(let wk=0;wk<51;wk++)X.endOfWeek(c);
 const juniors=c.wx.extra.filter(p=>p.junior&&p.born===2);
 const gap=juniors.reduce((a,p)=>a+(X.wpStrength(p,'classical')-X.wpRating(p,'classical')),0)/Math.max(1,juniors.length);
 const jg=juniors.reduce((a,p)=>a+((X.wrOf(p)||[])[3]||0),0)/Math.max(1,juniors.length);
-ok(juniors.length===5&&gap<35,'a season of games — '+jg.toFixed(0)+' each — closes the gap between a prodigy’s strength and rating (forty at the start, '+gap.toFixed(0)+' now)');
+ok(juniors.length===5&&jg>=25&&gap<100,'a season’s juniors play a season of rated games — '+jg.toFixed(0)+' each (their gap from forty is '+gap.toFixed(0)+' now; five are too few to measure it by, so it is measured below)');
+{ // sixty players forty points underrated, sixty rated games each against people whose rating is their strength
+  const so=c.wx.soff?c.wx.soff[0]:0;
+  const band=X.buildWorld().filter(p=>!p.club&&!p.real&&p.born==null&&X.wpRating(p,'classical')>=2050&&X.wpRating(p,'classical')<=2350);
+  const U=band.slice(0,60),Op=band.slice(60,120);
+  U.forEach(p=>{c.wx.base[p.id]=[X.wpRating(p,'classical')+40-so,p.rr,p.rb];});
+  Op.forEach(p=>{c.wx.base[p.id]=[X.wpRating(p,'classical')-so,p.rr,p.rb];});
+  c.wx.v++;
+  const I=X.worldIndex().id,U2=U.map(p=>I[p.id]),O2=Op.map(p=>I[p.id]);
+  const gapOf=()=>U2.reduce((a,p)=>a+X.wpStrength(p,'classical')-X.wpRating(p,'classical'),0)/U2.length;
+  const g0=gapOf();
+  for(let k=0;k<60;k++)U2.forEach((p,i)=>{const o=O2[(i+k)%O2.length],keep=c.wr[o.id]?c.wr[o.id].slice():null;
+    X.worldGame(c,p,o,'classical',{aWhite:k%2===0});if(keep)c.wr[o.id]=keep;else delete c.wr[o.id];});   // the opposition stays as it was
+  const g1=gapOf();
+  ok(U2.length===60&&O2.length===60&&g0>=35&&g1<g0/2,'sixty players forty points better than their ratings, sixty rated games each: the gap is '+g1.toFixed(0)+' now (it was '+g0.toFixed(0)+') — results close it');
+}
 X.endOfWeek(c);
 const q=(c.wx.qual&&c.wx.qual.season===2)?c.wx.qual.ids:[];
 // four places, fewer names when somebody earns two of them

@@ -113,6 +113,13 @@
   .sreplies{margin:6px 0 0 10px;border-left:2px solid var(--border);padding-left:9px}
   .sreply{padding:5px 0}
   .sreply .sme{color:var(--brand2);margin-top:2px}
+  .normrow{padding:8px 0;border-top:1px solid var(--border)}
+  .normrow.tap{cursor:pointer}
+  .normreq{margin-top:6px;padding:7px 10px;border-radius:8px;background:rgba(255,255,255,.035);font-size:12.5px;line-height:1.65}
+  .normhelp{margin-top:8px;padding:9px 11px;border-radius:10px;background:rgba(250,204,21,.06);border:1px solid #854d0e44;font-size:12.5px;line-height:1.5}
+  .normhelp p{margin:0}
+  .normhelp ul{margin:4px 0 0 18px;padding:0}
+  .ntbl th{text-align:left;font-weight:600;color:var(--dim);padding:2px 4px;font-size:11px}
   .srchbox{position:fixed;left:50%;top:8vh;transform:translateX(-50%);z-index:999;width:min(620px,calc(100vw - 24px));max-height:84vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.6)}
   .srchrow{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:7px 8px;border:0;border-radius:9px;background:transparent;color:var(--text);font:inherit;cursor:pointer}
   .srchrow:hover,.srchrow.on{background:var(--panel2)}
@@ -11003,6 +11010,9 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='parkdouble'){var _pd=app.parkDouble;if(_pd){var _h=parkById(_pd.id);if(_h){var _i=_h.stakes.indexOf(parkStakeOf(_h));app.parkStake=Math.min(_h.stakes.length-1,(_i<0?0:_i)+1);}app.parkDouble=null;startParkGame(_pd.id);}}
   else if(act==='simulstart')startSimul(val);
   else if(act==='feedall'){app.feedAll=!app.feedAll;render();}
+  else if(act==='normhelp'){app.normHelp=!app.normHelp;render();}
+  else if(act==='normopen'){app.normOpen=app.normOpen===+val?null:+val;render();}
+  else if(act==='normsgo'){app.careerTab='progress';if(!(store.career.norms||[]).length)app.normHelp=true;go('career');normsScroll();}
   else if(act==='socialpick'){app.socialDraft={key:val};render();}
   else if(act==='socialtone'){socialPickTone(val);}
   else if(act==='socialpost'){socialDoPost();}
@@ -17291,7 +17301,9 @@ function careerHeader(c){
     stat('Classical',fmtRating(c.provisional?null:c.rating),'var(--brand2)',subC)+
     stat('Rapid',fmtRating(c.ratingRapid),'var(--text)',subR)+
     stat('Blitz',fmtRating(c.ratingBlitz),'var(--text)',subB)+'</div>';
-  h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:7px">🎖️ Titles &amp; progress <span class="dim small" style="font-weight:600">· '+(c.norms||[]).length+' norms · '+normsSummary(c)+'</span></div>'+
+  const _nn=(c.norms||[]).length;
+  h+='<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:7px"><div style="font-weight:700">🎖️ Titles &amp; progress <span class="dim small" style="font-weight:600">· '+_nn+' norm'+(_nn===1?'':'s')+' · '+normsSummary(c)+'</span></div>'+
+    '<button class="btn ghost sm" data-act="normsgo">📜 '+(_nn?'Your norms':'What is a norm?')+'</button></div>'+
     '<div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:8px">'+chips+'</div>'+nextTitleInfo(c)+honors+'<div class="row" style="margin-top:10px;justify-content:flex-end"><button class="btn ghost sm" data-act="careerpace" title="Cycle your career pace — how fast ratings move">⏩ '+(PACE_NAMES[paceMul(c)]||'Pace')+'</button> <button class="btn ghost sm" data-act="careerreset">↺ Reset career</button></div></div>';
   return h;
 }
@@ -17992,11 +18004,82 @@ function normTracker(tr,c){
     return '<div class="dim small">'+b.kind+': need <b>'+fmtScore(x.need)+'/'+total+'</b>'+tail+'</div>';}).join('');
   return '<div style="margin-top:9px;padding:9px 11px;background:rgba(250,204,21,.06);border:1px solid #854d0e44;border-radius:8px"><div style="font-weight:700;font-size:12px;color:#fcd34d;margin-bottom:4px">📜 Norm tracker</div>'+head+checklist+'<div style="margin-top:6px;border-top:1px solid #854d0e33;padding-top:5px">'+rows+'</div></div>';
 }
+/* ---- Your norms, one by one ----
+   A norm is one tournament that proves you can play at a title's level. The
+   card used to be a list of lines with the device's date on them. It lists
+   every norm now with where and when in the career it was made, the score,
+   the performance against what the norm needed, and the title it counts
+   toward — tap one for every requirement it met — with how far each title is
+   above them and, for anybody who has never made one, what a norm is. */
+const NORM_COUNTS={GM:['GM','IM'],IM:['IM'],WGM:['WGM','WIM'],WIM:['WIM']};
+function normWhen(n){
+  if(n.s!=null&&n.w!=null)return WIRE_MONTHS[Math.min(11,Math.floor(n.w*12/52))]+' '+(FIRST_YEAR-1+n.s)+' · season '+n.s;
+  return n.date?new Date(n.date).toLocaleDateString():'';
+}
+function normExplainer(c){
+  const bars=NORM_BARS.filter(function(b){return c.gender==='women'||b.track==='open';});
+  return '<div class="normhelp">'+
+    '<p>A <b>norm</b> is one tournament that proves you can play at a title’s level: you performed like a grandmaster (or an IM), '+
+    'over at least '+NORM_GAMES+' games, against a field strong and international enough to count. '+
+    '<b>Three norms plus the rating</b> make the title.</p>'+
+    '<table class="ntbl"><tr><th></th><th>Performance</th><th>Opponents’ average</th><th>The title</th></tr>'+
+    bars.map(function(b){const d=TITLE_DEFS.filter(function(x){return x.normKind===b.kind;})[0];
+      return '<tr><td><b>'+b.kind+' norm</b></td><td>'+b.tpr+'+</td><td>'+b.avgFloor+'+</td><td>3 norms + '+(d?d.rating:'')+' rating</td></tr>';}).join('')+
+    '</table>'+
+    '<p style="margin-top:6px">And the field has to qualify:</p><ul>'+
+      '<li>at least half your opponents hold a title (FM or better — a CM does not count);</li>'+
+      '<li>a third of them, and never fewer than three, hold the title you are after or a higher one;</li>'+
+      '<li>they come from at least two federations besides yours, with no more than three-fifths from yours and two-thirds from any one country '+
+        '(your national championship and the Olympiad are exempt).</li></ul>'+
+    '<p style="margin-top:6px">A GM norm counts as an IM norm too. Events that offer norms have an amber <span class="chip amber" style="font-size:10px">norm</span> chip in the lobby, '+
+    'and while you play one the tournament screen tracks what you still need.</p></div>';
+}
+function normTitleRows(c){
+  const tracks=c.gender==='women'?['open','women']:['open'],peak=titlePeak(c);
+  return TITLE_DEFS.filter(function(d){return d.normKind&&tracks.indexOf(d.track)>=0;}).map(function(d){
+    const have=Math.min(3,normsCount(c,d.normKind)),earned=(c.titles||[]).indexOf(d.t)>=0,rOk=peak>=d.rating;
+    const dots=[0,1,2].map(function(k){return k<have?'<span style="color:var(--green)">●</span>':'<span class="dim">○</span>';}).join('');
+    const state=earned?'<span style="color:var(--green);font-weight:700">title held ✓</span>'
+      :(have>=3&&rOk)?'<span style="color:var(--green)">everything done ✓</span>'
+      :'rating '+d.rating+' '+(rOk?'✓':'<span class="dim">(peak '+peak+')</span>');
+    return '<div style="padding:4px 0"><b style="color:var(--brand2)">'+d.t+'</b> <span class="dim small">'+esc(d.name)+'</span>'+
+      '<div class="small">'+dots+' '+have+'/3 norms · '+state+'</div></div>';
+  }).join('');
+}
+function normEntry(n,i,num){
+  const open=app.normOpen===i,bar=NORM_BARS.filter(function(b){return b.kind===n.type;})[0]||{};
+  const perf=n.rp!=null?n.rp:n.tpr;
+  let h='<div class="normrow'+(n.req?' tap':'')+'"'+(n.req?' data-act="normopen" data-val="'+i+'"':'')+'>'+
+    '<div class="row" style="justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap">'+
+      '<span><span class="chip amber" style="font-size:10px">'+esc(n.type)+' norm '+num+'</span> <b>'+(n.emoji?n.emoji+' ':'')+esc(n.event)+'</b></span>'+
+      '<span class="dim small">'+esc(normWhen(n))+'</span></div>'+
+    '<div class="small" style="margin-top:3px">'+(n.score!=null?fmtScore(n.score)+'/'+n.games+' · ':(n.games?n.games+' games · ':''))+
+      'performance <b>'+perf+'</b>'+(bar.tpr?' <span class="dim">('+bar.tpr+' needed)</span>':'')+(n.avg?' · opponents averaged '+n.avg:'')+
+      (n.format&&n.format!=='classical'?' · '+esc(n.format):'')+'</div>'+
+    '<div class="dim small">Counts toward the '+(NORM_COUNTS[n.type]||[n.type]).join(' and the ')+' title'+(n.type==='GM'||n.type==='WGM'?'s':'')+
+      (n.req&&!open?' · ▸ every requirement':'')+'</div>';
+  if(open&&n.req)h+='<div class="normreq">'+n.req.map(function(r){
+      const lim=r[0]==='own'||r[0]==='one';
+      return '<div>'+(r[4]?'<span style="color:var(--green)">✓</span>':'<span style="color:#f87171">✗</span>')+' '+esc(r[1])+': <b>'+r[2]+'</b>'+
+        (lim?' <span class="dim">(at most '+r[3]+')</span>':' <span class="dim">/ '+r[3]+(r[0]==='tpr'||r[0]==='avg'?' needed':'')+'</span>')+'</div>';}).join('')+'</div>';
+  return h+'</div>';
+}
+function normsScroll(){setTimeout(function(){const el=document.getElementById('normscard');if(el&&el.scrollIntoView)el.scrollIntoView({block:'start',behavior:'smooth'});},60);}
 function careerNorms(c){
-  const ns=c.norms||[];const any=c.titleFormat==='any';
-  let h='<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><div style="font-weight:700">🏅 Norms &amp; title rules'+(ns.length?' ('+ns.length+' norms)':'')+'</div><button class="btn sec sm" data-act="titlefmt">'+(any?'⚡ Any format counts':'♟ Classical only')+'</button></div>'+
-    '<div class="dim small" style="margin-top:4px">'+(any?'Your <b>rapid &amp; blitz</b> ratings and norms also count toward FIDE titles (house rule) — tap to switch back to classical-only.':'Only <b>classical</b> results count toward titles (the realistic FIDE rule) — tap to also count rapid &amp; blitz.')+'</div>';
-  if(ns.length){h+='<div style="margin-top:6px">';ns.slice().reverse().forEach(n=>{h+='<div class="dim small" style="padding:3px 0;border-top:1px solid var(--border)"><b style="color:var(--brand2)">'+n.type+' norm</b> · '+n.tpr+' performance · '+esc(n.event)+' · '+new Date(n.date).toLocaleDateString()+'</div>';});h+='</div>';}
+  const ns=c.norms||[],any=c.titleFormat==='any';
+  // numbered by kind, in the order they were made
+  const cnt={},nums=ns.map(function(n){cnt[n.type]=(cnt[n.type]||0)+1;return cnt[n.type];});
+  let h='<div class="card" id="normscard" style="margin-bottom:12px">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<div style="font-weight:700">📜 Your norms'+(ns.length?' ('+ns.length+')':'')+'</div>'+
+      (ns.length?'<button class="btn ghost sm" data-act="normhelp">'+(app.normHelp?'▴ Hide':'❔ What is a norm?')+'</button>':'')+'</div>'+
+    (app.normHelp||!ns.length?normExplainer(c):'')+
+    '<div style="margin-top:8px">'+normTitleRows(c)+'</div>';
+  if(ns.length)h+='<div style="margin-top:6px">'+ns.map(function(n,i){return normEntry(n,i,nums[i]);}).reverse().join('')+'</div>';
+  else h+='<div class="dim small" style="margin-top:8px">No norms yet — your first one will appear here, with the event, the score and everything it met.</div>';
+  h+='<div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding-top:8px;border-top:1px solid var(--border)">'+
+    '<span class="dim small" style="flex:1;min-width:180px">'+(any?'Your <b>rapid &amp; blitz</b> results count toward titles too (house rule).':'Only <b>classical</b> results count toward titles, as under FIDE’s rules.')+'</span>'+
+    '<button class="btn sec sm" data-act="titlefmt">'+(any?'⚡ Any format counts':'♟ Classical only')+'</button></div>';
   return h+'</div>';
 }
 function careerHistory(c){
@@ -21400,7 +21483,15 @@ function finalizeTournament(c){
   let gainedNorms=[];
   let missedNorms=[];
   if(tr.normEligible&&(fmt==='classical'||c.titleFormat==='any')){
-    for(const k of eventNorms(c,tr)){c.norms.push({type:k,tpr:tpr,event:tr.name,date:Date.now(),games:games,avg:avgOpp,format:fmt});gainedNorms.push(k);}
+    for(const k of eventNorms(c,tr)){
+      // when in the career it was made, the score, and every requirement it
+      // met — so each norm can be shown on its own, not just counted
+      const chk=normCheck(c,NORM_BARS.find(function(b){return b.kind===k;}),normOpps(tr),scoreTot,{fedExempt:normExempt(tr)});
+      c.norms.push({type:k,tpr:tpr,event:tr.name,date:Date.now(),games:games,avg:avgOpp,format:fmt,
+        s:c.season||1,w:weekOfSeason(c),score:scoreTot,emoji:tr.emoji||'',rp:chk.Rp,
+        req:chk.reqs.map(function(r){return [r.key,r.label,r.have,r.need,r.ok?1:0];})});
+      gainedNorms.push(k);
+    }
     // a performance good enough for a norm the opposition would not allow
     if(!gainedNorms.length){
       missedNorms=eventNormMisses(c,tr).map(function(m){
