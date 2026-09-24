@@ -24,7 +24,14 @@ const X=new Function(script+'\nreturn {store,app,simGame,SIM_DRAW,_simScore,_sim
   'kFactor,ratingRef,publishRating,INIT_HYP_RATING,INIT_HYP_GAMES,'+
   'rrPairs,rrOrient,rrValid,rrSchedule,rrColourSeqs,rrInit,rrLabel,rrCard,rrRoundPairs,xtGrid,standingsSorted,tourDrawPanel,tourLocked,'+
   'swissEligible,swissHallSize,swissInit,swissPairMe,swissEnsure,swissMet,swissCard,swissOppEstimate,normOutlook,drawRevealed,'+
-  'fieldRating,fieldCeiling,swissWhiteFirst,swissNoteColour,xtSwissRows,xtSwissTable,swissClash,swissNeeds};')();
+  'fieldRating,fieldCeiling,swissWhiteFirst,swissNoteColour,xtSwissRows,xtSwissTable,swissClash,swissNeeds,'+
+  'koOrder,koTiebreak,koArmageddon,koSimMatch,koInit,koOpponent,koAfterGame,koPlace,koCard,KO_SIZE,KO_PLACE,KO_NAMES,'+
+  'PRIZE_FIRST,ENTRY_FEE,KO_PRIZE,WCC_LOSER,OLY_PAY,prizeFirst,prizeTable,prizeFor,tourPrize,entryFee,prizeLine,careerLobby,'+
+  'eventDays,eventTrip,tripCost,lifeSpendDays,weekAccounts,payOrOwe,endOfWeek,doDay,careerStream,careerSimul,careerCamp,careerRest,'+
+  'careerSabbatical,careerCommentate,lifeCosts,seasonRollover,'+
+  'cycleInit,cycleValid,cycleQualify,cycleLock,wccOpponent,matchDecided,cycleAfterMatch,matchAfterGame,careerRoadPanel,'+
+  'circuitFinalize,worldRanking,worldRank,CYCLE_SEASONS,CAND_RATING_RANK,WORLD_REAL,'+
+  'wcQualify,WC_RATING_RANK,WC_CONT_TOP,ANNUAL_EVENTS,normsOnOffer,KO_FLOOR,KO_QUAL_MIN,finalizeTournament,buildWorld,toastAdd};')();
 const Elo=(d)=>1/(1+Math.pow(10,-d/400));
 function mean(fn,n){let t=0;for(let i=0;i<n;i++)t+=fn();return t/n;}
 
@@ -69,10 +76,10 @@ function climb(myR,oppR,games,trials){
   }
   return tot/trials;
 }
-const drift=climb(1800,2200,9,800);
+const drift=climb(1800,2200,9,2500);
 ok(Math.abs(drift)<3,'simulating a nine-round event 400 points above you is worth nothing on average ('+
   (drift>0?'+':'')+drift.toFixed(1)+'); it used to be about +50');
-const drift2=climb(2700,2300,9,800);
+const drift2=climb(2700,2300,9,2500);
 ok(Math.abs(drift2)<2,'and simulating far below you costs nothing either ('+(drift2>0?'+':'')+drift2.toFixed(1)+')');
 
 console.log('\n— P2 · colours follow the pairing rules —');
@@ -558,4 +565,471 @@ ok(/>R9</.test(html9)&&!/>R10</.test(html9),'with one column per round');
 const legacy={id:'intl',rounds:3,round:0,field:[{name:'A',rating:2200},{name:'B',rating:2200},{name:'C',rating:2200}],results:[]};
 X.swissEnsure(legacy);
 ok(legacy.field.length===3&&!legacy.swiss,'an event saved before this keeps the opponents it already had');
+
+{ // W1
+console.log('\n— W1 · the World Cup is a knockout —');
+/* the bracket */
+ok(X.koOrder(8).join()==='1,8,4,5,2,7,3,6','an eight-player bracket is seeded 1–8, 4–5, 2–7, 3–6');
+const o128=X.koOrder(128);
+ok(o128.length===128&&new Set(o128).size===128&&Math.min.apply(null,o128)===1&&Math.max.apply(null,o128)===128,
+  'a 128-player bracket holds every seed exactly once');
+ok(o128.indexOf(1)<64&&o128.indexOf(2)>=64,'the top two seeds are in opposite halves — they can only meet in the final');
+const q=s=>Math.floor(o128.indexOf(s)/32);
+ok(new Set([q(1),q(2),q(3),q(4)]).size===4,'and the top four are in four different quarters');
+ok(o128[0]===1&&o128[1]===128,'seed 1 opens against seed 128');
+/* tiebreaks */
+const stages={};let noWinner=0;
+for(let i=0;i<3000;i++){
+  const t=X.koTiebreak({rating:2700,rapid:2700,blitz:2700},{rating:2700,rapid:2700,blitz:2700});
+  stages[t.stage]=(stages[t.stage]||0)+1;
+  if(typeof t.aWins!=='boolean')noWinner++;
+}
+ok(noWinner===0,'a tiebreak always produces a winner');
+ok(stages.rapid>stages.blitz&&stages.blitz>stages.armageddon&&stages.armageddon>0,
+  'most are settled in rapid, fewer in blitz, a few in armageddon ('+stages.rapid+' / '+stages.blitz+' / '+stages.armageddon+')');
+let armW=0;for(let i=0;i<20000;i++)armW+=X.koArmageddon(2700,2700);
+ok(armW/20000<0.5,'in armageddon White must win and a draw is Black’s, so between equals White wins under half ('+Math.round(armW/200)+'%)');
+/* whole matches between two others */
+let favWins=0;
+for(let i=0;i<3000;i++){const m=X.koSimMatch({name:'F',rating:2750,rapid:2750,blitz:2750},{name:'U',rating:2550,rapid:2550,blitz:2550});if(m.winner.name==='F')favWins++;}
+ok(favWins/3000>0.7&&favWins/3000<0.97,'a 200-point favourite wins the match most of the time, not always ('+Math.round(favWins/30)+'%)');
+
+/* entering */
+function wcCareer(r){
+  X.store.career=X.freshCareer();const c=X.store.career;X.lifeInit(c);c.setup=true;c.name='Ada Marín';c.fed='ROU';c.flag='🇷🇴';
+  c.provisional=false;c.rating=r;c.peak=r;c.ratingRapid=r;c.ratingBlitz=r;c.ratedGames=500;c.age=26;c.titles=['GM'];
+  X.wcQualify(c,'national champion');             // a place in the draw, whatever the rating
+  return c;
+}
+let wc=wcCareer(2650);
+X.joinTournament('worldcup');
+let K=wc.tour.ko;
+ok(K&&K.slots.length===X.KO_SIZE,'the World Cup is a bracket of 128');
+ok(K.slots.filter(p=>p.you).length===1,'with you in it once');
+ok(K.slots.some(p=>p.real&&p.seed<=5),'and the real top players at the top of it');
+const seeds=K.slots.map(p=>p.seed).sort((a,b)=>a-b);
+ok(seeds[0]===1&&seeds[127]===128,'seeded 1 to 128');
+const bySeed=K.slots.slice().sort((a,b)=>a.seed-b.seed);
+let seededOk=true;for(let i=1;i<bySeed.length;i++)if(bySeed[i].rating>bySeed[i-1].rating)seededOk=false;
+ok(seededOk,'by rating, strongest first');
+ok(!wc.tour.standings,'there is no standings table — a knockout does not have one');
+ok(wc.tour.field.length===2&&wc.tour.field[0]===wc.tour.field[1],'your first match is two games against the same opponent');
+ok(wc.tour.colours[0]!==wc.tour.colours[1],'with the colours reversed for the second');
+const firstOpp=X.koOpponent(wc.tour);
+ok(firstOpp.seed+K.mySeed===129,'and that opponent is your mirror seed ('+K.mySeed+' v '+firstOpp.seed+')');
+ok(/Knockout · 128 players/.test(X.tourDrawPanel(wc,wc.tour)),'the event shows its bracket');
+
+/* playing it: results are forced so every branch can be checked */
+function koPlay(c,scoreFn){
+  const T=c.tour;let g=0;
+  while(c.tour&&g<40){
+    const t=c.tour;
+    X.app.careerOpp='tour';X.app.careerScored=false;X.app.careerTour=true;X.app.careerOneoff=null;
+    X.app.careerRoundOpp=t.field[t.round];X.app.playMoves=[];X.app.careerLeague=false;X.app.parkBet=null;
+    X.careerResult(scoreFn(g,t));g++;
+  }
+  return T;
+}
+/* lose the first match outright */
+wc=wcCareer(2650);X.joinTournament('worldcup');
+let T=koPlay(wc,()=>0);
+ok(T.results.length===2,'lose both games of round one and your World Cup is two games long');
+ok(wc.history[0].place===65,'you are out in the first round — joint 65th');
+ok(T.ko.out&&T.ko.champion&&!T.ko.champion.you,'the bracket plays on without you and names a winner ('+T.ko.champion.name+')');
+ok(T.ko.slots.length===1,'down to one');
+/* win everything */
+wc=wcCareer(2650);X.joinTournament('worldcup');
+T=koPlay(wc,()=>1);
+ok(T.results.length===14,'win every game and it is seven matches, fourteen classical games');
+ok(wc.history[0].place===1&&T.ko.champion.you,'and you win the World Cup');
+ok((wc.honors||[]).indexOf('World Cup Winner')>=0,'with the honour');
+ok((wc.honors||[]).indexOf('Candidates Qualifier')>=0,'and a place in the Candidates');
+const oppSeeds=T.ko.mine.map(m=>m.opp.seed);
+ok(new Set(oppSeeds).size===7,'seven different opponents');
+ok(T.ko.mine.every(m=>m.won&&m.classical===2),'each beaten 2–0');
+/* go out in the quarter-final: enough games for a norm */
+wc=wcCareer(2650);X.joinTournament('worldcup');
+T=koPlay(wc,g=>g<8?1:0);
+ok(wc.history[0].place===5&&T.results.length===10,'win four matches and lose the quarter-final: fifth, after ten classical games');
+ok(T.ko.mine.length===5&&T.ko.mine[4].round===4&&!T.ko.mine[4].won&&/✗ vs/.test(X.koCard(T)),
+  'the bracket records the quarter-final as the match that ended it');
+/* lose the final */
+wc=wcCareer(2650);X.joinTournament('worldcup');
+T=koPlay(wc,g=>g<12?1:0);
+ok(wc.history[0].place===2,'lose the final and you are second');
+ok((wc.honors||[]).indexOf('Candidates Qualifier')>=0&&(wc.honors||[]).indexOf('World Cup Winner')<0,
+  'which still qualifies you for the Candidates, as the finalists do');
+/* a drawn match goes to tiebreaks, and they are rated */
+wc=wcCareer(2650);X.joinTournament('worldcup');
+const rapid0=wc.ratingRapid,blitz0=wc.ratingBlitz,rg0=wc.ratedRapid||0;
+T=koPlay(wc,g=>g===0?1:(g===1?0:0));
+const m0=T.ko.mine[0];
+ok(m0.classical===1&&m0.tb,'one game each goes to tiebreaks ('+m0.tb.stage+')');
+ok((wc.ratedRapid||0)>=rg0+2,'and the rapid tiebreak games are rated in rapid, as they are in life');
+ok(/tiebreak|armageddon/.test(X.koCard(T)),'the bracket says how it was decided');
+/* the norm rule */
+wc=wcCareer(2650);X.joinTournament('worldcup');
+ok(/nine classical games/.test(X.careerTourView(wc)),'at the start the norm tracker explains the nine-game rule');
+wc=wcCareer(2650);X.joinTournament('worldcup');
+koPlay(wc,()=>0);
+ok((wc.norms||[]).length===0,'two games can never be a norm');
+/* over many events, strength shows */
+function wcPlaces(r,n){const pl=[];for(let i=0;i<n;i++){const c=wcCareer(r);X.joinTournament('worldcup');
+  while(c.tour)X._simRound(c);pl.push(c.history[0].place);}return pl;}
+const hi=wcPlaces(2800,60),lo=wcPlaces(2480,60);
+const avgP=a=>a.reduce((t,v)=>t+v,0)/a.length;
+ok(avgP(hi)<avgP(lo)/3,'a 2800 goes far deeper than a 2480 (average place '+Math.round(avgP(hi))+' against '+Math.round(avgP(lo))+')');
+ok(hi.filter(p=>p===1).length>0&&hi.filter(p=>p===1).length<45,'and wins it sometimes — never guaranteed ('+hi.filter(p=>p===1).length+' of 60)');
+ok(lo.every(p=>p>=5),'while a 2480 never reached the semi-finals in sixty tries');
+}
+
+{ // W2
+console.log('\n— W2 · prize money on the real scale —');
+const TT=id=>X.TOURNAMENTS.find(t=>t.id===id);
+ok(X.TOURNAMENTS.every(t=>X.PRIZE_FIRST[t.id]!=null),'every event in the calendar has a prize fund of its own');
+ok(X.prizeFirst(TT('wcc'))/X.prizeFirst(TT('club'))>=5000,
+  'a World Championship pays thousands of times a club championship ('+X.prizeFirst(TT('wcc')).toLocaleString()+' against '+X.prizeFirst(TT('club'))+') — it was seventeen');
+ok(X.prizeFirst(TT('superbet'))>X.prizeFirst(TT('tatasteel')),'the prize funds differ the way the real events do, not by a tier number');
+/* how each kind of event shares it out */
+const open20=X.prizeTable(TT('intl'),20);
+ok(open20.length===4&&open20[0]===3000,'an open of twenty pays its top four, from '+open20[0]);
+ok(open20.every((v,i)=>i===0||v<open20[i-1]),'each place paying less than the one above');
+const rr10=X.prizeTable(TT('gmrr'),10);
+ok(rr10.length===10&&rr10[9]>0,'a round-robin pays every place, down to last');
+const cand=X.prizeTable(TT('candidates'),8);
+ok(cand[0]===48000&&cand[1]===36000&&cand[2]===27000,'the Candidates pays 48,000, 36,000, 27,000 … down the table');
+ok(X.prizeTable(TT('wcc'),2).join()==='1500000,1000000','a title match splits two and a half million 60/40');
+ok(X.prizeTable(TT('olympiad'),12).length===0,'and the Olympiad has no prize fund at all');
+/* ties are shared */
+const mk=scores=>({id:'intl',standings:scores.map((sc,i)=>({id:i===0?'__you':'p'+i,name:'P'+i,rating:2300-i,score:sc,you:i===0})),rounds:9});
+let pz=X.prizeFor(mk([7,7,7,6,5,5,4,4,4,3,3,3,2,2,2,1,1,1,0,0]),1);
+ok(pz.shared===3&&pz.amount===Math.round((3000+1950+1350)/3),'joint first with two others is the average of the first three prizes ('+pz.amount+')');
+pz=X.prizeFor(mk([7,8,6,6,5,5,4,4,4,3,3,3,2,2,2,1,1,1,0,0]),2);
+ok(pz.shared===1&&pz.amount===1950,'clear second is second prize');
+pz=X.prizeFor(mk([4,8,7,6,5,5,4,4,4,4,3,3,2,2,2,1,1,1,0,0]),6);
+ok(pz.amount===0,'and the middle of the table is paid nothing');
+pz=X.prizeFor(mk([5,8,7,6,5,5,4,4,4,3,3,3,2,2,2,1,1,1,0,0]),4);
+ok(pz.shared===3&&pz.amount===Math.round(960/3),'level with two others across fourth to sixth, you get a third of fourth prize, since fifth and sixth pay nothing ('+pz.amount+')');
+/* the World Cup pays by the round you went out in */
+ok(X.KO_PRIZE[0]===6000&&X.KO_PRIZE[6]===80000&&X.prizeFirst(TT('worldcup'))===110000,
+  'the World Cup: 6,000 for going out in round one, 80,000 for losing the final, 110,000 for winning it');
+/* events outside the calendar keep their purse */
+ok(X.prizeFor({id:'rivalfinale',tier:6,kind:'match'},1).amount===2800,'the rivalry finale keeps its purse');
+ok(X.prizeFor({id:'intl',stake:500},1).amount===0,'and a money match pays its stake, not a prize');
+
+/* entry fees */
+const un={titles:[]},fm={titles:['FM','CM']},im={titles:['IM','FM','CM']},gm={titles:['GM','IM']};
+ok(X.entryFee(TT('intl'),un)===90,'an untitled player pays the International Open’s entry fee');
+ok(X.entryFee(TT('intl'),fm)===45,'an FM pays half');
+ok(X.entryFee(TT('intl'),im)===0&&X.entryFee(TT('intl'),gm)===0,'IMs and GMs play free, as they do');
+ok(X.entryFee(TT('gmrr'),im)===600,'an IM chasing a GM norm pays for the norm round-robin');
+ok(X.entryFee(TT('gmrr'),gm)===0,'the grandmasters it invites do not');
+ok(X.entryFee(TT('imrr'),im)===0&&X.entryFee(TT('imrr'),fm)===400,'an IM-norm event is paid for by the FMs chasing the norm');
+ok(X.entryFee(TT('supergm'),un)===0&&X.entryFee(TT('candidates'),un)===0,'invitations cost nothing');
+/* on entering */
+X.store.career=X.freshCareer();
+const ec=X.store.career;X.lifeInit(ec);ec.setup=true;ec.fed='ROU';ec.provisional=false;ec.rating=2100;ec.peak=2100;ec.ratedGames=100;ec.age=22;
+ec.money=500;
+X.joinTournament('intl');
+ok(ec.money===410&&ec.tour.fee===90,'entering the International Open takes the fee');
+X.store.career=X.freshCareer();
+const poor=X.store.career;X.lifeInit(poor);poor.setup=true;poor.fed='ROU';poor.provisional=false;poor.rating=2100;poor.peak=2100;poor.money=40;
+ok(/entry fee/.test(X.tourLocked(TT('intl'),poor)||''),'and an event you cannot pay for is locked, and says why');
+ok(/1st 💰3,000/.test(X.prizeLine(TT('intl'),poor))&&/entry 💰90/.test(X.prizeLine(TT('intl'),poor)),
+  'the lobby says what first pays and what entering costs');
+ok(/entry free for you/.test(X.prizeLine(TT('intl'),{titles:['IM']})),'including when it costs you nothing');
+
+/* a whole event pays exactly what the rules say */
+let paidOk=0,runs=0;
+for(let i=0;i<30;i++){
+  X.store.career=X.freshCareer();const c=X.store.career;X.lifeInit(c);c.setup=true;c.fed='ROU';c.provisional=false;
+  c.rating=2350;c.peak=2350;c.ratedGames=300;c.age=24;c.titles=['IM'];c.money=5000;
+  X.joinTournament('gibraltar');
+  while(c.tour&&c.tour.round<c.tour.rounds-1)X._simRound(c);
+  const tr=c.tour,before=c.money;
+  X._simRound(c);
+  const f=X.app.careerFinish;runs++;
+  // the prize is what prizeFor says, computed on the final table
+  if(f&&f.prize===X.prizeFor(Object.assign({},tr),f.place).amount)paidOk++;
+}
+ok(paidOk===runs,'thirty Gibraltar Masters each paid exactly the shared prize the final table says');
+const ban=X.careerFinishBanner({name:'Gibraltar Masters',emoji:'🇬🇮',score:7,rounds:10,tpr:2600,place:1,prize:14433,shared:3});
+ok(/💰14,433 prize money/.test(ban)&&/shared 3 ways/.test(ban),'the finish banner says what you won, and that it was shared');
+
+/* the Olympiad is paid by the federation */
+X.store.career=X.freshCareer();
+const oc=X.store.career;X.lifeInit(oc);oc.setup=true;oc.name='Ada';oc.fed='ROU';oc.flag='🇷🇴';oc.provisional=false;
+oc.rating=2620;oc.peak=2620;oc.ratedGames=300;oc.age=24;oc.titles=['GM'];
+X.joinTournament('olympiad');
+const om=oc.money;
+while(oc.tour)X._simRound(oc);
+const f2=X.app.careerFinish;
+ok(f2&&f2.prize===0,'the Olympiad pays no prize money');
+ok(f2.olyPay>=X.OLY_PAY.stipend,'the federation pays a stipend instead ('+f2.olyPay+')');
+}
+
+{ // A1
+console.log('\n— A1 · time and money move together —');
+const T9=(id,extra)=>Object.assign({id:id,format:'classical',rounds:9},extra||{});
+/* how long things take */
+ok(X.eventDays(T9('club',{rounds:5}),5)===5,'a club championship is five evenings');
+ok(X.eventDays(T9('cityopen',{rounds:5}),5)===3,'a weekend open is a weekend');
+ok(X.eventDays(T9('intl'),9)===13,'a nine-round open abroad is thirteen days, travel included — it was eleven weeks');
+ok(X.eventDays(T9('candidates',{rounds:14,sched:[1]}),14)===19,'the Candidates is under three weeks');
+ok(X.eventDays(T9('wcc',{rounds:14,kind:'match'}),14)===23,'a title match about three weeks, with a rest day every two games');
+ok(X.eventDays(T9('worldcup',{ko:{}}),2)===5,'going out of the World Cup in round one is five days');
+ok(X.eventDays(T9('worldcup',{ko:{}}),14)===23,'winning it is more than three weeks');
+ok(X.eventDays(T9('blitzopen',{format:'blitz'}),9)===1,'a blitz open is a day');
+ok(X.eventDays(T9('worldrapid',{format:'rapid',rounds:11}),11)===5,'the World Rapid, travel included, under a week');
+/* getting there */
+const un={titles:[]},im={titles:['IM']},gm={titles:['GM','IM']};
+const abroad=X.tripCost(T9('intl'),un,13);
+ok(abroad.total===280+12*75,'an untitled player pays the flight and twelve hotel nights for an open abroad ('+abroad.total+')');
+ok(X.tripCost(T9('intl'),im,13).total===280+12*75/2,'an IM gets half the hotel');
+ok(X.tripCost(T9('intl'),gm,13).total===280,'and a GM is put up for free, paying only the fare');
+ok(X.tripCost(T9('supergm',{sched:[1]}),un,12).total===0,'invited players pay nothing');
+ok(X.tripCost(T9('olympiad',{oly:{}}),un,12).total===0&&X.tripCost(T9('worldcup',{ko:{}}),un,5).total===0,
+  'nor does anyone at the Olympiad or the World Cup');
+ok(X.tripCost(T9('cityopen',{rounds:5}),un,3).total===36,'a local weekend open is three days of fares and your own bed');
+ok(X.tripCost(T9('club',{rounds:5}),un,5).total===0,'and the club championship is at home');
+ok(X.eventTrip({id:'titledtues'})==='online','an online event costs no travel at all');
+/* the calendar */
+function cc(){X.store.career=X.freshCareer();const c=X.store.career;X.lifeInit(c);c.setup=true;c.name='A';c.fed='ROU';
+  c.provisional=false;c.rating=2300;c.peak=2300;c.ratedGames=300;c.age=24;c.money=50000;c.home='shared';c.day=0;c.weeks=10;c.season=1;return c;}
+let c=cc();
+X.lifeSpendDays(c,13,{id:'event',e:'🏟️'});
+ok(c.weeks===11&&c.day===6,'thirteen days from the start of a week closes one week and leaves six days used of the next');
+c=cc();c.day=3;
+X.lifeSpendDays(c,13,{id:'event',e:'🏟️'});
+ok(c.weeks===12&&c.day===2,'from mid-week it closes two');
+/* every week pays its bills, wherever it is spent */
+c=cc();c.sponsor={name:'S',perWeek:300,weeksLeft:3};c.coaches=[{name:'K',salary:60}];
+const m0=c.money,bills=X.lifeCosts(c,1).total;
+for(let i=0;i<7;i++){c.energy=100;X.doDay('study');}
+ok(c.money===m0-bills+300-60,'a week at home pays rent and food, your second’s wage, and your sponsor’s cheque ('+(c.money-m0)+')');
+ok(c.sponsor.weeksLeft===2,'and the sponsor deal counts down by the week');
+for(let w=0;w<2;w++)for(let i=0;i<7;i++){c.energy=100;X.doDay('study');}
+ok(c.sponsor===null,'ending when its weeks are up');
+/* the things that used to be free weeks */
+c=cc();const mS=c.money,wS=c.weeks;
+for(let i=0;i<7;i++){c.energy=100;X.careerStream();}
+ok(c.weeks===wS+1,'seven streams are seven evenings — one week, not seven');
+ok(c.money<mS+7*60,'and the week’s rent is paid out of what they earned ('+(c.money-mS)+')');
+c=cc();const wC=c.weeks,mC=c.money;
+X.careerCamp();
+ok(c.weeks===wC+2,'a training camp is two weeks');
+ok(c.money<=mC-300-2*X.lifeCosts(c,1).total+1,'and costs its fee plus two weeks of bills, not the fee alone');
+c=cc();const wR=c.weeks;
+X.careerRest();
+ok(c.weeks===wR+1,'a week off is a week');
+c=cc();const wB=c.weeks;
+X.careerSabbatical();
+ok(c.weeks===wB+8,'a sabbatical is eight');
+/* an event through the real flow */
+c=cc();c.titles=[];c.money=5000;const wE=c.weeks,aE=c.age;
+X.joinTournament('intl');while(c.tour)X._simRound(c);
+const passed=c.weeks-wE+c.day/7;
+ok(passed>1.7&&passed<2,'a whole International Open passes about two weeks of calendar ('+passed.toFixed(2)+')');
+ok(c.age-aE<0.05,'and ages you days, not three months');
+const fin=X.app.careerFinish;
+ok(fin&&fin.days===13&&fin.trip===1180&&fin.fee===90,'the trip is charged — thirteen days, 💰1,180 of travel and hotel, 💰90 entry');
+const fb=X.careerFinishBanner(fin);
+ok(/13 days · entry 💰90 · travel &amp; hotel 💰1,180/.test(fb),'and the finish banner shows the trip’s books');
+ok(/on the trip/.test(fb),'down to whether it paid for itself');
+/* a year is a year */
+c=cc();const a0=c.age;
+for(let w=0;w<52;w++)for(let i=0;i<7;i++){c.energy=100;X.doDay('rest');}
+ok(Math.abs((c.age-a0)-1)<0.02,'fifty-two weeks later you are a year older ('+(c.age-a0).toFixed(2)+')');
+/* the end of a season actually does its work */
+c=cc();c.weeks=51;c.day=0;c.season=1;c.circuit={pts:17,season:1};c.calDone=['intl'];
+for(let i=0;i<7;i++){c.energy=100;X.doDay('rest');}
+ok(c.season===2,'crossing week 52 starts season two');
+ok(c.circuit&&c.circuit.pts===0,'and finalises the Grand Circuit — its points used to carry over forever, and nobody was ever crowned');
+ok((c.calDone||[]).length===0,'and clears the season calendar');
+ok((c.news||[]).some(n=>/new season|Season 1|season 1/i.test(n.t)),'with the season’s awards announced');
+/* debts */
+c=cc();c.money=100;X.payOrOwe(c,250);
+ok(c.money===0&&c.debt===150,'a bill you cannot pay becomes debt, the same as the rent');
+}
+{ // A2
+console.log('\n— A2 · the championship cycle —');
+function cyc(r,season){
+  X.store.career=X.freshCareer();const c=X.store.career;X.lifeInit(c);c.setup=true;c.name='Ada Marín';c.fed='ROU';c.flag='🇷🇴';
+  c.provisional=false;c.rating=r;c.peak=r;c.ratingRapid=r;c.ratingBlitz=r;c.ratedGames=500;c.age=27;c.titles=['GM'];
+  c.season=season||3;c.money=50000;return c;
+}
+const cand=X.TOURNAMENTS.find(t=>t.id==='candidates'),wcc=X.TOURNAMENTS.find(t=>t.id==='wcc');
+function playAll(c,scoreFn){
+  const T=c.tour;let g=0;
+  while(c.tour&&g<60){
+    const t=c.tour;
+    X.app.careerOpp='tour';X.app.careerScored=false;X.app.careerTour=true;X.app.careerOneoff=null;
+    X.app.careerRoundOpp=t.field[t.round];X.app.playMoves=[];X.app.careerLeague=false;X.app.parkBet=null;
+    X.careerResult(scoreFn(g,t));g++;
+  }
+  return T;
+}
+/* the keys used to be permanent */
+let c=cyc(2690);
+ok(X.worldRank(c,'classical')>X.CAND_RATING_RANK,'a 2690 is well outside the world top three (#'+X.worldRank(c,'classical')+')');
+ok(/no place yet/.test(X.tourLocked(cand,c)||''),'so being rated 2680 no longer opens the Candidates by itself');
+ok(/win the Candidates/.test(X.tourLocked(wcc,c)||''),'and the title match is shut until you win it');
+c=cyc(2900);
+ok(X.worldRank(c,'classical')<=X.CAND_RATING_RANK,'the world number one…');
+ok(X.tourLocked(cand,c)===null,'…is in the Candidates on rating, the way FIDE gives a rating spot');
+ok(/qualify: World Cup final, Grand Swiss top two, Grand Circuit winner or world top 3/.test(X.careerLobby(c)),'the lobby says how a Candidates place is earned, not a rating floor');
+/* a place is for one cycle */
+c=cyc(2690,3);X.cycleQualify(c,'a test');
+ok(X.tourLocked(cand,c)===null,'a place earned in season 3 opens the Candidates in season 3');
+c.season=4;ok(X.tourLocked(cand,c)===null,'and in season 4');
+c.season=5;ok(X.tourLocked(cand,c)!==null,'but in season 5 it has lapsed — a Candidates place is for one cycle');
+/* old saves keep what they had earned */
+c=cyc(2690,6);c.honors=['Candidates Qualifier'];delete c.cycle;
+ok(X.tourLocked(cand,c)===null,'a career saved with a Candidates place keeps it, once');
+c=cyc(2690,6);c.honors=['Candidates Qualifier','Candidates Winner'];delete c.cycle;
+ok(X.tourLocked(wcc,c)===null,'and one that had won the Candidates keeps its title match');
+c=cyc(2790,6);c.honors=['World Champion'];delete c.cycle;
+ok(X.cycleInit(c).champ===true,'and a World Champion is still the champion');
+/* playing the Candidates uses the place up */
+c=cyc(2760,3);X.cycleQualify(c,'a test');
+X.joinTournament('candidates');
+ok(c.tour&&c.tour.id==='candidates','a qualified player plays the Candidates');
+ok(c.cycle.cand===null&&c.cycle.candPlayed===3,'and the place is spent the moment they do');
+let T=playAll(c,()=>0.5);
+ok(!c.tour&&T.results.length===14,'fourteen rounds of it');
+ok(c.cycle.chall===null,'drawing every game does not win it');
+c.rating=2900;c.peak=2900;
+ok(/next Candidates in season 5/.test(X.tourLocked(cand,c)||''),'and there is no second Candidates in the same cycle, even for the world number one');
+/* win it */
+c=cyc(2760,3);X.cycleQualify(c,'a test');X.joinTournament('candidates');
+T=playAll(c,()=>1);
+ok(c.cycle.chall===3,'winning the Candidates makes you the challenger');
+ok(X.tourLocked(wcc,c)===null,'which opens the title match');
+ok(/Challenger/.test(X.careerRoadPanel(c)),'and the road to the title says so');
+/* the title match: against the champion */
+X.joinTournament('wcc');
+ok(c.tour&&c.tour.field[0].name===X.WORLD_REAL[0].name,'the title match is against the reigning champion');
+ok(c.tour.defence===false,'as the challenger');
+T=playAll(c,()=>1);
+ok(T.results.length===8,'eight straight wins is 8–0 and the match stops there — it used to play all fourteen ('+T.results.length+')');
+ok(/Match won 8–0.*decided with 6 games to spare/.test(X.careerFinishBanner(X.app.careerFinish)),'and the banner says it was decided with six to spare');
+ok(c.cycle.champ===true&&(c.honors||[]).indexOf('World Champion')>=0,'you are the World Champion');
+ok((c.feed||[]).some(n=>/You are the World Champion/.test(n.t)),'the feed says so — the eight-item news list is full by the end of the event');
+ok(c.cycle.chall===null,'the challenge is spent');
+ok(/you are the champion/.test(X.tourLocked(cand,c)||''),'the champion does not play the Candidates');
+ok(/next defence in season 5/.test(X.tourLocked(wcc,c)||''),'and defends two seasons on, not again at once');
+ok(/Your reign/.test(X.careerRoadPanel(c)),'the road panel becomes your reign');
+/* a champion's World Cup final is not a Candidates place */
+X.cycleQualify(c,'a test');
+ok(c.cycle.cand===null,'a top finish does not hand the champion a Candidates place');
+/* the defence, two seasons later, against the best player who is not you */
+c.season=5;
+ok(X.tourLocked(wcc,c)===null,'in season 5 the defence is due');
+const challenger=X.worldRanking(c,'classical').filter(p=>!p.you)[0];
+X.joinTournament('wcc');
+ok(c.tour.defence===true,'this time as the champion');
+ok(c.tour.field[0].name===challenger.name&&c.tour.field[0].name!==c.name,
+  'against the strongest player in the world who is not you — '+challenger.name+' — not against yourself');
+T=playAll(c,()=>0);
+ok(T.results.length===8,'lose eight and it is over');
+ok(c.cycle.champ===false&&c.cycle.lost===5,'you lose the title');
+ok(c.cycle.reigning&&c.cycle.reigning.name===challenger.name,'to your challenger, who now holds it');
+ok((c.honors||[]).indexOf('World Champion')>=0,'the honour stays in your cabinet — you were champion');
+ok(/Former World Champion/.test(X.careerRoadPanel(c)),'and you are a former World Champion');
+ok(/win the Candidates/.test(X.tourLocked(wcc,c)||''),'to get it back you go through the Candidates like everyone else');
+ok(X.wccOpponent(c).name===challenger.name,'and the title match would be against the one who beat you');
+/* a level match goes to tiebreaks */
+c=cyc(2790,3);c.cycle=null;X.cycleInit(c).chall=3;X.joinTournament('wcc');
+const rb=c.ratingRapid,bb=c.ratingBlitz;
+T=playAll(c,g=>g%2?0:1);
+ok(T.results.length===14,'a match that stays level goes the full fourteen');
+ok(T.tb&&['rapid','blitz','armageddon'].indexOf(T.tb.stage)>=0,'and then to tiebreaks ('+(T.tb&&T.tb.stage)+') — 7–7 used to count as a defeat');
+ok(c.cycle.champ===!!T.tb.won,'the tiebreak decides the title');
+ok((c.feed||[]).some(n=>/world title|World Champion/.test(n.t)&&/in the tiebreaks/.test(n.t)),'and the feed remembers how the title was settled');
+ok(/level, then (won|lost) the (rapid tiebreak|blitz tiebreak|armageddon game)/.test(X.careerFinishBanner(X.app.careerFinish)),'as does the finish banner');
+let tbWins=0,tbN=400;
+for(let i=0;i<tbN;i++){const x={round:14,rounds:14,id:'wcc',field:[{name:'Z',rating:2790}],results:Array.from({length:14},(_,k)=>({score:k%2}))};
+  const cc=cyc(2790,3);X.matchAfterGame(cc,x);if(x.tb.won)tbWins++;}
+ok(tbWins/tbN>0.4&&tbWins/tbN<0.6,'between equals the tiebreak is a coin you can win or lose ('+Math.round(tbWins/tbN*100)+'%)');
+/* matchDecided */
+const md=(sc,n)=>X.matchDecided({rounds:n,results:sc.map(x=>({score:x}))});
+ok(md([1,1,1,1,1,1,1,1],14)&&!md([1,1,1,1,1,1,1],14)&&md([1,1,1,1,1,1,1,0.5],14),'fourteen games: 7½ decides it, 7 does not');
+ok(md([0,0,0],4)&&!md([0,0],4),'a four-game grudge match is lost at 0–3');
+/* the Grand Circuit and the Grand Swiss */
+c=cyc(2700,3);c.circuit={pts:9999,season:3};X.circuitFinalize(c);
+ok(c.cycle&&c.cycle.cand===3,'topping the Grand Circuit gives a place in the next Candidates');
+ok(X.TOURNAMENTS.find(t=>t.id==='grandswiss').qualifier===2,'the Grand Swiss sends its top two, as it does');
+}
+{ // A3
+console.log('\n— A3 · the smaller things —');
+function pc(r,season){
+  X.store.career=X.freshCareer();const c=X.store.career;X.lifeInit(c);c.setup=true;c.name='Ada Marín';c.fed='ROU';c.flag='🇷🇴';
+  c.provisional=false;c.rating=r;c.peak=r;c.ratingRapid=r;c.ratingBlitz=r;c.ratedGames=500;c.age=24;c.titles=['GM'];
+  c.season=season||2;c.money=50000;return c;
+}
+function playOut(c,scoreFn){
+  const T=c.tour;let g=0;
+  while(c.tour&&g<60){
+    const t=c.tour;
+    X.app.careerOpp='tour';X.app.careerScored=false;X.app.careerTour=true;X.app.careerOneoff=null;
+    X.app.careerRoundOpp=t.field[t.round];X.app.playMoves=[];X.app.careerLeague=false;X.app.parkBet=null;
+    X.careerResult(scoreFn(g,t));g++;
+  }
+  return T;
+}
+const TT=id=>X.TOURNAMENTS.find(t=>t.id===id);
+/* the World Cup is qualified for */
+let c=pc(2480);
+ok(/no place yet/.test(X.tourLocked(TT('worldcup'),c)||''),'a 2480 is not in the World Cup just for being rated 2450');
+ok(/qualify: national champion, continental top 4 or world top 40/.test(X.careerLobby(c)),'and the lobby says how to get in');
+c=pc(2650);
+ok(X.worldRank(c,'classical')<=X.WC_RATING_RANK&&X.tourLocked(TT('worldcup'),c)===null,'a 2650 is — on the rating list');
+c=pc(2480);X.joinTournament('natch');playOut(c,()=>1);
+ok(c.history[0].place===1&&c.cycle&&c.cycle.wc===2,'winning your national championship earns a World Cup place, as it does for a small federation’s champion');
+ok(X.tourLocked(TT('worldcup'),c)===null,'and opens the draw');
+X.joinTournament('worldcup');
+ok(c.tour&&c.tour.ko&&c.cycle.wc===null,'the place is used up when you play it');
+playOut(c,()=>0);
+ok(/once a season/.test(X.tourLocked(TT('worldcup'),c)||''),'and there is one World Cup a season');
+c=pc(2480);X.joinTournament('continental');playOut(c,()=>1);
+ok(c.history[0].place<=X.WC_CONT_TOP&&c.cycle&&c.cycle.wc===2,'the top of the Continental Championship go to the World Cup, as its blurb always promised');
+/* the bracket: qualifiers, not club players */
+c=pc(2650);X.joinTournament('worldcup');
+const sl=c.tour.ko.slots.slice().sort((a,b)=>a.seed-b.seed);
+ok(sl.every(p=>p.rating>=X.KO_QUAL_MIN),'nobody in the draw is below '+X.KO_QUAL_MIN+' (lowest '+sl[127].rating+') — the 128th of the rating list used to be a 1900');
+ok(sl[63].rating>=2440,'the middle of the draw is a strong grandmaster ('+sl[63].rating+')');
+ok(sl.filter(p=>p.qualifier).length>40&&sl.filter(p=>p.qualifier).every(p=>p.rating<X.KO_FLOOR),'the lower half are qualifiers from below the rating-list spots');
+ok(sl[0].real&&sl[0].rating>=2780,'and the top seed is still the world’s best');
+/* named events are held once a year */
+c=pc(2300);X.joinTournament('reykjavik');
+ok(c.tour&&c.tour.id==='reykjavik','you can play the Reykjavik Open');
+playOut(c,()=>0.5);
+ok(/once a season — next in season 3/.test(X.tourLocked(TT('reykjavik'),c)||''),'but it is held once a year — you cannot play it twice in a season');
+X.joinTournament('intl');playOut(c,()=>0.5);
+ok(X.tourLocked(TT('intl'),c)===null,'an ordinary international open is held somewhere every week');
+c.calDone=[];
+ok(X.tourLocked(TT('reykjavik'),c)===null,'and next season it is back');
+ok(['candidates','wcc','intl','club','imrr','gmrr','supergm'].every(id=>!X.ANNUAL_EVENTS.has(id)),'the cycle events and the generic ones are not on the annual list');
+/* norms are made in standard chess */
+c=pc(2300);
+ok(!X.normsOnOffer(TT('worldrapid'),c)&&!X.normsOnOffer(TT('indiablitz'),c),'a rapid or blitz event offers no FIDE norm');
+ok(X.normsOnOffer(TT('intl'),c),'a classical one does');
+const rapidRows=X.careerLobby(c).split('⚡ Rapid')[1].split('🔥 Blitz')[0];
+ok(!/>norm</.test(rapidRows),'so the lobby no longer puts a “norm” chip on the rapid events');
+X.joinTournament('cityrapid');
+ok(c.tour&&c.tour.normEligible===false,'and a rapid event does not track a norm you could never be given');
+c=pc(2300);c.titleFormat='any';
+ok(X.normsOnOffer(TT('worldrapid'),c),'unless the career counts every format towards titles');
+/* the Olympiad's place is the country's */
+c=pc(2650);c.fed='ROU';X.joinTournament('olympiad');
+ok(c.tour&&c.tour.oly,'the Olympiad starts');
+playOut(c,()=>1);
+ok(X.app.careerOly&&c.history[0].place===X.app.careerOly.place,'the place in your history is where the country finished ('+c.history[0].place+')');
+ok((c.honors||[]).indexOf('Olympiad Board Medal')<0,'and no made-up “Olympiad Board Medal” for topping your own opponents — the real medals are awarded separately');
+/* one line per thing that happened */
+X.app.careerToast=null;
+for(let i=0;i<8;i++)X.toastAdd('🤺 You beat your rival M. Carlsen.');
+X.toastAdd('⭐ Level up');X.toastAdd('🤺 You beat your rival M. Carlsen.');
+ok(X.app.careerToast==='🤺 You beat your rival M. Carlsen. ×9  ·  ⭐ Level up','a message repeated nine times is one line with “×9”, not nine lines');
+}
 console.log('\n✅ realism: '+pass+' checks passed');

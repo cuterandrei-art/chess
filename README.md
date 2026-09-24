@@ -416,13 +416,85 @@ to have Black sit down together; 88 of 800 player-rows broke the three-in-a-row
 rule until the pairing learned to look past a colour clash and repair the last
 boards, and now none do.
 
-Not done yet, in the order they would come next: the World Cup is still seven
-games against a drawn field rather than a knockout of two-game matches (and so,
-at seven games, it cannot give a norm); prize money grows too slowly with the
-level of the event, so a World Championship pays about seventeen times a club
-championship when the real ratio is thousands; and a player's title is still
-read straight off their rating, where in life titles lag and lead ratings both
-ways.
+**7. The World Cup is a knockout.** It was seven games against a drawn field,
+like any other open — and at seven games it could never give a norm. It is now
+a bracket of 128 seeded by rating, with the top two in opposite halves and the
+top four in different quarters. Each round is a two-game match, colours
+reversed; a level match goes to two rapid games, then two blitz, then
+armageddon (White must win, a draw is Black's), and the tiebreak games are
+rated in rapid and blitz, as they are in life. The rest of the bracket is
+played out round by round, upsets and all. Lose and you are out, and the event
+ends there — a first-round exit is two games and five days. Win four matches
+and the quarter-final is your tenth classical game, enough for a norm. The two
+finalists qualify for the Candidates.
+
+**8. Prize money is on the real scale.** The fund grew so slowly with the level
+of the event that a World Championship paid about seventeen times a club
+championship; the real ratio is in the thousands. First prizes now run from
+💰150 at the club to 💰1,500,000 for the title (the loser takes 💰1,000,000),
+the World Cup pays by the round you went out in (💰6,000 in round one to
+💰110,000 for the winner), an open pays its top fifth on a steep curve, a
+round-robin pays every place, and players level on points share the money for
+the places they cover, the way arbiters split it. Opens charge an entry fee,
+which grandmasters and international masters do not pay (FMs pay half), and the
+Olympiad has no prize fund at all — the federation pays a stipend and a medal
+bonus.
+
+**9. Time and money move together.** Everything the career did was an
+"action", and a week passed only when you said so: a nine-round international
+open took no time, a season could hold fifty events, and your wages, sponsor,
+coach and injuries ticked per event rather than per week. An event now takes
+the days it takes — five evenings at the club, a weekend for a city open,
+thirteen days for an international open abroad, nineteen for the Candidates —
+and the weeks it covers pay wages and sponsors and age you as weeks do. Getting
+there costs money: a fare and a hotel, which an organiser covers for invited
+players, and which a title makes cheaper — a grandmaster's room is paid, an
+international master's half paid. The finish
+banner shows the trip's books: days, entry, travel and hotel, and whether the
+event paid for itself — an untitled player loses about 💰1,500 playing an
+international open abroad; a grandmaster who does well comes home ahead. Two
+bugs came out of this. Age went up by 1/52 a week but was rounded each time, so
+a year made you 1.04 years older. And the end of a season never did its work:
+Grand Circuit points carried over forever and nobody was ever crowned; the
+season now closes the circuit, hands out the awards and clears the calendar.
+
+**10. The championship cycle.** The road to the title was two permanent keys.
+Qualifying for the Candidates once opened it for the rest of your life, as did
+simply being rated 2680; winning it once opened the title match forever; and
+the title match was always against the same man — so a World Champion could
+enter it again, as the challenger, against the champion they had just beaten.
+It now works the way FIDE runs it. A place in the Candidates is earned for one
+cycle — by reaching the World Cup final, finishing in the top two of the Grand
+Swiss, topping the Grand Circuit, or being in the world top three — lasts two
+seasons, and is used up when you play; there is one Candidates a cycle. Winning
+it earns one title match. The champion does not play the Candidates; they
+defend every two seasons against the strongest player in the world who is not
+them, and a champion who loses is a former champion, who goes back through the
+Candidates to get it back — against whoever took it. A title match stops as
+soon as it is decided (8–0 is eight games, not fourteen), and one that ends
+7–7 goes to rapid, blitz and armageddon; it used to count as a defeat.
+
+**11. The smaller things.** The World Cup was open to anyone rated 2450, and
+its bracket was the top 127 of a rating list that runs down to club players, so
+the bottom seeds were rated about 1950. Its lower half is now national
+champions and continental qualifiers, between 2250 and 2560, and you get in the
+same way: win your national championship, finish in the top four of a
+continental championship — which always said it had World Cup places at stake
+and gave none — or be in the world top forty. Named events (Wijk aan Zee,
+Reykjavik, Gibraltar, the World Rapid and so on) are held once a season, where
+you could play Tata Steel ten times in a year; the generic opens still run every
+weekend. FIDE norms are made in standard chess, so rapid and blitz events no
+longer wear a "norm" chip or track a norm they could never give — unless the
+career was set up to count every format. And the Olympiad records where your
+country finished, not where you finished among the nine board ones you played,
+which had also been handing out an "Olympiad Board Medal" to anyone who topped
+that list.
+
+Not done yet: a player's title is still read straight off their rating, where
+in life titles lag and lead ratings both ways; the Olympiad is held every
+season rather than every other; the World Cup is 128 players rather than 206
+with byes for the top seeds; and the calendar's weeks are advice — you can enter
+any event in any week of the season.
 
 ## The Olympiad is a team event
 
@@ -968,7 +1040,7 @@ the engine can answer, and a game with one known blunder).
 
 ## Tests
 
-Forty-nine suites, about 4,700 checks, plus thirteen browser suites that drive the real app with the real engine.
+Forty-nine suites, about 4,900 checks, plus fourteen browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
@@ -999,9 +1071,16 @@ worth of pairings never break FIDE's two absolute colour rules; each norm
 requirement on a field built to fail exactly that one (two GMs where three are
 needed, nine Germans, six compatriots out of nine); that nine results in any
 order rate the same; the 1788 debut; that every round-robin crosstable comes
-out complete; and that winning in an open brings stronger opposition than
-losing in it. Several of its checks are statistical, and each was run ten times
-in a row before it was trusted.
+out complete; that winning in an open brings stronger opposition than
+losing in it; the World Cup bracket, its seeding, its tiebreaks and every way
+out of it; that prize money sits on the real scale and is shared between
+players level on points; that a year of weeks is a year and an event costs the
+days and the fare it should; and the championship cycle end to end — a place
+that lapses, a Candidates that uses it up, a title match that stops when it is
+decided or goes to tiebreaks at 7–7, a defence against somebody other than
+yourself, and a lost title. Several of its checks are statistical, and each was
+run ten times in a row before it was trusted. `visual-cycle.mjs` walks the same
+cycle in a browser, from a locked Candidates to the reign.
 
 `validate-olympiad.mjs` plays thirty Olympiads and checks the books balance —
 every match hands out exactly two match points and four game points, no nation
