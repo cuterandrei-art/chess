@@ -113,14 +113,14 @@ let weakC=career('IND',2200),weakT=tour(9),weakO=X.olyInit(weakC,weakT);
 let weakTeam=X.olyMyTeam(weakC,weakO);
 ok(weakO.myBoard===X.OLY_BOARDS,'a 2200 playing for India is put on board four');
 ok(weakTeam[0].rating>2550,'with a real board one in front of them ('+weakTeam[0].rating+')');
-ok(X.olyNation(weakO,'me').str===X.olyFedStrength('IND'),
+ok(X.olyNation(weakO,'me').str===weakTeam[0].rating,
   'and the team is as strong as the country, not as weak as you');
-// A strong nation's board four really can be 2650+ (the USA's sits around
-// 2626 ± 45), so the claim is that nobody you face is world-top-ten strength
-// and that the field as a whole is board-four strength.
+ok(weakTeam.filter(p=>!p.you).every(p=>p.real),'India’s team is India’s real players: '+weakTeam.filter(p=>!p.you).map(p=>p.name).join(', '));
+// every opponent is their country's board four, by name; the USA's board four
+// is a 2740, so the field is judged as a whole
 const weakAvg=weakT.field.reduce((a,o)=>a+o.rating,0)/weakT.field.length;
-ok(weakT.field.every(o=>o.rating<2740)&&weakAvg<2600,
-  'so the players you actually face are other board fours, not the world top ten (best '+Math.max(...weakT.field.map(o=>o.rating))+', average '+Math.round(weakAvg)+')');
+ok(weakT.field.every(o=>X.olyNation(weakO,o.nat).squad[3].name===o.name)&&weakAvg<2650,
+  'so the players you actually face are other board fours, not the world top ten (average '+Math.round(weakAvg)+')');
 /* a 2800 is board one and drags the team up */
 let bigC=career('ROU',2800),bigT=tour(9),bigO=X.olyInit(bigC,bigT);
 ok(bigO.myBoard===1,'a 2800 is board one');
@@ -139,10 +139,8 @@ ok(boardsAt[2200]>boardsAt[2800],'you climb the team as you improve: board '+
 ok(boardsAt[2800]<1.2,'a 2800 is essentially always board one');
 ok(boardsAt[2200]>3.5,'and a 2200 in that side essentially always board four');
 /* and this is the normal case, not an edge one: being picked at all takes a
-   place in your federation's top five — read off the strength the country
-   fields, since the named world list holds only a few players from each — and
-   most careers get there below board one, so most of a career is spent down
-   the order */
+   place in your federation's top five on the world list, and most careers get
+   there below board one, so most of a career is spent down the order */
 let lowBoards=0,checked=0;
 ['ROU','SRB','BRA','VIE','TUR'].forEach(function(fed){
   [2250,2350,2450].forEach(function(r){

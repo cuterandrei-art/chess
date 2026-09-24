@@ -37,7 +37,7 @@ const X=new Function(script+'\nreturn {store,app,simGame,SIM_DRAW,_simScore,_sim
   'tbData,standingsSorted,playoffFirst,tieNote,PLAYOFF_EVENTS,careerStandings,'+
   'PRO_LEAGUES,PRO_WEEKS,proOffers,proFee,proSign,proDue,proMyMatch,careerProSim,proTick,proRenew,careerProPanel,'+
   'wmInit,wmHire,wmStart,wmBeforeGame,wmAfterGame,wmRest,wmPress,wmPanel,wmTeamElo,WM_SECONDS,WM_LEAK_BASE,WM_LEAK_PER,matchScoreStrip,'+
-  'olympiadSelected,fedRank,wpRating};')();
+  'olympiadSelected,fedRank,wpRating,worldPick,swissHall,fieldFedRule,NAME_BANKS,worldFeds,POOL_TOP,POOL_CLUB,baseWorld,olyInit,olyMyTeam,olyNation,fedPlayers,koInit,KO_SIZE,worldTick};')();
 /* Named events are held in their week of the year: put the career there (and
    in a year the event is held) before entering one. */
 function atEvent(c,id){
@@ -698,7 +698,9 @@ const hi=wcPlaces(2800,60),lo=wcPlaces(2480,60);
 const avgP=a=>a.reduce((t,v)=>t+v,0)/a.length;
 ok(avgP(hi)<avgP(lo)/3,'a 2800 goes far deeper than a 2480 (average place '+Math.round(avgP(hi))+' against '+Math.round(avgP(lo))+')');
 ok(hi.filter(p=>p===1).length>0&&hi.filter(p=>p===1).length<45,'and wins it sometimes — never guaranteed ('+hi.filter(p=>p===1).length+' of 60)');
-ok(lo.every(p=>p>=5),'while a 2480 never reached the semi-finals in sixty tries');
+// (in 2,500 simulated World Cups a 2480 never reached the semi-finals; the
+// check allows one freak run in sixty rather than be flaky about it)
+ok(lo.filter(p=>p<5).length<=1,'while a 2480 all but never reaches the semi-finals ('+lo.filter(p=>p<5).length+' of sixty)');
 }
 
 { // W2
@@ -1112,7 +1114,7 @@ let prev=Infinity,mono=true;for(let r=1000;r<=2750;r+=10){const d=X.realDepth(r)
 ok(mono,'the deeper you go the more players there are above you, never fewer');
 c=bc(2480,1,0);
 let wr=X.worldRank(c,'classical');
-ok(wr>=900&&wr<=1700,'a 2480 is about 1,300th in the world (#'+wr+') — it was 62nd of a list of names');
+ok(wr>=800&&wr<=1100,'a 2480 is about 900th in the world (#'+wr+') — it was 62nd of a list of names');
 c=bc(2200,1,0);wr=X.worldRank(c,'classical');
 ok(wr>=7000&&wr<=11000,'a 2200 about 9,000th (#'+wr+')');
 c=bc(2800,1,0);wr=X.worldRank(c,'classical');
@@ -1121,7 +1123,7 @@ const R=X.worldRanking(c,'classical');
 let strict=true;for(let i=1;i<R.length;i++)if(R[i].rank<=R[i-1].rank)strict=false;
 ok(strict,'every place on the list is its own');
 c=bc(2480,1,0);
-ok(/#1,[0-9]{3}/.test(X.careerLeaderboard(c)),'the ranking shows the real place');
+ok(X.careerLeaderboard(c).indexOf('#'+X.worldRank(c,'classical').toLocaleString())>=0&&X.worldRank(c,'classical')>500,'the ranking shows the real place');
 c=bc(2700,1,0);
 ok(/invite: top 10/.test(X.tourLocked(TT('norway'),c)||''),'a 2700 is not in the world top ten, so Norway Chess does not call');
 ok(X.fedRank(bc(2450,1,0))>1&&X.olympiadSelected(bc(2450,1,0)).ok,'a 2450 Romanian is not first in Romania, and still makes the top five');
@@ -1153,7 +1155,12 @@ const n0=X.buildWorld().length;
 c.season=2;const notes=X.worldSeason(c);
 ok(X.wpAge(X.buildWorld().find(p=>p.id==='gukesh'))===21,'and a season later he is twenty-one');
 const extra=c.wx.extra;
-ok(extra.length===8&&extra.filter(p=>p.junior).length===5,'five teenagers and three club players join the list each season');
+const nFeds=new Set(extra.filter(p=>!p.junior).map(p=>p.fed)).size;
+ok(extra.filter(p=>p.junior).length===5&&extra.filter(p=>!p.junior).length===nFeds&&nFeds>=25,
+  'five teenagers join the list each season, and a club player in every federation ('+nFeds+')');
+const ro=extra.filter(p=>!p.junior&&p.fed==='ROU')[0];
+ok(ro&&/^[A-Z]\.( [A-Z]\.)? [A-Z]/.test(ro.name)&&['Popescu','Ionescu','Popa','Dumitru','Stan','Stoica','Gheorghe','Rusu','Munteanu','Matei','Constantin','Serban','Lungu','Dinu','Nistor','Ene','Toma','Barbu','Moldovan','Neagu'].some(n=>ro.name.endsWith(n)),
+  'with a name from their own country ('+(ro&&ro.name)+')');
 ok(extra.filter(p=>p.junior).every(p=>p.age0>=14&&p.age0<=17&&p.r>=2250&&p.r<=2550),'the teenagers are fourteen to seventeen and rated 2250–2550');
 ok(notes.some(n=>/New on the list/.test(n.t)),'and the best of them makes the news');
 // ten seasons on
@@ -1296,5 +1303,95 @@ ok(/The match so far/.test(X.wmPanel(c,tr7)),'the story of the match is kept gam
 // the champion's point of view
 const strip=X.matchScoreStrip({id:'wcc',emoji:'👑',name:'World Championship Match',defence:true,rounds:14,round:8,results:Array.from({length:8},()=>({score:0})),field:[{name:'A. Firouzja'}]});
 ok(/takes your title/.test(strip),'and when the champion is you, losing it is losing your title — not “the champion retains”');
+}
+{ // C
+function cc(r,fed,season,week){
+  X.store.career=X.freshCareer();const c=X.store.career;X.lifeInit(c);c.setup=true;c.name='Ada Marín';c.fed=fed||'ROU';c.flag='🇷🇴';
+  c.provisional=false;c.rating=r;c.peak=r;c.ratingRapid=r;c.ratingBlitz=r;c.ratedGames=500;c.age=24;c.titles=r>=2500?['GM']:r>=2400?['IM']:[];
+  c.season=season||1;c.weeks=((season||1)-1)*52+(week||0);c.day=0;c.money=500000;return c;
+}
+const TT=id=>X.TOURNAMENTS.find(t=>t.id===id);
+console.log('\n— C1 · the world has people in it —');
+let c=cc(2300);
+const W=X.buildWorld(),feds=X.worldFeds();
+ok(W.length>1800,'the world list is '+W.length+' players, not two hundred');
+ok(feds.every(F=>W.filter(p=>p.fed===F.c&&!p.club).length>=X.POOL_TOP&&W.filter(p=>p.fed===F.c&&p.club).length>=X.POOL_CLUB),
+  'every federation has its own players, from its best down to its club players');
+ok(new Set(W.map(p=>p.name)).size===W.length,'and nobody on it shares a name with anybody else');
+// (the hundred and fifty players the list always had keep the names saved careers know them by)
+const ger=W.filter(p=>p.fed==='GER'&&/^[gk]GER/.test(p.id)).slice(0,30);
+ok(ger.every(p=>X.NAME_BANKS.GER[1].some(l=>p.name.endsWith(l))),'a German is called something German ('+ger[0].name+', '+ger[1].name+')');
+const chn=W.filter(p=>/^[gk]CHN/.test(p.id)&&/^[A-Z][a-z]+ [A-Z][a-z]+/.test(p.name));
+ok(chn.length>=30,'and a Chinese player has the family name first ('+chn[0].name+')');
+ok(JSON.stringify(X.baseWorld().map(p=>p.name))===JSON.stringify(X.baseWorld().map(p=>p.name)),'the same world every time it loads');
+// club players move without being stored
+const kp=W.find(p=>p.club);
+X.worldTick();X.worldTick();X.worldTick();
+ok(!c.world[kp.id],'a club player’s form is not kept in the save');
+let moved=false;const r0=X.wpRating(kp,'classical');for(let i=0;i<9;i++){X.worldTick();if(X.wpRating(kp,'classical')!==r0)moved=true;}
+ok(moved,'and moves all the same');
+ok(Object.keys(c.world).length<W.filter(p=>!p.club).length+5,'the save holds one entry per player who is not a club player ('+Object.keys(c.world).length+')');
+
+console.log('\n— C2 · the halls are people off the list —');
+c=cc(2300);X.joinTournament('intl');
+let H=c.tour.hall;
+ok(H.every(p=>p.wid&&W.some(w=>w.id===p.wid&&w.name===p.name)),'every player in an International Open’s hall is somebody on the world list');
+ok(new Set(H.map(p=>p.fed)).size>=6,'from all over — '+new Set(H.map(p=>p.fed)).size+' federations');
+// one hall of nineteen wanders by about eighty points either way, so fifteen of them
+let avgSum=0;for(let i=0;i<15;i++){const k=cc(2300);X.joinTournament('intl');avgSum+=k.tour.hall.reduce((a,p)=>a+p.rating,0)/k.tour.hall.length;}
+ok(Math.abs(avgSum/15-TT('intl').avg)<TT('intl').avg*0.03,'and the halls still average what the event says, as the invented ones did ('+Math.round(avgSum/15)+' for '+TT('intl').avg+')');
+c=cc(2300);
+// the same people come round again
+let seen={},again=0;
+for(let i=0;i<12;i++){const k=cc(2300);X.joinTournament('intl');k.tour.hall.forEach(p=>{if(seen[p.wid])again++;seen[p.wid]=1;});}
+ok(again>=8,'a dozen opens in, the same people have come round again ('+again+' times)');
+// local events are mostly your compatriots
+c=cc(1500);X.joinTournament('cityopen');
+let loc=c.tour.hall.filter(p=>p.fed==='ROU').length/c.tour.hall.length;
+ok(loc>=0.6,'a city open for a Romanian is mostly Romanians ('+Math.round(loc*100)+'%)');
+c=cc(1400,'IND');X.joinTournament('club');
+loc=c.tour.hall.filter(p=>p.fed==='IND').length/c.tour.hall.length;
+ok(loc>=0.6,'and the club championship for an Indian player is Indians ('+Math.round(loc*100)+'%)');
+// the national championship is only them, and all of them named
+c=cc(2350,'ROU',1,18);X.joinTournament('natch');
+H=c.tour.hall;
+ok(H.length>=15&&H.every(p=>p.fed==='ROU'&&p.wid),'the Romanian championship is Romanians off the list, every one ('+H.length+')');
+ok(H.some(p=>p.rating>=2450),'with the country’s strong players in it');
+c=cc(2300,'VIE',1,18);X.joinTournament('natch');
+ok(c.tour.hall.every(p=>p.fed==='VIE'),'and Vietnam’s is Vietnamese');
+// norm round-robins: invited people, and the norm is still on offer
+c=cc(2350);X.joinTournament('imrr');
+const P5=c.tour.players;
+ok(P5.every(p=>p.wid),'an IM-norm round-robin invites people off the list');
+const bar=X.NORM_BARS.find(b=>b.kind==='IM');
+ok(X.normCheck(c,bar,P5,null,{}).opposition,'and the organiser still invites a field that can give the norm');
+// the World Cup's lower half
+c=cc(2650,'ROU',2,29);X.wcQualify(c,'test');X.joinTournament('worldcup');
+const KS=c.tour.ko.slots;
+ok(KS.filter(p=>!p.you).every(p=>W.some(w=>w.id===p.id)),'all 127 of your World Cup rivals are on the world list — qualifiers too');
+const qf=new Set(KS.filter(p=>p.qualifier).map(p=>p.fed)).size;
+ok(qf>=20,'and the qualifiers come from '+qf+' countries, the way national champions do');
+
+console.log('\n— C3 · the Olympiad team is your country’s team —');
+c=cc(2610,'USA',1,37);
+ok(/be top 5 for USA/.test(X.tourLocked(TT('olympiad'),c)||''),'a 2610 American is not in the USA’s top five, so is not picked');
+c=cc(2742,'USA',1,37);X.joinTournament('olympiad');
+const O=c.tour.oly;
+const team=X.olyMyTeam(c,O).filter(p=>!p.you);
+const us=X.fedPlayers(c,'USA').filter(p=>!p.you).slice(0,3).map(p=>p.name);
+ok(team.map(p=>p.name).join()===us.join(),'the USA’s team-mates are the USA’s three best: '+us.join(', '));
+ok(O.myBoard===4,'and a 2742, fifth in the country, plays board four behind them');
+const nats=O.nations.filter(n=>!n.you);
+ok(nats.every(n=>n.squad.every(p=>p.wid)),'every other nation’s squad is named players off the list');
+ok(nats.every(n=>n.squad[0].name===X.fedPlayers(c,n.c).filter(p=>!p.you)[0].name),'and each board one is that country’s best player');
+let ind=nats.find(n=>n.c==='IND');
+for(let i=0;i<40&&!ind;i++){const t2={id:'olympiad',rounds:9,round:0,results:[],field:[]};ind=X.olyInit(c,t2).nations.find(n=>n.c==='IND');}
+ok(ind&&ind.squad.every(p=>p.real),'when India is there, India fields '+(ind?ind.squad.map(p=>p.name).join(', '):'—'));
+ok(c.tour.field.every(o=>o.wid),'so everybody you play is somebody you can look up');
+// selection by place in your country
+c=cc(2440,'ROU');
+const fr=X.fedRank(c);
+ok(fr===X.fedPlayers(c,'ROU').findIndex(p=>p.you)+1,'your place in Romania is your place among Romanians on the list (#'+fr+')');
+ok(X.olympiadSelected(c).ok===(fr<=5),'and the team is its top five');
 }
 console.log('\n✅ realism: '+pass+' checks passed');

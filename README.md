@@ -510,7 +510,7 @@ World Cup final in 2027 is a place in the Candidates of 2028.
 of hundred players, from the top down to club level, so there is always
 somebody near you; counted by position in it, a 2480 was the 62nd best player
 in the world. Places are now read off the depth of the real list of active
-players: a 2480 is about 1,300th, a 2560 about 350th, a 2200 about 9,000th,
+players: a 2480 is about 900th, a 2560 about 350th, a 2200 about 9,000th,
 and above 2750 the list is the world. Invitations and the rating places for the
 World Cup (now the world top 60, about 2680) and the Candidates use the real
 place. Olympiad selection is your federation's top five — read off the strength
@@ -569,11 +569,30 @@ can get to your opponent or come back at you. The story of the match is kept
 game by game ("You strike first", "Gukesh levels the match"), and when the
 champion is you, losing it reads as losing your title.
 
-Not done yet: the Olympiad team and the national championship are drawn from
-the federation's strength rather than from named compatriots on the world list;
-the World Cup is 128 players rather than 206 with byes for the top seeds; and
-the opens are still a hall of about twenty invented players rather than people
-off the world list.
+**20. The people are people.** Every open was twenty strangers invented for
+the week, a national championship twenty invented compatriots, and an Olympiad
+team three random numbers with names attached. The world list now has depth in
+every country — each federation's players from its best down to its club
+players, some two thousand in all, named the way people in that country are
+named (a German is a J. Becker, a Chinese player a Lin Lei) — and every field is
+drawn from it. For each place in a hall the event's level gives a rating, and
+the player on the list nearest to it takes the place, so a hall has the spread
+it always had and the people in it are people you will see again: in a dozen
+International Opens the same players came round two dozen times. A club
+championship or a city open is mostly your compatriots, a national
+championship is only them, and an international open is whoever came. The
+norm round-robins invite people off the list, the World Cup's lower half is
+every country's best who is not already in, and the scouting card before a
+round says who your opponent is — their federation, age and world place, your
+record against them — with a link to their profile. The pools come from a fixed
+seed, so a career's world is the same every time it loads, and a club player's
+form is read off the rating period rather than stored, so two thousand players
+cost the save about a hundred kilobytes.
+
+Not done yet: the World Cup is 128 players rather than 206 with byes for the
+top seeds; the hundred and fifty players the list always had keep the generic
+names saved careers know them by; and results between two players in a hall
+change the standings but not their ratings on the world list.
 
 ## The Olympiad is a team event
 
@@ -584,8 +603,9 @@ met your team-mates, never saw a board below your own, never knew which country
 you were playing, and no other nation existed at all. The one event in chess
 that people cry at was a coin flip in a trench coat.
 
-It is a team event now. Your federation fields four boards; three named
-team-mates play the others and their games are simulated at their ratings. Your
+It is a team event now. Your federation fields four boards; your team-mates are
+your country's best players on the world list — play for the USA and they are
+Caruana, Nakamura and So — and their games are simulated at their ratings. Your
 nine opponents are drawn from twelve nations, and each one is the player on
 **your** board for their country — so the person opposite you comes from the
 side your side is playing. A match is four boards, two match points for winning
@@ -601,18 +621,19 @@ Two things came out of building it that made it better than planned.
 **Your country is not as good or as bad as you are.** Building the squad off
 your rating alone meant a 2200 on board one dragged three imaginary 2100s
 behind them and lost every match 0–4, while a 2750 carried three 2600s nobody
-had earned. The team is now the stronger of you and what that federation
-actually fields, so a weak board is the weak link in a real side — and can be
-carried to a medal, or be the reason there isn't one.
+had earned. The team is now your country's actual players, so a weak board is
+the weak link in a real side — and can be carried to a medal, or be the reason
+there isn't one. Every other nation fields its own best four by name, so
+India's board one is Erigaisi and the person opposite you is somebody you can
+look up.
 
 **A captain orders the team by rating**, so which board you play is the one
-your rating earns. A 2200 who is top-three for Romania plays board four behind
-a 2570, and climbing to board one is its own progression across a career. That
-also decides which board of the other nations you sit opposite and which board
-medal is yours to win. Selection needs top-three in your federation, which most
-careers reach well below the strength their country fields, so most of a career
-is spent down the order: in the test, fifteen of fifteen plausible selections
-start below board one.
+your rating earns, and climbing to board one is its own progression across a
+career. That also decides which board of the other nations you sit opposite and
+which board medal is yours to win. Selection is a place in your federation's
+top five on the world list; when you are the fifth, the fourth-best sits out
+and you play board four. Most careers get there below board one, so most of a
+career is spent down the order.
 
 The suite also caught a modelling slip of mine. The step between boards is 38
 points and the noise around it is wider than that, so `olySquad` was handing a
@@ -1318,7 +1339,7 @@ launch builds nothing.
 
 ## Tests
 
-Fifty-five suites, about 5,300 checks, plus fourteen browser suites that drive the real app with the real engine.
+Fifty-five suites, about 5,350 checks, plus fourteen browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —

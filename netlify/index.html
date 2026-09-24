@@ -4375,6 +4375,105 @@ const LNAMES=['Petrov','Garcia','Kovac','Nowak','Silva','Tan','Singh','Muller','
 function gauss(){let u=0,v=0;while(u===0)u=Math.random();while(v===0)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
 function pick(a){return a[Math.floor(Math.random()*a.length)];}
 function randFed(){return pick(FEDS.slice(1));}
+/* ---------------------------------------------------------------------------
+   THE WORLD'S POPULATION
+
+   Every open used to be twenty strangers invented for the week, and a
+   national championship twenty invented compatriots. Now the halls are drawn
+   from the world list, so the people in them are the same people from one
+   event to the next: they have ratings that move, titles, ages and a history
+   with you. To make that possible the list has depth in every country — a
+   federation's own players from its best down to its club players, named the
+   way people in that country are named — as well as the famous names at the
+   top. The pools are generated from a fixed seed, so a career's world is the
+   same world every time it loads.
+   --------------------------------------------------------------------------- */
+const NAME_BANKS={
+  ROU:[['Andrei','Mihai','Bogdan','Tudor','Stefan','Vlad','Alexandru','Radu','Cristian','Ioana','Irina','Elena','Denisa','Cosmin','Dragos','Ovidiu','Florin','Sorin','Marius','Luminita'],
+       ['Popescu','Ionescu','Popa','Dumitru','Stan','Stoica','Gheorghe','Rusu','Munteanu','Matei','Constantin','Serban','Lungu','Dinu','Nistor','Ene','Toma','Barbu','Moldovan','Neagu']],
+  IND:[['Arjun','Rohan','Aditya','Karthik','Pranav','Rahul','Vikram','Sanjay','Anand','Ravi','Deepak','Harish','Meera','Priya','Kavya','Divya','Sneha','Varun','Nikhil','Siddharth'],
+       ['Sharma','Iyer','Reddy','Nair','Kumar','Rao','Menon','Pillai','Gupta','Das','Bose','Joshi','Kulkarni','Patel','Krishnan','Mehta','Chandra','Verma','Desai','Bhat']],
+  USA:[['Michael','David','James','John','Robert','Daniel','Kevin','Brian','Jason','Ryan','Emily','Sarah','Jessica','Ashley','Lauren','Tyler','Brandon','Justin','Eric','Andrew'],
+       ['Smith','Johnson','Williams','Brown','Jones','Miller','Davis','Wilson','Anderson','Taylor','Thomas','Moore','Martin','Jackson','Thompson','White','Harris','Clark','Lewis','Walker']],
+  ENG:[['Oliver','George','Harry','Jack','Charlie','Thomas','William','James','Samuel','Joseph','Amelia','Olivia','Emily','Sophie','Jessica','Luke','Matthew','Daniel','Adam','Ben'],
+       ['Jones','Taylor','Brown','Evans','Roberts','Wright','Robinson','Hughes','Edwards','Green','Hall','Wood','Clarke','Turner','Hill','Cooper','Ward','Morris','King','Baker']],
+  GER:[['Lukas','Jonas','Leon','Finn','Paul','Felix','Maximilian','Tim','Jan','Niklas','Anna','Lena','Laura','Julia','Sarah','Tobias','Moritz','Florian','Sebastian','Philipp'],
+       ['Müller','Schmidt','Schneider','Fischer','Weber','Meyer','Wagner','Becker','Schulz','Hoffmann','Koch','Richter','Klein','Wolf','Schröder','Neumann','Schwarz','Zimmermann','Braun','Hofmann']],
+  FRA:[['Lucas','Hugo','Louis','Gabriel','Arthur','Jules','Adam','Nathan','Théo','Raphaël','Emma','Léa','Chloé','Manon','Camille','Thomas','Nicolas','Julien','Antoine','Maxime'],
+       ['Martin','Bernard','Dubois','Durand','Leroy','Moreau','Simon','Laurent','Lefebvre','Michel','David','Bertrand','Roux','Vincent','Fournier','Morel','Girard','André','Mercier','Blanc']],
+  ESP:[['Pablo','Javier','Carlos','Miguel','Alejandro','Daniel','David','Sergio','Álvaro','Adrián','Lucía','María','Paula','Laura','Marta','Jorge','Iván','Rubén','Diego','Hugo'],
+       ['García','Fernández','González','Rodríguez','López','Martínez','Sánchez','Pérez','Gómez','Jiménez','Ruiz','Hernández','Díaz','Moreno','Muñoz','Álvarez','Romero','Navarro','Torres','Domínguez']],
+  ITA:[['Marco','Luca','Andrea','Francesco','Alessandro','Matteo','Lorenzo','Davide','Simone','Federico','Giulia','Chiara','Sara','Martina','Elena','Stefano','Paolo','Giorgio','Riccardo','Tommaso'],
+       ['Rossi','Russo','Ferrari','Esposito','Bianchi','Romano','Colombo','Ricci','Marino','Greco','Bruno','Gallo','Conti','De Luca','Mancini','Costa','Giordano','Rizzo','Lombardi','Moretti']],
+  NED:[['Daan','Sem','Lucas','Levi','Thijs','Jesse','Bram','Lars','Ruben','Sven','Emma','Sophie','Julia','Lotte','Anouk','Joost','Pieter','Koen','Jeroen','Wouter'],
+       ['de Jong','Jansen','de Vries','van den Berg','van Dijk','Bakker','Visser','Smit','Meijer','de Boer','Mulder','de Groot','Bos','Vos','Peters','Hendriks','Dekker','Brouwer','de Wit','Dijkstra']],
+  RUS:[['Alexander','Dmitry','Sergey','Andrey','Alexey','Mikhail','Ivan','Nikita','Maxim','Artem','Anastasia','Ekaterina','Maria','Daria','Olga','Pavel','Roman','Denis','Kirill','Yuri'],
+       ['Ivanov','Smirnov','Kuznetsov','Popov','Vasiliev','Sokolov','Mikhailov','Novikov','Fedorov','Morozov','Volkov','Alekseev','Lebedev','Semenov','Egorov','Pavlov','Kozlov','Stepanov','Nikolaev','Orlov']],
+  UKR:[['Oleksandr','Andriy','Dmytro','Serhiy','Mykola','Taras','Bohdan','Yuriy','Ivan','Vasyl','Olena','Natalia','Kateryna','Iryna','Anna','Maksym','Artem','Denys','Roman','Volodymyr'],
+       ['Shevchenko','Kovalenko','Bondarenko','Tkachenko','Kravchenko','Oliynyk','Lysenko','Koval','Melnyk','Boyko','Kovalchuk','Moroz','Pavlenko','Savchenko','Rudenko','Marchenko','Petrenko','Levchenko','Klymenko','Hnatyuk']],
+  ARM:[['Aram','Hayk','Tigran','Arman','Davit','Narek','Gor','Samvel','Artur','Vahe','Anna','Mariam','Lilit','Elina','Ani','Karen','Gevorg','Hrant','Suren','Ashot'],
+       ['Hakobyan','Harutyunyan','Sargsyan','Khachatryan','Grigoryan','Petrosyan','Vardanyan','Karapetyan','Gevorgyan','Mkrtchyan','Hovhannisyan','Avetisyan','Martirosyan','Stepanyan','Ghazaryan','Poghosyan','Galstyan','Arakelyan','Babayan','Manukyan']],
+  AZE:[['Elvin','Rashad','Farid','Kamal','Tural','Orkhan','Nijat','Ravan','Ilkin','Emin','Aysel','Gunay','Leyla','Nigar','Aynur','Vugar','Ramil','Eltaj','Shahin','Aydin'],
+       ['Aliyev','Hasanov','Huseynov','Guliyev','Ismayilov','Abbasov','Rzayev','Babayev','Karimov','Gasimov','Jafarov','Suleymanov','Najafov','Rahimov','Hajiyev','Nabiyev','Valiyev','Musayev','Ahmadov','Safarov']],
+  POL:[['Jakub','Kacper','Szymon','Filip','Jan','Mateusz','Bartosz','Michał','Piotr','Tomasz','Zofia','Julia','Maja','Hanna','Aleksandra','Paweł','Krzysztof','Marcin','Łukasz','Adam'],
+       ['Nowak','Kowalski','Wiśniewski','Wójcik','Kowalczyk','Kamiński','Lewandowski','Zieliński','Szymański','Woźniak','Dąbrowski','Kozłowski','Jankowski','Mazur','Kwiatkowski','Krawczyk','Piotrowski','Grabowski','Nowakowski','Pawłowski']],
+  HUN:[['Bence','Máté','Levente','Dániel','Ádám','Balázs','Gergő','Péter','Zoltán','Tamás','Anna','Eszter','Réka','Dóra','Zsófia','Attila','László','Gábor','András','Csaba'],
+       ['Nagy','Kovács','Tóth','Szabó','Horváth','Varga','Kiss','Molnár','Németh','Farkas','Balogh','Papp','Takács','Juhász','Lakatos','Mészáros','Oláh','Rácz','Fekete','Szűcs']],
+  NOR:[['Jakob','Emil','Noah','Filip','William','Henrik','Sander','Kristian','Aksel','Sindre','Nora','Emma','Ingrid','Sofie','Thea','Eirik','Håkon','Torbjørn','Jonas','Mathias'],
+       ['Hansen','Johansen','Olsen','Larsen','Andersen','Pedersen','Nilsen','Kristiansen','Jensen','Karlsen','Johnsen','Pettersen','Eriksen','Berg','Haugen','Hagen','Johannessen','Andreassen','Jacobsen','Dahl']],
+  SWE:[['Erik','Lars','Anders','Johan','Karl','Nils','Oscar','Axel','Viktor','Gustav','Elsa','Maja','Ella','Wilma','Astrid','Linnea','Emil','Hugo','Olle','Fredrik'],
+       ['Andersson','Johansson','Karlsson','Nilsson','Eriksson','Larsson','Olsson','Persson','Svensson','Gustafsson','Pettersson','Jonsson','Jansson','Hansson','Bengtsson','Lindberg','Jakobsson','Magnusson','Lindström','Axelsson']],
+  CZE:[['Jakub','Jan','Tomáš','Lukáš','Matěj','Ondřej','Adam','Vojtěch','Petr','Martin','Tereza','Eliška','Anna','Karolína','Natálie','Pavel','Jiří','Josef','David','Filip'],
+       ['Novák','Svoboda','Novotný','Dvořák','Černý','Procházka','Kučera','Veselý','Horák','Němec','Pokorný','Marek','Pospíšil','Hájek','Jelínek','Král','Růžička','Beneš','Fiala','Sedláček']],
+  GEO:[['Giorgi','Davit','Luka','Nikoloz','Levan','Irakli','Sandro','Tornike','Zurab','Mikheil','Nino','Mariam','Ana','Salome','Tamar','Lasha','Vakhtang','Gela','Nika','Beka'],
+       ['Beridze','Kapanadze','Gelashvili','Maisuradze','Giorgadze','Lomidze','Tsiklauri','Bolkvadze','Nozadze','Khutsishvili','Mikadze','Shengelia','Chkheidze','Abashidze','Tabatadze','Gogoladze','Dolidze','Janelidze','Kiknadze','Lobzhanidze']],
+  PHI:[['Jose','Juan','Mark','John','Paolo','Carlo','Miguel','Rafael','Angelo','Joshua','Maria','Angela','Kristine','Joy','Grace','Ramon','Eduardo','Rodel','Jayson','Darwin'],
+       ['Santos','Reyes','Cruz','Bautista','Ocampo','Garcia','Mendoza','Torres','Tomas','Castillo','Flores','Villanueva','Ramos','Castro','Rivera','Aquino','Navarro','Salazar','Mercado','Dizon']],
+  BRA:[['João','Pedro','Lucas','Gabriel','Matheus','Rafael','Gustavo','Felipe','Bruno','Rodrigo','Ana','Beatriz','Juliana','Mariana','Camila','Thiago','Leonardo','Diego','Vinícius','André'],
+       ['Silva','Santos','Oliveira','Souza','Rodrigues','Ferreira','Alves','Pereira','Lima','Gomes','Costa','Ribeiro','Martins','Carvalho','Almeida','Lopes','Soares','Fernandes','Vieira','Barbosa']],
+  IRI:[['Amir','Ali','Reza','Mohammad','Hossein','Mehdi','Parham','Arash','Pouya','Sina','Sara','Maryam','Zahra','Fatemeh','Niloufar','Babak','Kiarash','Omid','Saeed','Hamid'],
+       ['Ahmadi','Hosseini','Mohammadi','Rezaei','Karimi','Moradi','Jafari','Rahimi','Hashemi','Mousavi','Kazemi','Ebrahimi','Najafi','Sadeghi','Ghasemi','Asadi','Nazari','Heidari','Bagheri','Amini']],
+  TUR:[['Mehmet','Mustafa','Ahmet','Ali','Emre','Burak','Can','Kerem','Yusuf','Arda','Elif','Zeynep','Ayşe','Ece','Defne','Murat','Onur','Serkan','Cem','Deniz'],
+       ['Yılmaz','Kaya','Demir','Şahin','Çelik','Yıldız','Yıldırım','Öztürk','Aydın','Özdemir','Arslan','Doğan','Kılıç','Aslan','Çetin','Kara','Koç','Kurt','Özkan','Şimşek']],
+  SRB:[['Nikola','Stefan','Luka','Marko','Milan','Nemanja','Aleksa','Filip','Uroš','Vuk','Milica','Jelena','Ana','Teodora','Jovana','Dušan','Miloš','Bojan','Dejan','Ivan'],
+       ['Jovanović','Petrović','Nikolić','Marković','Đorđević','Stojanović','Ilić','Stanković','Pavlović','Milošević','Popović','Kostić','Mitrović','Živković','Todorović','Ristić','Lazić','Savić','Obradović','Vasić']],
+  CRO:[['Luka','Ivan','Marko','Josip','Filip','Petar','Ante','Mateo','Karlo','Matej','Ana','Lucija','Petra','Ivana','Marija','Tomislav','Dario','Zoran','Igor','Hrvoje'],
+       ['Horvat','Kovačević','Babić','Marić','Jurić','Novak','Kovačić','Knežević','Vuković','Matić','Tomić','Perić','Radić','Lovrić','Bošnjak','Grgić','Pavić','Blažević','Šimić','Vidović']],
+  UZB:[['Jakhongir','Shamsiddin','Nodir','Sardor','Bekzod','Otabek','Ulugbek','Dilshod','Azizbek','Timur','Aziza','Nilufar','Madina','Sevara','Umida','Rustam','Farrukh','Sanjar','Alisher','Bobur'],
+       ['Yusupov','Abdullaev','Nurmatov','Rashidov','Tursunov','Ismoilov','Saidov','Kholmatov','Ergashev','Umarov','Juraev','Sultanov','Mirzaev','Khodjaev','Nazarov','Rakhmonov','Aminov','Sobirov','Latipov','Hamidov']],
+  CHN:[['Wang','Li','Zhang','Liu','Chen','Yang','Zhao','Huang','Zhou','Wu','Xu','Sun','Hu','Zhu','Gao','Lin','He','Guo','Ma','Luo'],
+       ['Wei','Fang','Lei','Jun','Yan','Jie','Tao','Ming','Chao','Xin','Hao','Yu','Jing','Qiang','Bo','Lin','Kai','Feng','Rui','Peng']],
+  VIE:[['Nguyen','Tran','Le','Pham','Hoang','Huynh','Phan','Vu','Vo','Dang','Bui','Do','Ho','Ngo','Duong'],
+       ['Anh Tuan','Minh Quang','Duc Hoa','Thanh Trung','Van Hai','Quoc Bao','Thi Mai','Hoang Nam','Tuan Minh','Duc Anh','Thanh Hai','Ngoc Lan','Minh Chau','Van Long','Hai Dang']]
+};
+NAME_BANKS.ARG=NAME_BANKS.ESP;
+const NAME_FAMILY_FIRST={CHN:1,VIE:1};    // the family name comes first there
+/* A name the way people in that federation are named, not yet taken. */
+function natName(fed,rnd,taken){
+  const B=NAME_BANKS[fed]||[GEN_FNAMES,GEN_LNAMES],r=rnd||Math.random;
+  for(let i=0;i<40;i++){
+    const a=B[0][Math.floor(r()*B[0].length)],b=B[1][Math.floor(r()*B[1].length)];
+    const n=NAME_FAMILY_FIRST[fed]?a+' '+b:a[0]+'. '+b;
+    if(!taken[n]){taken[n]=1;return n;}
+  }
+  // two initials, as lists print people who would otherwise share a name
+  for(let i=0;i<200;i++){
+    const a=B[0][Math.floor(r()*B[0].length)],a2=B[0][Math.floor(r()*B[0].length)],b=B[1][Math.floor(r()*B[1].length)];
+    const n=NAME_FAMILY_FIRST[fed]?a+' '+b+' '+a2[0]+'.':a[0]+'.'+a2[0]+'. '+b;
+    if(!taken[n]){taken[n]=1;return n;}
+  }
+  const n=pick(GEN_FNAMES)+' '+pick(GEN_LNAMES)+' '+Math.floor(r()*1e4);taken[n]=1;return n;
+}
+/* The federations the world is made of: every one a career can play for,
+   and every one at the Olympiad. */
+function worldFeds(){
+  const out=[],seen={};
+  FEDS.forEach(function(f){if(f.c!=='FIDE'&&!seen[f.c]){seen[f.c]=1;out.push({c:f.c,f:f.f});}});
+  [{c:'UZB',f:'🇺🇿'}].forEach(function(f){if(!seen[f.c]){seen[f.c]=1;out.push(f);}});
+  return out;
+}
+const POOL_TOP=40;        // a federation's players from its best down, below its famous names
+const POOL_CLUB=24;       // and its club players, 1000 to 2100
 /* Generic, made-up names for the fictional field (no real chess players). */
 const GEN_FNAMES=['Tom','Jack','Emma','Olivia','Noah','Liam','Ava','Mia','Leo','Max','Ben','Sam','Kate','Lucy','Jake','Ryan','Cole','Finn','Zoe','Ella','Jay','Nina','Rosa','Sven','Lars','Bram','Kai','Theo','Ravi','Dev','Niko','Aldo','Bruno','Hugo','Yan','Tim','Joel','Eric','Ruben','Pablo','Toni','Milo','Otto','Vince','Greg','Paul','Nora','Iris','Dana','Karl'];
 const GEN_LNAMES=['Baker','Hughes','Wood','Hart','Day','Lane','Reed','Cole','Frost','Stone','Park','Vos','Berg','Dahl','Ruiz','Mora','Costa','Bauer','Klein','Roth','Weber','Meyer','Lang','Bach','Faber','Kraus','Sandu','Marin','Toma','Cruz','Soto','Vega','Ortiz','Marsh','Webb','Boyd','Ford','Glen','Quinn','Tate','Vance','Wren','Knox','Pike','Rhodes','Sloan','Vale','Yates','Hale','Beck'];
@@ -4431,6 +4530,24 @@ function baseWorld(){
     const rr=Math.round(r-20+rnd()*40-10),rb=Math.round(r-35+rnd()*70-15);
     out.push({id:'f'+i,name:nm,fed:fed.c,flag:fed.f,real:false,r:Math.round(r),r0:Math.round(r),rr,rb});
   }
+  // each federation's own players: its depth below the names everybody knows,
+  // stepping down the way a national list does, then its club players
+  const taken={};out.forEach(function(p){taken[p.name]=1;});
+  worldFeds().forEach(function(F){
+    const rg=mulberry32(wpHash('pool|'+F.c)),str=olyFedStrength(F.c);
+    const known=WORLD_REAL.filter(function(p){return p.fed===F.c;}).length;
+    for(let k=1;k<=POOL_TOP;k++){
+      const rr0=Math.round(str-105*Math.log(k+known)+(rg()-0.5)*50);
+      const r1=Math.max(1750,rr0);
+      out.push({id:'g'+F.c+k,name:natName(F.c,rg,taken),fed:F.c,flag:F.f,real:false,r:r1,r0:r1,
+        rr:Math.round(r1-20+rg()*40-10),rb:Math.round(r1-35+rg()*70-15)});
+    }
+    for(let k=1;k<=POOL_CLUB;k++){
+      const r1=Math.round(1000+rg()*1100);
+      out.push({id:'k'+F.c+k,name:natName(F.c,rg,taken),fed:F.c,flag:F.f,real:false,club:true,r:r1,r0:r1,
+        rr:Math.round(r1-20+rg()*40),rb:Math.round(r1-30+rg()*60)});
+    }
+  });
   _world=out;return out;
 }
 /* The world as this career has it: the list it started from, less those who
@@ -4442,18 +4559,39 @@ function buildWorld(){
   if(!X)return baseWorld();
   if(_worldCache&&_worldCache.c===c&&_worldCache.v===X.v)return _worldCache.list;
   const list=baseWorld().filter(function(p){return !X.retired[p.id];})
-    .map(function(p){const b=X.base[p.id];return b?Object.assign({},p,b):p;})
+    .map(function(p){const b=X.base[p.id];return b?Object.assign({},p,Array.isArray(b)?{r:b[0],rr:b[1],rb:b[2]}:b):p;})
     .concat((X.extra||[]).filter(function(p){return !X.retired[p.id];}));
   _worldCache={c:c,v:X.v,list:list};
   return list;
 }
 function wpBase(p,fmt){return fmt==='rapid'?p.rr:fmt==='blitz'?p.rb:p.r;}
 function wpState(p){const w=store.career.world;return(w&&w[p.id])||null;}
-function wpRating(p,fmt){const s=wpState(p),d=s?s.d:0;return Math.round(wpBase(p,fmt)+(fmt==='classical'?d:d*0.9));}
-function wpChange(p,fmt){const s=wpState(p);return s?Math.round(s.dd*(fmt==='classical'?1:0.9)):0;}
+/* A club player's form comes and goes without being stored: it is read off the
+   player and the rating period, so thousands of them cost the save nothing. */
+function clubDrift(p,n){const h=wpHash(p.id+'|'+Math.floor((n||0)/3));return (h%61)-30;}
+function worldPeriod(){const w=store.career&&store.career.world;return (w&&w._n)||0;}
+function wpRating(p,fmt){
+  const d=p.club?clubDrift(p,worldPeriod()):((wpState(p)||{}).d||0);
+  return Math.round(wpBase(p,fmt)+(fmt==='classical'?d:d*0.9));
+}
+function wpChange(p,fmt){
+  if(p.club){const n=worldPeriod();return Math.round((clubDrift(p,n)-clubDrift(p,n-1))*(fmt==='classical'?1:0.9));}
+  const s=wpState(p);return s?Math.round(s.dd*(fmt==='classical'?1:0.9)):0;
+}
 function youRating(c,fmt){return fmt==='rapid'?c.ratingRapid:fmt==='blitz'?c.ratingBlitz:c.rating;}
 /* The full ranked list for a format, with the player inserted (if rated). */
+/* The list is read many times a screen, and only changes when the world or
+   you do, so it is kept until then. */
+let _rankCache={};
 function worldRanking(c,fmt){
+  const X=c&&c.wx,key=[X?X.v:0,worldPeriod(),youRating(c,fmt),c&&c.name,c&&c.fed,((c&&c.titles)||[]).join(),(c&&c.cycle&&c.cycle.champ)?1:0].join('|');
+  const hit=_rankCache[fmt];
+  if(hit&&hit.c===c&&hit.key===key)return hit.list;
+  const list=rankingFresh(c,fmt);
+  _rankCache[fmt]={c:c,key:key,list:list};
+  return list;
+}
+function rankingFresh(c,fmt){
   const list=buildWorld().map(p=>({id:p.id,name:p.name,fed:p.fed,flag:p.flag,real:p.real,rating:wpRating(p,fmt),change:wpChange(p,fmt),you:false,title:wpTitle(p)}));
   const yr=youRating(c,fmt);
   if(yr!=null)list.push({id:'__you',name:c.name,fed:c.fed,flag:c.flag,real:false,rating:yr,change:0,you:true,title:bestTitle(c)||''});
@@ -4543,7 +4681,7 @@ const WORLD_AGE={carlsen:35,nakamura:38,caruana:34,erigaisi:22,gukesh:20,firouzj
   nepo:36,so:33,giri:32,aronian:44,dominguez:43,mvl:36,mamed:41,ding:34,vidit:32,duda:28,rapport:30,yu:32,
   sevian:26,keymer:22,hou:32,goryach:28,ju:35};
 const JUNIORS_PER_SEASON=5;       // prodigies onto the list each season
-const NEWCOMERS_PER_SEASON=3;     // and club players, so there is always somebody at your level
+const NEWCOMERS_PER_FED=1;        // and a club player in every federation, so there is always somebody at your level
 function wxInit(c){
   if(!c)return null;
   if(!c.wx)c.wx={v:1,s0:c.season||1,base:{},titles:{},retired:{},extra:[],log:[]};
@@ -4573,18 +4711,21 @@ function seasonDev(p,r){
   if(r>2750)d-=(r-2750)*0.25;             // the air is thin at the top
   return d;
 }
-function retireChance(age){return age<40?0:Math.min(0.6,0.03+0.035*(age-40));}
-function wxUniqueName(X){
-  const taken={};buildWorld().forEach(function(p){taken[p.name]=1;});(X.extra||[]).forEach(function(p){taken[p.name]=1;});
-  for(let i=0;i<60;i++){const n=pick(GEN_FNAMES)[0]+'. '+pick(GEN_LNAMES);if(!taken[n])return n;}
-  return pick(GEN_FNAMES)[0]+'. '+pick(GEN_LNAMES)+'-'+pick(GEN_LNAMES);
+/* A professional stops in their forties; an amateur plays on into their sixties. */
+function retireChance(age,r){
+  if(r!=null&&r<2450)return age<55?0:Math.min(0.4,0.02+0.03*(age-55));
+  return age<40?0:Math.min(0.6,0.03+0.035*(age-40));
 }
-function wxNewPlayer(c,X,kind,i){
-  const S=c.season||1,fed=randFed();
+function wxUniqueName(X,fed){
+  const taken={};baseWorld().forEach(function(p){taken[p.name]=1;});(X.extra||[]).forEach(function(p){taken[p.name]=1;});
+  return natName(fed||'',Math.random,taken);
+}
+function wxNewPlayer(c,X,kind,i,F){
+  const S=c.season||1,fed=F||randFed();
   const junior=kind==='junior';
   const r=junior?Math.round(2250+Math.random()*300):Math.round(1300+Math.random()*700);
   const age=junior?14+Math.floor(Math.random()*4):16+Math.floor(Math.random()*20);
-  const p={id:'n'+S+kind[0]+i+'_'+Math.floor(Math.random()*1e6).toString(36),name:wxUniqueName(X),fed:fed.c,flag:fed.f,real:false,
+  const p={id:'n'+S+kind[0]+i+'_'+Math.floor(Math.random()*1e6).toString(36),name:wxUniqueName(X,fed.c),fed:fed.c,flag:fed.f,real:false,
     r:r,r0:r,rr:r+Math.round(gauss()*40),rb:r+Math.round(gauss()*50),age0:age,born:S,
     talent:junior?Math.round((0.2+Math.random()*0.8)*100)/100:Math.round((Math.random()-0.5)*100)/100,junior:junior};
   p.title=titleFor(r);
@@ -4598,12 +4739,16 @@ function worldSeason(c){
   const keep={};if(c.rival&&c.rival.id)keep[c.rival.id]=1;
   const notes=[];
   buildWorld().forEach(function(p){
+    if(p.club){
+      if(!keep[p.id]&&Math.random()<retireChance(wpAge(p),p.r))X.retired[p.id]=S;
+      return;
+    }
     const st=w[p.id],carry=st?st.d*0.5:0;
-    if(st)st.d-=carry;
+    if(st)st.d=Math.round((st.d-carry)*10)/10;
     const r=p.r,nr=Math.max(1000,Math.min(2880,Math.round(r+carry+seasonDev(p,r)*0.7)));
     const dr=nr-r;
     if(p.born!=null){p.r=nr;p.rr=Math.round(p.rr+dr*0.9);p.rb=Math.round(p.rb+dr*0.85);}
-    else X.base[p.id]={r:nr,rr:Math.round(p.rr+dr*0.9),rb:Math.round(p.rb+dr*0.85)};
+    else X.base[p.id]=[nr,Math.round(p.rr+dr*0.9),Math.round(p.rb+dr*0.85)];   // kept short: there are a thousand of them
     // a title, a season or two after the rating got there
     const now=nr+(st?st.d:0),t=titlePromote(p,now);
     if(t&&Math.random()<0.7){
@@ -4611,14 +4756,14 @@ function worldSeason(c){
       if(t==='GM'&&wpAge(p)<=21)notes.push({e:'🎖️',t:p.name+' ('+p.fed+') becomes a grandmaster at '+Math.floor(wpAge(p))+'.'});
     }
     // and one day, the last game
-    if(!keep[p.id]&&p.name!==champ&&p.id!==DEFAULT_CHAMPION&&Math.random()<retireChance(wpAge(p))){
+    if(!keep[p.id]&&p.name!==champ&&p.id!==DEFAULT_CHAMPION&&Math.random()<retireChance(wpAge(p),now)){
       X.retired[p.id]=S;
       if(p.real||now>=2650)notes.push({e:'🎗️',t:p.name+' retires from classical chess at '+Math.floor(wpAge(p))+'.'});
     }
   });
   let best=null;
   for(let i=0;i<JUNIORS_PER_SEASON;i++){const j=wxNewPlayer(c,X,'junior',i);if(!best||j.r>best.r)best=j;}
-  for(let i=0;i<NEWCOMERS_PER_SEASON;i++)wxNewPlayer(c,X,'club',i);
+  worldFeds().forEach(function(F,i){for(let k=0;k<NEWCOMERS_PER_FED;k++)wxNewPlayer(c,X,'club',i*10+k,F);});
   if(best)notes.push({e:'🌱',t:'New on the list: '+best.name+' of '+best.fed+', '+best.age0+' years old and rated '+best.r+'.'});
   X.v++;
   notes.forEach(function(n){pushFeed(c,n.e,esc(n.t),'world');});
@@ -4640,12 +4785,14 @@ function playerVol(p){const r=p.r;return r>2700?2.6:r>2400?3.3:r>1800?4.3:5.3;}
 function worldTick(){
   const c=store.career,w=c.world=c.world||{};
   for(const p of buildWorld()){
+    if(p.club)continue;                          // see clubDrift
     const s=w[p.id]||(w[p.id]={d:0,f:0,dd:0});
-    s.f=Math.max(-4,Math.min(4,s.f*0.8+trendBias(p)+gauss()*0.5));
+    s.f=Math.round(Math.max(-4,Math.min(4,s.f*0.8+trendBias(p)+gauss()*0.5))*10)/10;
     let nd=s.d+s.f+gauss()*playerVol(p)-s.d*0.03;
     nd=Math.max(-150,Math.min(150,nd));
-    s.dd=Math.round(nd-s.d);s.d=nd;
+    s.dd=Math.round(nd-s.d);s.d=Math.round(nd*10)/10;
   }
+  w._n=(w._n||0)+1;
   w._last=Date.now();
   feedTick(store.career);
 }
@@ -14568,7 +14715,13 @@ function scoutCard(c,opp,label){
     var tag=!r.has?'<span class="chip" style="opacity:.6">not studied</span>':(r.m>=50?'<span class="chip green">prepared '+r.m+'%</span>':'<span class="chip amber">learning '+r.m+'%</span>');
     var tt=(c.theory&&c.theory[o.id]&&c.theory[o.id].named)?' <span class="chip brand">📜 your line</span>':(c.trendy===o.id?' <span class="chip">🔥 trendy</span>':(c.refuted===o.id?' <span class="chip" style="background:#7f1d1d44;border-color:#7f1d1d">⚠️ busted this season</span>':''));
     return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--border);flex-wrap:wrap"><span class="small">'+sideDisc(o.side)+' <b>'+esc(o.name)+'</b> <span class="dim">'+esc(o.eco)+'</span> '+tag+tt+'</span><span class="row" style="gap:5px">'+(r.has?'':'<button class="btn ghost sm" data-act="addrep" data-val="'+o.id+'">+ Add</button>')+'<button class="btn sec sm" data-act="explore" data-val="'+o.id+'">📖 Study</button></span></div>';}
-  return '<div class="card" style="margin-bottom:12px;border-color:#7c5cff55"><div class="row" style="gap:10px;align-items:center">'+oppAvatar(opp,40)+'<div style="font-weight:700;flex:1;min-width:0">🔍 Scouting — '+esc(label)+': '+esc(opp.name)+' <span class="dim small">('+opp.rating+')</span></div></div><div class="dim small" style="margin:3px 0 2px">They favour these lines. Study them in the Library and you’ll start the game with a real edge when they appear.</div>'+line(ow)+line(ob)+'</div>';}
+  // somebody off the world list: who they are, and what has happened between you before
+  var wp=opp.wid?buildWorld().filter(function(x){return x.id===opp.wid;})[0]:null,who='';
+  if(wp){var h2=(c.h2h&&c.h2h[opp.name])||null,rk=(worldRanking(c,'classical').find(function(x){return x.id===wp.id;})||{}).rank;
+    who='<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap"><span class="dim small">'+(opp.flag||'')+' '+esc(wp.fed)+' · age '+Math.floor(wpAge(wp))+(rk?' · world #'+rk.toLocaleString():'')+
+      (h2&&(h2.w+h2.l+h2.d)?' · you are <b>'+h2.w+'–'+h2.d+'–'+h2.l+'</b> against them':' · you have not met before')+'</span>'+
+      '<button class="btn ghost sm" data-act="profile" data-val="'+wp.id+'">👤 Profile</button></div>';}
+  return '<div class="card" style="margin-bottom:12px;border-color:#7c5cff55"><div class="row" style="gap:10px;align-items:center">'+oppAvatar(opp,40)+'<div style="font-weight:700;flex:1;min-width:0">🔍 Scouting — '+esc(label)+': '+(opp.title?esc(opp.title)+' ':'')+esc(opp.name)+' <span class="dim small">('+opp.rating+')</span></div></div>'+who+'<div class="dim small" style="margin:3px 0 2px">They favour these lines. Study them in the Library and you’ll start the game with a real edge when they appear.</div>'+line(ow)+line(ob)+'</div>';}
 function careerScoutPanel(c){if(!c.tour||c.tour.round>=c.tour.rounds)return '';var opp=c.tour.field[c.tour.round];return opp?scoutCard(c,opp,'Round '+(c.tour.round+1)):'';}
 function careerPrepPanel(c){
   var ids=store.repertoire||[],ps=prepStrength(),pr=(store.puzzle&&store.puzzle.rating)||1200,hints=careerHintAllowance();
@@ -15824,13 +15977,11 @@ function tourLockedBy(t,c){
   var _ef=entryFee(t,c);if(_ef>(c.money||0))return 'entry fee '+money(_ef);
   return null;
 }
-/* Where you stand in your federation. Its team is its top five, and a
-   squad steps down about 38 points a board from what it fields on board one
-   (see olySquad), so the place is read off that — the named world list has a
-   handful of players from each country, and being third of those was not the
-   same as being third in the country. */
+/* Where you stand in your federation: your place among its players on the
+   world list. Its Olympiad team is its top five. */
 const OLY_TEAM_SIZE=5;
-function fedRank(c){var yr=youRating(c,'classical');if(yr==null)return null;var str=olyFedStrength(c.fed);return yr>=str?1:1+Math.ceil((str-yr)/38);}
+function fedPlayers(c,fed){return worldRanking(c,'classical').filter(function(p){return p.fed===fed;});}
+function fedRank(c){var yr=youRating(c,'classical');if(yr==null)return null;var L=fedPlayers(c,c.fed),i=L.findIndex(function(p){return p.you;});return i<0?null:i+1;}
 function olympiadSelected(c){var yr=youRating(c,'classical');if(yr==null||c.provisional)return {ok:false,why:'needs a rating'};if(yr<2200)return {ok:false,why:'needs 2200'};var fr=fedRank(c);if(fr!=null&&fr>OLY_TEAM_SIZE)return {ok:false,why:'be top '+OLY_TEAM_SIZE+' for '+c.fed+' (#'+fr+')'};return {ok:true,rank:fr};}
 function simOlympiadTeam(myPct){var mates=0;for(var i=0;i<3;i++)mates+=0.40+Math.random()*0.35;var teamPct=(myPct+mates)/4;var place=teamPct>=0.72?1:teamPct>=0.66?2:teamPct>=0.60?3:teamPct>=0.52?Math.ceil(4+Math.random()*3):Math.ceil(6+Math.random()*4);return {place:place,teamPct:teamPct};}
 function careerLobby(c){
@@ -16940,20 +17091,31 @@ function olyInit(c,tr){
   // 2600s nobody had earned. The team is the stronger of you and what that
   // federation actually fields, so a weak board one is the weak link in a real
   // side — and can be carried to a medal, or be the reason there isn't one.
+  // Every team is that country's best players on the world list — India's
+  // board one is India's best player, by name — so the country you are
+  // facing really is that country.
+  const squadOf=function(fed,n,str){
+    const L=fedPlayers(c,fed).filter(function(p){return !p.you;}).slice(0,n).map(function(p,i){
+      return {name:p.name,rating:p.rating,title:p.title||'',board:i+1,wid:p.id,real:!!p.real};});
+    return L.length>=n?L:olySquad(str,n,1);
+  };
   const pool=OLY_NATIONS.filter(function(n){return n.c!==myFed;}).slice();
-  const teamStr=Math.max(myR,olyFedStrength(myFed));
+  // your team-mates are your country's three best who are not you; the
+  // fourth-best sits out when you are picked as the fifth
+  const mates=squadOf(myFed,OLY_BOARDS-1,olyFedStrength(myFed));
+  const teamStr=Math.max(myR,mates[0]?mates[0].rating:olyFedStrength(myFed));
   const nations=[{id:'me',c:myFed,f:myFlag,str:teamStr,you:true,mp:0,gp:0,
     bd:olyBlank(OLY_BOARDS),bn:olyBlank(OLY_BOARDS)}];
   for(let i=0;i<OLY_TEAMS-1&&pool.length;i++){
     const n=pool.splice(Math.floor(Math.random()*pool.length),1)[0];
-    nations.push({id:'n'+i,c:n.c,f:n.f,str:n.str,you:false,mp:0,gp:0,
-      bd:olyBlank(OLY_BOARDS),bn:olyBlank(OLY_BOARDS),squad:olySquad(n.str,OLY_BOARDS,1)});
+    const sq=squadOf(n.c,OLY_BOARDS,n.str);
+    nations.push({id:'n'+i,c:n.c,f:n.f,str:sq[0]?sq[0].rating:n.str,you:false,mp:0,gp:0,
+      bd:olyBlank(OLY_BOARDS),bn:olyBlank(OLY_BOARDS),squad:sq});
   }
   // A captain orders the team by strength, so which board you play is the one
   // your rating earns. Early in a career that is board four, and the climb to
   // board one is its own progression; it also decides which board of the other
   // nations you actually sit opposite, and which board medal is yours to win.
-  const mates=olySquad(teamStr,OLY_BOARDS-1,2);
   const above=mates.filter(function(m){return m.rating>myR;}).length;
   const myBoard=above+1;
   mates.forEach(function(m,i){m.board=(i<above)?(i+1):(i+2);});
@@ -16963,7 +17125,7 @@ function olyInit(c,tr){
   tr.field=drawFixtures(foes.map(function(n){
     const p=n.squad[myBoard-1];
     return {name:p.name,rating:p.rating,title:p.title,fed:n.c,flag:n.f,
-      style:pickStyle(),nat:n.id};
+      style:pickStyle(),nat:n.id,wid:p.wid,real:!!p.real};
   }),tr.rounds);
   tr.oly={nations:nations,mates:mates,met:{},matches:[],rounds:tr.rounds,myBoard:myBoard};
   me.squad=olyMyTeam(c,tr.oly);
@@ -16975,7 +17137,7 @@ function olyMyTeam(c,oly){
   if(!me)return [];
   const myR=youRating(c,'classical')||c.rating||me.str;
   const out=(oly.mates||[]).map(function(m){
-    return {board:m.board,name:m.name,rating:m.rating,title:m.title};});
+    return {board:m.board,name:m.name,rating:m.rating,title:m.title,wid:m.wid,real:!!m.real};});
   out.push({board:oly.myBoard||1,name:c.name||'You',rating:myR,
     title:bestTitle(c)||'',you:true});
   out.sort(function(a,b){return a.board-b.board;});
@@ -18082,6 +18244,11 @@ function makeField(t){
   // fourteen rounds is seven people met twice, not fourteen strangers
   const count=t.rr?Math.round(t.rounds/t.rr):t.rounds;
   const gen=function(){
+    if(!t.creator){
+      const targets=[];for(let i=0;i<count;i++)targets.push(fieldRating(t));
+      const picked=worldPick(targets,{fmt:fmt,rule:fieldFedRule(t,store.career)});
+      if(picked)return picked;
+    }
     const players=[];
     for(let i=0;i<count;i++){
       const r=fieldRating(t);
@@ -18360,9 +18527,57 @@ function swissEligible(t){
   if(!t||t.rr||t.kind==='match'||t.kind==='simul'||t.id==='olympiad'||t.id==='worldcup')return false;
   return true;
 }
-/* A hall of players around the event's average, with the norm guarantee a
-   norm event would have made for its field. */
+/* ---------------------------------------------------------------------------
+   PEOPLE, NOT INVENTIONS
+
+   A field is drawn from the world list: for every place in it the event's
+   level gives a rating, and the player on the list nearest to that rating —
+   not already in the field — takes it. So the hall has the spread it always
+   had, and the people in it are people you will see again. A local event is
+   mostly your compatriots, a national championship is only them, and an
+   international open is whoever came.
+   --------------------------------------------------------------------------- */
+const HOME_TRIPS={home:1,local:1};
+function fieldFedRule(t,c){
+  if(!c||!c.fed||c.fed==='FIDE')return null;
+  if(t.natChamp)return {fed:c.fed,strict:true};
+  const trip=TRIP_OF[t.id]||'abroad';
+  if(HOME_TRIPS[trip])return {fed:c.fed,penalty:160};
+  if(trip==='national')return {fed:c.fed,penalty:70};
+  return null;
+}
+function worldPick(targets,opt){
+  opt=opt||{};
+  const c=store.career,fmt=opt.fmt||'classical',rule=opt.rule||null,ex=opt.exclude||{};
+  if(!c)return null;
+  let pool=worldRanking(c,fmt).filter(function(p){return !p.you&&!ex[p.id];});
+  if(rule&&rule.strict)pool=pool.filter(function(p){return p.fed===rule.fed;});
+  const used={},out=[];
+  for(let i=0;i<targets.length;i++){
+    const r=targets[i];let best=null,bc=Infinity;
+    for(let j=0;j<pool.length;j++){
+      const p=pool[j];if(used[p.id])continue;
+      const cost=Math.abs(p.rating-r)+(rule&&!rule.strict&&p.fed!==rule.fed?rule.penalty:0)+Math.random()*(opt.jitter||25);
+      if(cost<bc){bc=cost;best=p;}
+    }
+    if(!best)return null;                         // not enough people: the caller invents the rest
+    used[best.id]=1;
+    out.push({name:best.name,rating:best.rating,title:best.title||'',fed:best.fed,flag:best.flag,style:pickStyle(),
+      wid:best.id,real:!!best.real});
+  }
+  return out;
+}
+/* A hall of players around the event's average, drawn from the world list. */
 function swissHall(t,size){
+  if(t.creator)return swissHallInvented(t,size);
+  const targets=[];for(let i=0;i<size-1;i++)targets.push(fieldRating(t));
+  const picked=worldPick(targets,{fmt:eventFormat(t),rule:fieldFedRule(t,store.career)});
+  if(!picked)return swissHallInvented(t,size);
+  return picked.map(function(o,i){o.pid='p'+i;return o;});
+}
+/* A hall of invented players — for the streamers' charity event, and for any
+   corner of the list too thin to fill a hall. */
+function swissHallInvented(t,size){
   const players=[];
   for(let i=0;i<size-1;i++){
     const r=fieldRating(t);
@@ -18552,6 +18767,19 @@ function koInit(c,tr,t){
     return {id:p.id,name:p.name,fed:p.fed,flag:p.flag,real:!!p.real,rating:p.rating,
       rapid:w?wpRating(w,'rapid'):p.rating,blitz:w?wpRating(w,'blitz'):p.rating,
       title:p.title!=null?p.title:titleFor(p.rating),style:pickStyle()};
+  });
+  // below the rating places: every federation's best who is not already in,
+  // the way national championships and continental events send them, then the
+  // next strongest from the list
+  const inIds={};list.forEach(function(p){inIds[p.id]=1;});
+  const below=worldRanking(c,'classical').filter(function(p){return !p.you&&!inIds[p.id]&&p.rating<KO_FLOOR&&p.rating>=KO_QUAL_MIN;});
+  const byFed={},quals=[];
+  below.forEach(function(p){if(!byFed[p.fed]){byFed[p.fed]=1;quals.push(p);}});
+  below.forEach(function(p){if(quals.indexOf(p)<0)quals.push(p);});
+  quals.slice(0,KO_SIZE-1-players.length).forEach(function(p){
+    const w=byId[p.id];
+    players.push({id:p.id,name:p.name,fed:p.fed,flag:p.flag,real:!!p.real,qualifier:true,rating:p.rating,
+      rapid:w?wpRating(w,'rapid'):p.rating,blitz:w?wpRating(w,'blitz'):p.rating,title:p.title||titleFor(p.rating),style:pickStyle()});
   });
   while(players.length<KO_SIZE-1){
     const r=Math.round(Math.max(KO_QUAL_MIN,KO_FLOOR-10-Math.abs(gauss())*110)),fed=randFed();
