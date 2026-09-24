@@ -526,13 +526,14 @@ loses one.
 
 **16. The field lives.** The world list was the same people for ever, and the
 rising stars rose only as far as a drift that pulled them back. Every player now
-has an age and a talent, and a season moves a rating the way a career does —
-quickly in the teens, flat in the late twenties, down from the late thirties.
+has an age and a talent, and a season moves their strength the way a career
+does — quickly in the teens, flat in the late twenties, down from the late
+thirties — and their rating follows as their results do (see 21).
 Players retire from forty on; five teenagers rated 2250–2550 and three club
 players join the list every season, and ten years later the teenagers are a
 couple of hundred points better. The rest of the world plays its own title
-cycle: if you are not in the Candidates, it is played without you three weeks
-after its week, its winner plays the champion, and the title can change hands.
+cycle: if you are not in the Candidates, it is played without you when its
+week ends, its winner plays the champion, and the title can change hands.
 The champion when a career begins is Gukesh, who has held it since December
 2024. A champion who does not defend the title in its year loses it. And the
 elite round-robins are the elite: Wijk aan Zee, Norway Chess and the rest are
@@ -589,10 +590,46 @@ seed, so a career's world is the same every time it loads, and a club player's
 form is read off the rating period rather than stored, so two thousand players
 cost the save about a hundred kilobytes.
 
-Not done yet: the World Cup is 128 players rather than 206 with byes for the
-top seeds; the hundred and fifty players the list always had keep the generic
-names saved careers know them by; and results between two players in a hall
-change the standings but not their ratings on the world list.
+**21. Every result counts, and the world does not wait for you.** The world's
+ratings were a random walk: every so often each player's number wobbled by a
+few points whether or not they had played anybody, the games in the halls
+around you were thrown away, and the Olympiad, the World Cup and the leagues
+only existed when you were in them. Now every player has two numbers. Their
+strength — how well they actually play — is hidden, and moves by season with
+age and talent. Their rating is published, and moves one way only: by games,
+under FIDE's formula (K 40 for a junior under 2300, 20, then 10 from 2400; 20
+in rapid and blitz). Every simulated game anywhere is played from the two
+strengths and each player's form that week, and rated from the two ratings:
+the boards beside yours, every board of the Olympiad, every World Cup match and
+its rapid and blitz tiebreaks, playoffs, the Candidates and the title match,
+the pro and club league boards, and the engine games you watch. Your own games
+count for the other side too — beat somebody and their rating drops by the
+formula. A rising junior is underrated until their results catch up (a
+prodigy's first rating is forty below their strength; a season of about fifty
+games brings that to under twenty), a declining star is overrated until theirs
+do, and simulated games and the engine play people off the list at their true
+strength.
+
+The world keeps its own calendar. At the end of every week it plays that
+week's events unless you are in them — Wijk aan Zee, Norway Chess, the opens,
+every federation's championship in May, the Olympiad and the World Cup in their
+years, the Candidates and the title match, the four pro leagues' weekends — and
+a circuit of weekend opens for everybody not somewhere else, where club players
+mostly meet their compatriots and juniors play twice as often. A season you sit
+out is about 33,000 rated games, played in half a second, with more than half
+the list playing ten classical games or more; the World Cup's finalists and the
+Grand Swiss's top two take their places in the next Candidates. Because ratings
+are relative, the strengths are kept on the rating scale — one offset a format,
+reset each season — so the list neither inflates nor deflates (2024 → 2025
+over a season in the test). The World tab shows the season around the world:
+the champion and challenger, your country's champion, each event's winner and
+the four leagues; a profile shows a player's games and points this season. A
+save holding all of it is about a hundred kilobytes.
+
+Not done yet: FIDE publishes a rating list once a month, and ratings here are
+live; the World Cup is 128 players rather than 206 with byes for the top seeds;
+and the hundred and fifty players the list always had keep the generic names
+saved careers know them by.
 
 ## The Olympiad is a team event
 
@@ -1339,7 +1376,7 @@ launch builds nothing.
 
 ## Tests
 
-Fifty-five suites, about 5,350 checks, plus fourteen browser suites that drive the real app with the real engine.
+Fifty-five suites, about 5,400 checks, plus fourteen browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —

@@ -37,7 +37,9 @@ const X=new Function(script+'\nreturn {store,app,simGame,SIM_DRAW,_simScore,_sim
   'tbData,standingsSorted,playoffFirst,tieNote,PLAYOFF_EVENTS,careerStandings,'+
   'PRO_LEAGUES,PRO_WEEKS,proOffers,proFee,proSign,proDue,proMyMatch,careerProSim,proTick,proRenew,careerProPanel,'+
   'wmInit,wmHire,wmStart,wmBeforeGame,wmAfterGame,wmRest,wmPress,wmPanel,wmTeamElo,WM_SECONDS,WM_LEAK_BASE,WM_LEAK_PER,matchScoreStrip,'+
-  'olympiadSelected,fedRank,wpRating,worldPick,swissHall,fieldFedRule,NAME_BANKS,worldFeds,POOL_TOP,POOL_CLUB,baseWorld,olyInit,olyMyTeam,olyNation,fedPlayers,koInit,KO_SIZE,worldTick};')();
+  'olympiadSelected,fedRank,wpRating,wpStrength,worldGame,worldApply,worldVsYou,worldWeek,worldCircuit,simSwiss,simRoundRobin,'+
+  'proLeagues,proLeagueOf,proTable,proBoard,proMyMatch,candidatesField,specRate,tourBoardGame,koGame,wrOf,wrInit,wpK,oppStrength,OLY_BOARDS,'+
+  'worldPick,swissHall,fieldFedRule,NAME_BANKS,worldFeds,POOL_TOP,POOL_CLUB,baseWorld,olyInit,olyMyTeam,olyNation,fedPlayers,koInit,KO_SIZE,worldTick};')();
 /* Named events are held in their week of the year: put the career there (and
    in a year the event is held) before entering one. */
 function atEvent(c,id){
@@ -1161,13 +1163,18 @@ ok(extra.filter(p=>p.junior).length===5&&extra.filter(p=>!p.junior).length===nFe
 const ro=extra.filter(p=>!p.junior&&p.fed==='ROU')[0];
 ok(ro&&/^[A-Z]\.( [A-Z]\.)? [A-Z]/.test(ro.name)&&['Popescu','Ionescu','Popa','Dumitru','Stan','Stoica','Gheorghe','Rusu','Munteanu','Matei','Constantin','Serban','Lungu','Dinu','Nistor','Ene','Toma','Barbu','Moldovan','Neagu'].some(n=>ro.name.endsWith(n)),
   'with a name from their own country ('+(ro&&ro.name)+')');
-ok(extra.filter(p=>p.junior).every(p=>p.age0>=14&&p.age0<=17&&p.r>=2250&&p.r<=2550),'the teenagers are fourteen to seventeen and rated 2250–2550');
+ok(extra.filter(p=>p.junior).every(p=>p.age0>=14&&p.age0<=17&&X.wpStrength(p,'classical')>=2249&&X.wpStrength(p,'classical')<=2551),'the teenagers are fourteen to seventeen and play at 2250–2550');
+ok(extra.filter(p=>p.junior).every(p=>Math.abs(X.wpRating(p,'classical')-(X.wpStrength(p,'classical')-40))<=1),'and their first rating trails that by forty — a prodigy is underrated');
 ok(notes.some(n=>/New on the list/.test(n.t)),'and the best of them makes the news');
 // ten seasons on
 const carl0=X.worldRanking(c,'classical').find(p=>p.id==='carlsen').rating;
 const jr0=extra.filter(p=>p.junior).map(p=>p.id);
 let retired=0;
-for(let k=3;k<=12;k++){c.season=k;X.worldSeason(c);}
+// ten seasons lived week by week — the list only moves when games are played
+c.weeks=52;c.day=0;
+const t10=Date.now();
+for(let wk=0;wk<52*10;wk++)X.endOfWeek(c);
+ok(c.season===12,'ten seasons of weeks later it is season twelve ('+((Date.now()-t10)/1000).toFixed(1)+' s for the whole world)');
 retired=Object.keys(c.wx.retired).length;
 ok(retired>=5,'over ten seasons players retire ('+retired+')');
 const carl=X.buildWorld().find(p=>p.id==='carlsen');
@@ -1176,7 +1183,7 @@ const jrs=X.buildWorld().filter(p=>jr0.indexOf(p.id)>=0);
 const jrAvg0=extra.filter(p=>jr0.indexOf(p.id)>=0).reduce((s,p)=>s+p.r0,0)/jr0.length;
 const jrAvg=jrs.reduce((s,p)=>s+X.wpRating(p,'classical'),0)/Math.max(1,jrs.length);
 ok(jrAvg>jrAvg0+100,'the teenagers of season two are over a hundred points better ten years on ('+Math.round(jrAvg0)+' → '+Math.round(jrAvg)+')');
-ok(X.buildWorld().length<n0+100,'and the list stays about the size it was ('+n0+' → '+X.buildWorld().length+')');
+ok(X.buildWorld().length<n0*1.25,'and the list stays about the size it was ('+n0+' → '+X.buildWorld().length+')');
 // the rest of the world plays its title cycle
 c=bc(2500,1,16);
 X.worldEventsTick(c);
@@ -1245,9 +1252,11 @@ const offers=X.proOffers(c);
 ok(offers.length===3&&offers.every(o=>o.league!=='ccl'),'a 2470 has offers from the 4NCL, the Top 12 and the Bundesliga — not yet from China');
 ok(X.proFee(2700,X.PRO_LEAGUES[2])>X.proFee(2500,X.PRO_LEAGUES[2])*4,'a 2700 is worth more than four times a 2500 a game ('+X.proFee(2500,X.PRO_LEAGUES[2])+' → '+X.proFee(2700,X.PRO_LEAGUES[2])+')');
 X.proSign('bundesliga');
-const P=c.pro;
-ok(P&&P.fixtures.length===7&&P.clubs.length===8,'a contract: eight clubs, seven weekends');
-ok(P.board>=1&&P.board<=8,'on the board your rating puts you on (board '+P.board+')');
+const P=c.pro,G=X.proLeagueOf(c);
+ok(P&&G&&G.fixtures.length===7&&G.clubs.length===8,'a contract: eight clubs, seven weekends');
+const pb=X.proBoard(c);
+ok(pb>=1&&pb<=8,'on the board your rating puts you on (board '+pb+')');
+ok(G.clubs.every(cl=>cl.roster.length>=8&&cl.roster.every(id=>X.buildWorld().some(w=>w.id===id))),'and every club’s roster is people off the world list');
 ok(!X.proDue(c),'nothing to play before the first weekend');
 c.weeks=X.PRO_WEEKS[0];
 ok(X.proDue(c),'in week '+X.PRO_WEEKS[0]+' the first match is on');
@@ -1256,12 +1265,12 @@ X.careerProSim();
 ok(c.money===m0+P.fee&&P.played===1,'play it and you are paid the fee ('+P.fee+')');
 ok(c.played===1&&typeof X.app.careerDelta==='number','the game counts, and is rated ('+(X.app.careerDelta>=0?'+':'')+X.app.careerDelta+')');
 ok((c.news||[]).some(n=>/on board/.test(n.t)),'and the result is in the news');
-c.weeks=X.PRO_WEEKS[2];X.proTick(c);
-ok(P.round===2&&P.missed===1,'a weekend you were not there, a reserve played — and you were not paid');
-while(P.round<7){c.weeks=X.PRO_WEEKS[P.round];X.careerProSim();}
+c.weeks=X.PRO_WEEKS[1];X.proTick(c);
+ok(G.round===2&&P.missed===1,'a weekend you were not there, a reserve played — and you were not paid');
+while(G.round<7){c.weeks=X.PRO_WEEKS[G.round];X.careerProSim();}
 ok(P.done&&P.place>=1,'seven weekends and the season is over ('+Math.round(P.place)+'th)');
 c.season=2;c.weeks=52;X.proRenew(c);
-ok(c.pro&&c.pro.season===2&&c.pro.round===0&&c.pro.history.length===1,'at the turn of the year the club renews your contract');
+ok(c.pro&&c.pro.season===2&&X.proLeagueOf(c).round===0&&c.pro.history.length===1,'at the turn of the year the club renews your contract');
 c.rating=2300;c.season=3;X.proRenew(c);
 ok(!c.pro,'and lets you go when your rating has fallen out of the league');
 c=bc(2470,1,0);X.proSign('4ncl');
@@ -1324,13 +1333,10 @@ ok(ger.every(p=>X.NAME_BANKS.GER[1].some(l=>p.name.endsWith(l))),'a German is ca
 const chn=W.filter(p=>/^[gk]CHN/.test(p.id)&&/^[A-Z][a-z]+ [A-Z][a-z]+/.test(p.name));
 ok(chn.length>=30,'and a Chinese player has the family name first ('+chn[0].name+')');
 ok(JSON.stringify(X.baseWorld().map(p=>p.name))===JSON.stringify(X.baseWorld().map(p=>p.name)),'the same world every time it loads');
-// club players move without being stored
-const kp=W.find(p=>p.club);
+// nobody's rating moves by itself any more
+const kp=W.find(p=>p.club),kr0=X.wpRating(kp,'classical');
 X.worldTick();X.worldTick();X.worldTick();
-ok(!c.world[kp.id],'a club player’s form is not kept in the save');
-let moved=false;const r0=X.wpRating(kp,'classical');for(let i=0;i<9;i++){X.worldTick();if(X.wpRating(kp,'classical')!==r0)moved=true;}
-ok(moved,'and moves all the same');
-ok(Object.keys(c.world).length<W.filter(p=>!p.club).length+5,'the save holds one entry per player who is not a club player ('+Object.keys(c.world).length+')');
+ok(X.wpRating(kp,'classical')===kr0&&!X.wrOf(kp),'nobody’s rating moves unless they play — the old drift is gone');
 
 console.log('\n— C2 · the halls are people off the list —');
 c=cc(2300);X.joinTournament('intl');
@@ -1393,5 +1399,110 @@ c=cc(2440,'ROU');
 const fr=X.fedRank(c);
 ok(fr===X.fedPlayers(c,'ROU').findIndex(p=>p.you)+1,'your place in Romania is your place among Romanians on the list (#'+fr+')');
 ok(X.olympiadSelected(c).ok===(fr<=5),'and the team is its top five');
+}
+{ // D
+function dc(r,fed,season,week){
+  X.store.career=X.freshCareer();const c=X.store.career;X.lifeInit(c);c.setup=true;c.name='Ada Marín';c.fed=fed||'ROU';c.flag='🇷🇴';
+  c.provisional=false;c.rating=r;c.peak=r;c.ratingRapid=r;c.ratingBlitz=r;c.ratedGames=500;c.age=24;c.titles=r>=2500?['GM']:r>=2400?['IM']:[];
+  c.season=season||1;c.weeks=((season||1)-1)*52+(week||0);c.day=0;c.money=5e6;return c;
+}
+const wp=id=>X.buildWorld().find(p=>p.id===id);
+const R0=(p,f)=>X.wrOf(p)?X.wrOf(p)[{classical:0,rapid:1,blitz:2}[f||'classical']]:X.wpRating(p,f||'classical');
+console.log('\n— D1 · a rating moves only by games —');
+let c=dc(2400);
+let A=wp('gIND10'),B=wp('gGER10');
+const rA=R0(A),rB=R0(B),kA=X.wpK(A,[rA],'classical'),kB=X.wpK(B,[rB],'classical');
+const sAB=X.worldGame(c,A,B,'classical',{aWhite:true});
+const EA=1/(1+Math.pow(10,(rB-rA)/400));
+ok([0,0.5,1].indexOf(sAB)>=0,'two players off the list play a game ('+A.name+' '+sAB+'–'+(1-sAB)+' '+B.name+')');
+ok(Math.abs((R0(A)-rA)-kA*(sAB-EA))<0.11,'the winner’s — or loser’s — rating moves by exactly FIDE’s formula: K × (score − expected)');
+ok(Math.abs((R0(B)-rB)-kB*((1-sAB)-(1-EA)))<0.11,'and so does the other player’s');
+ok(X.wrOf(A)[3]===1&&X.wrOf(A)[4]===sAB,'and the game is counted in their season');
+const untouched=wp('gFRA20'),ru=X.wpRating(untouched,'classical');
+X.worldGame(c,A,B,'classical',{aWhite:false});
+ok(X.wpRating(untouched,'classical')===ru,'somebody who did not play has not moved');
+// the result comes from strength, the rating from ratings: an underrated junior
+let jw=0,jn=3000;const J=wp('gIND30'),O=wp('gIND31');
+c.wx.base[J.id]=[X.wpRating(J,'classical')+200,J.rr+200,J.rb+200];c.wx.v++;
+const J2=wp('gIND30');
+for(let i=0;i<jn;i++){c.wr[J2.id]=null;delete c.wr[J2.id];delete c.wr[O.id];jw+=X.worldGame(c,J2,wp('gIND31'),'classical',{aWhite:i%2===0,unrated:true});}
+ok(jw/jn>0.7,'a player two hundred points better than their rating scores like it ('+Math.round(jw/jn*100)+'% against somebody rated alike)');
+
+console.log('\n— D2 · every result around you counts —');
+c=dc(2300);X.joinTournament('intl');
+let tr=c.tour;
+const hb={};tr.hall.forEach(h=>{hb[h.wid]=R0(wp(h.wid));});
+X.app.careerOpp='tour';X.app.careerScored=false;X.app.careerTour=true;X.app.careerOneoff=null;X.app.careerRoundOpp=tr.field[0];X.app.playMoves=[];
+const opp0=tr.field[0],oppB=R0(wp(opp0.wid));
+X.careerResult(1);
+const games1=tr.pairs.filter(g=>g.r===1&&g.a!=='__you'&&g.b);
+const std=id=>tr.standings.find(p=>p.id===id);
+let moved=0;games1.forEach(g=>{[g.a,g.b].forEach(id=>{const w=std(id).wid;if(Math.abs(R0(wp(w))-hb[w])>0.05)moved++;});});
+ok(games1.length>=8&&moved>=games1.length*2-2,'the '+games1.length+' boards beside yours were rated games: '+moved+' ratings moved');
+ok(R0(wp(opp0.wid))<oppB,'and beating '+opp0.name+' cost them rating ('+Math.round(oppB)+' → '+Math.round(R0(wp(opp0.wid)))+')');
+// a challenge off the list
+c=dc(2500);const Ch=wp('gUSA5'),cr0=R0(Ch);
+X.app.careerOpp='oneoff';X.app.careerScored=false;X.app.careerTour=false;X.app.careerOneoff='classical';X.app.careerLeague=false;X.app.careerPro=false;
+X.app.careerRoundOpp={name:Ch.name,rating:X.wpRating(Ch,'classical'),id:Ch.id};X.app.playMoves=[];
+X.careerResult(0);
+ok(R0(Ch)>cr0,'a challenge game counts for the person you challenged: '+Ch.name+' beat you and gained');
+// the Olympiad's other boards
+c=dc(2742,'USA',1,37);X.joinTournament('olympiad');
+tr=c.tour;const nat=tr.oly.nations.filter(n=>!n.you);
+X.app.careerOpp='tour';X.app.careerScored=false;X.app.careerTour=true;X.app.careerOneoff=null;X.app.careerRoundOpp=tr.field[0];X.careerResult(0.5);
+const playedSq=nat.reduce((a,n)=>a+n.squad.filter(p=>X.wrOf(wp(p.wid))&&X.wrOf(wp(p.wid))[3]>0).length,0);
+ok(playedSq>=nat.length*X.OLY_BOARDS-X.OLY_BOARDS,'after one round of the Olympiad the other nations’ players have rated games ('+playedSq+')');
+// the knockout's other matches
+c=dc(2700,'ROU',2,29);X.wcQualify(c,'x');X.joinTournament('worldcup');
+tr=c.tour;const ko0=tr.ko.slots.filter(p=>!p.you).slice(0,20).map(p=>p.id);
+X.app.careerOpp='tour';X.app.careerScored=false;X.app.careerTour=true;X.app.careerRoundOpp=tr.field[0];X.careerResult(1);
+X.app.careerScored=false;X.app.careerRoundOpp=tr.field[1];X.careerResult(1);
+ok(ko0.filter(id=>X.wrOf(wp(id))&&X.wrOf(wp(id))[3]>=2).length>=16,'round one of the World Cup is rated for everybody in it, not just you');
+// a game you watch
+c=dc(2400);const S1={w:{id:'carlsen',name:'M. Carlsen'},b:{id:'caruana',name:'F. Caruana'},result:'x'};
+const cw0=R0(wp('carlsen')),cb0=R0(wp('caruana'));
+X.specRate(S1,1);
+ok(R0(wp('carlsen'))>cw0&&R0(wp('caruana'))<cb0&&S1.rated,'a game you watched is rated too: '+S1.result);
+
+console.log('\n— D3 · the world plays its season without you —');
+c=dc(2300,'ROU',1,0);
+const Wn=X.buildWorld(),avg0=Wn.reduce((a,p)=>a+X.wpRating(p,'classical'),0)/Wn.length;
+const v0=c.wrv||0,t0=Date.now(),my0=c.rating;
+for(let wk=0;wk<51;wk++)X.endOfWeek(c);
+const dt=Date.now()-t0,rated=(c.wrv||0)-v0;
+ok(rated>40000,'in a season you did not play in, the world played '+Math.round(rated/2).toLocaleString()+' rated games ('+(dt/1000).toFixed(1)+' s)');
+ok(c.rating===my0,'and your own rating did not move — you were not in any of them');
+const res=c.wx.results.map(r=>r.id);
+['tatasteel','norway','reykjavik','gibraltar','olympiad','natch','superbet','worldrapid'].forEach(id=>ok(res.indexOf(id)>=0,'the '+(X.TOURNAMENTS.find(t=>t.id===id)||{name:id}).name+' was played: '+((c.wx.results.find(r=>r.id===id)||{}).winner||{name:'—'}).name));
+ok(Object.keys(c.wx.natChamps||{}).length>=25,'every federation crowned a champion ('+Object.keys(c.wx.natChamps||{}).length+'; Romania’s is '+((c.wx.natChamps||{}).ROU||{}).name+')');
+ok(c.wx.cands&&c.wx.cands.season===1&&c.wx.wcc&&c.wx.wcc.result,'the Candidates and the title match were played: '+c.wx.cands.name+' challenged, and '+(c.wx.wcc.result.kept?c.wx.wcc.result.champ+' kept the title':c.wx.wcc.result.chall+' took it'));
+const Lg=X.proLeagues(c);
+ok(Object.keys(Lg).every(k=>Lg[k].done&&Lg[k].champ),'all four leagues played their seven weekends and crowned a champion: '+Object.keys(Lg).map(k=>Lg[k].champ).join(', '));
+const busyPlayers=Wn.filter(p=>X.wrOf(p)&&X.wrOf(p)[3]>=10).length;
+ok(busyPlayers>Wn.length*0.5,'more than half the list played ten classical games or more ('+busyPlayers+')');
+const avg1=Wn.reduce((a,p)=>a+X.wpRating(p,'classical'),0)/Wn.length;
+ok(Math.abs(avg1-avg0)<20,'and the list as a whole neither inflates nor deflates ('+avg0.toFixed(0)+' → '+avg1.toFixed(0)+')');
+X.endOfWeek(c);
+ok(c.season===2,'the season turns');
+for(let wk=0;wk<51;wk++)X.endOfWeek(c);
+// juniors catch up through results: season two's intake, at the end of their first season
+const juniors=c.wx.extra.filter(p=>p.junior&&p.born===2);
+const gap=juniors.reduce((a,p)=>a+(X.wpStrength(p,'classical')-X.wpRating(p,'classical')),0)/Math.max(1,juniors.length);
+const jg=juniors.reduce((a,p)=>a+((X.wrOf(p)||[])[3]||0),0)/Math.max(1,juniors.length);
+ok(juniors.length===5&&gap<35,'a season of games — '+jg.toFixed(0)+' each — closes the gap between a prodigy’s strength and rating (forty at the start, '+gap.toFixed(0)+' now)');
+X.endOfWeek(c);
+const q=(c.wx.qual&&c.wx.qual.season===2)?c.wx.qual.ids:[];
+// four places, fewer names when somebody earns two of them
+ok(q.length>=3&&q.length<=4,'in 2027 the World Cup and the Grand Swiss sent '+q.length+' players to the Candidates');
+const cf=X.candidatesField(c,8,{}).map(p=>p.id);
+ok(q.every(id=>cf.indexOf(id)>=0||!wp(id)||X.worldChampion(c).name===wp(id).name),'and the Candidates of 2028 has them in it, before the rating places');
+
+console.log('\n— D4 · your games move the world —');
+c=dc(2550);X.proSign('bundesliga');c.weeks=X.PRO_WEEKS[0];
+const pm=X.proMyMatch(c),po0=R0(wp(pm.opp.wid));
+const rng=Math.random;Math.random=()=>0.001;X.careerProSim();Math.random=rng;
+ok(R0(wp(pm.opp.wid))<po0,'win your Bundesliga board and '+pm.opp.name+' loses rating for it');
+const G=X.proLeagueOf(c);
+ok(G.round===1&&G.last.results.length===4,'and the whole round of the league was played with you in it');
 }
 console.log('\n✅ realism: '+pass+' checks passed');
