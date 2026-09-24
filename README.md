@@ -1038,9 +1038,33 @@ app in a browser against positions whose answers are known independently
 (mates both ways, a queen up each way, finished games, stepping faster than
 the engine can answer, and a game with one known blunder).
 
+## It opens in about a second
+
+The 29 opening courses are trees of every line they teach, around 8,500 moves
+in all, and each move has to be played to know where it leads. That used to
+happen for every course at every launch, before anything was drawn: about 78%
+of the time to the first screen, spent even by someone going straight to their
+career. Measured in Chromium with the CPU slowed four times, roughly a
+mid-range phone, the first screen took **5.7 s**.
+
+Now a course is built the first time something reads its tree or its cards.
+Your repertoire is built for the dashboard's due count and nothing else is.
+Everything left is built a course at a time while the browser is idle, once
+the first screen is up, so the library and search find them ready. The build
+itself plays its moves through chess.js's own internal steps instead of the
+public `move()`, which also formats two FENs and a `Move` object for every
+call, and is about three times faster. Same measurement: **0.9 s** for a first
+visit, **1.3 s** for a returning player with three courses in their repertoire.
+
+`validate-startup.mjs` builds every course both ways and compares all 8,564
+nodes (move, squares, both FENs, ply and comment), and checks that a first
+launch builds nothing.
+
+---
+
 ## Tests
 
-Forty-nine suites, about 4,900 checks, plus fourteen browser suites that drive the real app with the real engine.
+Fifty suites, about 4,900 checks, plus fourteen browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —

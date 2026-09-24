@@ -4063,18 +4063,55 @@ function mergeLines(lines,comments={}){
       level=n.children;}}
   return roots;
 }
-function buildOpening(def){
+/* A course is a tree of every line it teaches, and building one means playing every move of it. The 29 built-in
+   courses are ~8,500 moves: built eagerly at launch that was ~78% of the time to the first screen on a mid-range
+   phone, spent even by someone going straight to their career. So a built-in course is only built when something
+   first reads its tree or its cards (lazyOpening), whatever is left is built quietly in idle time once the first
+   screen is up (warmOpenings), and a build plays its moves through chess.js's own internal steps instead of the
+   public move(), which also formats two FENs and a Move object per call. The result is identical — validate-startup
+   compares every node against the public path. */
+const SQ88=i=>'abcdefgh'[i&15]+(8-(i>>4));
+function buildTree(def){
   const chess=new Chess();
+  const fast=['_moveFromSan','_moveToSan','_moves','_makeMove','_undoMove'].every(k=>typeof chess[k]==='function');
   const root={move:null,fen:chess.fen(),fenBefore:null,from:null,to:null,ply:0,comment:null,children:[]};
   const tree=mergeLines(def.lines,def.comments||{});let depth=0;
-  function build(d,ply){const fenBefore=chess.fen();let m;
-    try{m=chess.move(d.move);}catch(e){throw new Error('Illegal '+d.move+' in '+def.id);}
-    const node={move:m.san,from:m.from,to:m.to,fen:chess.fen(),fenBefore,ply,comment:d.comment||null,children:[]};
+  function build(d,ply,fenBefore){let node;
+    if(fast){const im=chess._moveFromSan(d.move,false);if(!im||!im.piece||im.from===im.to)throw new Error('Illegal '+d.move+' in '+def.id);
+      const san=chess._moveToSan(im,chess._moves({legal:true,piece:im.piece}));chess._makeMove(im);
+      node={move:san,from:SQ88(im.from),to:SQ88(im.to),fen:chess.fen(),fenBefore,ply,comment:d.comment||null,children:[]};}
+    else{let m;try{m=chess.move(d.move);}catch(e){throw new Error('Illegal '+d.move+' in '+def.id);}
+      node={move:m.san,from:m.from,to:m.to,fen:chess.fen(),fenBefore,ply,comment:d.comment||null,children:[]};}
     if(ply>depth)depth=ply;
-    for(const c of d.children)node.children.push(build(c,ply+1));
-    chess.undo();return node;}
-  for(const t of tree)root.children.push(build(t,1));
-  const o=Object.assign({},def,{root,depth});o.cards=genCards(o);o.cardCount=o.cards.length;return o;
+    for(const c of d.children)node.children.push(build(c,ply+1,node.fen));
+    if(fast)chess._undoMove();else chess.undo();return node;}
+  for(const t of tree)root.children.push(build(t,1,root.fen));
+  return{root,depth};
+}
+function buildOpening(def){
+  const o=Object.assign({},def,buildTree(def));o.cards=genCards(o);o.cardCount=o.cards.length;return o;
+}
+const LAZY_KEYS=['root','depth','cards','cardCount'];
+let openingsBuilt=0;
+function openingBuilt(o){const d=Object.getOwnPropertyDescriptor(o,'root');return!!d&&!d.get;}
+function lazyOpening(def){const o=Object.assign({},def);
+  function materialize(){const t=buildTree(def);
+    for(const k of LAZY_KEYS)Object.defineProperty(o,k,{value:undefined,writable:true,enumerable:true,configurable:true});
+    o.root=t.root;o.depth=t.depth;o.cards=genCards(o);o.cardCount=o.cards.length;openingsBuilt++;}
+  for(const k of LAZY_KEYS)Object.defineProperty(o,k,{enumerable:true,configurable:true,
+    get(){materialize();return o[k];},set(v){materialize();o[k]=v;}});
+  return o;
+}
+/* Called once the first screen is on: build the rest a course at a time while the browser is idle, so the library
+   and search find them ready. The timer is unref'd where that exists (Node, in the test harnesses) so a pending
+   warm-up never holds a process open; in a browser it is just a number. */
+function warmOpenings(delay){
+  const later=(f,ms)=>{const h=setTimeout(f,ms);if(h&&h.unref)h.unref();return h;};
+  const idle=typeof window.requestIdleCallback==='function'?f=>window.requestIdleCallback(f,{timeout:3000}):f=>later(()=>f({timeRemaining:()=>10}),30);
+  function step(dl){let n=0;
+    for(const o of BASE){if(openingBuilt(o))continue;if(n&&dl.timeRemaining()<6)break;try{void o.root;}catch(e){}n++;}
+    if(BASE.some(o=>!openingBuilt(o)))idle(step);}
+  later(()=>idle(step),delay==null?1200:delay);
 }
 function heroTurn(o){return o.side==='white'?'w':'b';}
 function genCards(o){const ht=heroTurn(o),byFen=new Map();
@@ -4084,7 +4121,7 @@ function genCards(o){const ht=heroTurn(o),byFen=new Map();
     walk(ch);}})(o.root);
   return[...byFen.values()];
 }
-const BASE=OPENINGS.map(buildOpening);
+const BASE=OPENINGS.map(lazyOpening);
 let BUILT=BASE.slice();
 let byId=new Map(BUILT.map(o=>[o.id,o]));
 
@@ -19760,6 +19797,7 @@ window.addEventListener('keydown',e=>{
   }
 });
 render();
+warmOpenings();
 </script>
 </body>
 </html>
