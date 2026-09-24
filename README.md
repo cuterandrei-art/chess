@@ -1038,6 +1038,44 @@ app in a browser against positions whose answers are known independently
 (mates both ways, a queen up each way, finished games, stepping faster than
 the engine can answer, and a game with one known blunder).
 
+## The analysis board
+
+Everything else analyses the app's own positions: your games, your repertoire,
+its puzzles. **Learn → Analysis board** (also in the **More** menu) takes any
+position. Paste a FEN (four fields are enough, and so is just the board), a
+PGN with its headers, comments and annotations, or a bare move list such as
+`1. e4 e5 2. Nf3`. A FEN that describes an illegal position is refused with
+the reason, and anything unreadable is refused with an example of each format.
+
+On the board you play moves for either side. Playing from an earlier point
+replaces what came after, and playing the move the line already has just steps
+into it. ◀ ▶ Home End and F work from the keyboard, and pieces drag as
+everywhere else. The engine shows its top three lines, and each line's first
+move is a button that plays it. The engine can be switched off, and that is
+remembered. The opening database and the Syzygy tablebase appear when the
+position is one they cover. From there:
+
+- **Copy FEN** copies the position on the board. **Copy PGN** copies the whole
+  line, numbered from where it started and with a `[FEN]` header when that
+  was not the normal start, so it pastes back in exactly.
+- **Game Review** reviews the line move by move.
+- **Play it out vs the engine** starts a game from the position on the board,
+  as the side to move.
+
+Game Review has **Analyse from here** (the board opens on the move you were
+looking at, with the rest of the game after it), a finished game has
+**Analyse**, and so does a solved puzzle.
+
+A redraw from something in the background (the engine, a sync) no longer
+throws you out of a text field you are typing in, anywhere in the app. The
+engine also waits while the paste box is open.
+
+`validate-analysis.mjs` covers the parsing, playing on, promotion, copying out
+and reading back in, every way in, typing through a redraw, and the engine
+switch.
+
+---
+
 ## Reminders
 
 Opening reviews come due on a schedule, and puzzles you got wrong come back
@@ -1141,7 +1179,7 @@ launch builds nothing.
 
 ## Tests
 
-Fifty-two suites, about 5,100 checks, plus fourteen browser suites that drive the real app with the real engine.
+Fifty-three suites, about 5,150 checks, plus fourteen browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —

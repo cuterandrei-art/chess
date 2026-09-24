@@ -28,7 +28,7 @@ ok(true, 'module parses');
 // Every click handler must re-render: the dispatcher has no fallthrough, so a
 // handler that changes state without calling render() leaves a dead control on
 // screen — a whole tab bar failed this way once.
-const RENDERS=/render\(\)|go\(|startPlay|runImport|doDay|dailyAnswer|startSimul|startParkGame|profileOpen|startSpectate|uiConfirm|arcChoose|clStart|egLessonStart|startChallenge|joinTournament|newCareer|guessStart|reviewStart|openStudy|startRivalFinale|careerRest|careerSabbatical|playSeekTo|startTraining|pzNext|Voice\.say|return/;
+const RENDERS=/render\(\)|go\(|anaOpen|anaLoadText|anaJump|startPlay|runImport|doDay|dailyAnswer|startSimul|startParkGame|profileOpen|startSpectate|uiConfirm|arcChoose|clStart|egLessonStart|startChallenge|joinTournament|newCareer|guessStart|reviewStart|openStudy|startRivalFinale|careerRest|careerSabbatical|playSeekTo|startTraining|pzNext|Voice\.say|return/;
 const dead=[];
 for (const m of script.matchAll(/else if\(act==='([a-zA-Z0-9_]+)'\)(\{[^\n]*\}|[^\n;]*;)/g)) {
   if (!/\bapp\.|\bstore\./.test(m[0])) continue;

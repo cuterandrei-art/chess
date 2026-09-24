@@ -5463,12 +5463,12 @@ function render(){
   document.body.style.setProperty('--bw',(store.settings.boardSize||520)+'px');
   applyAppTheme();
   const repOps=BUILT.filter(o=>inRep(o.id));const agg=aggregate(repOps,store.srs);
-  const nav=['career','dashboard','play','puzzles','learn','courses','train','library','endgames','classics','guess','blindfold','daily','review','brilliancy','report','import','tracker','studies','masters','settings'];
-  const NAV_META={career:['🏆','Career'],dashboard:['📊','Dashboard'],play:['♟️','Play'],puzzles:['🧩','Puzzles'],learn:['📚','Learn'],courses:['📘','Courses'],train:['🎓','Train'],library:['📖','Openings'],endgames:['♟️','Endgames'],classics:['📜','Classics'],guess:['🎯','Guess the Move'],blindfold:['🙈','Blindfold'],review:['🔬','Game Review'],brilliancy:['💎','Brilliancies'],report:['📊','Opening report'],import:['📥','Import games'],tracker:['📡','Chess.com tracker'],daily:['☀️','Daily exercise'],studies:['📚','Studies'],masters:['♞','Master Games'],settings:['⚙️','Settings']};
+  const nav=['career','dashboard','play','puzzles','learn','courses','train','library','endgames','classics','guess','blindfold','daily','review','analysis','brilliancy','report','import','tracker','studies','masters','settings'];
+  const NAV_META={analysis:['🔬','Analysis board'],career:['🏆','Career'],dashboard:['📊','Dashboard'],play:['♟️','Play'],puzzles:['🧩','Puzzles'],learn:['📚','Learn'],courses:['📘','Courses'],train:['🎓','Train'],library:['📖','Openings'],endgames:['♟️','Endgames'],classics:['📜','Classics'],guess:['🎯','Guess the Move'],blindfold:['🙈','Blindfold'],review:['🔬','Game Review'],brilliancy:['💎','Brilliancies'],report:['📊','Opening report'],import:['📥','Import games'],tracker:['📡','Chess.com tracker'],daily:['☀️','Daily exercise'],studies:['📚','Studies'],masters:['♞','Master Games'],settings:['⚙️','Settings']};
   const label=v=>(NAV_META[v]?NAV_META[v][1]:v[0].toUpperCase()+v.slice(1));
   const navIcon=v=>(NAV_META[v]?NAV_META[v][0]:'•');
   const cur=nav.indexOf(app.view)>=0?app.view:'dashboard';
-  const LEARN_VIEWS=['learn','courses','clearn','train','library','build','explore','course','endgames','eglesson','classics','guess','blindfold','daily','masters','studies','review','brilliancy','report','import','tracker','dashboard','reptree'];
+  const LEARN_VIEWS=['learn','courses','clearn','train','library','build','explore','course','endgames','eglesson','classics','guess','blindfold','daily','masters','studies','review','analysis','brilliancy','report','import','tracker','dashboard','reptree'];
   const CAREER_VIEWS=['career','magazine','hall','player','livegame'];
   const primaryOf=v=>(CAREER_VIEWS.indexOf(v)>=0?'career':v==='play'?'play':v==='puzzles'?'puzzles':LEARN_VIEWS.indexOf(v)>=0?'learn':'');
   const PRIMARY=[['career','🏆','Career'],['play','♟️','Play'],['puzzles','🧩','Puzzles'],['learn','📚','Learn']];
@@ -5527,10 +5527,15 @@ function render(){
   else if(app.view==='magazine')body=viewMagazine();
   else if(app.view==='hall')body=viewHall();
   else if(app.view==='settings')body=viewSettings();
+  else if(app.view==='analysis')body=viewAnalysis();
   // The welcome gets the screen to itself: a navigation bar highlighting a
   // section you have not chosen yet is exactly the noise it exists to spare you.
   const chrome=app.view==='onboard'?'<header class="top"><div class="topin"><div class="brand"><span class="mark">♞</span><b>Chess</b> <span style="color:var(--brand2)">Career</span></div></div></header>':head;
+  // a redraw from something in the background (the engine, a sync) must not
+  // throw you out of the text field you are typing in
+  let _kf=null;try{const ae=document.activeElement;if(ae&&ae.id&&/^(INPUT|TEXTAREA)$/.test(ae.tagName)&&ae.type!=='file'&&ae.type!=='checkbox'){_kf={id:ae.id,s:null,e:null};try{_kf.s=ae.selectionStart;_kf.e=ae.selectionEnd;}catch(e){}}}catch(e){}
   document.getElementById('app').innerHTML=chrome+'<div class="wrap">'+body+'</div>'+confirmOverlay()+promoOverlay()+xferSheet()+'<input id="importfile" type="file" accept="application/json,.json" style="display:none">';
+  if(_kf){try{const el=document.getElementById(_kf.id);if(el&&el!==document.activeElement){el.focus({preventScroll:true});if(_kf.s!=null&&el.setSelectionRange)el.setSelectionRange(_kf.s,_kf.e);}}catch(e){}}
   srNode();                       // outside #app, so a redraw never wipes it
   if(app.view==='play'&&app.playStatus==='over'&&resultKind(app.playResult)==='win'&&app._fxKey!==app.playResult){app._fxKey=app.playResult;confetti();}
   var _cf=app.careerFinish;if(_cf&&((_cf.newTitles&&_cf.newTitles.length)||(_cf.honors&&_cf.honors.length)||(_cf.norms&&_cf.norms.length)||_cf.published)&&app._fxCareer!==_cf){app._fxCareer=_cf;confetti(130);}
@@ -10022,16 +10027,19 @@ function exMakeMove(from,to){if(!app.exFree||!app.exFree.length){var cur=exCurre
 function mCurFen(){var g=MASTERGAMES[app.mGame];if(!g)return null;var c=new Chess();var mv=g.m.split(' ');for(var k=0;k<Math.min(app.mIdx||0,mv.length);k++){try{c.move(mv[k]);}catch(e){break;}}return c.fen();}
 function mAnalyse(){if(app.mGame==null){app.mEval=null;app.mBest=null;return;}var fen=mCurFen();if(!fen)return;analysePos(fen,function(ev,best,lines){app.mEval=ev;app.mBest=best?best.san:null;app.mLines=lines;render();});}
 function finishPromo(piece){var pr=app.promo;if(!pr)return;app.promo=null;app.promoChoice=piece||'q';
-  if(pr.view==='train')heroMove(pr.from,pr.to);else if(pr.view==='play')playMove(pr.from,pr.to);else if(pr.view==='puzzles')pzMove(pr.from,pr.to);else if(pr.view==='explore')exMakeMove(pr.from,pr.to);else if(pr.view==='drill')drillTry(pr.from,pr.to);
+  if(pr.view==='train')heroMove(pr.from,pr.to);else if(pr.view==='play')playMove(pr.from,pr.to);else if(pr.view==='puzzles')pzMove(pr.from,pr.to);else if(pr.view==='explore')exMakeMove(pr.from,pr.to);else if(pr.view==='analysis')anaMove(pr.from,pr.to);else if(pr.view==='drill')drillTry(pr.from,pr.to);
   app.promoChoice='q';}
 function promoOverlay(){if(!app.promo)return '';var pr=app.promo;
-  var fen=pr.view==='play'?app.playFen:pr.view==='train'?app.fen:pr.view==='explore'?exFen():pr.view==='puzzles'?(app.pz&&app.pz.fenNow):pr.view==='drill'?((drillCur()&&drillCur().fen)||(new Chess()).fen()):(new Chess()).fen();
+  var fen=pr.view==='play'?app.playFen:pr.view==='train'?app.fen:pr.view==='explore'?exFen():pr.view==='analysis'?anaFen():pr.view==='puzzles'?(app.pz&&app.pz.fenNow):pr.view==='drill'?((drillCur()&&drillCur().fen)||(new Chess()).fen()):(new Chess()).fen();
   var color=(fen&&turnOf(fen))||'w';
   var b=function(p){return '<button class="btn sec" data-act="promopick" data-val="'+p+'" style="width:66px;height:66px;padding:7px;display:flex;align-items:center;justify-content:center"><span style="width:50px;height:50px;display:flex;align-items:center;justify-content:center">'+pieceImg(color,p)+'</span></button>';};
   return '<div data-act="promocancel" style="position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55)"><div class="card" style="text-align:center"><div style="font-weight:700;margin-bottom:10px">Promote to…</div><div class="row" style="gap:8px;justify-content:center">'+b('q')+b('r')+b('b')+b('n')+'</div></div></div>';}
 function goBack(){var h=app.navHist||[];app.view=h.length?h.pop():'dashboard';app.sel=null;stopClockTick();if(app.view!=='puzzles')stopRushTick();render();}
 function boardClick(sq){
   app.annot={};
+  if(app.view==='analysis'){const fen=anaFen();if(!fen)return;
+    if(app.sel&&app.sel!==sq&&dests(fen,app.sel).includes(sq)){if(isPromotion(fen,app.sel,sq)){app.promo={view:'analysis',from:app.sel,to:sq};render();return;}anaMove(app.sel,sq);return;}
+    app.sel=dests(fen,sq).length?sq:null;render();return;}
   if(app.view==='explore'){const fen=exFen();
     if(app.sel&&app.sel!==sq){if(dests(fen,app.sel).includes(sq)){if(isPromotion(fen,app.sel,sq)){app.promo={view:'explore',from:app.sel,to:sq};render();return;}exMakeMove(app.sel,sq);return;}}
     app.sel=dests(fen,sq).length?sq:null;render();return;}
@@ -10077,8 +10085,8 @@ function resultKind(txt){txt=txt||'';if(/you won|you win/i.test(txt))return 'win
 function confetti(n){try{if(typeof document==='undefined'||!document.body)return;var wrap=document.createElement('div');wrap.className='confetti';var cols=['#f59e0b','#22c55e','#1c84f5','#ec4899','#a855f7','#eab308','#38bdf8'];n=n||90;for(var i=0;i<n;i++){var p=document.createElement('i');p.style.left=(Math.random()*100)+'vw';p.style.background=cols[i%cols.length];p.style.animationDelay=(Math.random()*0.5)+'s';p.style.animationDuration=(1.6+Math.random()*1.5)+'s';p.style.opacity=0.6+Math.random()*0.4;wrap.appendChild(p);}document.body.appendChild(wrap);setTimeout(function(){if(wrap.parentNode)wrap.parentNode.removeChild(wrap);},3400);}catch(e){}}
 
 /* ---- drag-and-drop (pointer based; works with mouse + touch) ---- */
-function curFen(){return app.view==='explore'?exFen():app.view==='train'?app.fen:app.view==='play'?(app.playStack?app.playStack[app.playView]:app.playFen):app.view==='puzzles'?(app.pz?app.pz.fenNow:null):app.view==='eglesson'?(app.egLesson?app.egLesson.fen:null):app.view==='clearn'?(app.cl?app.cl.fen:null):null;}
-function curInteractive(){if(app.view==='explore')return true;if(app.view==='train')return (app.status==='play'||app.status==='wrong')&&heroToMove();if(app.view==='play')return playIsLive()&&app.playStatus==='play'&&turnOf(app.playFen)===app.playSide;if(app.view==='puzzles')return !!(app.pz&&app.pz.status==='solving'&&turnOf(app.pz.fenNow)===app.pz.side);if(app.view==='eglesson'){const L=app.egLesson;return !!(L&&!L.done&&egStep(L)&&egStep(L).you&&turnOf(L.fen)===L.side);}if(app.view==='clearn'){const L=app.cl;return !!(L&&!L.done&&clStep(L)&&clStep(L).you&&turnOf(L.fen)===L.hero);}return false;}
+function curFen(){return app.view==='analysis'?anaFen():app.view==='explore'?exFen():app.view==='train'?app.fen:app.view==='play'?(app.playStack?app.playStack[app.playView]:app.playFen):app.view==='puzzles'?(app.pz?app.pz.fenNow:null):app.view==='eglesson'?(app.egLesson?app.egLesson.fen:null):app.view==='clearn'?(app.cl?app.cl.fen:null):null;}
+function curInteractive(){if(app.view==='explore')return true;if(app.view==='analysis')return !!app.ana;if(app.view==='train')return (app.status==='play'||app.status==='wrong')&&heroToMove();if(app.view==='play')return playIsLive()&&app.playStatus==='play'&&turnOf(app.playFen)===app.playSide;if(app.view==='puzzles')return !!(app.pz&&app.pz.status==='solving'&&turnOf(app.pz.fenNow)===app.pz.side);if(app.view==='eglesson'){const L=app.egLesson;return !!(L&&!L.done&&egStep(L)&&egStep(L).you&&turnOf(L.fen)===L.side);}if(app.view==='clearn'){const L=app.cl;return !!(L&&!L.done&&clStep(L)&&clStep(L).you&&turnOf(L.fen)===L.hero);}return false;}
 let _dragC=null,_dragA=null,_suppress=false,_ann=null,_lpTimer=null,_lpActive=false,_downXY=null;
 /* Four colours, the way every board people already use has them: plain is
    green ("my plan"), shift is red ("his threat"), alt is blue, ctrl is yellow.
@@ -10177,6 +10185,7 @@ function onPMove(e){
 function dropPiece(from,to){
   if(app.view==='play')app.playSel=from;
   else if(app.view==='explore')app.sel=from;
+  else if(app.view==='analysis')app.sel=from;
   else if(app.view==='train')app.sel=from;
   else if(app.view==='puzzles'&&app.pz)app.pz.sel=from;
   else if(app.view==='eglesson'&&app.egLesson)app.egLesson.sel=from;
@@ -10489,6 +10498,24 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='xferopen'){app.menuOpen=false;app.xfer={open:true};render();}
   else if(act==='xferclose'){app.xfer=null;render();}
   else if(act==='xferapply')applyReceived();
+  else if(act==='anaload'){const ta=document.getElementById('ana-in');anaLoadText(ta?ta.value:(app.anaText||''));}
+  else if(act==='anastart'){app.anaErr=null;anaOpen(ANA_START,[],0,'Analysis board');}
+  else if(act==='anainput'){if(app.ana){app.ana.input=true;app.anaErr=null;render();const ta=document.getElementById('ana-in');if(ta)ta.focus();}}
+  else if(act==='anainputclose'){if(app.ana)app.ana.input=false;app.anaErr=null;render();}
+  else if(act==='anafirst')anaJump(0);
+  else if(act==='anaback')anaSeek(-1);
+  else if(act==='anafwd')anaSeek(1);
+  else if(act==='analast'){if(app.ana)anaJump(app.ana.fens.length-1);}
+  else if(act==='anajump')anaJump(+val);
+  else if(act==='anaflip'){if(app.ana)app.ana.flip=!app.ana.flip;render();}
+  else if(act==='anaengine'){store.settings.anaEngine=!anaEngineOn();if(app.ana)app.ana.key=null;save();render();}
+  else if(act==='anaplay'){anaMove(val.slice(0,2),val.slice(2,4),val[4]||'q');}
+  else if(act==='anacopy')anaCopy(val);
+  else if(act==='anareview'){const a=app.ana;if(a&&a.sans.length)reviewStart(a.sans.map(function(x){return {san:x};}),a.start,{});}
+  else if(act==='anaplayout'){const a=app.ana;if(a){const f=a.fens[a.pos];startPlay(f,turnOf(f),null,'From the analysis board',{tc:tcById('unlimited')});}}
+  else if(act==='anafromreview'){const R=app.review;if(R&&R.fens)anaOpen(R.startFen,R.moves.map(function(m){return m.san;}),R.pos,'From Game Review');}
+  else if(act==='anafromplay'){anaOpen(app._playStartFen||ANA_START,(app.playMoves||[]).map(function(m){return m.san;}),app.playView!=null?app.playView:(app.playMoves||[]).length,app.playTitle||'Your game');}
+  else if(act==='anafrompuzzle'){const P=app.pz;if(P)anaOpen(P.fenNow||P.fen,[],0,'Puzzle position');}
   else if(act==='remindon')remindTurnOn();
   else if(act==='remindoff')remindTurnOff();
   else if(act==='remindtest')remindTest();
@@ -10567,7 +10594,7 @@ document.getElementById('app').addEventListener('change',e=>{
     r.onload=()=>receiveBackup(String(r.result||''),'file');
     r.readAsText(f);e.target.value='';}
 });
-document.getElementById('app').addEventListener('input',e=>{const ds=e.target.dataset&&e.target.dataset.setting;if(ds==='boardSize'){store.settings.boardSize=+e.target.value;document.body.style.setProperty('--bw',store.settings.boardSize+'px');}});
+document.getElementById('app').addEventListener('input',e=>{if(e.target&&e.target.id==='ana-in'){app.anaText=e.target.value;return;}const ds=e.target.dataset&&e.target.dataset.setting;if(ds==='boardSize'){store.settings.boardSize=+e.target.value;document.body.style.setProperty('--bw',store.settings.boardSize+'px');}});
 
 /* ============================ Stockfish engine ============================ */
 /* ---------------------------------------------------------------------------
@@ -19298,7 +19325,7 @@ function viewPlay(){
     '<div class="card" style="margin-top:12px"><div class="l" style="text-transform:uppercase;font-size:11px;letter-spacing:.08em;color:var(--muted)">Moves</div><div class="moves" style="margin-top:6px;line-height:2.1">'+playMoveList()+'</div></div>'+
     '<div class="card" style="margin-top:12px"><div class="row"><button class="btn sec sm" data-act="phint" '+((interactive&&(!app.careerOpp||(app.careerHintsLeft||0)>0))?'':'disabled')+'>'+(app.careerOpp?('💡 Tactic ('+(app.careerHintsLeft||0)+')'):'💡 Hint')+'</button><button class="btn sec sm" data-act="pundo" '+(app.playStack.length>1?'':'disabled')+'>↶ Take back</button><button class="btn ghost sm" data-act="pflip">⇅ Flip</button><button class="btn '+(app.tiltEval?'ghost':(store.settings.showEval?'primary':'ghost'))+' sm" data-act="toggleeval" title="'+(app.tiltEval?'On tilt — the eval bar is locked this game':'Show/hide the engine evaluation')+'"'+(app.tiltEval?' disabled':'')+'>'+(app.tiltEval?'😖 Tilt':'📊 Eval')+'</button><button class="btn '+(app.blindfold?'primary':'ghost')+' sm" data-act="pblind">🙈 Blindfold</button>'+(app.blindfold?'<button class="btn ghost sm" data-act="ppeek">'+(app.peek?'🙈 Hide':'👁 Peek')+'</button>':'')+'</div>'+(app.blindfold?'<div class="dim small" style="margin-top:6px">🙈 Blindfold on — pieces hidden. Visualise the position; tap squares to move. Use 👁 Peek if you get stuck.</div>':'')+
     '<div class="row" style="margin-top:8px"><button class="btn sec sm" data-act="pdraw" '+(app.playStatus==='play'?'':'disabled')+'>½ Offer draw</button><button class="btn danger sm" data-act="presign" '+((app.playStatus==='play'||app.playStatus==='engine')?'':'disabled')+'>⚑ Resign</button><button class="btn ghost sm" data-act="ppgn" '+(app.playMoves.length?'':'disabled')+'>'+(app.pgnCopied?'✓ Copied':'⧉ Copy PGN')+'</button></div>'+
-    '<div class="row" style="margin-top:8px"><button class="btn sec sm" style="flex:1" data-act="revplay" '+(app.playMoves.length?'':'disabled')+'>🔍 Game Review</button></div>'+
+    '<div class="row" style="margin-top:8px"><button class="btn sec sm" style="flex:1" data-act="revplay" '+(app.playMoves.length?'':'disabled')+'>🔍 Game Review</button><button class="btn sec sm" style="flex:1" data-act="anafromplay" '+(app.playStatus==='play'||app.playStatus==='engine'?'disabled title="After the game"':'')+'>🔬 Analyse</button></div>'+
     '<div class="row" style="margin-top:8px"><button class="btn sec sm" data-act="pnew">⟳ Rematch</button><button class="btn ghost sm" data-act="psetup">⚙ New game</button>'+(app.playOpening?'<button class="btn ghost sm" data-act="explore" data-val="'+app.playOpening+'">Opening</button>':'')+'</div>'+
     '<div class="dim small" style="margin-top:8px">Arrow keys ◀ ▶ step through the game. Tap a move to jump there. Strength is also in Settings.<br>'+
     '⌨️ Or play from the keyboard: <b>Tab</b> to the board, arrow keys to move the cursor, <b>Enter</b> to pick a piece up and put it down, <b>Esc</b> to let go.</div></div></div></div>';
@@ -19761,7 +19788,7 @@ function viewPuzzles(){
     '<div class="card" style="margin-top:12px"><div class="row" style="flex-wrap:wrap">'+
       (P.status==='solving'?'<button class="btn sec sm" data-act="pzhint">💡 '+((P.hintLevel||0)===0?'Hint':'Show move')+'</button>':'')+
       ((P.status==='failed')?'<button class="btn sec sm" data-act="pzretry">↻ Retry</button><button class="btn sec sm" data-act="pzsolution">👁 Solution</button>':'')+
-      ((P.status==='solved'||P.status==='shown')&&!app.rush?'<button class="btn primary sm" data-act="pznext">Next puzzle →</button>':'')+
+      ((P.status==='solved'||P.status==='shown')&&!app.rush?'<button class="btn primary sm" data-act="pznext">Next puzzle →</button><button class="btn ghost sm" data-act="anafrompuzzle" title="Look at the position with the engine">🔬 Analyse</button>':'')+
       (app.rush&&(P.status==='solved'||P.status==='failed')?'<span class="dim small" style="align-self:center">next…</span>':'')+
       '</div>'+
       ((P.status==='solved'||P.status==='shown'||P.status==='failed')?'<div style="margin-top:8px"><span class="dim small">Rating '+P.rating+'</span>'+
@@ -19804,6 +19831,146 @@ function splitPGNGames(pgn){pgn=(pgn||'').replace(/\r/g,'');const lines=pgn.spli
   for(const ln of lines){if(/^\[Event /.test(ln)&&cur.length&&seenMoves){parts.push(cur.join('\n'));cur=[];seenMoves=false;}if(!/^\[/.test(ln)&&ln.trim()!=='')seenMoves=true;cur.push(ln);}
   if(cur.length)parts.push(cur.join('\n'));return parts.filter(p=>/\[Event|\d\.|[KQRBN]/.test(p));}
 
+/* =========================================================================
+   ANALYSIS BOARD — any position, from anywhere
+
+   Everything else here analyses the app's own positions: your games, your
+   repertoire, its puzzles. A position from a book, a friend's game or a
+   stream had nowhere to go. Paste a FEN or a PGN (or a bare move list) and it
+   opens here; from here it can be played on for both sides, looked up in the
+   engine, the tablebase and the opening database, copied back out as FEN or
+   PGN, reviewed move by move, or played out against the engine. Review,
+   finished games and puzzles open straight onto it at the move you are on.
+   ========================================================================= */
+const ANA_START='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+/* A FEN is six space-separated fields; people often paste only the first four
+   (or just the board and the side), so the counters are filled in. */
+function anaFenOf(text){
+  var t=String(text||'').trim().replace(/\s+/g,' ');
+  if(!/^[pnbrqkPNBRQK1-8]+(\/[pnbrqkPNBRQK1-8]+){7}(\s|$)/.test(t))return null;
+  var f=t.split(' ');
+  if(f.length<2)f.push('w');
+  if(f.length<3)f.push('-');
+  if(f.length<4)f.push('-');
+  if(f.length<5)f.push('0');
+  if(f.length<6)f.push('1');
+  var fen=f.slice(0,6).join(' ');
+  try{var c=new Chess(fen);return c.fen();}catch(e){return {bad:(e&&e.message)||'not a legal position'};}
+}
+/* Read what was pasted: {ok, start, sans, title} or {ok:false, error}. */
+function anaParse(text){
+  var t=String(text||'').trim();
+  if(!t)return {ok:false,error:'Paste a FEN or a PGN first.'};
+  var fen=anaFenOf(t);
+  if(fen&&typeof fen==='object')return {ok:false,error:'That looks like a FEN, but the position is not legal: '+fen.bad.replace(/^Invalid FEN: /,'')+'.'};
+  if(fen)return {ok:true,start:fen,sans:[],title:'Position from a FEN'};
+  var g;try{g=parseOnePGN(t);}catch(e){g=null;}
+  if(!g)return {ok:false,error:'That isn’t a FEN or a PGN I can read.'};
+  var sans=[],n=g.root;while(n.children.length){n=n.children[0];sans.push(n.san);}
+  var hasFen=g.headers.FEN&&g.headers.FEN!=='?';
+  if(!sans.length&&!hasFen)return {ok:false,error:'No moves found. A FEN looks like “rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1”; a PGN like “1. e4 e5 2. Nf3”.'};
+  var H=g.headers,title=(H.White&&H.Black&&H.White!=='?')?(H.White+' – '+H.Black+(H.Event&&H.Event!=='?'?', '+H.Event:'')):(sans.length+' move'+(sans.length===1?'':'s')+' from a PGN');
+  return {ok:true,start:g.root.fen,sans:sans,title:title};
+}
+/* Open the board on a position, optionally with the moves that followed, at ply `at` (default: the start). */
+function anaOpen(start,sans,at,title){
+  var a={start:start||ANA_START,fens:[],sans:[],lasts:[null],pos:0,flip:false,title:title||'Analysis board',eval:null,lines:[],best:null,key:null,err:null,input:false};
+  var c;try{c=new Chess(a.start);}catch(e){c=new Chess();a.start=c.fen();}
+  a.start=c.fen();a.fens.push(a.start);
+  for(var i=0;i<(sans||[]).length;i++){var m;try{m=c.move(sans[i]);}catch(e){m=null;}if(!m)break;a.sans.push(m.san);a.fens.push(c.fen());a.lasts.push({from:m.from,to:m.to});}
+  a.pos=Math.max(0,Math.min(a.fens.length-1,at==null?0:at));
+  a.flip=turnOf(a.start)==='b'&&!(sans&&sans.length);
+  app.ana=a;app.sel=null;
+  if(app.view!=='analysis'){app.navHist=app.navHist||[];if(app.view)app.navHist.push(app.view);}
+  app.view='analysis';render();return a;}
+function anaLoadText(text){
+  var r=anaParse(text);
+  if(!r.ok){app.anaErr=r.error;render();return r;}
+  app.anaErr=null;app.anaText='';anaOpen(r.start,r.sans,r.sans.length?0:0,r.title);return r;}
+function anaFen(){var a=app.ana;return a?a.fens[a.pos]:null;}
+function anaMove(from,to,promo){
+  var a=app.ana;if(!a)return false;var fen=a.fens[a.pos];
+  var m=tryFromTo(fen,from,to,promo||app.promoChoice||'q');if(!m)return false;
+  // the same move as the line already has: just step into it
+  if(a.pos<a.sans.length&&a.sans[a.pos]===m.san){a.pos++;}
+  else{a.fens=a.fens.slice(0,a.pos+1);a.sans=a.sans.slice(0,a.pos);a.lasts=a.lasts.slice(0,a.pos+1);
+    a.fens.push(m.fen);a.sans.push(m.san);a.lasts.push({from:m.from,to:m.to});a.pos++;}
+  app.sel=null;sfxSan(m.san);render();return true;}
+function anaSeek(d){var a=app.ana;if(!a)return;a.pos=Math.max(0,Math.min(a.fens.length-1,a.pos+d));app.sel=null;render();}
+function anaJump(i){var a=app.ana;if(!a)return;a.pos=Math.max(0,Math.min(a.fens.length-1,+i||0));app.sel=null;render();}
+function anaEngineOn(){return store.settings.anaEngine!==false;}
+function anaAnalyse(){
+  var a=app.ana;if(!a||!anaEngineOn()||a.input||app.view!=='analysis')return;var fen=a.fens[a.pos];
+  if(a.key===fen)return;a.key=fen;a.eval=null;a.lines=[];a.best=null;
+  analysePos(fen,function(ev,best,lines,superseded){
+    if(superseded||!app.ana||app.ana!==a||a.fens[a.pos]!==fen)return;
+    a.eval=ev;a.best=best;a.lines=lines||[];if(app.view==='analysis')render();},{force:true});}
+function anaPgn(){
+  var a=app.ana;if(!a)return '';var std=a.start===ANA_START;
+  var hdr=['[Event "Analysis"]','[Site "Chess Career"]','[Date "'+dayKey(Date.now()).replace(/-/g,'.')+'"]','[White "?"]','[Black "?"]','[Result "*"]'];
+  if(!std)hdr.push('[FEN "'+a.start+'"]','[SetUp "1"]');
+  var startWhite=turnOf(a.start)==='w',n0=+(a.start.split(' ')[5]||1),body='';
+  for(var i=0;i<a.sans.length;i++){var ply=i+(startWhite?0:1),num=n0+Math.floor(ply/2);
+    if(ply%2===0)body+=num+'. ';else if(i===0)body+=num+'... ';body+=a.sans[i]+' ';}
+  return hdr.join('\n')+'\n\n'+body+'*\n';}
+function anaCopy(kind){
+  var a=app.ana;if(!a)return;var text=kind==='fen'?a.fens[a.pos]:anaPgn();
+  var done=function(){app.anaCopied=kind;render();var h=setTimeout(function(){app.anaCopied=null;if(app.view==='analysis')render();},1600);if(h&&h.unref)h.unref();};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(done,function(){fallbackCopy(text,done);});
+  else fallbackCopy(text,done);
+  return text;}
+function anaMoveList(){
+  var a=app.ana,startWhite=turnOf(a.start)==='w',n0=+(a.start.split(' ')[5]||1),h='';
+  if(!a.sans.length)return '<span class="dim">No moves yet — play one on the board.</span>';
+  for(var i=0;i<a.sans.length;i++){var ply=i+(startWhite?0:1),num=n0+Math.floor(ply/2);
+    if(ply%2===0)h+='<span class="dim">'+num+'.</span>';else if(i===0)h+='<span class="dim">'+num+'…</span>';
+    h+='<button data-act="anajump" data-val="'+(i+1)+'"'+(a.pos===i+1?' style="background:var(--brand);color:#fff;border-radius:4px"':'')+'>'+esc(a.sans[i])+'</button> ';}
+  return h;}
+function viewAnalysis(){
+  var a=app.ana;
+  var input='<div class="card" id="anainput"><div style="font-weight:700;margin-bottom:4px">Paste a position or a game</div>'+
+    '<div class="dim small" style="margin-bottom:6px">A FEN, a PGN, or just the moves (1. e4 e5 2. Nf3…).</div>'+
+    '<textarea id="ana-in" rows="3" spellcheck="false" autocapitalize="off" placeholder="rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1" style="width:100%">'+esc(app.anaText||'')+'</textarea>'+
+    (app.anaErr?'<div class="note small" style="margin-top:8px;border-color:#7f1d1d;color:#fca5a5">'+esc(app.anaErr)+'</div>':'')+
+    '<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap"><button class="btn primary sm" data-act="anaload">Analyse it</button>'+
+    '<button class="btn ghost sm" data-act="anastart">Starting position</button>'+(a?'<button class="btn ghost sm" data-act="anainputclose">Cancel</button>':'')+'</div></div>';
+  if(!a)return '<div style="max-width:660px;margin:0 auto"><h1>🔬 Analysis board</h1><div class="muted small" style="margin-bottom:12px">Any position — from a book, a friend’s game, a stream. The engine, the tablebase and the opening database look at it with you.</div>'+input+'</div>';
+  var fen=a.fens[a.pos],orient=a.flip?'black':'white',stm=turnOf(fen)==='w'?'White':'Black';
+  // while the paste box is open the engine waits, so its redraws do not interrupt your typing
+  if(anaEngineOn()&&!a.input)setTimeout(anaAnalyse,20);
+  var over=posOver(fen);
+  var engine;
+  if(!anaEngineOn())engine='<div class="card" style="margin-top:12px"><button class="btn sec sm" data-act="anaengine">🔍 Turn the engine on</button></div>';
+  else{var ev=a.eval;
+    engine='<div class="card" style="margin-top:12px">'+(ev?'<div class="row" style="justify-content:space-between;margin-bottom:5px"><span class="dim small">Engine '+esc(evalDepth(ev))+'</span><span class="small" style="font-weight:800">'+esc(evalLabel(ev))+'</span></div><div class="evalbar"><i style="width:'+evalPct(ev.t,ev.v,ev.stm)+'%"></i></div>'+
+      (a.lines&&a.lines.length?a.lines.map(function(L,i){return '<div class="small" style="margin-top:5px;display:flex;gap:6px;align-items:baseline;min-width:0"><b style="min-width:46px">'+esc(evalStr(L.t,L.v,L.stm))+'</b>'+
+        (L.from?'<button class="btn ghost sm" style="padding:1px 7px" data-act="anaplay" data-val="'+L.from+L.to+'" title="Play this move">'+esc(L.sans[0]||'')+'</button>':'')+
+        '<span class="dim" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+L.sans.slice(1).map(esc).join(' ')+'</span></div>';}).join(''):'')
+      :(over?'<span class="dim small">The game is over in this position.</span>':'<span class="dim small">Analysing… (the engine downloads once, the first time)</span>'))+
+      '<div class="row" style="margin-top:8px;gap:6px"><button class="btn ghost sm" data-act="anaengine">Hide engine</button></div></div>';}
+  var h='<div class="row" style="align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap"><div class="row" style="align-items:center;min-width:0"><h1 style="font-size:20px">🔬 '+esc(a.title)+'</h1></div>'+
+    '<button class="btn sec sm" data-act="anainput">📋 Paste another</button></div>';
+  h+='<div class="layout"><div class="boardwrap">'+renderBoard(fen,orient,{sel:app.sel,last:a.lasts[a.pos]})+
+    '<div class="row" style="justify-content:space-between;margin-top:10px;gap:6px;flex-wrap:wrap"><div class="row" style="gap:4px">'+
+    '<button class="btn sec sm" data-act="anafirst" aria-label="First move"'+(a.pos?'':' disabled')+'>⏮</button>'+
+    '<button class="btn sec sm" data-act="anaback" aria-label="Back"'+(a.pos?'':' disabled')+'>◀</button>'+
+    '<button class="btn sec sm" data-act="anafwd" aria-label="Forward"'+(a.pos<a.fens.length-1?'':' disabled')+'>▶</button>'+
+    '<button class="btn sec sm" data-act="analast" aria-label="Last move"'+(a.pos<a.fens.length-1?'':' disabled')+'>⏭</button></div>'+
+    '<button class="btn ghost sm" data-act="anaflip">⇅ Flip</button></div></div>';
+  h+='<div>'+(a.input?input:'')+
+    '<div class="card"'+(a.input?' style="margin-top:12px"':'')+'><div class="row" style="justify-content:space-between;align-items:center"><span class="small"><b>'+stm+' to move</b>'+(over?' — '+(over.over==='mate'?'checkmate':'drawn'):'')+'</span><span class="dim small">'+(a.pos?'after '+esc(a.sans[a.pos-1]):'start')+'</span></div>'+
+    '<div class="moves" style="margin-top:8px;line-height:2">'+anaMoveList()+'</div></div>'+
+    engine;
+  expRequest(fen);h+=expPanel(fen);
+  h+=tbPanel(fen,{slot:'tbAna',max:7});if(Tablebase.covers(fen))tbRequest(fen,'tbAna');
+  h+='<div class="card" style="margin-top:12px"><div class="row" style="gap:6px;flex-wrap:wrap">'+
+    '<button class="btn sec sm" data-act="anacopy" data-val="fen">'+(app.anaCopied==='fen'?'✓ Copied':'📋 Copy FEN')+'</button>'+
+    '<button class="btn sec sm" data-act="anacopy" data-val="pgn"'+(a.sans.length?'':' disabled')+'>'+(app.anaCopied==='pgn'?'✓ Copied':'📋 Copy PGN')+'</button>'+
+    '<button class="btn sec sm" data-act="anareview"'+(a.sans.length?'':' disabled')+'>🔍 Game Review</button>'+
+    '<button class="btn sec sm" data-act="anaplayout"'+(over?' disabled':'')+'>▶ Play it out vs the engine</button></div>'+
+    '<div class="dim small" style="margin-top:8px">Play a move for either side to try it; playing from an earlier move replaces what came after. ◀ ▶ step, F flips.</div></div>';
+  h+='</div></div>';
+  return h;}
 /* =========================================================================
    GAME REVIEW — Stockfish analysis, move classification, accuracy, graph
    ========================================================================= */
@@ -19966,7 +20133,7 @@ function viewReview(){
       '<p class="muted">Have Stockfish analyse a game move by move — accuracy, the eval graph, and every Best / Inaccuracy / Mistake / Blunder.</p>'+
       (games?'<div class="card" style="margin:12px 0"><div class="row" style="justify-content:space-between;align-items:center"><div><b>Your last game vs Stockfish</b><div class="dim small">'+games.length+' moves</div></div><button class="btn primary sm" data-act="revplay">Review it →</button></div></div>':'')+
       '<div class="card" style="margin-top:12px"><div class="small muted" style="margin-bottom:4px">…or paste a PGN</div><textarea id="rev-pgn" placeholder="1. e4 e5 2. Nf3 Nc6 ..."></textarea>'+
-      '<div class="row" style="margin-top:8px"><button class="btn primary" data-act="revpgn">Analyse PGN</button></div>'+
+      '<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap"><button class="btn primary" data-act="revpgn">Analyse PGN</button><button class="btn ghost" data-act="nav" data-val="analysis">🔬 Analysis board — paste a FEN</button></div>'+
       '<div class="dim small" style="margin-top:8px">Analysis needs Stockfish (an internet connection on first use).</div></div></div>';
   }
   if(R.status==='error')return msgCard('Couldn’t load Stockfish','Game Review needs the engine, which loads from the internet on first use.','<button class="btn sec" data-act="nav" data-val="review">Back</button>');
@@ -20004,7 +20171,8 @@ function viewReview(){
     '<button class="btn sec sm" data-act="revback" '+(atStart?'disabled':'')+'>◀</button>'+
     '<span class="chip" style="min-width:58px;justify-content:center">'+R.pos+' / '+(R.fens.length-1)+'</span>'+
     '<button class="btn sec sm" data-act="revfwd" '+(atEnd?'disabled':'')+'>▶</button>'+
-    '<button class="btn sec sm" data-act="revjump" data-val="'+(R.fens.length-1)+'" '+(atEnd?'disabled':'')+'>⏭</button></div></div>'+
+    '<button class="btn sec sm" data-act="revjump" data-val="'+(R.fens.length-1)+'" '+(atEnd?'disabled':'')+'>⏭</button>'+
+    '<button class="btn ghost sm" data-act="anafromreview" title="Try other moves from here">🔬 Analyse from here</button></div></div>'+
     '<div><div class="card"><div class="l" style="text-transform:uppercase;font-size:11px;letter-spacing:.08em;color:var(--muted)">Evaluation</div>'+graph+'</div>'+
     '<div class="card" style="margin-top:12px"><div class="row" style="flex-wrap:wrap;gap:6px">'+chips+'</div></div>'+
     (lastMv?'<div class="card" style="margin-top:12px"><b style="color:'+(REV_CLASS[R.classes[R.pos-1]]?REV_CLASS[R.classes[R.pos-1]][1]:'#fff')+'">'+esc(lastMv.san)+' — '+(REV_CLASS[R.classes[R.pos-1]]?REV_CLASS[R.classes[R.pos-1]][0]:'')+'</b>'+(bestUci&&R.classes[R.pos-1]!=='best'&&R.classes[R.pos-1]!=='book'?'<div class="dim small" style="margin-top:3px">Engine suggests '+esc(bestUci)+'</div>':'')+'</div>':'')+
@@ -20109,6 +20277,12 @@ window.addEventListener('keydown',e=>{
     else if(e.key==='Home'){e.preventDefault();playSeekTo(0);}
     else if(e.key==='End'){e.preventDefault();playSeekTo(app.playStack.length-1);}
     else if(e.key.toLowerCase()==='f'){app.playFlip=!app.playFlip;render();}
+  } else if(app.view==='analysis'&&app.ana){
+    if(e.key==='ArrowLeft'){e.preventDefault();anaSeek(-1);}
+    else if(e.key==='ArrowRight'){e.preventDefault();anaSeek(1);}
+    else if(e.key==='Home'){e.preventDefault();anaJump(0);}
+    else if(e.key==='End'){e.preventDefault();anaJump(app.ana.fens.length-1);}
+    else if(e.key.toLowerCase()==='f'){app.ana.flip=!app.ana.flip;render();}
   } else if(app.view==='review'&&app.review&&app.review.status==='done'){
     if(e.key==='ArrowLeft'){e.preventDefault();reviewSeek(-1);}
     else if(e.key==='ArrowRight'){e.preventDefault();reviewSeek(1);}
