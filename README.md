@@ -1038,6 +1038,44 @@ app in a browser against positions whose answers are known independently
 (mates both ways, a queen up each way, finished games, stepping faster than
 the engine can answer, and a game with one known blunder).
 
+## Moving your progress between PC and phone
+
+There is no account and no server, so the PC and the phone each keep their own
+save. The backup file is the bridge, and **Settings → Your progress on another
+device** (also in the **More** menu) makes carrying it across a couple of taps:
+
+- **Send to another device** hands the file to the device's own share sheet
+  where the browser can share a file (Chrome and Edge on Android and Windows,
+  Safari): WhatsApp, Drive, email, Nearby Share, AirDrop. In the Android app
+  it opens Android's share sheet. Anywhere else it saves the file as a
+  download and says how to get it across.
+- **Receiving** works from the file picker (**Receive progress**), from a file
+  dropped anywhere on the window on a computer, from the phone's share sheet
+  once the app is installed (the manifest registers it as a share target, and
+  the service worker keeps the file in an inbox until the page picks it up),
+  and from "Open with Chess Career" in the Android app. A brand-new phone's
+  setup screen offers **I already play on another device**.
+
+Every route stops at the same preview: what is in the file (its career, week,
+openings and puzzle rating, and which device saved it and when) next to what is
+on this device. A file that would take you backwards is flagged before you
+press anything. For example, "The career in the file is at week 12; the one on
+this device is at week 40. Replacing it takes you back 28 weeks." A file that
+is identical to what is already here is recognised as such. Nothing is
+overwritten until you press the button.
+
+A WebView cannot save a download, open a file picker or use Web Share, so the
+Android app gained three small native pieces: a share sheet for the backup
+(served by a tiny private `ContentProvider`), a file chooser, and intent
+filters for `.json` shares. The page reaches them through `AndroidBridge`,
+which answers only the bundled app.
+
+`validate-xfer.mjs` covers every send path (share sheet, cancelled share,
+failed share, download, Android), every receive path, the warnings, a new
+phone during setup, and runs the real service worker against fake caches.
+
+---
+
 ## It opens in about a second
 
 The 29 opening courses are trees of every line they teach, around 8,500 moves
@@ -1064,7 +1102,7 @@ launch builds nothing.
 
 ## Tests
 
-Fifty suites, about 4,900 checks, plus fourteen browser suites that drive the real app with the real engine.
+Fifty-one suites, about 5,000 checks, plus fourteen browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —

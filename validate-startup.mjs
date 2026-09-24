@@ -96,7 +96,7 @@ X.warmOpenings(0);
 const until=Date.now()+20000;
 while(X.BASE.some(o=>!X.openingBuilt(o))&&Date.now()<until)await new Promise(r=>setTimeout(r,20));
 ok(X.BASE.every(o=>X.openingBuilt(o)),'the idle warm-up builds every course once the first screen is up');
-ok(/\nrender\(\);\nwarmOpenings\(\);\n<\/script>/.test(html.slice(e-40,e+20))||/render\(\);\s*warmOpenings\(\);\s*$/.test(script),'the warm-up is started after the first render, not before it');
+ok(script.lastIndexOf('\nrender();')>0&&script.lastIndexOf('\nrender();')<script.lastIndexOf('\nwarmOpenings();'),'the warm-up is started after the first render, not before it');
 X.go('library');
 ok(/Opening Library/.test(document.body.innerHTML),'the library still renders every course');
 

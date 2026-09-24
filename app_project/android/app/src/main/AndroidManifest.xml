@@ -20,6 +20,25 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- a Chess Career backup shared from WhatsApp, Drive, email, Files... -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/json" />
+            </intent-filter>
+            <!-- ...or opened with the app -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" android:mimeType="application/json" />
+            </intent-filter>
         </activity>
+
+        <!-- hands the backup file to the share sheet; see BackupProvider.java -->
+        <provider
+            android:name=".BackupProvider"
+            android:authorities="com.openingtrainer.app.backup"
+            android:exported="false"
+            android:grantUriPermissions="true" />
     </application>
 </manifest>
