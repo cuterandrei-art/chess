@@ -1038,6 +1038,45 @@ app in a browser against positions whose answers are known independently
 (mates both ways, a queen up each way, finished games, stepping faster than
 the engine can answer, and a game with one known blunder).
 
+## Reminders
+
+Opening reviews come due on a schedule, and puzzles you got wrong come back
+after 1, 3, 7 and 21 days, so the app knows when something is waiting. **Settings →
+Reminders** turns on one notification a day, at an hour you choose, when there
+is something to do. It covers due opening reviews, missed puzzles coming back,
+and a day streak about to end. You can switch each one off. Nothing is sent
+anywhere: your device works it out.
+
+How it can reach you depends on where it runs, and the card says which:
+
+- **The Android app**: an alarm at your hour posts the notification even with
+  the app closed, and is set again after a reboot. It asks for Android's
+  notification permission the first time.
+- **An installed web app in Chrome or Edge**: Periodic Background Sync lets the
+  service worker look while the app is closed. The browser decides how often,
+  at most a few times a day.
+- **Anywhere else**: a notification while the app is open in a background tab
+  or a minimised window, and the count of what is due on the app icon where
+  the browser supports badges. Safari only lets web apps notify once they are
+  added to the Home Screen, and the card says so.
+
+All three read one snapshot of *when* each item falls due, not a count, so
+whichever wakes up counts what is due at that moment. They share one "already
+reminded today" mark, so you are never told twice. Tapping a reminder opens
+the app on the due reviews, or the missed puzzles if there are none. Moving
+progress to another device carries the hour but not the switch, because
+permission belongs to the device.
+
+The decision exists three times: in the page, in the service worker (which
+runs without the page) and in `RemindLogic.java` (which runs without either).
+`validate-remind.mjs` runs all three on the same 3,000 random cases in a
+timezone with daylight saving and requires identical answers. It also covers
+every way of turning reminders on, including refusals and Safari, as well as
+the once-a-day rule, the snapshot, the worker's background check and
+notification tap, and the Android wiring.
+
+---
+
 ## Moving your progress between PC and phone
 
 There is no account and no server, so the PC and the phone each keep their own
@@ -1102,7 +1141,7 @@ launch builds nothing.
 
 ## Tests
 
-Fifty-one suites, about 5,000 checks, plus fourteen browser suites that drive the real app with the real engine.
+Fifty-two suites, about 5,100 checks, plus fourteen browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —

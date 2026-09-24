@@ -6,6 +6,7 @@ import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.ViewGroup;
@@ -34,10 +35,17 @@ import java.nio.charset.StandardCharsets;
  * native pieces: a share sheet for the backup file (AndroidBridge.shareBackup),
  * a file chooser for "Receive progress", and "Open with Chess Career" for a
  * backup opened or shared from another app (AndroidBridge.takeIncoming).
+ *
+ * Reminders: the page hands over a snapshot of what falls due when
+ * (setReminder), asks for the notification permission (requestNotify), and a
+ * tapped reminder opens the app on what is due (takeLaunch / window.__openDue).
  */
 public class MainActivity extends Activity {
 
     private static final int REQ_FILE = 41;
+    private static final int REQ_NOTIFY = 42;
+    /** Read by ReminderReceiver: with the app on screen there is no need to notify. */
+    static volatile boolean inFront = false;
     private static final String HOME = "file:///android_asset/www/";
     private static final int MAX_BACKUP = 64 * 1024 * 1024;
 
@@ -45,6 +53,7 @@ public class MainActivity extends Activity {
     private ValueCallback<Uri[]> fileCallback;
     private volatile String pageUrl = "";
     private volatile String incoming = null;
+    private volatile String launch = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +113,37 @@ public class MainActivity extends Activity {
             web.restoreState(savedInstanceState);
         }
         readIncoming(getIntent());
+        readLaunch(getIntent(), false);
+        ReminderReceiver.schedule(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        inFront = true;
+    }
+
+    @Override
+    protected void onPause() {
+        inFront = false;
+        super.onPause();
+    }
+
+    /** Opened from a reminder: once the page is up it goes straight to what is due. */
+    private void readLaunch(Intent intent, boolean running) {
+        if (intent == null || !ReminderReceiver.ACTION_OPEN_DUE.equals(intent.getAction())) return;
+        intent.setAction(Intent.ACTION_MAIN);
+        if (running) web.evaluateJavascript("window.__openDue&&window.__openDue()", null);
+        else launch = "due";
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
+        super.onRequestPermissionsResult(requestCode, permissions, results);
+        if (requestCode != REQ_NOTIFY) return;
+        ReminderReceiver.prefs(this).edit().putBoolean("asked", true).apply();
+        String state = ReminderReceiver.permission(this);
+        web.evaluateJavascript("window.__remindPermission&&window.__remindPermission('" + state + "')", null);
     }
 
     @Override
@@ -111,6 +151,7 @@ public class MainActivity extends Activity {
         super.onNewIntent(intent);
         setIntent(intent);
         readIncoming(intent);
+        readLaunch(intent, true);
     }
 
     /** A backup shared to the app or opened with it: read it off the UI thread, then tell the page. */
@@ -185,6 +226,45 @@ public class MainActivity extends Activity {
                 } catch (ActivityNotFoundException ignored) {
                 }
             });
+        }
+
+        @JavascriptInterface
+        public void setReminder(String json) {
+            if (!trusted() || json == null) return;
+            ReminderReceiver.prefs(MainActivity.this).edit().putString("snap", json).apply();
+            ReminderReceiver.schedule(MainActivity.this);
+        }
+
+        @JavascriptInterface
+        public String notifyPermission() {
+            return ReminderReceiver.permission(MainActivity.this);
+        }
+
+        @JavascriptInterface
+        public void requestNotify() {
+            if (!trusted()) return;
+            runOnUiThread(() -> {
+                if (Build.VERSION.SDK_INT >= 33 && !"granted".equals(ReminderReceiver.permission(MainActivity.this))) {
+                    requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, REQ_NOTIFY);
+                } else {
+                    web.evaluateJavascript("window.__remindPermission&&window.__remindPermission('"
+                            + ReminderReceiver.permission(MainActivity.this) + "')", null);
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void testReminder(String text) {
+            if (!trusted() || text == null) return;
+            ReminderReceiver.post(MainActivity.this, text);
+        }
+
+        @JavascriptInterface
+        public String takeLaunch() {
+            if (!trusted()) return "";
+            String t = launch;
+            launch = null;
+            return t == null ? "" : t;
         }
 
         @JavascriptInterface

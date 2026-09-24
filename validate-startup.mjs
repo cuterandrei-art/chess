@@ -92,10 +92,13 @@ ok(X.buildTree({id:'q',lines:['e4 d5 exd5 c6 dxc6 Nf6 cxb7 Nbd7 bxa8=Q']}).root.
 
 /* ================= the rest are built while idle ================= */
 localStorage.clear();X=boot();
+// jsdom has no requestIdleCallback, like Safari: the stand-in must still hand back
+// control between courses instead of building them all in one long block
 X.warmOpenings(0);
-const until=Date.now()+20000;
-while(X.BASE.some(o=>!X.openingBuilt(o))&&Date.now()<until)await new Promise(r=>setTimeout(r,20));
+const until=Date.now()+20000;let longest=0,last=performance.now(),slices=0;
+while(X.BASE.some(o=>!X.openingBuilt(o))&&Date.now()<until){await new Promise(r=>setTimeout(r,5));const t=performance.now();longest=Math.max(longest,t-last);last=t;slices++;}
 ok(X.BASE.every(o=>X.openingBuilt(o)),'the idle warm-up builds every course once the first screen is up');
+ok(slices>=X.BASE.length/3&&longest<400,'in small slices, not one block — without requestIdleCallback too ('+slices+' slices, longest gap '+Math.round(longest)+' ms)');
 ok(script.lastIndexOf('\nrender();')>0&&script.lastIndexOf('\nrender();')<script.lastIndexOf('\nwarmOpenings();'),'the warm-up is started after the first render, not before it');
 X.go('library');
 ok(/Opening Library/.test(document.body.innerHTML),'the library still renders every course');

@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- reminders: a notification when reviews or missed puzzles are due, set again after a reboot -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:allowBackup="true"
@@ -33,6 +36,15 @@
                 <data android:scheme="content" android:mimeType="application/json" />
             </intent-filter>
         </activity>
+
+        <!-- reminders; see ReminderReceiver.java -->
+        <receiver
+            android:name=".ReminderReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
         <!-- hands the backup file to the share sheet; see BackupProvider.java -->
         <provider
