@@ -719,8 +719,7 @@ offers are quiet moves picked at random, never a capture or a check that could
 point at a tactic. A free game against the engine keeps quiet too unless
 **Training help in free games** is switched on in Settings. The engine analyst
 now does their work before the event (+2 preparation), not during it. The
-💡 tactic hints you earn from your puzzle rating and perks are still there,
-because you choose to spend them.
+💡 tactic hints went too, in the next version (see 24).
 
 *Media & drama works where you click it.* Every result of a button used to go
 to a message at the top of the page, far above the Media tab, so the buttons
@@ -759,6 +758,95 @@ in rapid or blitz, each worth about twenty energy and no extra days.
 Not done yet: pairings and the World tab use live ratings, not the monthly
 list the board prints; the World Cup is 128 players rather than 206 with byes
 for the top seeds; the chat does not see the game you watch as a spectator.
+
+**24. The career on a phone, and the small things around it.** Measured on a
+new career at phone size (390×844), every career tab opened under the same
+block — the dashboard, three rating boxes and the titles card, 1.3 screens —
+and the Play tab was twelve and a half screens long, seven of them a list of
+forty tournaments of which a new player could enter two. That is why a sponsor
+offer, a norm or the result of a button could sit unseen.
+
+*One line, then the tabs.* Above the tabs is now one line: your avatar and
+first name, your rating (or how many games you are off one), your money, your
+energy, and 📥 with the number of things waiting on you. ▾ opens the detail —
+every rating with its world rank, the money against the week's bills, energy,
+health, mood, tilt and form. The tabs stay pinned under the top bar while a tab
+scrolls, and a tab opened from far down a long one starts at its top. The
+ratings in full and the titles card moved to the Progress tab. A new screen
+opens at its top rather than wherever the last one was scrolled to, and Back
+returns to where you were.
+
+*The Play tab starts with now.* First a card for what is happening — the day
+and the rent, or the round of the event you are in — with how you are and the
+buttons that move the week along; then the inbox; then where to play. The
+daily reward, the quests, the story arc and the road to GM come after.
+
+*The inbox.* The manager's advice and the chips on the dashboard were two lists
+of the same kind of thing, and neither said where the thing was. One list now,
+each row a way to the card it names, on whichever tab, which scrolls into view
+under the tabs and lights up: the press, a decision, a sponsor offer or a
+renewal, a norm you have not looked at, an invitation (Tata Steel, Norway, the
+Candidates — open now, or starting within four weeks), a rest day when your
+energy is low between rounds, a league weekend, the daily reward and quests to
+claim, skill points, an injury, a debt, burnout or tilt. The manager's advice
+follows, without repeating any of it.
+
+*Big cards are folded.* The avatar editor, automation, the cosmetic unlocks, the
+simuls, the park, your home, the team you could hire and the lifestyle shop
+are each a heading, one line of what is inside and the button used most (🎲
+Randomise, ▶ Play today for me); ▾ opens the rest and a card stays the way you
+left it. Achievements show what you have earned, the rest behind ▾. The
+season's calendar shows the next four events. A card the inbox sends you to
+opens itself; so does your home when you are in debt and the park when a
+rematch is waiting.
+
+*The tournament list shows what you can enter.* Each format lists the events
+you can enter, then those you already qualify for that start within six weeks
+(with the week, and a button to get there) — and a title event you have earned
+a place in however far off it is — and folds the rest into one line that says
+what they are waiting for: a published rating, a higher one, an invitation or
+their week of the year. A filter narrows it to one format. The Play tab is now
+four and a half screens, Life went from 6.8 to 2.7, You from 6.3 to 2.6.
+
+*The Back button goes back.* On Android, Back closed the app from any screen,
+the middle of a game included. It now closes whatever is open on top (a
+dialog, the menu, the search, the news board), then goes back a screen, then
+to the first career tab, and only on the career screen, pressed twice, lets the
+app close. In a browser, the browser's Back does the same.
+
+*The game screen names the game.* It said "Play vs Stockfish" for everything,
+a round of the Candidates included. A career game is now called by its event
+and round ("🏘️ Local Club Championship · round 1/5"), a match game by the game,
+a World Cup game by its round, a club match by the two clubs and your board, a
+stream by its show, the park by the park; the chip beside it says what you
+bring — your prepared line, a novelty, the stake. ← goes back to the career.
+
+*No hints in a career game.* The 💡 tactic hints are gone from career games;
+free games and puzzles keep them. What bought hints now buys sharpness: your
+puzzle rating makes opponents play weaker as before, Killer instinct takes 12
+Elo a level off them from move ten, and the Tactician class 10.
+
+*Opponents play what they are known for.* Openings were picked from a player's
+name by a hash out of all twenty-nine in the Library, so Carlsen met 1.e4 with
+Alekhine's Defence and Caruana opened with the Alien Gambit. The famous names
+now play what they are known for — Fischer the Ruy Lopez and the Najdorf,
+Karpov the Caro-Kann and the Queen's Indian, Botvinnik the French and the
+Dutch, Kramnik the Catalan, Carlsen the Sveshnikov, Caruana the Petroff,
+Vachier-Lagrave the Najdorf and the Grünfeld, Nakamura the King's Indian — and
+what is not well known about a player is picked from what is played at their
+level: main lines from 2500 up, anything at all in a club. A repertoire as
+Black has an answer to 1.e4 and one to 1.d4, and your first move decides which
+one they play. Scouting and profiles show all three, marked where it is what
+they are known for, and a legend in an exhibition plays their own openings.
+
+*Smaller things.* A save that fails — a phone whose storage for the app is
+full, a browser that blocks it — used to throw out of whatever was tapped and
+say nothing; it is caught now, and a bar says so and offers a backup file,
+until a save works again. The commentary button no longer runs off the Media &
+drama card on a phone (what it is for is written under it), and "Off the board"
+no longer sends you "above" to sponsors that are below it. An exhibition
+against a legend that was left unfinished no longer makes the next one-off
+game count as beating that legend.
 
 ## The Olympiad is a team event
 
@@ -1092,15 +1180,16 @@ can see exactly where your week went.
 
 ## The dashboard
 
-The career spreads across seven tabs and forty panels. A single card above all
-of them answers *what is going on*: who you are, what you are rated at
-classical, rapid and blitz, the money against the bills that are coming, your
-energy, health, mood, tilt and form, and one line for what is actually
+The career spreads across seven tabs and forty panels. One line above all of
+them answers *what is going on*: who you are, your rating, your money, your
+energy and how many things are waiting on you; ▾ opens every rating with its
+world rank, the money against the bills that are coming, and your energy,
+health, mood, tilt and form. The Play tab starts with what is actually
 happening right now — round three of nine, or Wednesday with rent due Sunday —
-with the button to get on with it. Under that, everything quietly waiting for
-you is a chip you can tap straight to: an injury, a debt, an unclaimed reward,
-a sponsor offer, spare skill points. When there is nothing, it says so rather
-than inventing a chore.
+with the button to get on with it, and then the inbox: everything quietly
+waiting for you, each a row that takes you to the card it is on — an injury, a
+debt, an unclaimed reward, a sponsor offer, a norm, an invitation, spare skill
+points. When there is nothing, it says so rather than inventing a chore.
 
 ---
 
@@ -1505,7 +1594,7 @@ launch builds nothing.
 
 ## Tests
 
-Fifty-six suites, about 5,500 checks, plus sixteen browser suites that drive the real app with the real engine.
+Fifty-seven suites, about 5,550 checks, plus seventeen browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
@@ -1518,6 +1607,19 @@ endgames, and the rest).
 `validate-a11y.mjs` covers the board's labels, the cursor, the keys and the
 live region, and `visual-a11y.mjs` plays 1.e4 in a real browser using nothing
 but Tab, the arrow keys and Enter.
+
+`validate-ux.mjs` covers the career screen on a phone: the one line and the
+tabs, the inbox (every kind of item, each going to its card, norms that stop
+being news once seen, invitations only when they are real), the folded cards,
+the tournament list and its filter, the game screen's heading for every kind
+of game, no hints in a career game, the openings the famous players are known
+for (and Fischer answering 1.d4 with the King's Indian), the Back button, and
+a save that fails out loud. `visual-ux.mjs` checks the same on a 390-pixel
+page: how many screens each tab is, the pinned tabs, no button running off its
+card on any tab, the inbox scrolling to the card it names, Back, and the bar
+when the storage is full. `visual-check.mjs` and `visual-trackerx.mjs` used to
+take screenshots without failing on anything — one of them never got past the
+first-run questions — and now check what they look at.
 
 Career mode's newer systems have their own: `validate-booth.mjs` (what the
 commentators can and cannot know, the grammar guard that fills every line with

@@ -1,5 +1,10 @@
-/* Screenshots of the expanded tracker, on a phone-sized screen, with a
-   realistic set of imported games seeded into storage. */
+/* The expanded tracker, on a phone-sized screen and a desktop one, with a
+   realistic set of imported games seeded into storage: every tab draws, the
+   search, sort, paging and filters work, a game opens on the board, and the
+   CSV has every game in it. It used to take screenshots and print what it
+   saw without failing on anything; it checks now. Errors from requests the
+   sandbox cannot make (avatars off chess.com) are not the app's and are left
+   out; anything else fails it. */
 import http from 'http';
 import { readFileSync, writeFileSync } from 'fs';
 import { chromium } from 'playwright-core';
@@ -54,7 +59,8 @@ const seed={_app:'chess-career',onboarded:true,myGames:games,
 const browser=await chromium.launch({executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome',args:['--no-sandbox']});
 const page=await browser.newPage({viewport:{width:390,height:900},deviceScaleFactor:2});
 const errs=[]; page.on('pageerror',e=>errs.push('pageerror: '+e.message));
-page.on('console',m=>{if(m.type()==='error')errs.push('console: '+m.text());});
+page.on('console',m=>{if(m.type()==='error'&&!/ERR_CERT|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED|ERR_TUNNEL|ERR_PROXY|Failed to load resource/.test(m.text()))errs.push('console: '+m.text());});
+let pass=0; const ok=(c,m)=>{if(!c)throw new Error('FAIL: '+m);pass++;console.log('  ✓ '+m);};
 await page.goto(`http://127.0.0.1:${port}/`,{waitUntil:'domcontentloaded'});
 await page.evaluate(s=>localStorage.setItem('opening-trainer-standalone-v1',JSON.stringify(s)),seed);
 await page.reload({waitUntil:'domcontentloaded'});
@@ -69,8 +75,12 @@ else { await page.click('[data-act="menutoggle"]'); await page.waitForTimeout(12
   await page.locator('[data-act="nav"][data-val="tracker"]:visible').first().click(); }
 await page.waitForTimeout(500);
 await shot('01-overview',true);
+ok(/demo_player/i.test(await page.locator('#app').innerText()),'the tracker opens on the imported account');
 for(const t of ['games','results','openings','opponents','clock','activity','insights'])
-  { await tab(t); await shot('02-'+t,true); }
+  { await tab(t); await shot('02-'+t,true);
+    ok(await page.locator('.ctab.active[data-act="trktab"][data-val="'+t+'"]').count()===1&&(await page.locator('#app .card').count())>=2,'the '+t+' tab draws'); }
+const wide=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+ok(wide<=1,'nothing runs off the side of a phone ('+wide+'px)');
 
 /* the search box, the sort, the paging */
 await tab('games');
@@ -124,9 +134,11 @@ if(d){const p=SP+'/tx-export.csv';await d.saveAs(p);
 await page.waitForTimeout(250);
 await shot('12-exported',false);
 
-console.log('search hits for "zugzwang": '+searchCount);
-console.log('download: '+(d?d.suggestedFilename():'none')+' · '+csvLines+' lines');
-console.log('csv header: '+csvHead);
-console.log(errs.length?('⚠️ console errors:\n'+errs.slice(0,12).join('\n')):'✅ no console errors');
+ok(searchCount>0,'searching for an opponent finds their games ('+searchCount+')');
+ok(!!d&&/\.csv$/.test(d.suggestedFilename()),'the CSV downloads ('+(d?d.suggestedFilename():'none')+')');
+ok(csvLines===games.length+1,'with a header and every game in it ('+csvLines+' lines)');
+ok(/date/i.test(csvHead)&&/opp/i.test(csvHead),'and a header that says what each column is');
 writeFileSync(SP+'/tx-errors.txt',errs.join('\n'));
+ok(errs.length===0,'no errors in the console'+(errs.length?': '+errs[0]:''));
+console.log('\n✅ tracker on a phone and a desktop: '+pass+' checks passed');
 await browser.close(); server.close();

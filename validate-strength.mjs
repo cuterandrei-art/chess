@@ -24,7 +24,7 @@ dom.window.__PUZZLES=[];
 
 let pass=0; const ok=(c,m)=>{if(!c)throw new Error('FAIL: '+m);pass++;console.log('  ✓ '+m);};
 const X=new Function(script+'\nreturn {store,app,botParams,botThinkMs,clockPanic,tcCategory,ratingInFormat,humanQuality,tcById,botRating,BOTS,TC_GAP,TC_QUALITY,'+
-  'AUTO_PLANS,AUTO_TOGGLES,autoDefaults,autoInit,autoPickDay,autoRunDay,autoRunWeek,autoTick,autoSummary,careerAutoPanel,careerDashboard,dashNow,dashAlerts,'+
+  'AUTO_PLANS,AUTO_TOGGLES,autoDefaults,autoInit,autoPickDay,autoRunDay,autoRunWeek,autoTick,autoSummary,careerAutoPanel,careerDashboard,dashNow,careerNowCard,careerStrip,careerInboxPanel,inboxItems,'+
   'lifeInit,lifeCosts,maxEnergy,placeById,doDay,questsEnsure,dailyAvailable,HOMES,LIFESTYLE,hasAsset,careerTabContent};')();
 
 /* ===================== 1. a rating means its own format ===================== */
@@ -214,18 +214,23 @@ ok(/Classical/.test(dash)&&/Rapid/.test(dash)&&/Blitz/.test(dash)&&dash.includes
 ok(/Money/.test(dash)&&dash.includes('4,200'),'and the money, against the bills that are coming');
 ok(/Energy/.test(dash)&&/Health/.test(dash)&&/Mood/.test(dash)&&/Tilt/.test(dash)&&/Form/.test(dash),
    'and how your body and your head are holding up');
-ok(/dashnow/.test(dash)&&/due Sunday/.test(dash),'and, in one line, what is actually happening right now');
-ok(/data-act="autoweek"/.test(dash)&&/automated/.test(dash),'and what automation is looking after');
+const nowC=X.careerNowCard(c);
+ok(/dashnow/.test(nowC)&&/due Sunday/.test(nowC),'the Play tab starts with, in one line, what is actually happening right now');
+ok(/data-act="autoweek"/.test(nowC)&&/automated/.test(nowC)&&/Energy/.test(nowC),'with how you are, and what automation is looking after');
+const strip=X.careerStrip(c);
+ok(/cstrip/.test(strip)&&strip.includes('2100')&&strip.includes('4,200')&&/⚡70/.test(strip),'above the tabs, one line: your rating, your money, your energy');
+ok(!/dashrt/.test(strip),'and the detail stays folded until you ask for it');
 
 c.injury={type:'bad back',weeksLeft:2,sev:1}; c.debt=500; c.skillPts=2;
-const al=X.dashAlerts(c);
-ok(/bad back/.test(al)&&/debt/.test(al)&&/skill point/.test(al),'anything waiting on you is one tap away');
+const al=X.careerInboxPanel(c);
+ok(/bad back/.test(al)&&/You owe/.test(al)&&/skill point/.test(al),'anything waiting on you is in the inbox');
+ok(/data-act="jump" data-val="life:lifecard"/.test(al)&&/data-val="life:homecard"/.test(al)&&/data-val="you:perkscard"/.test(al),'each one a way to the card it is on');
 c.injury=null; c.debt=0; c.skillPts=0;
 c.money=999999; c.energy=100; c.health=100; c.mood=100; c.tilt=0;
 X.autoInit(c).daily=false; X.autoInit(c).quests=false;
 (X.questsEnsure().items||[]).forEach(it=>{it.claimed=true;});
 c.sponsor={name:'x',perWeek:1,weeksLeft:1}; c.pressPending=null; c.dilemma=null; c.seasonReview=null; c.burnout=0;
-ok(/Nothing waiting/.test(X.dashAlerts(c)),'and when nothing is, it says so instead of inventing a chore');
+ok(X.inboxItems(c).length===0&&/Nothing is waiting/.test(X.careerInboxPanel(c)),'and when nothing is, it says so instead of inventing a chore');
 
 c.tour={name:'Tata Steel',emoji:'♟',round:2,rounds:9,format:'classical',score:1.5};
 const now=X.dashNow(c);

@@ -49,6 +49,10 @@ ok(!X.avAccUnlocked(c,'crown'),'the crown is locked until you are world champion
 c.honors=['World Champion'];
 ok(X.avAccUnlocked(c,'crown'),'winning the title unlocks the crown');
 ok(X.avAccUnlocked(c,'glasses'),'ordinary accessories are never locked');
+X.store.settings.fold={};
+const folded=X.careerAvatarPanel(c);
+ok(/Your avatar/.test(folded)&&!/data-act="avset"/.test(folded)&&/data-act="avrandom"/.test(folded)&&/data-act="fold" data-val="avatar"/.test(folded),'folded, the card is your avatar, a randomiser and a way into the editor');
+X.store.settings.fold={avatar:true};
 const panel=X.careerAvatarPanel(c);
 ok(/Your avatar/.test(panel)&&/data-act="avset"/.test(panel)&&/data-act="avrandom"/.test(panel),'the customiser offers every part plus a randomiser');
 ok(/Hair colour/.test(panel)&&/Backdrop/.test(panel),'the customiser is grouped into named rows');

@@ -53,7 +53,7 @@ ok(g.clock.inc===20000,'increment included — a 30+20 resumes as 30+20');
 ok(g.tcId==='30+20','and the time control it was played at');
 ok(g.side==='w','which colour you have');
 ok(g.career.tour===true&&g.career.tourId==='local'&&g.career.round===0,'and which round of which event it belongs to');
-ok(g.career.hints===2,'the hints you had left are yours when you come back');
+ok(g.career.hints===undefined,'a career game has no hints, so none are written down');
 ok(g.career.studyEdge===0.4,'and the edge your preparation earned');
 
 /* nothing is written for a game that is not being played */
@@ -161,7 +161,7 @@ ok(X.app.playSide==='w','you keep your colour');
 ok(X.app.clock&&X.app.clock.w===1799000&&X.app.clock.b===1801000,'the clocks read what they read');
 ok(X.app.clock.inc===20000,'and still carry the increment');
 ok(X.app.tc&&X.app.tc.id==='30+20','the time control comes back too');
-ok(X.app.careerHintsLeft===2,'you get back the hints you had not spent');
+ok(X.app.careerHintsLeft===0,'and a game saved by an older version, with hints left in it, comes back without them');
 ok(X.app.careerStudyEdge===0.4,'and the preparation you brought');
 ok(X.app.careerRoundOpp&&X.app.careerRoundOpp.name==='Tom Knox','playing the same opponent');
 ok(X.app.playStatus==='play','and it is your move, because the board says so');

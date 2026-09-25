@@ -186,8 +186,41 @@
   .heatcol{display:flex;flex-direction:column;gap:2px;flex:0 0 auto}
   .heatmap i{display:block;width:10px;height:10px;border-radius:2px}
   @media(min-width:620px){.heatmap,.heatcol{gap:3px}.heatmap i{width:13px;height:13px;border-radius:3px}}
-  .ctabs{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 8px;margin-bottom:10px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  /* the tabs stay pinned under the top bar while a long tab scrolls */
+  .ctabs{display:flex;gap:6px;overflow-x:auto;padding:7px 2px 8px;margin-bottom:10px;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+    position:sticky;top:var(--toph,52px);z-index:45;background:rgba(11,17,32,.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
   .ctabs::-webkit-scrollbar{display:none}
+  html[data-ui="lichess"] .ctabs{background:var(--panel);backdrop-filter:none;-webkit-backdrop-filter:none}
+  /* the one line above the tabs: who, rating, money, energy, what is waiting */
+  .cstrip{display:flex;align-items:center;gap:6px;padding:6px 8px;margin-bottom:6px;border:1px solid #22d3ee44;border-radius:12px;background:linear-gradient(160deg,rgba(34,211,238,.07),transparent 60%),var(--panel);min-width:0}
+  .cstrip .cs-me{display:flex;align-items:center;gap:7px;min-width:0;flex:1 1 auto;background:none;border:0;color:var(--text);font:inherit;font-weight:700;font-size:14px;cursor:pointer;padding:0;text-align:left}
+  .cstrip .cs-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  .cstrip .cs-v{flex:0 0 auto;font-weight:800;font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .cstrip .cs-in,.cstrip .cs-tg{flex:0 0 auto;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;color:var(--text);font:inherit;font-size:13px;padding:4px 7px;cursor:pointer;display:inline-flex;align-items:center;gap:3px}
+  .cstrip .cs-in.on{border-color:#f59e0b88;background:#f59e0b1a}
+  .cstrip .cs-in b{color:#fbbf24}
+  @media(max-width:360px){.cstrip .cs-v.cs-en{display:none}}
+  /* the inbox: one row per thing waiting, each one a way to its card */
+  .inrow{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:rgba(255,255,255,.025);border:1px solid var(--border);border-left:3px solid var(--brand);border-radius:9px;color:var(--text);font:inherit;font-size:13px;padding:8px 10px;margin-top:6px;cursor:pointer}
+  .inrow .it{flex:1;min-width:0}
+  .inrow .ig{flex:0 0 auto;color:var(--muted);font-size:17px;line-height:1}
+  /* a card you were sent to lands under the pinned tabs, and lights up */
+  #app [id$="card"],#restrow{scroll-margin-top:calc(var(--toph,52px) + 62px)}
+  .jumpflash{animation:jumpflash 1.5s ease-out}
+  @keyframes jumpflash{0%{box-shadow:0 0 0 3px var(--brand)}100%{box-shadow:0 0 0 0 rgba(0,0,0,0)}}
+  html[data-motion="reduced"] .jumpflash{animation:none;outline:2px solid var(--brand);outline-offset:2px}
+  /* a folded card: the heading, one line of what is inside, and a way in */
+  .foldrow{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .foldrow .fsum{min-width:0}
+  .foldrow .fbtns{display:flex;gap:6px;flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end}
+  /* a long label wraps inside its card instead of running off the edge */
+  .btn.wrap{white-space:normal;text-align:left;line-height:1.25;max-width:100%}
+  .lobbymore{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--border);color:var(--muted);font:inherit;font-size:12.5px;padding:10px 13px;cursor:pointer}
+  .lobbymore:hover{color:var(--text)}
+  .savefail{position:fixed;left:10px;right:10px;bottom:calc(66px + env(safe-area-inset-bottom));z-index:120;display:flex;align-items:center;gap:10px;justify-content:space-between;
+    max-width:620px;margin:0 auto;padding:10px 12px;border-radius:12px;border:1px solid #f59e0b;background:#2a1d06f2;color:#fde68a;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+  .savefail .btn{flex:0 0 auto}
+  @media(min-width:821px){.savefail{bottom:16px}}
   .ctab{flex:0 0 auto;position:relative;background:#141f38;border:1px solid var(--border);color:var(--muted);font:inherit;font-weight:700;font-size:13px;padding:9px 13px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:6px}
   .ctab:hover{color:var(--text)}
   .ctab.active{background:var(--brand);color:#fff;border-color:var(--brand)}
@@ -5202,7 +5235,25 @@ try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repert
   quests:d.quests||null,legacy:Object.assign({peak:0,careers:0,hall:[]},d.legacy||{})};}catch(e){}
 function rebuildOpenings(){const cust=(store.custom||[]).map(d=>{try{return buildOpening(d);}catch(e){return null;}}).filter(Boolean);BUILT=BASE.concat(cust);byId=new Map(BUILT.map(o=>[o.id,o]));}
 rebuildOpenings();
-function save(){localStorage.setItem(LS,JSON.stringify(store));if(typeof remindSoon==='function')remindSoon();}
+/* Saving can fail — a phone whose storage for the app is full, a browser that
+   blocks it. That used to throw out of whatever was being tapped, leave the
+   screen half redrawn and say nothing, and the progress was gone when the app
+   closed. A failed save is caught now: the app carries on, a bar at the bottom
+   says what happened and offers a backup file, which needs no storage, and
+   the bar goes the moment a save works again. */
+let _saveFail=null;
+function save(){
+  try{localStorage.setItem(LS,JSON.stringify(store));_saveFail=null;}
+  catch(e){const full=!!e&&(e.name==='QuotaExceededError'||e.code===22||e.code===1014||/quota|full/i.test(String(e.message||'')));
+    _saveFail={at:Date.now(),why:full?'full':'blocked',sent:(_saveFail&&_saveFail.sent)||0};}
+  if(typeof remindSoon==='function')remindSoon();
+}
+function saveFailBar(){
+  if(!_saveFail)return '';
+  return '<div class="savefail" role="alert"><span class="small">⚠️ <b>Your progress was not saved</b> — '+(_saveFail.why==='full'?'the storage this app is allowed on the device is full':'this browser is blocking storage')+
+    '. '+(_saveFail.sent?'Your backup was made; keep it until saving works again.':'Make a backup file so nothing is lost.')+'</span>'+
+    '<button class="btn primary sm" data-act="savebackup">💾 '+(_saveFail.sent?'Again':'Save a backup')+'</button></div>';
+}
 /* ---------------------------------------------------------------------------
    Restoring a backup.
 
@@ -5598,7 +5649,14 @@ function confirmOverlay(){if(!app.confirm)return '';
     '<div class="dim small" style="margin-bottom:15px;line-height:1.55">'+esc(app.confirm.msg)+'</div>'+
     '<div class="row" style="justify-content:flex-end;gap:8px"><button class="btn ghost sm" data-act="confirmno">Cancel</button><button class="btn danger sm" data-act="confirmyes">Confirm</button></div>'+
     '</div></div>';}
-function go(view){if(app.view&&app.view!==view){app.navHist=app.navHist||[];app.navHist.push(app.view);if(app.navHist.length>30)app.navHist.shift();}app.view=view;app.sel=null;stopClockTick();if(view!=='puzzles')stopRushTick();if(view!=='livegame'&&view!=='tracker')livePollStop();if(view!=='livegame')replayStop();render();}
+function go(view){const from=app.view;if(from&&from!==view){app.navHist=app.navHist||[];app.navHist.push(from);if(app.navHist.length>30)app.navHist.shift();navScrollKeep(from);}
+  if(view==='career'&&from!=='career')app.navHist=[];   /* home: Back from here leaves the app */
+  app.view=view;app.sel=null;stopClockTick();if(view!=='puzzles')stopRushTick();if(view!=='livegame'&&view!=='tracker')livePollStop();if(view!=='livegame')replayStop();render();if(from!==view&&!app._jump)navScrollTo(0);}
+/* A new screen opens at its top — it used to open wherever the last one had
+   been scrolled to, which on a phone could be the middle of it. Going back
+   returns to where you were. */
+function navScrollKeep(v){try{(app._scrollOf=app._scrollOf||{})[v]=window.scrollY||0;}catch(e){}}
+function navScrollTo(y){try{window.scrollTo(0,y||0);}catch(e){}}
 
 /* ============================== helpers =============================== */
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
@@ -6049,7 +6107,10 @@ function render(){
   // a redraw from something in the background (the engine, a sync) must not
   // throw you out of the text field you are typing in
   let _kf=null;try{const ae=document.activeElement;if(ae&&ae.id&&/^(INPUT|TEXTAREA)$/.test(ae.tagName)&&ae.type!=='file'&&ae.type!=='checkbox'){_kf={id:ae.id,s:null,e:null};try{_kf.s=ae.selectionStart;_kf.e=ae.selectionEnd;}catch(e){}}}catch(e){}
-  document.getElementById('app').innerHTML=chrome+'<div class="wrap">'+body+'</div>'+confirmOverlay()+promoOverlay()+xferSheet()+srchSheet()+newsBoard()+careerSnack()+'<input id="importfile" type="file" accept="application/json,.json" style="display:none">';
+  document.getElementById('app').innerHTML=chrome+'<div class="wrap">'+body+'</div>'+confirmOverlay()+promoOverlay()+xferSheet()+srchSheet()+newsBoard()+careerSnack()+saveFailBar()+'<input id="importfile" type="file" accept="application/json,.json" style="display:none">';
+  // the career tabs pin under the top bar, whose height depends on the phone
+  {const _hd=document.querySelector('header.top');if(_hd)document.documentElement.style.setProperty('--toph',_hd.offsetHeight+'px');}
+  careerJumpApply();
   if(_kf){try{const el=document.getElementById(_kf.id);if(el&&el!==document.activeElement){el.focus({preventScroll:true});if(_kf.s!=null&&el.setSelectionRange)el.setSelectionRange(_kf.s,_kf.e);}}catch(e){}}
   srNode();                       // outside #app, so a redraw never wipes it
   if(app.view==='play'&&app.playStatus==='over'&&resultKind(app.playResult)==='win'&&app._fxKey!==app.playResult){app._fxKey=app.playResult;confetti();}
@@ -10268,7 +10329,7 @@ function courseRecommendations(){
   buckets.forEach(function(b){if(bucketCovered(b[1]))return;
     var pick=(defaults[b[0]]||b[1]).filter(function(id){return OPENING_COURSES[id]&&courseDone(id).length===0;})[0]||b[1][0];
     if(pick&&OPENING_COURSES[pick])recs.push({id:pick,reason:b[2],tag:'Repertoire gap'});});
-  try{var c=store.career;if(c&&c.setup&&c.rival&&c.rival.name){var opp=oppOpenings(c.rival.name);[opp.w,opp.b].forEach(function(id){if(id&&OPENING_COURSES[id]&&courseDone(id).length===0&&!recs.some(function(r){return r.id===id;}))recs.push({id:id,reason:'Your rival '+esc(c.rival.name)+' plays this — study the lines to prepare',tag:'Career prep'});});}}catch(e){}
+  try{var c=store.career;if(c&&c.setup&&c.rival&&c.rival.name){var opp=oppOpenings(c.rival.name,c.rival.rating);[opp.w,opp.b,opp.b2].forEach(function(id){if(id&&OPENING_COURSES[id]&&courseDone(id).length===0&&!recs.some(function(r){return r.id===id;}))recs.push({id:id,reason:'Your rival '+esc(c.rival.name)+' plays this — study the lines to prepare',tag:'Career prep'});});}}catch(e){}
   return recs.slice(0,3);
 }
 function courseRecPanel(){
@@ -10410,7 +10471,8 @@ function isUnlocked(setting,key){var u=UNLOCKS[setting+':'+key];if(!u)return tru
 function careerUnlockPanel(c){
   var cat={pieces:PIECE_SETS,theme:THEMES,appTheme:APP_THEMES,accent:ACCENTS,scene:SCENES},catName={pieces:'Piece set',theme:'Board',appTheme:'Palette',accent:'Accent',scene:'Backdrop'};
   var keys=Object.keys(UNLOCKS),got=keys.filter(function(k){var p=k.split(':');return isUnlocked(p[0],p[1]);}).length;
-  var h='<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">🎁 Cosmetic unlocks</div><div class="dim small">'+got+'/'+keys.length+' unlocked</div></div><div class="dim small" style="margin:3px 0 6px">Earn prestige piece sets &amp; themes by progressing your career — then equip them in Settings.</div>';
+  if(!foldOpen('unlocks'))return foldCard('unlocks','unlockcard','🎁 Cosmetic unlocks',got+' of '+keys.length+' unlocked — piece sets and themes your career earns');
+  var h='<div class="card" id="unlockcard" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:700">🎁 Cosmetic unlocks</div><div class="row" style="gap:8px;align-items:center"><span class="dim small">'+got+'/'+keys.length+' unlocked</span>'+foldBtn('unlocks',true)+'</div></div><div class="dim small" style="margin:3px 0 6px">Earn prestige piece sets &amp; themes by progressing your career — then equip them in Settings.</div>';
   h+=keys.map(function(k){var p=k.split(':'),set=p[0],key=p[1];var obj=cat[set]||{};var nm=(obj[key]&&obj[key].label)||key;var u=UNLOCKS[k];var on=isUnlocked(set,key);return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:4px 0;border-top:1px solid var(--border)"><span class="small">'+(on?'✅':'🔒')+' <b>'+esc(nm)+'</b> <span class="dim">'+catName[set]+'</span></span><span class="'+(on?'chip green':'dim small')+'" style="flex:0 0 auto">'+(on?'Unlocked':esc(u.lbl))+'</span></div>';}).join('');
   return h+'</div>';
 }
@@ -10552,7 +10614,46 @@ function promoOverlay(){if(!app.promo)return '';var pr=app.promo;
   var color=(fen&&turnOf(fen))||'w';
   var b=function(p){return '<button class="btn sec" data-act="promopick" data-val="'+p+'" style="width:66px;height:66px;padding:7px;display:flex;align-items:center;justify-content:center"><span style="width:50px;height:50px;display:flex;align-items:center;justify-content:center">'+pieceImg(color,p)+'</span></button>';};
   return '<div data-act="promocancel" style="position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55)"><div class="card" style="text-align:center"><div style="font-weight:700;margin-bottom:10px">Promote to…</div><div class="row" style="gap:8px;justify-content:center">'+b('q')+b('r')+b('b')+b('n')+'</div></div></div>';}
-function goBack(){var h=app.navHist||[];app.view=h.length?h.pop():'dashboard';app.sel=null;stopClockTick();if(app.view!=='puzzles')stopRushTick();render();}
+/* ===== The Back button =====
+   On Android, Back used to close the app from any screen — in the middle of a
+   game too — because the page kept no history for the shell to go back
+   through. The shell now asks the page first (appBack). It closes whatever is
+   open on top — a dialog, the menu, the search, the news board — then goes
+   back a screen, then to the first career tab; only on the career screen,
+   with nothing open, does it let the app close, and even then only on a
+   second press. In a browser, its own Back button does the same. */
+let _backArmed=0;
+function appBack(){
+  if(app.promo){app.promo=null;app.sel=null;render();return true;}
+  if(app.confirm){app.confirm=null;render();return true;}
+  if(app.xfer){app.xfer=null;render();return true;}
+  if(app.installOpen){app.installOpen=false;render();return true;}
+  if(app.srch){srchClose();return true;}
+  if(app.menuOpen){app.menuOpen=false;render();return true;}
+  if(app.newsOpen){app.newsOpen=false;render();return true;}
+  if(app.view==='onboard')return false;
+  if(app.navHist&&app.navHist.length){goBack();return true;}
+  if(app.view!=='career'){go('career');return true;}
+  const c=store.career;
+  if(c&&c.setup&&careerActiveTab(c)!=='play'){app.careerTab='play';render();navScrollTo(0);return true;}
+  const now=Date.now();
+  if(now-_backArmed<2500){_backArmed=0;return false;}
+  _backArmed=now;app.snackMsg={t:'Press Back again to leave',at:now};render();
+  return true;
+}
+try{window.appBack=appBack;}catch(e){}
+// In a browser, one history entry stands guard: Back lands on it, and if the
+// app had something to go back to it is put back. The Android shell asks
+// appBack itself, so it needs no guard.
+(function(){try{
+  if(window.AndroidBridge||!window.history||!history.pushState)return;
+  history.replaceState({cc:0},'');history.pushState({cc:1},'');
+  window.addEventListener('popstate',function(){
+    if(appBack())history.pushState({cc:1},'');
+    else history.back();
+  });
+}catch(e){}})();
+function goBack(){var h=app.navHist||[];var from=app.view;app.view=h.length?h.pop():'dashboard';app.sel=null;stopClockTick();if(app.view!=='puzzles')stopRushTick();render();if(from!==app.view)navScrollTo((app._scrollOf||{})[app.view]||0);}
 function boardClick(sq){
   app.annot={};
   if(app.view==='analysis'){const fen=anaFen();if(!fen)return;
@@ -10905,7 +11006,13 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='careerretire')uiConfirm('Retire from competition? Your career ends and enters the Hall of Fame — you can start a new one afterwards.',retireCareer);
   else if(act==='careernew')newCareer();
   else if(act==='toastdismiss'){app.careerToast=null;render();}
-  else if(act==='careertab'){app.careerTab=val;render();}
+  else if(act==='careertab'){app.careerTab=val;render();careerTabTop();}
+  else if(act==='striptoggle'){store.settings.stripOpen=!store.settings.stripOpen;save();render();}
+  else if(act==='jump')careerJump(val);
+  else if(act==='savebackup'){Promise.resolve(sendProgress()).then(function(){if(_saveFail)_saveFail.sent=Date.now();render();});}
+  else if(act==='lobbyfmt'){store.settings.lobbyFmt=val;save();render();}
+  else if(act==='lobbymore'){app.lobbyMore=app.lobbyMore||{};app.lobbyMore[val]=!app.lobbyMore[val];render();}
+  else if(act==='fold'){const f=store.settings.fold=store.settings.fold||{};f[val]=!foldOpen(val);save();render();}
   else if(act==='careertitles'){app.careerTitlesOpen=!app.careerTitlesOpen;render();}
   else if(act==='boothtoggle'){store.settings.boothOn=!boothOn();save();render();}
   else if(act==='presume')playResume();
@@ -10919,9 +11026,9 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='pblind'){app.blindfold=!app.blindfold;app.peek=false;render();}
   else if(act==='ppeek'){app.peek=!app.peek;render();}
   else if(act==='blindstart'){const c=val==='r'?(Math.random()<0.5?'w':'b'):val;startPlay(new Chess().fen(),c,null,'Blindfold game',{blindfold:true});}
-  else if(act==='careersetup'){const c=store.career;const nm=((document.getElementById('cr-name')||{}).value||'').trim();const fedC=(document.getElementById('cr-fed')||{}).value||'FIDE';const g=((document.getElementById('cr-gender')||{}).value==='women')?'women':'open';const tf=((document.getElementById('cr-titlefmt')||{}).value==='any')?'any':'classical';const fed=FEDS.find(x=>x.c===fedC)||FEDS[0];const pace=Math.max(1,Math.min(3,parseInt((document.getElementById('cr-pace')||{}).value,10)||1));const start=((document.getElementById('cr-start')||{}).value)||'club';c.setup=true;c.name=(nm||'You').slice(0,24);c.fed=fed.c;c.flag=fed.f;c.gender=g;c.titleFormat=tf;c.pace=pace;if(start==='talent'){c.rating=1900;c.peak=1900;c.provisional=false;c.ratedGames=30;c.age=18;}else if(start==='master'){c.rating=2300;c.peak=2300;c.provisional=false;c.ratedGames=30;c.age=20;}save();render();}
+  else if(act==='careersetup'){const c=store.career;const nm=((document.getElementById('cr-name')||{}).value||'').trim();const fedC=(document.getElementById('cr-fed')||{}).value||'FIDE';const g=((document.getElementById('cr-gender')||{}).value==='women')?'women':'open';const tf=((document.getElementById('cr-titlefmt')||{}).value==='any')?'any':'classical';const fed=FEDS.find(x=>x.c===fedC)||FEDS[0];const pace=Math.max(1,Math.min(3,parseInt((document.getElementById('cr-pace')||{}).value,10)||1));const start=((document.getElementById('cr-start')||{}).value)||'club';c.setup=true;c.name=(nm||'You').slice(0,24);c.fed=fed.c;c.flag=fed.f;c.gender=g;c.titleFormat=tf;c.pace=pace;if(start==='talent'){c.rating=1900;c.peak=1900;c.provisional=false;c.ratedGames=30;c.age=18;}else if(start==='master'){c.rating=2300;c.peak=2300;c.provisional=false;c.ratedGames=30;c.age=20;}app.careerTab='play';save();render();navScrollTo(0);}
   else if(act==='careerpace'){const c=store.career;lifeInit(c);c.pace=(c.pace||1)>=3?1:(c.pace||1)+1;app.careerToast='⏩ Career pace: '+(PACE_NAMES[c.pace]||('×'+c.pace))+' — ratings now move '+(c.pace===1?'at true FIDE speed':(c.pace+'× faster'))+'.';save();render();}
-  else if(act==='careerjoin')joinTournament(val);
+  else if(act==='careerjoin'){joinTournament(val);if(store.career.tour){app.careerTab='play';app._jump='tourcard';render();}}
   else if(act==='careerplay')playTourRound();
   else if(act==='calwait')careerWaitUntil(+val);
   else if(act==='wmhire')wmHire(val);
@@ -12235,10 +12342,10 @@ function playSnapshot(){
     clk:(app.playClk||[]).slice(),
     booth:app.booth||null,
     blindfold:!!app.blindfold,c960:app.c960||null,endgame:app.endgame||null,bot:app.playBot||null,
-    bookId:app.playBook?app.playBook.id:null,
+    bookId:app.playBook?app.playBook.id:null,bookAltId:app.playBookAlt?app.playBookAlt.id:null,bookAltEdge:app.playBookAltEdge||0,
     career:{opp:app.careerOpp||null,elo:app.careerElo||null,tour:!!app.careerTour,
       roundOpp:app.careerRoundOpp||null,oneoff:app.careerOneoff||null,league:!!app.careerLeague,pro:!!app.careerPro,
-      hints:app.careerHintsLeft||0,prepUsed:app.careerPrepUsed||null,
+      prepUsed:app.careerPrepUsed||null,legend:app.careerLegend||null,
       novelty:!!app.careerNovelty,studyEdge:app.careerStudyEdge||0,
       tourId:(store.career&&store.career.tour)?store.career.tour.id:null,
       round:(store.career&&store.career.tour)?store.career.tour.round:null},
@@ -12341,11 +12448,12 @@ function playResume(){
   const cr=g.career||{};
   app.careerOpp=cr.opp||null;app.careerElo=cr.elo||null;app.careerTour=!!cr.tour;
   app.careerRoundOpp=cr.roundOpp||null;app.careerOneoff=cr.oneoff||null;app.careerLeague=!!cr.league;app.careerPro=!!cr.pro;
-  app.careerHintsLeft=cr.hints||0;app.careerPrepUsed=cr.prepUsed||null;
+  app.careerHintsLeft=0;app.careerPrepUsed=cr.prepUsed||null;app.careerLegend=cr.legend||null;
   app.careerNovelty=!!cr.novelty;app.careerStudyEdge=cr.studyEdge||0;
   app.parkBet=g.park?{id:g.park.id,stake:g.park.stake,double:!!g.park.double}:null;
   // the opening book is a tree, so it is walked back down rather than stored
   app.playBook=g.bookId?byId.get(g.bookId):null;
+  app.playBookAlt=g.bookAltId?byId.get(g.bookAltId)||null:null;app.playBookAltEdge=g.bookAltEdge||0;
   recomputeBook();
   app.tc=g.tcId?tcById(g.tcId):(g.clock?{id:null,label:'',cat:'',base:0,inc:Math.round((g.clock.inc||0)/1000)}:tcById('unlimited'));
   app.playClk=Array.isArray(g.clk)?g.clk.slice():[];
@@ -12441,7 +12549,7 @@ function startPlay(fen,side,openingId,title,opts){opts=opts||{};
   if(app.pass){side=turnOf(fen);app.playBot=null;}
   app.view='play';app.playFen=fen;app._playStartFen=fen;app.playSide=side;app.playOpening=openingId||null;
   app.playTitle=title||'Free game';app.playFlip=false;app.playStack=[fen];app.playMoves=[];app.playView=0;app.playLast=null;app.playSel=null;app.careerBanter=null;app.careerReaction=null;
-  app.playHint=null;app.playEval=null;app.playResult=null;app.careerStory=null;app.engineErr=false;app.drawMsg=null;app.blunderNote=null;app.coachNote=null;app.whyNot=null;app.oppDraw=null;app.oppSaid=null;app._oppLost=0;app._drawCd=0;app.pgnCopied=false;app.playPremoves=[];app.blindfold=!!opts.blindfold;app.peek=false;app.careerOpp=opts.careerOpp||null;app.careerElo=opts.careerElo||null;app.careerScored=false;app.careerDelta=0;app.careerTour=!!opts.careerTour;app.careerRoundOpp=opts.roundOpp||null;app.careerOneoff=opts.oneoff||null;app.c960=opts.c960||null;app.endgame=opts.endgame||null;app.playBot=opts.bot||null;app.tiltEval=false;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=!!(opts.league);app.careerPro=!!(opts.pro);app.careerHintsLeft=opts.careerOpp?careerHintAllowance():0;app._fxKey=null;app._lastEvalCp=null;app._engOutOfBook=false;app._engRetry=0;app._evLow=null;app._evHigh=null;
+  app.playHint=null;app.playEval=null;app.playResult=null;app.careerStory=null;app.engineErr=false;app.drawMsg=null;app.blunderNote=null;app.coachNote=null;app.whyNot=null;app.oppDraw=null;app.oppSaid=null;app._oppLost=0;app._drawCd=0;app.pgnCopied=false;app.playPremoves=[];app.blindfold=!!opts.blindfold;app.peek=false;app.careerOpp=opts.careerOpp||null;app.careerElo=opts.careerElo||null;app.careerScored=false;app.careerDelta=0;app.careerTour=!!opts.careerTour;app.careerRoundOpp=opts.roundOpp||null;app.careerOneoff=opts.oneoff||null;app.c960=opts.c960||null;app.endgame=opts.endgame||null;app.playBot=opts.bot||null;app.tiltEval=false;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=!!(opts.league);app.careerPro=!!(opts.pro);app.careerLegend=opts.legend||null;app.playBookAlt=null;app.playBookAltEdge=0;app.careerHintsLeft=0;app._fxKey=null;app._lastEvalCp=null;app._engOutOfBook=false;app._engRetry=0;app._evLow=null;app._evHigh=null;
   app.playBook=opts.bookId?byId.get(opts.bookId):(opts.book||null);
   app.playBookNode=opts.bookNode||(app.playBook?app.playBook.root:null);
   app.playClk=[];
@@ -12490,6 +12598,11 @@ function checkOver(){const c=new Chess(app.playFen);
   }
   return true;}
 async function engineMove(){app.playStatus='engine';render();
+  // your first move did not fit their answer to 1.e4: it is 1.d4, so they
+  // answer with their defence to that instead
+  if(!app.playBookNode&&app.playBookAlt&&app.playMoves.length===1){
+    const keep=app.playBook;app.playBook=app.playBookAlt;app.playBookAlt=null;recomputeBook();
+    if(app.playBookNode)app.careerStudyEdge=app.playBookAltEdge||0;else{app.playBook=keep;recomputeBook();}}
   // opening "book": follow the chosen opening's theory while still in it
   if(app.playBookNode&&app.playBookNode.children&&app.playBookNode.children.length){
     const kids=app.playBookNode.children;const pick=kids[Math.floor(Math.random()*kids.length)];
@@ -12514,7 +12627,7 @@ async function engineMove(){app.playStatus='engine';render();
   let lvl;if(app.playBot){lvl={elo:botRating(app.playBot,cat),mt:700,style:app.playBot.style};}
   else if(app.careerElo){
     const ply=app.playMoves.length;
-    const sharp=Math.min(45,Math.max(0,(((store.puzzle&&store.puzzle.rating)||1200)-1200)/16)); // tactical sharpness from puzzles
+    const sharp=tacticalEdge(ply); // tactical sharpness: puzzles, Killer instinct, the Tactician class
     const studyE=app.careerStudyEdge?Math.round(app.careerStudyEdge*(ply<16?70:25)):0; // you studied the very line they're playing
     const prepE=(app.careerPrepUsed?((ply<16?80:30)+(perkLevel(store.career,'prepmaster')?((ply<16?40:20)+(perkLevel(store.career,'prepmaster')-1)*(ply<16?20:10)):0)+(app.careerNovelty?(ply<20?70:30):0))*(styleClass(store.career).cls==='Gambiteer'?1.25:1):0)+studyE; // home prep edge (Deep-prep perk per level + Gambiteer class + a sprung novelty)
     lvl={elo:Math.max(600,Math.round(app.careerElo-120-sharp-prepE)),mt:700};
@@ -12626,7 +12739,7 @@ function playMoveList(){const mv=app.playMoves||[];if(!mv.length)return '<span c
     out+='<button data-act="pseek" data-val="'+(i+1)+'"'+(active?' style="background:var(--brand);color:#fff"':'')+'>'+esc(mv[i].san)+'</button> ';}
   return out;}
 async function playHint(){if(app.playStatus!=='play')return;
-  if(app.careerOpp){if((app.careerHintsLeft||0)<=0)return;app.careerHintsLeft--;render();}
+  if(app.careerOpp)return;           // hints are for free games and puzzles — a career game is played alone
   const ok=await Engine.load();if(!ok){app.engineErr=true;render();return;}
   Engine.think(app.playFen,20,800,best=>{if(best&&best!=='(none)'){app.playHint={from:best.slice(0,2),to:best.slice(2,4)};render();}});}
 /* ============================== FIDE career ============================== */
@@ -12639,7 +12752,7 @@ const COACH_TYPES=[
   {spec:'Endgame guru',salary:60,emoji:'♜',desc:'smaller rating losses'},
 ];
 const SPONSOR_NAMES=['ChessGear','NeoBoard','Gambit Wear','Knightly Foods','Zugzwang Energy','OpenFile Tech','BlitzCola','Endgame Apparel','64 Squares','Caïssa Coffee'];
-function lifeInit(c){wxInit(c);wrInit(c);if(c.age==null)c.age=16;if(c.pace==null)c.pace=1;if(c.weeks==null)c.weeks=0;if(c.energy==null)c.energy=100;if(c.form==null)c.form=0;if(c.tilt==null)c.tilt=0;if(c.fame==null)c.fame=0;if(c.fans==null)c.fans=0;if(c.reputation==null)c.reputation=50;if(!c.coaches)c.coaches=[];if(c.prep==null)c.prep=0;if(!c.h2h)c.h2h={};if(c.sponsor===undefined)c.sponsor=null;if(c.objective===undefined)c.objective=null;if(c.retired==null)c.retired=false;if(c.pressPending===undefined)c.pressPending=null;if(c.rival===undefined)c.rival=null;if(!c.achievements)c.achievements=[];if(!c.news)c.news=[];if(c.preppedOpening===undefined)c.preppedOpening=null;if(c.tacticsTrained==null)c.tacticsTrained=0;if(c.xp==null)c.xp=0;if(!c.perks)c.perks={};if(Array.isArray(c.perks)){var _pm={};c.perks.forEach(function(_k){_pm[_k]=1;});c.perks=_pm;}if(c.season==null)c.season=Math.floor((c.weeks||0)/52)+1;if(!c.prepUsage)c.prepUsage={};if(c.protege===undefined)c.protege=null;if(c.winStreak==null)c.winStreak=0;if(c.bestWinStreak==null)c.bestWinStreak=0;if(c.unbeaten==null)c.unbeaten=0;if(c.weeksAtNo1==null)c.weeksAtNo1=0;if(c.noveltyCharge==null)c.noveltyCharge=1;if(c.noveltyArmed==null)c.noveltyArmed=false;if(c.noveltyCd==null)c.noveltyCd=0;if(!c.theory)c.theory={};if(c.refuted===undefined)c.refuted=null;if(c.trendy===undefined)c.trendy=null;if(c.youngGun===undefined)c.youngGun=null;if(c.scandal===undefined)c.scandal=null;if(c.subs==null)c.subs=0;if(c.collabCd==null)c.collabCd=0;if(!c.assets)c.assets=[];if(c.club===undefined)c.club=null;if(!c.books)c.books=[];if(c.backer===undefined)c.backer=null;if(c.fedCd==null)c.fedCd=0;if(c.broadcasts==null)c.broadcasts=0;if(c.academy===undefined)c.academy=null;if(c.gmsMade==null)c.gmsMade=0;if(!c.legendsBeaten)c.legendsBeaten=[];if(c.injury===undefined)c.injury=null;if(c.burnout==null)c.burnout=0;if(c.calendar===undefined)c.calendar=null;if(!c.calDone)c.calDone=[];if(c.transferred==null)c.transferred=false;if(c.dilemma===undefined)c.dilemma=null;if(c.mercDeeds==null)c.mercDeeds=0;if(c.heroDeeds==null)c.heroDeeds=0;if(c.lastBonusDay===undefined)c.lastBonusDay=null;if(c.skillPts==null)c.skillPts=0;if(c.lvlSeen==null)c.lvlSeen=charLevel(c);if(!c.circuit)c.circuit={pts:0,season:c.season||1};if(!c.social)c.social={followers:0,verified:false,posts:0,cd:0};if(!c.classicsStudied)c.classicsStudied=[];if(!c.roadDone)c.roadDone=[];if(!c.feed)c.feed=[];wireInit(c);if(c.arc===undefined)c.arc=null;if(!c.arcsDone)c.arcsDone=[];if(!c.arcBadges)c.arcBadges=[];if(!c.home)c.home='hostel';if(c.health==null)c.health=100;if(c.mood==null)c.mood=62;if(c.day==null)c.day=0;if(!c.dayLog)c.dayLog=[];if(!c.weekLog)c.weekLog=[];if(c.debt==null)c.debt=0;if(c.lifeWeeks==null)c.lifeWeeks=0;if(!c.seasonStart)c.seasonStart=seasonSnapshot(c);if(c.seasonReview===undefined)c.seasonReview=null;if(!c.avatar)c.avatar=avatarDefaults(c);if(!c.avatarStyle)c.avatarStyle='char';if(c.simuls==null)c.simuls=0;if(c.simulPerfect==null)c.simulPerfect=0;if(!c.moments)c.moments=[];parkInit(c);autoInit(c);if(!c._seed){c.money=(c.money||0)+1500;c._seed=true;}}
+function lifeInit(c){wxInit(c);wrInit(c);if(c.age==null)c.age=16;if(c.pace==null)c.pace=1;if(c.weeks==null)c.weeks=0;if(c.energy==null)c.energy=100;if(c.form==null)c.form=0;if(c.tilt==null)c.tilt=0;if(c.fame==null)c.fame=0;if(c.fans==null)c.fans=0;if(c.reputation==null)c.reputation=50;if(!c.coaches)c.coaches=[];if(c.prep==null)c.prep=0;if(!c.h2h)c.h2h={};if(c.sponsor===undefined)c.sponsor=null;if(c.objective===undefined)c.objective=null;if(c.retired==null)c.retired=false;if(c.pressPending===undefined)c.pressPending=null;if(c.rival===undefined)c.rival=null;if(!c.achievements)c.achievements=[];if(!c.news)c.news=[];if(c.preppedOpening===undefined)c.preppedOpening=null;if(c.tacticsTrained==null)c.tacticsTrained=0;if(c.xp==null)c.xp=0;if(!c.perks)c.perks={};if(Array.isArray(c.perks)){var _pm={};c.perks.forEach(function(_k){_pm[_k]=1;});c.perks=_pm;}if(c.season==null)c.season=Math.floor((c.weeks||0)/52)+1;if(!c.prepUsage)c.prepUsage={};if(c.protege===undefined)c.protege=null;if(c.winStreak==null)c.winStreak=0;if(c.bestWinStreak==null)c.bestWinStreak=0;if(c.unbeaten==null)c.unbeaten=0;if(c.weeksAtNo1==null)c.weeksAtNo1=0;if(c.noveltyCharge==null)c.noveltyCharge=1;if(c.noveltyArmed==null)c.noveltyArmed=false;if(c.noveltyCd==null)c.noveltyCd=0;if(!c.theory)c.theory={};if(c.refuted===undefined)c.refuted=null;if(c.trendy===undefined)c.trendy=null;if(c.youngGun===undefined)c.youngGun=null;if(c.scandal===undefined)c.scandal=null;if(c.subs==null)c.subs=0;if(c.collabCd==null)c.collabCd=0;if(!c.assets)c.assets=[];if(c.club===undefined)c.club=null;if(!c.books)c.books=[];if(c.backer===undefined)c.backer=null;if(c.fedCd==null)c.fedCd=0;if(c.broadcasts==null)c.broadcasts=0;if(c.academy===undefined)c.academy=null;if(c.gmsMade==null)c.gmsMade=0;if(!c.legendsBeaten)c.legendsBeaten=[];if(c.injury===undefined)c.injury=null;if(c.burnout==null)c.burnout=0;if(c.calendar===undefined)c.calendar=null;if(!c.calDone)c.calDone=[];if(c.transferred==null)c.transferred=false;if(c.dilemma===undefined)c.dilemma=null;if(c.mercDeeds==null)c.mercDeeds=0;if(c.heroDeeds==null)c.heroDeeds=0;if(c.lastBonusDay===undefined)c.lastBonusDay=null;if(c.skillPts==null)c.skillPts=0;if(c.lvlSeen==null)c.lvlSeen=charLevel(c);if(!c.circuit)c.circuit={pts:0,season:c.season||1};if(!c.social)c.social={followers:0,verified:false,posts:0,cd:0};if(!c.classicsStudied)c.classicsStudied=[];if(!c.roadDone)c.roadDone=[];if(!c.feed)c.feed=[];wireInit(c);if(c.arc===undefined)c.arc=null;if(!c.arcsDone)c.arcsDone=[];if(!c.arcBadges)c.arcBadges=[];if(!c.home)c.home='hostel';if(c.health==null)c.health=100;if(c.mood==null)c.mood=62;if(c.day==null)c.day=0;if(!c.dayLog)c.dayLog=[];if(!c.weekLog)c.weekLog=[];if(c.debt==null)c.debt=0;if(c.lifeWeeks==null)c.lifeWeeks=0;if(!c.seasonStart)c.seasonStart=seasonSnapshot(c);if(c.seasonReview===undefined)c.seasonReview=null;if(!c.avatar)c.avatar=avatarDefaults(c);if(!c.avatarStyle)c.avatarStyle='char';if(c.simuls==null)c.simuls=0;if(c.simulPerfect==null)c.simulPerfect=0;if(!c.moments)c.moments=[];if(c.normsSeen==null)c.normsSeen=(c.norms||[]).length;parkInit(c);autoInit(c);if(!c._seed){c.money=(c.money||0)+1500;c._seed=true;}}
 function maxEnergy(c){var base=c.age>=38?Math.max(72,100-Math.round((c.age-38)*2.5)):100;var e=base+(hasAsset(c,'gym')?8:0)+(hasAsset(c,'house')?12:0);e+=Math.round(((c.health==null?100:c.health)-75)/6);if(c.injury)e-=(c.injury.sev||1)*10;return Math.max(40,e);}
 function hasCoach(c,spec){return (c.coaches||[]).some(function(x){return x.spec===spec;});}
 function cbar(v,max,color){var p=Math.max(0,Math.min(100,v/max*100));return '<div style="height:7px;background:#1e293b;border-radius:5px;overflow:hidden;margin-top:3px"><i style="display:block;height:100%;width:'+p+'%;background:'+color+'"></i></div>';}
@@ -12725,7 +12838,7 @@ function scandalChoose(k){var c=store.career;lifeInit(c);if(!c.scandal)return;va
   else if(k==='deny'){if(Math.random()<0.5){c.reputation=Math.min(100,c.reputation+4);pushNews(c,'😤','You denied everything and the complaint was dismissed.');}else{c.reputation=Math.max(0,c.reputation-10*sev);c.fame=Math.min(100,c.fame+3);pushNews(c,'😬','Your flat denial kept the story alive for weeks. Reputation took a hit.');}}
   else{c.money=Math.max(0,(c.money||0)-300*sev);c.reputation=Math.min(100,c.reputation+6);pushNews(c,'⚖️','Your lawyers shut the rumour down fast (−💰'+(300*sev)+').');}
   c.scandal=null;save();render();}
-function careerScandalPanel(c){if(!c.scandal)return '';return '<div class="card" style="margin-bottom:12px;border-color:#ef4444"><div style="font-weight:700;margin-bottom:3px">🚨 Fair-play accusation</div><div class="dim small" style="margin-bottom:8px">An anonymous complaint claims your recent results are too good to be true. How do you respond?</div><div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sec sm" data-act="scandal" data-val="cooperate">🤝 Volunteer for screening</button><button class="btn sec sm" data-act="scandal" data-val="deny">😤 Deny it</button><button class="btn sec sm" data-act="scandal" data-val="lawyer">⚖️ Lawyer up</button></div></div>';}
+function careerScandalPanel(c){if(!c.scandal)return '';return '<div class="card" id="scandalcard" style="margin-bottom:12px;border-color:#ef4444"><div style="font-weight:700;margin-bottom:3px">🚨 Fair-play accusation</div><div class="dim small" style="margin-bottom:8px">An anonymous complaint claims your recent results are too good to be true. How do you respond?</div><div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sec sm" data-act="scandal" data-val="cooperate">🤝 Volunteer for screening</button><button class="btn sec sm" data-act="scandal" data-val="deny">😤 Deny it</button><button class="btn sec sm" data-act="scandal" data-val="lawyer">⚖️ Lawyer up</button></div></div>';}
 function lifeNewObjective(c){var r=youRating(c,'classical')||1400;var tgt=Math.round((r+80)/50)*50;var opts=[
   {kind:'rating',target:tgt,text:'Reach '+tgt+' classical rating',reward:400},
   {kind:'win',text:'Win any tournament',reward:600},
@@ -12780,7 +12893,7 @@ function tourBusy(c){
 function tourRestRow(c,tr){
   const al=tourRestAllowance(tr);if(!al||tr.round>=tr.rounds)return '';
   const left=tourRestLeft(tr),ok=tourRestOk(tr),em=maxEnergy(c);
-  return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-top:10px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;flex-wrap:wrap">'+
+  return '<div class="row" id="restrow" style="justify-content:space-between;align-items:center;gap:8px;margin-top:10px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;flex-wrap:wrap">'+
     '<span class="small">⚡ Energy <b>'+Math.round(c.energy)+'</b>/'+em+' · 🛌 rest days '+left+' of '+al+
       ' <span class="dim">— '+(tr.round===0?'from after the first round':tr.restAt===tr.round?'taken; next, the round':left?'part of the event, no extra days':'all used')+'</span></span>'+
     '<button class="btn '+(ok&&c.energy<em?'sec':'ghost')+' sm" data-act="tourrest" '+(ok?'':'disabled')+'>🛌 Rest day</button></div>';
@@ -13414,9 +13527,13 @@ function careerMediaPanel(c){
     (r?'<button class="btn sec sm" data-act="drama" data-val="callout">😡 Call out '+esc(r.name.split(' ').pop())+'</button>'+
        ((r.intensity||1)>=2?'<button class="btn sec sm" data-act="drama" data-val="peace">🕊️ Make peace</button>':'')
       :'<button class="btn sec sm" data-act="drama" data-val="feud">🔥 Start a feud</button>')+
-    (r&&!busy?'<button class="btn sec sm" data-act="rivalmatch" '+((c.money||0)>=rivalStake(c)?'':'disabled')+'>⚔️ Money match vs '+esc(r.name.split(' ').pop())+' ('+money(rivalStake(c))+')</button>':'')+
-    '<button class="btn sec sm" data-act="careercommentate" '+((c.fame||0)>=10&&c.energy>=8&&!busy?'':'disabled')+'>🎙️ Commentate'+(bc?' the '+esc(bc.name):'')+((c.fame||0)<10?' (fame 10+)':'')+'</button>'+
-    '</div></div>';
+    (r&&!busy?'<button class="btn sec sm wrap" data-act="rivalmatch" '+((c.money||0)>=rivalStake(c)?'':'disabled')+'>⚔️ Money match vs '+esc(r.name.split(' ').pop())+' ('+money(rivalStake(c))+')</button>':'')+
+    '<button class="btn sec sm" data-act="careercommentate" '+((c.fame||0)>=10&&c.energy>=8&&!busy?'':'disabled')+'>🎙️ Commentate</button>'+
+    '</div>'+
+    // what the commentary button is for goes under it, so a long event name
+    // never pushes the button off the edge of the card on a phone
+    '<div class="dim small" style="margin-top:7px">🎙️ '+(bc?'On air this week: '+esc(bc.name):'No big event on air this week — a club broadcast')+
+      ((c.fame||0)<10?' · commentary needs fame 10 (you have '+Math.round(c.fame||0)+')':'')+(busy?' · not while you are playing an event':'')+'</div></div>';
   return h;
 }
 /* ================= SPONSORS =================
@@ -13785,7 +13902,9 @@ function hasAsset(c,k){return !!(c&&c.assets&&c.assets.indexOf(k)>=0);}
 function buyAsset(k){var c=store.career;lifeInit(c);var a=LIFE_BY[k];if(!a||hasAsset(c,k)||(c.money||0)<a.cost)return;c.money-=a.cost;c.assets.push(k);c.fame=Math.min(100,c.fame+(a.fame||0));if(k==='gym'||k==='house')c.energy=Math.min(maxEnergy(c),c.energy+10);pushNews(c,a.e,'You treated yourself to a '+a.n.toLowerCase()+'.');app.careerToast=a.e+' New purchase: '+a.n+'!';if((c.assets||[]).length>=6)unlockAch(c,'baller');save();render();}
 function careerLifestylePanel(c){
   var owned=c.assets||[];
-  var h='<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">💎 Lifestyle</div><div class="dim small">💰 '+(c.money||0).toLocaleString()+' · '+owned.length+'/'+LIFESTYLE.length+' owned</div></div>'+
+  if(!foldOpen('style')){var mine=LIFESTYLE.filter(function(a){return hasAsset(c,a.k);});
+    return foldCard('style','stylecard','💎 Lifestyle',(mine.length?mine.map(function(a){return a.e+' '+esc(a.n);}).join(' · '):'Nothing bought yet')+' · '+owned.length+' of '+LIFESTYLE.length+' owned',null,'Shop');}
+  var h='<div class="card" id="stylecard" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:700">💎 Lifestyle</div><div class="row" style="gap:8px;align-items:center"><span class="dim small">'+owned.length+'/'+LIFESTYLE.length+' owned</span>'+foldBtn('style',true)+'</div></div>'+
     '<div class="dim small" style="margin-top:4px">Spend your prize money & content income on real-life upgrades — most pay you back with energy, calm, better deals or fame.</div><div style="margin-top:6px">';
   h+=LIFESTYLE.map(function(a){var own=hasAsset(c,a.k),aff=(c.money||0)>=a.cost;return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--border)"><span class="small">'+a.e+' <b>'+esc(a.n)+'</b> <span class="dim">— '+esc(a.desc)+'</span></span>'+(own?'<span class="chip green">owned</span>':'<button class="btn '+(aff?'sec':'ghost')+' sm" data-act="buyasset" data-val="'+a.k+'" '+(aff?'':'disabled')+'>💰'+a.cost.toLocaleString()+'</button>')+'</div>';}).join('');
   return h+'</div></div>';}
@@ -15127,7 +15246,9 @@ function autoSummary(c){
 }
 function careerAutoPanel(c){
   var a=autoInit(c);var sum=autoSummary(c);
-  var h='<div class="card" style="margin-bottom:12px;border-color:#22d3ee55"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:700">🤖 Automation</div><div class="dim small">'+sum.count+' of '+AUTO_TOGGLES.length+' on</div></div>'+
+  if(!foldOpen('auto'))return foldCard('auto','autocard','🤖 Automation','Plan: '+sum.plan.e+' '+esc(sum.plan.n)+' · '+sum.count+' of '+AUTO_TOGGLES.length+' switches on',
+    '<button class="btn primary sm" data-act="autoday" '+(c.tour?'disabled':'')+'>▶ Play today for me</button>','Settings');
+  var h='<div class="card" id="autocard" style="margin-bottom:12px;border-color:#22d3ee55"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:700">🤖 Automation</div><div class="row" style="gap:8px;align-items:center"><span class="dim small">'+sum.count+' of '+AUTO_TOGGLES.length+' on</span>'+foldBtn('auto',true)+'</div></div>'+
     '<div class="dim small" style="margin-top:3px">Hand the routine parts over. Your plan decides how a day gets spent; the switches below look after the things you would only ever click “yes” to anyway.</div>';
   h+='<div class="dim small" style="margin:10px 0 5px;text-transform:uppercase;font-size:10px;letter-spacing:.08em">Day plan</div>'+
     '<div class="actgrid">'+AUTO_PLANS.map(function(pl){
@@ -15545,7 +15666,7 @@ function careerSeasonBanner(c){
   var r=c.seasonReview;if(!r)return '';
   var rd=(r.ratingFrom!=null&&r.ratingTo!=null)?(r.ratingTo-r.ratingFrom):null;
   var line=function(l,v,col){return '<div style="text-align:center;flex:1;min-width:66px"><div class="dim small">'+l+'</div><div style="font-weight:800;font-size:18px'+(col?';color:'+col:'')+'">'+v+'</div></div>';};
-  return '<div class="card" style="margin-bottom:12px;border-color:#f59e0b;background:linear-gradient(120deg,rgba(245,158,11,.14),transparent)">'+
+  return '<div class="card" id="seasoncard" style="margin-bottom:12px;border-color:#f59e0b;background:linear-gradient(120deg,rgba(245,158,11,.14),transparent)">'+
     '<div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:800">🗓️ Season '+r.season+' review</div><div class="row" style="gap:6px"><button class="btn sec sm" data-act="nav" data-val="magazine">📖 Read the issue</button><button class="btn ghost sm" data-act="seasondismiss">✕</button></div></div>'+
     '<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:9px">'+
       line('Games',r.games)+
@@ -15593,8 +15714,12 @@ function careerDayPanel(c){
   return h+'</div>';
 }
 function careerHomePanel(c){
-  var cur=homeIdx(c);
-  return '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:2px">🏠 Where you live</div>'+
+  var cur=homeIdx(c),hm0=HOMES[cur]||HOMES[0];
+  // debt is the one time the home matters right now, so it opens itself then
+  if(!foldOpen('home')&&!(c.debt>0))return '<div class="card" id="homecard" style="margin-bottom:12px"><div class="foldrow"><div class="fsum"><div style="font-weight:700">🏠 Where you live</div>'+
+    '<div class="dim small">'+hm0.e+' '+esc(hm0.n)+' · 💰'+hm0.rent+'/week · +'+hm0.rest+' energy a night'+(hm0.mood?' · '+(hm0.mood>0?'+':'')+hm0.mood+' mood':'')+'</div></div>'+
+    '<div class="fbtns">'+foldBtn('home',false,'Move')+'</div></div></div>';
+  return '<div class="card" id="homecard" style="margin-bottom:12px"><div class="foldrow" style="margin-bottom:2px"><div style="font-weight:700">🏠 Where you live</div>'+(c.debt>0?'':foldBtn('home',true))+'</div>'+
     '<div class="dim small" style="margin-bottom:6px">Rent comes out every week. A better place recovers more energy a night and lifts your mood — and it is the first thing you lose if the money runs out.</div>'+
     HOMES.map(function(hm,i){
       var lock=homeLocked(c,hm),here=i===cur;
@@ -15607,7 +15732,7 @@ function careerHomePanel(c){
     }).join('')+'</div>';
 }
 function careerLifePanel(c){var em=maxEnergy(c);
-  var h='<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">🧬 Life &amp; condition</div><div class="dim small">Age '+Math.floor(c.age)+' · Season '+(Math.floor((c.weeks||0)/52)+1)+' · 👥 '+(c.fans||0).toLocaleString()+'</div></div>';
+  var h='<div class="card" id="lifecard" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">🧬 Life &amp; condition</div><div class="dim small">Age '+Math.floor(c.age)+' · Season '+(Math.floor((c.weeks||0)/52)+1)+' · 👥 '+(c.fans||0).toLocaleString()+'</div></div>';
   h+='<div class="grid" style="grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:8px">'+
     '<div><div class="dim small">⚡ Energy '+Math.round(c.energy)+'/'+em+'</div>'+cbar(c.energy,em,'#22c55e')+'</div>'+
     '<div><div class="dim small">😖 Tilt '+Math.round(c.tilt)+(c.tilt>=60?' ⚠️':'')+'</div>'+cbar(c.tilt,100,'#f43f5e')+'</div>'+
@@ -15631,17 +15756,19 @@ function careerLifePanel(c){var em=maxEnergy(c);
   else if(c.energy<35)h+='<div class="dim small" style="margin-top:8px;color:#fcd34d">😴 Fatigued — you’ll start your next round with less time. Consider resting.</div>';
   return h+'</div>';}
 function careerTeamPanel(c){
-  var h='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:6px">🧑‍🏫 Team &amp; sponsors</div>';
+  var hire=foldOpen('team');
+  var h='<div class="card" id="teamcard" style="margin-bottom:12px"><div class="foldrow" style="margin-bottom:6px"><div style="font-weight:700">🧑‍🏫 Team &amp; sponsors</div>'+foldBtn('team',hire,hire?'Less':'Hire')+'</div>';
   if((c.coaches||[]).length)h+=c.coaches.map(function(co,i){return '<div class="row" style="justify-content:space-between;align-items:center;padding:4px 0"><span class="small">'+co.emoji+' <b>'+esc(co.name)+'</b> — '+esc(co.spec)+' <span class="dim">(💰'+co.salary+'/wk)</span></span><button class="btn ghost sm" data-act="firecoach" data-val="'+i+'">Release</button></div>';}).join('');
   else h+='<div class="dim small">No seconds yet — a coach costs a weekly salary but is worth it as you climb.</div>';
   var avail=COACH_TYPES.filter(function(t){return !hasCoach(c,t.spec);});
-  if(avail.length)h+='<div class="dim small" style="margin:8px 0 3px">Hire a second (one-off fee = 8 weeks’ salary, then their weekly wage at each event):</div>'+avail.map(function(t){var fee=t.salary*8;return '<div class="row" style="justify-content:space-between;align-items:center;padding:3px 0;gap:8px"><span class="small">'+t.emoji+' '+esc(t.spec)+' <span class="dim">— '+esc(t.desc)+'</span></span><button class="btn '+((c.money||0)>=fee?'sec':'ghost')+' sm" data-act="hirecoach2" data-val="'+esc(t.spec)+'" '+((c.money||0)>=fee?'':'disabled')+'>💰'+fee+'</button></div>';}).join('');
+  if(avail.length&&!hire)h+='<div class="dim small" style="margin-top:6px">'+avail.length+' kind'+(avail.length===1?'':'s')+' of second you could hire — ▾ Hire shows them and what they cost.</div>';
+  if(avail.length&&hire)h+='<div class="dim small" style="margin:8px 0 3px">Hire a second (one-off fee = 8 weeks’ salary, then their weekly wage at each event):</div>'+avail.map(function(t){var fee=t.salary*8;return '<div class="row" style="justify-content:space-between;align-items:center;padding:3px 0;gap:8px"><span class="small">'+t.emoji+' '+esc(t.spec)+' <span class="dim">— '+esc(t.desc)+'</span></span><button class="btn '+((c.money||0)>=fee?'sec':'ghost')+' sm" data-act="hirecoach2" data-val="'+esc(t.spec)+'" '+((c.money||0)>=fee?'':'disabled')+'>💰'+fee+'</button></div>';}).join('');
   h+='<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border)">';
   if(c.sponsor)h+='<div class="row" style="justify-content:space-between"><span class="small">🤝 <b>'+esc(c.sponsor.name)+'</b> — 💰'+c.sponsor.perWeek+'/wk</span><span class="dim small">'+c.sponsor.weeksLeft+' wks left</span></div>';
   h+='<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-top:4px"><span class="dim small">'+(!c.sponsor&&(sponsorOffers(c).length||c.sponsorRenew)?'🤝 A sponsor is waiting for an answer — ':'')+'Deals, offers and renewals are on the Media tab.</span><button class="btn ghost sm" data-act="careertab" data-val="media">🤝 Sponsors</button></div>';
   return h+'</div></div>';}
 function careerPressPanel(c){if(!c.pressPending)return '';var p=c.pressPending;
-  return '<div class="card" style="margin-bottom:12px;border-color:#7c5cff66"><div style="font-weight:700;margin-bottom:3px">🎤 Press conference — '+esc(p.event)+'</div><div class="dim small" style="margin-bottom:8px">You finished '+ordinal(p.place)+'. Give the reporters a quote:</div><div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sec sm" data-act="press" data-val="humble">🙏 Stay humble</button><button class="btn sec sm" data-act="press" data-val="confident">😎 Back yourself</button><button class="btn sec sm" data-act="press" data-val="spicy">🔥 Call out a rival</button></div></div>';}
+  return '<div class="card" id="presscard" style="margin-bottom:12px;border-color:#7c5cff66"><div style="font-weight:700;margin-bottom:3px">🎤 Press conference — '+esc(p.event)+'</div><div class="dim small" style="margin-bottom:8px">You finished '+ordinal(p.place)+'. Give the reporters a quote:</div><div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sec sm" data-act="press" data-val="humble">🙏 Stay humble</button><button class="btn sec sm" data-act="press" data-val="confident">😎 Back yourself</button><button class="btn sec sm" data-act="press" data-val="spicy">🔥 Call out a rival</button></div></div>';}
 function careerHoF(c){var f=c.hof||{};var v=f.verdict||legacyVerdict(c);var pc=f.persona||personaChip(c);return '<div style="max-width:720px;margin:0 auto"><h1>🏁 Career complete</h1><div class="card" style="margin-bottom:12px;border-color:var(--brand);text-align:center"><div style="font-size:34px;line-height:1">'+v.emoji+'</div><div style="font-weight:800;font-size:20px;margin:5px 0">'+esc(v.title)+'</div><div class="dim small" style="line-height:1.55">'+esc(v.blurb)+'</div>'+(pc?'<div class="small" style="margin-top:8px;color:var(--brand2)">'+pc+'</div>':'')+'</div><div class="muted small" style="margin-bottom:12px">'+esc(c.name)+' retired at age '+Math.floor(f.age||c.age)+' after '+(f.years||0)+' seasons on the circuit.</div><div class="card"><div class="row" style="flex-wrap:wrap">'+stat('Peak rating',f.peak||c.peak||'—','var(--brand2)')+stat('Top title',f.best||'—','var(--amber)')+stat('Earnings','💰'+((f.money||0).toLocaleString()),'var(--green)')+stat('Fans',(f.fans||0).toLocaleString(),'var(--text)')+'</div>'+((f.honors&&f.honors.length)?'<div style="margin-top:10px">Honours: '+f.honors.map(function(hn){return '<span class="chip green" style="margin:2px">'+esc(hn)+'</span>';}).join('')+'</div>':'')+(f.protege?'<div class="dim small" style="margin-top:10px">🧑‍🎓 Your protégé '+esc(f.protege.name)+' reached '+f.protege.peak+(f.protege.peak>=2500?' — a Grandmaster you made.':'.')+'</div>':'')+(f.allTime?'<div class="dim small" style="margin-top:10px">🐐 All-time rank: #'+(f.allTime||0).toLocaleString()+(f.gmsMade?' · '+f.gmsMade+' GM'+(f.gmsMade>1?'s':'')+' developed':'')+(f.broadcasts?' · '+f.broadcasts+' broadcasts':'')+'</div>':'')+'<div class="row" style="margin-top:14px;gap:8px;flex-wrap:wrap"><button class="btn primary" data-act="careernew">Begin a new career</button>'+
     (hallList().length?'<button class="btn sec" data-act="nav" data-val="hall">🏛️ The hall ('+hallList().length+')</button>':'')+
     '</div></div></div>';}
@@ -16028,6 +16155,8 @@ function wireYourEvent(c,tr,o){
    streaming card — changed things out of sight: it looked as if nothing had
    happened. The same line floats up above the bottom bar for five seconds. */
 function careerSnack(){
+  // a short note that is not career news (“press Back again to leave”), on any screen
+  if(app.snackMsg){const a=Date.now()-app.snackMsg.at;if(a<2600)return '<div class="snack" role="status" style="animation-delay:-'+(a+2400)+'ms">'+esc(app.snackMsg.t)+'</div>';app.snackMsg=null;}
   const t=app.careerToast;
   if(!t||app.view!=='career'){app._snackKey=null;return '';}
   if(app._snackKey!==t){app._snackKey=t;app._snackAt=Date.now();}
@@ -16343,16 +16472,27 @@ function careerRivalryPanel(c){
     '<div class="note" style="margin-top:8px;border-color:#a855f73d;background:#a855f714;color:#e9d5ff">💬 <b>'+esc(last)+':</b> “'+esc(rivalTaunt(c))+'”</div>'+
     '<div class="row" style="margin-top:9px;gap:6px;flex-wrap:wrap"><button class="btn sec sm" data-act="careerchal" data-val="'+c.rival.id+'">⚔️ Challenge '+esc(last)+'</button><button class="btn sec sm" data-act="rivalclapback">🎤 Clap back</button>'+((s>=4&&elite&&!c.tour)?'<button class="btn primary sm" data-act="rivalfinale">👑 Rivalry finale (6 games)</button>':'')+'</div></div>';
 }
-function careerAchievementsPanel(c){var got=c.achievements||[];
-  var chips=ACHIEVEMENTS.map(function(a){var on=got.includes(a.k);return '<span class="chip'+(on?' brand':'')+'" title="'+esc(a.d)+'" style="margin:2px'+(on?'':';opacity:.38')+'">'+a.e+' '+esc(a.n)+'</span>';}).join('');
-  return '<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">🏅 Achievements</div><div class="dim small">'+got.length+'/'+ACHIEVEMENTS.length+'</div></div><div style="margin-top:8px;line-height:2">'+chips+'</div></div>';}
+function careerAchievementsPanel(c){var got=c.achievements||[],all=foldOpen('ach');
+  var chips=ACHIEVEMENTS.filter(function(a){return all||got.includes(a.k);}).map(function(a){var on=got.includes(a.k);return '<span class="chip'+(on?' brand':'')+'" title="'+esc(a.d)+'" style="margin:2px'+(on?'':';opacity:.38')+'">'+a.e+' '+esc(a.n)+'</span>';}).join('');
+  return '<div class="card" id="achcard" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:700">🏅 Achievements</div><div class="row" style="gap:8px;align-items:center"><span class="dim small">'+got.length+'/'+ACHIEVEMENTS.length+'</span>'+foldBtn('ach',all,all?'Earned only':'All '+ACHIEVEMENTS.length)+'</div></div>'+
+    (chips?'<div style="margin-top:8px;line-height:2">'+chips+'</div>':'<div class="dim small" style="margin-top:6px">None yet — the first comes with your first tournament.</div>')+'</div>';}
 function careerNewsPanel(c){if(!(c.news&&c.news.length))return '';
   return '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:6px">📰 Circuit news</div>'+c.news.map(function(n){return '<div class="row" style="gap:8px;align-items:flex-start;padding:3px 0"><span>'+n.e+'</span><span class="small">'+esc(n.t)+'</span></div>';}).join('')+'</div>';}
 /* ===== Opening prep & puzzle tactics feed the career ===== */
 function repOpenings(){return (store.repertoire||[]).map(function(id){return byId.get(id);}).filter(Boolean);}
 function prepStrength(){var ids=store.repertoire||[];if(!ids.length)return 0;var ag=aggregate(repOpenings(),store.srs);var breadth=Math.min(1,ids.length/8);return Math.round((ag.mastery*0.75+breadth*0.25)*100);}
 function sharpnessLabel(r){return r>=2200?'Elite':r>=1900?'Sharp':r>=1600?'Solid':r>=1300?'Improving':'Raw';}
-function careerHintAllowance(){var r=(store.puzzle&&store.puzzle.rating)||1200;var n=r>=2200?3:r>=1900?2:r>=1500?1:0;return n+perkLevel(store.career,'converter')+(styleClass(store.career).cls==='Tactician'?1:0);}
+/* Tactical hints in career games are gone: a career game is played without
+   help, like a real one. What the puzzles, the Killer-instinct skill and the
+   Tactician class bought as hints they now buy as an edge over the board —
+   opponents play a little weaker against somebody tactically sharp. */
+function tacticalEdge(ply){
+  var c=store.career,pr=(store.puzzle&&store.puzzle.rating)||1200;
+  var e=Math.min(45,Math.max(0,(pr-1200)/16));                          // sharpness from the puzzles
+  if(ply>=20)e+=perkLevel(c,'converter')*12;                               // killer instinct, once the middlegame is on
+  if(styleClass(c).cls==='Tactician')e+=10;
+  return Math.round(e);
+}
 /* If the player drew the colour they prepared for, seed the game with their
    own repertoire line (the opponent follows it) and start them sharper. */
 function careerPrepBook(side){var c=store.career;if(!c.preppedOpening)return null;var o=byId.get(c.preppedOpening);if(!o)return null;
@@ -16369,30 +16509,95 @@ function careerPrepBook(side){var c=store.career;if(!c.preppedOpening)return nul
 function careerPrepare(id){var c=store.career;lifeInit(c);var o=byId.get(id);if(!o)return;c.preppedOpening=id;app.careerToast='📖 Prepared '+o.name+' — it pays off when you’re drawn '+(o.side==='white'?'White':'Black')+'.';save();render();}
 function careerArmNovelty(){var c=store.career;lifeInit(c);if(!c.preppedOpening||(c.noveltyCharge||0)<1||c.noveltyArmed)return;c.noveltyArmed=true;app.careerToast='🧪 Novelty armed — spring it when you’re drawn your prepared colour for a surprise the opponent can’t scout.';save();render();}
 /* ===== Opponent repertoires: every rival has a White & a Black opening you can scout and study ===== */
-function oppOpenings(name){var W=BUILT.filter(function(o){return o.side==='white';}),B=BUILT.filter(function(o){return o.side==='black';});var h=0,s=name||'';for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return {w:W.length?W[h%W.length].id:null,b:B.length?B[(h>>>3)%B.length].id:null};}
+/* ===== What opponents open with =====
+   Every opponent's openings used to be picked from their name by a hash, out
+   of all twenty-nine in the Library — so Carlsen met 1.e4 with Alekhine's
+   Defence and Caruana opened with the Alien Gambit. Now the famous names play
+   what they are known for: Fischer the Ruy Lopez and the Najdorf, Karpov the
+   Caro-Kann and the Queen's Indian, Botvinnik the French and the Dutch,
+   Kramnik the Catalan, Carlsen the Sveshnikov, Caruana the Petroff,
+   Vachier-Lagrave the Najdorf and the Grünfeld, Nakamura the King's Indian.
+   Where a player's choice is not well known — and for everybody else in the
+   field — it is picked from what is played at their level: main lines from
+   2500 up, anything at all in a club. A repertoire as Black is an answer to
+   1.e4 and one to 1.d4, and the one that fits your first move is the one
+   they play. */
+const KNOWN_REPS={
+  // today's players — only what they are well known for; the rest is picked
+  carlsen:{w:'ruy-lopez',b:'sicilian-sveshnikov',b2:'nimzo-indian'},
+  nakamura:{b:'sicilian-najdorf',b2:'kings-indian'},
+  caruana:{w:'ruy-lopez',b:'petrov',b2:'nimzo-indian'},
+  nepo:{w:'ruy-lopez',b2:'grunfeld'},
+  giri:{w:'catalan',b:'sicilian-najdorf'},
+  aronian:{w:'catalan',b2:'slav'},
+  dominguez:{w:'ruy-lopez',b:'sicilian-najdorf'},
+  mvl:{w:'ruy-lopez',b:'sicilian-najdorf',b2:'grunfeld'},
+  mamed:{w:'queens-gambit'},
+  ding:{w:'catalan'},
+  // the all-time greats
+  kasparov:{b:'sicilian-najdorf',b2:'kings-indian'},
+  fischer:{w:'ruy-lopez',b:'sicilian-najdorf',b2:'kings-indian'},
+  karpov:{w:'ruy-lopez',b:'caro-kann',b2:'queens-indian'},
+  lasker:{w:'ruy-lopez'},
+  capablanca:{w:'queens-gambit'},
+  alekhine:{b:'alekhine',b2:'slav'},
+  anand:{w:'ruy-lopez',b:'sicilian-najdorf',b2:'slav'},
+  kramnik:{w:'catalan',b:'petrov',b2:'slav'},
+  botvinnik:{w:'english',b:'french',b2:'dutch'},
+  tal:{w:'ruy-lopez',b:'sicilian-najdorf',b2:'kings-indian'},
+  morphy:{w:'italian'},
+  petrosian:{w:'english',b:'french'},
+  spassky:{w:'kings-gambit'},
+  smyslov:{w:'ruy-lopez',b2:'grunfeld'},
+  keres:{w:'ruy-lopez'},
+  korchnoi:{w:'english',b:'french'}
+};
+// what is played from 2500 up
+const REP_ELITE={w:['ruy-lopez','italian','queens-gambit','catalan','english'],
+  b:['sicilian-najdorf','petrov','caro-kann','french','sicilian-sveshnikov'],
+  b2:['nimzo-indian','queens-indian','slav','grunfeld','kings-indian']};
+let _repNames=null;
+function repIdOf(name){
+  if(!_repNames){_repNames={};WORLD_REAL.forEach(function(p){_repNames[p.name]=p.id;});LEGENDS.forEach(function(l){if(!_repNames[l.name])_repNames[l.name]=l.id;});}
+  return _repNames[name]||null;
+}
+function bookFirst(o){var n=o&&o.root&&o.root.children&&o.root.children[0];return n?(n.move||n.san||''):'';}
+function oppOpenings(name,rating){
+  var h=0,s=name||'';for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;
+  var id=repIdOf(name),K=(id&&KNOWN_REPS[id])||{};
+  if(rating==null){try{var wp=worldIndex().name[name];if(wp)rating=wpRating(wp,'classical');}catch(e){}}
+  var elite=!!id||(rating||0)>=2500;
+  var pool=function(k){
+    if(elite)return REP_ELITE[k].filter(function(x){return byId.get(x);});
+    return BUILT.filter(function(o){return k==='w'?o.side==='white':(o.side==='black'&&bookFirst(o)===(k==='b'?'e4':'d4'));}).map(function(o){return o.id;});};
+  var pick=function(k,sh){var L=pool(k);return L.length?L[(h>>>sh)%L.length]:null;};
+  var r={w:K.w||pick('w',0),b:K.b||pick('b',3),b2:K.b2||pick('b2',7),known:{w:!!K.w,b:!!K.b,b2:!!K.b2},real:!!id};
+  ['w','b','b2'].forEach(function(k){if(r[k]&&!byId.get(r[k]))r[k]=null;});
+  return r;
+}
 function studyReadiness(o){if(!o)return null;var has=inRep(o.id);var m=has?Math.round((progress(o,store.srs).mastery||0)*100):0;return {has:has,m:m};}
 function scoutCard(c,opp,label){
-  var reps=oppOpenings(opp.name),ow=reps.w?byId.get(reps.w):null,ob=reps.b?byId.get(reps.b):null;
-  function line(o){if(!o)return '';var r=studyReadiness(o);
+  var reps=oppOpenings(opp.name,opp.rating),ow=reps.w?byId.get(reps.w):null,ob=reps.b?byId.get(reps.b):null,ob2=reps.b2?byId.get(reps.b2):null;
+  function line(o,lab,known){if(!o)return '';var r=studyReadiness(o);
     var tag=!r.has?'<span class="chip" style="opacity:.6">not studied</span>':(r.m>=50?'<span class="chip green">prepared '+r.m+'%</span>':'<span class="chip amber">learning '+r.m+'%</span>');
     var tt=(c.theory&&c.theory[o.id]&&c.theory[o.id].named)?' <span class="chip brand">📜 your line</span>':(c.trendy===o.id?' <span class="chip">🔥 trendy</span>':(c.refuted===o.id?' <span class="chip" style="background:#7f1d1d44;border-color:#7f1d1d">⚠️ busted this season</span>':''));
-    return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--border);flex-wrap:wrap"><span class="small">'+sideDisc(o.side)+' <b>'+esc(o.name)+'</b> <span class="dim">'+esc(o.eco)+'</span> '+tag+tt+'</span><span class="row" style="gap:5px">'+(r.has?'':'<button class="btn ghost sm" data-act="addrep" data-val="'+o.id+'">+ Add</button>')+'<button class="btn sec sm" data-act="explore" data-val="'+o.id+'">📖 Study</button></span></div>';}
+    return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--border);flex-wrap:wrap"><span class="small"><span class="dim" style="display:inline-block;min-width:54px">'+lab+'</span> <b>'+esc(o.name)+'</b> <span class="dim">'+esc(o.eco)+'</span>'+(known?' <span class="chip green" style="font-size:10px">known for it</span>':'')+' '+tag+tt+'</span><span class="row" style="gap:5px">'+(r.has?'':'<button class="btn ghost sm" data-act="addrep" data-val="'+o.id+'">+ Add</button>')+'<button class="btn sec sm" data-act="explore" data-val="'+o.id+'">📖 Study</button></span></div>';}
   // somebody off the world list: who they are, and what has happened between you before
   var wp=opp.wid?buildWorld().filter(function(x){return x.id===opp.wid;})[0]:null,who='';
   if(wp){var h2=(c.h2h&&c.h2h[opp.name])||null,rk=(worldRanking(c,'classical').find(function(x){return x.id===wp.id;})||{}).rank;
     who='<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap"><span class="dim small">'+(opp.flag||'')+' '+esc(wp.fed)+' · age '+Math.floor(wpAge(wp))+(rk?' · world #'+rk.toLocaleString():'')+
       (h2&&(h2.w+h2.l+h2.d)?' · you are <b>'+h2.w+'–'+h2.d+'–'+h2.l+'</b> against them':' · you have not met before')+'</span>'+
       '<button class="btn ghost sm" data-act="profile" data-val="'+wp.id+'">👤 Profile</button></div>';}
-  return '<div class="card" style="margin-bottom:12px;border-color:#7c5cff55"><div class="row" style="gap:10px;align-items:center">'+oppAvatar(opp,40)+'<div style="font-weight:700;flex:1;min-width:0">🔍 Scouting — '+esc(label)+': '+(opp.title?esc(opp.title)+' ':'')+esc(opp.name)+' <span class="dim small">('+opp.rating+')</span></div></div>'+who+'<div class="dim small" style="margin:3px 0 2px">They favour these lines. Study them in the Library and you’ll start the game with a real edge when they appear.</div>'+line(ow)+line(ob)+'</div>';}
+  return '<div class="card" style="margin-bottom:12px;border-color:#7c5cff55"><div class="row" style="gap:10px;align-items:center">'+oppAvatar(opp,40)+'<div style="font-weight:700;flex:1;min-width:0">🔍 Scouting — '+esc(label)+': '+(opp.title?esc(opp.title)+' ':'')+esc(opp.name)+' <span class="dim small">('+opp.rating+')</span></div></div>'+who+'<div class="dim small" style="margin:3px 0 2px">'+(reps.real?'What they are known to play, and their likely choice where they are not.':'Their likely lines, from what is played at their level.')+' Study them in the Library and you’ll start the game with a real edge when they come up.</div>'+line(ow,'As White',reps.known.w)+line(ob,'vs 1.e4',reps.known.b)+line(ob2,'vs 1.d4',reps.known.b2)+'</div>';}
 function careerScoutPanel(c){if(!c.tour||c.tour.round>=c.tour.rounds)return '';var opp=c.tour.field[c.tour.round];return opp?scoutCard(c,opp,'Round '+(c.tour.round+1)):'';}
 function careerPrepPanel(c){
-  var ids=store.repertoire||[],ps=prepStrength(),pr=(store.puzzle&&store.puzzle.rating)||1200,hints=careerHintAllowance();
+  var ids=store.repertoire||[],ps=prepStrength(),pr=(store.puzzle&&store.puzzle.rating)||1200;
   var h='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:4px">🎓 Prep &amp; training</div>'+
-    '<div class="dim small" style="margin-bottom:8px">Your work elsewhere in the app counts here: study openings in the Library to prepare lines, and raise your Puzzles rating for in-game tactical help.</div>'+
+    '<div class="dim small" style="margin-bottom:8px">Your work elsewhere in the app counts here: study openings in the Library to prepare lines, and raise your Puzzles rating to be sharper at the board.</div>'+
     '<div class="grid" style="grid-template-columns:1fr 1fr;gap:6px 14px">'+
     '<div><div class="dim small">📚 Opening prep '+ps+'/100 · '+ids.length+' line'+(ids.length===1?'':'s')+'</div>'+cbar(ps,100,'#34d399')+'</div>'+
     '<div><div class="dim small">🧩 Tactical sharpness '+pr+' · '+sharpnessLabel(pr)+'</div>'+cbar(Math.max(0,Math.min(100,(pr-800)/16)),100,'#f59e0b')+'</div></div>'+
-    '<div class="dim small" style="margin-top:8px">🎯 You get <b>'+hints+'</b> tactical hint'+(hints===1?'':'s')+' per career game'+(hints===0?' — reach a 1500 puzzle rating to earn one':' (from your puzzle rating)')+'. A sharp tactician makes opponents play a touch weaker (−'+Math.round(Math.min(45,Math.max(0,(pr-1200)/16)))+' Elo), and a prepared line knocks ~80 more off them in the opening — you still earn full rating for the win. Solving puzzles also keeps your form up.</div>';
+    '<div class="dim small" style="margin-top:8px">🎯 There is no help at the board in a career game — no hints, no evaluation. Being sharp is what helps: your tactics make opponents play weaker (−'+tacticalEdge(0)+' Elo now'+(tacticalEdge(40)>tacticalEdge(0)?', −'+tacticalEdge(40)+' from the middlegame':'')+'), and a prepared line knocks ~80 more off them in the opening. You still earn full rating for the win, and solving puzzles keeps your form up.</div>';
   if(!ids.length)h+='<div class="dim small" style="margin-top:8px">Add openings to your repertoire in the Library, then prepare them here for your matches.</div>';
   else if(c.preppedOpening){var po=byId.get(c.preppedOpening);h+='<div class="row" style="margin-top:10px;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span class="chip green">📕 Prepared: '+esc(po?po.name:'line')+' ('+(po&&po.side==='white'?'as White':'as Black')+')</span><button class="btn ghost sm" data-act="careerprepclear">Clear</button></div><div class="dim small" style="margin-top:4px">When you’re drawn that colour your opponent walks into your line and you start with a form boost.</div>';
     h+='<div class="row" style="margin-top:8px;align-items:center;gap:8px;flex-wrap:wrap">'+(c.noveltyArmed?'<span class="chip brand">🧪 Novelty armed — an uncounterable surprise</span>':((c.noveltyCharge||0)>0?'<button class="btn sec sm" data-act="careernovelty">🧪 Cook up a novelty</button><span class="dim small">a home-prepared surprise: a big opening edge that can’t be scouted</span>':'<span class="dim small">🧪 Novelty recharging — ready in '+(c.noveltyCd||0)+' event'+((c.noveltyCd||0)===1?'':'s')+'</span>'))+'</div>';}
@@ -16405,7 +16610,7 @@ const PERKS=[
   {k:'clock',e:'⏱️',n:'Time scrambler',cost:30,max:3,d:'Start every round with a time cushion (bigger per level)'},
   {k:'stamina',e:'💪',n:'Marathon stamina',cost:35,max:3,d:'Energy drains slower (more per level)'},
   {k:'prepmaster',e:'📕',n:'Deep preparation',cost:40,max:3,d:'Prepared lines hit harder in the opening (more per level)'},
-  {k:'converter',e:'🎯',n:'Killer instinct',cost:45,max:3,d:'+1 tactical hint per career game, per level'},
+  {k:'converter',e:'🎯',n:'Killer instinct',cost:45,max:3,d:'Opponents crack sooner: −12 Elo for them from move 10 of a career game, per level'},
   {k:'marketable',e:'⭐',n:'Marketable',cost:30,max:3,d:'More fans &amp; streaming income (more per level)'},
 ];
 const PERK_BY={};PERKS.forEach(function(p){PERK_BY[p.k]=p;});
@@ -16415,10 +16620,10 @@ function perkMax(k){var p=PERK_BY[k];return (p&&p.max)||1;}
 function perkNextCost(c,k){var p=PERK_BY[k];if(!p)return null;var lvl=perkLevel(c,k);if(lvl>=perkMax(k))return null;return p.cost*(lvl+1);}
 function marketMul(c){var l=perkLevel(c,'marketable');return l?1+(0.40+0.25*(l-1)):1;}
 function addXp(c,n){if(c){if(c.setup&&styleClass(c).cls==='Universalist')n=Math.round(n*1.15);c.xp=(c.xp||0)+n;}}
-function buyPerk(k){var c=store.career;lifeInit(c);var p=PERK_BY[k];if(!p)return;var lvl=perkLevel(c,k);if(lvl>=perkMax(k))return;var cost=perkNextCost(c,k);if((c.xp||0)<cost)return;c.xp-=cost;if(Array.isArray(c.perks)){var m={};c.perks.forEach(function(x){m[x]=1;});c.perks=m;}c.perks[k]=lvl+1;if(k==='converter')app.careerHintsLeft=(app.careerHintsLeft||0)+1;app.careerToast=lvl?('⬆️ '+p.n+' upgraded to Lv '+(lvl+1)+'!'):('✨ Unlocked perk: '+p.n+'!');pushNews(c,p.e,p.n+' → level '+(lvl+1));save();render();}
+function buyPerk(k){var c=store.career;lifeInit(c);var p=PERK_BY[k];if(!p)return;var lvl=perkLevel(c,k);if(lvl>=perkMax(k))return;var cost=perkNextCost(c,k);if((c.xp||0)<cost)return;c.xp-=cost;if(Array.isArray(c.perks)){var m={};c.perks.forEach(function(x){m[x]=1;});c.perks=m;}c.perks[k]=lvl+1;app.careerToast=lvl?('⬆️ '+p.n+' upgraded to Lv '+(lvl+1)+'!'):('✨ Unlocked perk: '+p.n+'!');pushNews(c,p.e,p.n+' → level '+(lvl+1));save();render();}
 function careerPerksPanel(c){
   var owned=PERKS.reduce(function(s,p){return s+perkLevel(c,p.k);},0),tot=PERKS.reduce(function(s,p){return s+perkMax(p.k);},0);
-  var h='<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">🌟 Skills &amp; progression</div><div class="dim small">XP '+(c.xp||0)+' · '+owned+'/'+tot+' levels'+((c.skillPts||0)>0?' · <span style="color:var(--amber)">★ '+c.skillPts+'</span>':'')+'</div></div>'+
+  var h='<div class="card" id="perkscard" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">🌟 Skills &amp; progression</div><div class="dim small">XP '+(c.xp||0)+' · '+owned+'/'+tot+' levels'+((c.skillPts||0)>0?' · <span style="color:var(--amber)">★ '+c.skillPts+'</span>':'')+'</div></div>'+
     '<div class="dim small" style="margin-top:4px">Earn XP from games &amp; events, or spend ★ skill points from levelling up, to upgrade permanent skills — each level is stronger and costs more.</div><div style="margin-top:6px">';
   h+=PERKS.map(function(p){var lvl=perkLevel(c,p.k),mx=perkMax(p.k),cost=perkNextCost(c,p.k),aff=cost!=null&&(c.xp||0)>=cost;
     var pips='';for(var i=0;i<mx;i++)pips+='<span style="font-size:9px;margin:0 1px;color:'+(i<lvl?'var(--brand2)':'#334155')+'">●</span>';
@@ -16634,9 +16839,11 @@ function careerProfilePanel(c){
 /* ===== Exhibition matches against the all-time greats ===== */
 function startLegend(id){var c=store.career;lifeInit(c);if(c.tour)return;var L=LEGENDS.find(function(x){return x.id===id;});if(!L)return;
   var rt=L.r,opp={name:L.name,rating:rt,title:'GM',flag:'🏆',id:'legend_'+id,style:pickStyle()};
-  app.careerFinish=null;app.careerLegend=L.name;
+  app.careerFinish=null;
   var side=Math.random()<0.5?'w':'b';
-  startPlay(new Chess().fen(),side,null,'🎭 Exhibition vs '+L.name+' ('+rt+')',{tc:tcById(FORMAT_TC['classical']||'30+20'),careerOpp:'oneoff',careerElo:rt,roundOpp:opp,oneoff:'classical'});
+  var oe=oppBookEdge(opp,side);
+  startPlay(new Chess().fen(),side,null,'🎭 Exhibition vs '+L.name+' ('+rt+')',{tc:tcById(FORMAT_TC['classical']||'30+20'),careerOpp:'oneoff',careerElo:rt,roundOpp:opp,oneoff:'classical',legend:L.name,book:oe?oe.book:null,bookNode:oe?oe.bookNode:null});
+  app.careerStudyEdge=oe?oe.studyEdge:0;oppBookAlt(oe);
   app.careerBanter={who:(L.name||'').split(' ').pop(),line:pick(['An honour. Now show me what you’ve got.','Let’s see if you belong at this table.','Play well — history is watching.'])};
   applyCareerCondition();}
 function careerLegendsPanel(c){
@@ -16739,11 +16946,15 @@ function careerCalendarPanel(c){
   const evs=calendarEvents(c).filter(function(t){return done.indexOf(t.id)>=0||!tourLocked(t,c,true)||t.cycle;});
   let next=-1;
   evs.forEach(function(t,i){if(next<0&&done.indexOf(t.id)<0&&!tourLocked(t,c,true)&&(EVENT_WEEK[t.id]>w||!calendarLock(t,c)))next=i;});
-  let h='<div class="card" style="padding:0;margin-bottom:12px"><div style="padding:11px 13px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">'+
-    '<div style="font-weight:700">📅 Season '+S+' · '+seasonYear(c)+'</div><div class="dim small">week '+w+' of 52</div></div>'+
-    '<div class="dim small" style="padding:8px 13px 2px">Named events are held in their week of the year. The Olympiad, the Candidates and the title match are in even years, the World Cup and the Grand Swiss in odd ones. Opens and round-robins run every week.</div>';
+  // folded, the next few still to come; the whole season behind ▾
+  const all=foldOpen('cal'),ahead=evs.filter(function(t){return done.indexOf(t.id)<0&&(EVENT_WEEK[t.id]>=w||!tourLocked(t,c));});
+  const show=all?evs:ahead.slice(0,4);
+  let h='<div class="card" id="calcard" style="padding:0;margin-bottom:12px"><div style="padding:11px 13px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px">'+
+    '<div><div style="font-weight:700">📅 Season '+S+' · '+seasonYear(c)+'</div><div class="dim small">week '+w+' of 52</div></div>'+(evs.length>show.length||all?foldBtn('cal',all,all?'Next few':'Whole season ('+evs.length+')'):'')+'</div>'+
+    (all?'<div class="dim small" style="padding:8px 13px 2px">Named events are held in their week of the year. The Olympiad, the Candidates and the title match are in even years, the World Cup and the Grand Swiss in odd ones. Opens and round-robins run every week.</div>':'');
   if(!evs.length)h+='<div class="dim small" style="padding:8px 13px 11px">Nothing on the circuit for you yet this season — the opens are where a rating is made.</div>';
-  evs.forEach(function(t,i){
+  else if(!show.length)h+='<div class="dim small" style="padding:8px 13px 11px">Nothing left for you this season — the opens run every week.</div>';
+  show.forEach(function(t){const i=evs.indexOf(t);
     const wk=EVENT_WEEK[t.id],isDone=done.indexOf(t.id)>=0,other=tourLocked(t,c,true),cal=calendarLock(t,c),open=!other&&!cal;
     const when=isDone?'played':open?'<b style="color:var(--green)">this week</b>':wk<w?'passed':('in '+(wk-w)+' week'+(wk-w===1?'':'s'));
     const right=isDone?'<span class="chip green" style="font-size:10px">✓</span>'
@@ -16751,7 +16962,7 @@ function careerCalendarPanel(c){
       :other?'<span class="dim small" style="max-width:120px;text-align:right">🔒 '+esc(other)+'</span>'
       :(wk>w&&!c.tour)?'<button class="btn '+(i===next?'sec':'ghost')+' sm" data-act="calwait" data-val="'+wk+'" title="Live the weeks until it starts">⏩ Go to week '+wk+'</button>'
       :'<span class="dim small">—</span>';
-    h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 13px;border-top:1px solid var(--border)'+(i===next?';background:rgba(96,165,250,.10)':isDone||(wk<w&&!open)?';opacity:.5':'')+'">'+
+    h+='<div id="cal-'+t.id+'" style="display:flex;align-items:center;gap:10px;padding:8px 13px;border-top:1px solid var(--border)'+(i===next?';background:rgba(96,165,250,.10)':isDone||(wk<w&&!open)?';opacity:.5':'')+'">'+
       '<div class="dim small" style="width:38px;text-align:center">wk'+wk+'</div>'+
       '<div style="font-size:18px;width:24px;text-align:center">'+(isDone?'✅':t.emoji)+'</div>'+
       '<div style="flex:1;min-width:0"><div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(t.name)+'</div><div class="dim small">'+when+' · field '+t.avg+'</div></div>'+
@@ -16841,7 +17052,7 @@ const DILEMMAS=[
 ];
 function maybeDilemma(c){if(c.dilemma||c.scandal)return;if((c.played||0)<8)return;if(Math.random()<0.16){var d=pick(DILEMMAS);c.dilemma={id:d.id};pushNews(c,d.e,'A career crossroads: '+d.q);toastAdd(d.e+' A decision awaits in your career hub.');}}
 function careerDilemmaPanel(c){if(!c.dilemma)return '';var d=DILEMMAS.find(function(x){return x.id===c.dilemma.id;});if(!d)return '';
-  return '<div class="card" style="margin-bottom:12px;border-color:#a855f7"><div style="font-weight:700;margin-bottom:3px">'+d.e+' A career crossroads</div><div class="dim small" style="margin-bottom:8px">'+esc(d.q)+'</div><div class="row" style="gap:6px;flex-wrap:wrap">'+
+  return '<div class="card" id="dilemmacard" style="margin-bottom:12px;border-color:#a855f7"><div style="font-weight:700;margin-bottom:3px">'+d.e+' A career crossroads</div><div class="dim small" style="margin-bottom:8px">'+esc(d.q)+'</div><div class="row" style="gap:6px;flex-wrap:wrap">'+
     d.opts.map(function(o,i){return '<button class="btn sec sm" data-act="dilemma" data-val="'+i+'">'+esc(o.t)+'</button>';}).join('')+'</div></div>';}
 function dilemmaChoose(i){var c=store.career;lifeInit(c);if(!c.dilemma)return;var d=DILEMMAS.find(function(x){return x.id===c.dilemma.id;});if(!d)return;var o=d.opts[+i];if(!o)return;
   var msg=o.ap(c);c.dilemma=null;app.careerToast=d.e+' '+msg;pushNews(c,d.e,msg);checkAchievements(c);save();render();}
@@ -16904,7 +17115,7 @@ function careerRoadmapPanel(c){
 }
 function careerQuestPanel(c){
   var q=questsEnsure();var done=q.items.filter(function(it){return it.claimed;}).length;
-  var h='<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">🗓️ Daily quests</div><div class="dim small">'+done+'/'+q.items.length+' claimed · resets daily</div></div>';
+  var h='<div class="card" id="questcard" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">🗓️ Daily quests</div><div class="dim small">'+done+'/'+q.items.length+' claimed · resets daily</div></div>';
   h+=q.items.map(function(it){
     var pct=Math.round(100*Math.min(it.prog,it.goal)/it.goal);var ready=it.prog>=it.goal&&!it.claimed;
     return '<div style="padding:7px 0;border-top:1px solid var(--border)"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><span class="small">'+it.emoji+' '+esc(it.text)+' <span class="dim">('+Math.min(it.prog,it.goal)+'/'+it.goal+')</span></span>'+(it.claimed?'<span class="chip green">✓ Claimed</span>':(ready?'<button class="btn primary sm" data-act="questclaim" data-val="'+it.id+'">Claim 💰'+it.cash+' · +'+it.xp+'xp</button>':'<span class="dim small">💰'+it.cash+' · +'+it.xp+'xp</span>'))+'</div><div class="evalbar" style="margin-top:5px"><i style="width:'+pct+'%"></i></div></div>';
@@ -16919,7 +17130,7 @@ function claimDaily(){var c=store.career;lifeInit(c);if(!dailyAvailable(c))retur
   app.careerToast='📅 Daily bonus claimed — '+b.streak+'-day streak: +💰'+b.amt+(b.xp?' & +'+b.xp+' XP':'');
   pushNews(c,'📅','Daily check-in — '+b.streak+'-day streak (+💰'+b.amt+').');save();render();}
 function careerDailyPanel(c){if(!dailyAvailable(c))return '';var b=dailyBonusAmt(dayStreak());
-  return '<div class="card" style="margin-bottom:12px;border-color:#22c55e;background:linear-gradient(90deg,rgba(34,197,94,.12),transparent)"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-weight:700">📅 Daily reward ready! <span class="dim small">'+b.streak+'-day streak · +💰'+b.amt+(b.xp?' &amp; +'+b.xp+' XP':'')+'</span></span><button class="btn primary sm" data-act="claimdaily">Claim</button></div></div>';}
+  return '<div class="card" id="dailycard" style="margin-bottom:12px;border-color:#22c55e;background:linear-gradient(90deg,rgba(34,197,94,.12),transparent)"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-weight:700">📅 Daily reward ready! <span class="dim small">'+b.streak+'-day streak · +💰'+b.amt+(b.xp?' &amp; +'+b.xp+' XP':'')+'</span></span><button class="btn primary sm" data-act="claimdaily">Claim</button></div></div>';}
 /* ===== Simulate a tournament game from the ratings instead of playing it out ===== */
 /* How well somebody off the list actually plays — their rating is only what
    their results say. Anybody else plays at their rating. */
@@ -17181,8 +17392,25 @@ function oppAvatar(opp,size){
   if(r>=2600&&!AV_ACC_LOCK[a.acc])a.acc=(hashStr(String(key))%2)?'laurel':a.acc;
   return avatarChar(a,size,oppRing(opp),null);
 }
+/* ===== Folded cards =====
+   A few cards are big and rarely needed: the avatar editor, the automation
+   switches, the cosmetic unlocks, the full list of achievements, the simul and
+   park menus, the season's calendar. Folded, each is its heading, one line of
+   what is inside and the button used most; ▾ opens the rest, and a card stays
+   open or shut the way it was left. Going to one from the inbox opens it. */
+const FOLD_DEF={avatar:false,auto:false,unlocks:false,ach:false,simul:false,park:false,cal:false,home:false,team:false,style:false};
+const FOLD_OF={avatarcard:'avatar',autocard:'auto',unlockcard:'unlocks',achcard:'ach',simulcard:'simul',parkcard:'park',calcard:'cal',teamcard:'team',stylecard:'style'};
+function foldOpen(k){var f=store.settings.fold||{};return f[k]!=null?!!f[k]:!!FOLD_DEF[k];}
+function foldBtn(k,open,label){return '<button class="btn ghost sm" data-act="fold" data-val="'+k+'" aria-expanded="'+(!!open)+'">'+(open?'▴ '+(label||'Less'):'▾ '+(label||'Open'))+'</button>';}
+function foldCard(k,id,title,sum,btns,label){
+  return '<div class="card" id="'+id+'" style="margin-bottom:12px"><div class="foldrow"><div class="fsum"><div style="font-weight:700">'+title+'</div>'+(sum?'<div class="dim small">'+sum+'</div>':'')+'</div>'+
+    '<div class="fbtns">'+(btns||'')+foldBtn(k,false,label)+'</div></div></div>';
+}
 function careerAvatarPanel(c){
   var a=avatarOf(c);
+  if(!foldOpen('avatar'))return '<div class="card" id="avatarcard" style="margin-bottom:12px"><div class="foldrow"><div class="row" style="gap:11px;align-items:center;min-width:0">'+playerAvatar(c,52)+
+    '<div class="fsum"><div style="font-weight:700">🧑‍🎨 Your avatar</div><div class="dim small">On the pairing sheet, before every game and on the leaderboard.</div></div></div>'+
+    '<div class="fbtns"><button class="btn ghost sm" data-act="avrandom">🎲 Randomise</button>'+foldBtn('avatar',false,'Edit look')+'</div></div></div>';
   var rows=AV_PARTS.map(function(p){
     var key=p[0],obj=p[1],label=p[2];
     var chips=Object.keys(obj).map(function(k){
@@ -17194,13 +17422,47 @@ function careerAvatarPanel(c){
     }).join(' ');
     return '<div style="padding:7px 0;border-top:1px solid var(--border)"><div class="dim small" style="margin-bottom:4px">'+label+'</div><div class="row" style="gap:5px;flex-wrap:wrap">'+chips+'</div></div>';
   }).join('');
-  return '<div class="card" style="margin-bottom:12px">'+
+  return '<div class="card" id="avatarcard" style="margin-bottom:12px">'+
     '<div class="row" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div style="font-weight:700">🧑‍🎨 Your avatar</div>'+
-      '<div class="row" style="gap:6px"><button class="btn ghost sm" data-act="avrandom">🎲 Randomise</button><button class="btn ghost sm" data-act="avstyle">'+(c.avatarStyle==='piece'?'🧑 Character look':'♟ Classic piece look')+'</button></div></div>'+
+      '<div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn ghost sm" data-act="avrandom">🎲 Randomise</button><button class="btn ghost sm" data-act="avstyle">'+(c.avatarStyle==='piece'?'🧑 Character look':'♟ Classic piece look')+'</button>'+foldBtn('avatar',true,'Done')+'</div></div>'+
     '<div class="row" style="gap:14px;align-items:center;margin-top:9px"><div>'+playerAvatar(c,84)+'</div>'+
       '<div class="dim small" style="flex:1;min-width:0">This is you — on the pairing sheet, in the matchup strip before every game, and on the leaderboard. The ring colour is your highest title, the number is your level, and some accessories have to be earned.</div></div>'+
     (c.avatarStyle==='piece'?'<div class="dim small" style="margin-top:9px;padding-top:8px;border-top:1px solid var(--border)">You’re using the classic piece avatar, which follows your playing style. Switch to the character look to customise it.</div>':rows)+
     '</div>';
+}
+/* What the game screen is called. It said “Play vs Stockfish” for every game,
+   a round of the Candidates and a stream against a viewer included. Now a
+   career game names the event and the round — or the match game, the league
+   match, the park, the show — and only a free game against the engine is
+   called that. */
+function playHeading(){
+  if(app.pass)return 'Two players';
+  if(!app.careerOpp)return 'Play vs Stockfish';
+  const c=store.career||{},tr=c.tour;
+  if(app.careerOpp==='stream'){const K=streamShowBy(app.streamShow||'game');return (K?K.e+' '+K.n:'📺 Live stream')+' · online';}
+  if(app.careerOpp==='park')return '🏙️ The chess park · blitz for cash';
+  if(app.careerTour&&tr){
+    const n=Math.min(tr.round+1,tr.rounds);
+    if(tr.ko&&typeof KO_NAMES!=='undefined'&&KO_NAMES[tr.ko.round])return (tr.emoji||'🏟️')+' '+tr.name+' · '+KO_NAMES[tr.ko.round]+', game '+(tr.round%2+1);
+    if(tr.kind==='simul')return (tr.emoji||'🎪')+' '+tr.name+' · board '+n+'/'+tr.rounds;
+    return (tr.emoji||'🏟️')+' '+tr.name+' · '+(tr.kind==='match'?'game ':'round ')+n+'/'+tr.rounds;
+  }
+  // a team match: the two clubs and your board ("🛡️ Rooks vs Knights · board 1")
+  if(app.careerPro||app.careerLeague){const t=app.playTitle||'',i=t.lastIndexOf(' vs ');
+    return i>0&&/ · board /.test(t)?t.slice(0,i):(app.careerPro?'✍️ League match':'🛡️ Club league match');}
+  if(app.careerLegend)return '🎭 Exhibition vs '+app.careerLegend;
+  if(app.careerOneoff)return '🎯 '+fmtLabel(app.careerOneoff)+' challenge';
+  return '🎯 Challenge';
+}
+/* The chip beside it in a career game: what you bring to the board, not the
+   opponent again — the matchup strip underneath already shows who that is. */
+function playNote(){
+  const n=[];
+  if(app.careerPrepUsed)n.push(app.careerNovelty?'🧪 your novelty is ready':'📕 your prepared line');
+  else if((app.careerStudyEdge||0)>=0.5)n.push('🔍 you studied their line');
+  if(app.careerOpp==='park'&&app.parkBet)n.push('💰'+app.parkBet.stake+' on the table');
+  if(app.careerOpp==='stream'&&app.streamShow==='guess'&&app.playStatus!=='over')n.push('rating hidden');
+  return n.join(' · ');
 }
 function oppRatingShown(r){return (app.streamShow==='guess'&&app.playStatus!=='over')?'??':r;}
 function careerMatchupStrip(){var c=store.career,opp=app.careerRoundOpp;if(!opp)return '';
@@ -17228,13 +17490,13 @@ function careerCharacterPanel(c){
 /* ===== Class passives, level-up skill points ===== */
 const CLASS_PASSIVE={
   Gambiteer:'Prepared lines & novelties bite 25% harder',
-  Tactician:'+1 tactical hint in every game',
+  Tactician:'Opponents play 10 Elo weaker against your tactics',
   Fortress:'Tilt rises 20% slower after losses',
   Technician:'Recover extra energy after every event',
   Universalist:'+15% XP from everything'};
 function classPassive(c){var cl=styleClass(c).cls;return {cls:cl,desc:CLASS_PASSIVE[cl]||''};}
 function checkLevelUp(c){var L=charLevel(c),seen=c.lvlSeen||1;if(L>seen){var d=L-seen;c.skillPts=(c.skillPts||0)+d;c.lvlSeen=L;toastAdd('⭐ Level up — Lv '+L+'! +'+d+' skill point'+(d>1?'s':''));pushNews(c,'⭐','You reached level '+L+' (+'+d+' skill point'+(d>1?'s':'')+').');if(typeof confetti==='function')confetti(80);}}
-function spendSkillPoint(k){var c=store.career;lifeInit(c);var p=PERK_BY[k];if(!p||(c.skillPts||0)<=0)return;var lvl=perkLevel(c,k);if(lvl>=perkMax(k))return;if(Array.isArray(c.perks)){var m={};c.perks.forEach(function(x){m[x]=1;});c.perks=m;}c.perks[k]=lvl+1;c.skillPts--;if(k==='converter')app.careerHintsLeft=(app.careerHintsLeft||0)+1;app.careerToast='⭐ Skill point spent: '+p.n+' → Lv '+(lvl+1)+'!';pushNews(c,'⭐',p.n+' → level '+(lvl+1)+' (skill point)');save();render();}
+function spendSkillPoint(k){var c=store.career;lifeInit(c);var p=PERK_BY[k];if(!p||(c.skillPts||0)<=0)return;var lvl=perkLevel(c,k);if(lvl>=perkMax(k))return;if(Array.isArray(c.perks)){var m={};c.perks.forEach(function(x){m[x]=1;});c.perks=m;}c.perks[k]=lvl+1;c.skillPts--;app.careerToast='⭐ Skill point spent: '+p.n+' → Lv '+(lvl+1)+'!';pushNews(c,'⭐',p.n+' → level '+(lvl+1)+' (skill point)');save();render();}
 /* ===== The Grand Chess Circuit: a season-long points race across elite events,
    à la the FIDE Circuit / Grand Chess Tour — win it to be crowned champion and
    qualify for the Candidates. ===== */
@@ -17266,23 +17528,23 @@ function careerCircuitPanel(c){if(youRating(c,'classical')==null)return '';if(!c
    no LLM, no key. ===== */
 function careerAdvisor(c){
   var R=[],yr=youRating(c,'classical'),cm=conditionMod(c),inTour=!!c.tour;
-  if(c.scandal)R.push({p:5,e:'🚨',t:'A fair-play accusation is open — respond to protect your reputation.'});
-  if(c.dilemma)R.push({p:6,e:'⚖️',t:'A career crossroads is waiting on your decision.'});
-  if(c.injury)R.push({p:8,e:'🤕',t:'You’re carrying '+esc(c.injury.type)+' ('+c.injury.weeksLeft+' wks) — it’s cutting your energy.',act:((c.money||0)>=200*(c.injury.sev||1)?{label:'🩹 Physio',act:'treatinjury'}:{label:'🛌 Rest',act:'careerrest'})});
-  if((c.burnout||0)>=60)R.push({p:10,e:'🔥',t:'You’re badly burnt out — a sabbatical resets it before it wrecks your results.',act:{label:'🌴 Sabbatical',act:'sabbatical'}});
-  else if((c.tilt||0)>=60)R.push({p:12,e:'😖',t:'You’re on tilt — rest or hit a camp before your next game.',act:{label:'🛌 Rest',act:'careerrest'}});
+  if(c.scandal)R.push({p:5,k:'scandal',e:'🚨',t:'A fair-play accusation is open — respond to protect your reputation.'});
+  if(c.dilemma)R.push({p:6,k:'dilemma',e:'⚖️',t:'A career crossroads is waiting on your decision.'});
+  if(c.injury)R.push({p:8,k:'injury',e:'🤕',t:'You’re carrying '+esc(c.injury.type)+' ('+c.injury.weeksLeft+' wks) — it’s cutting your energy.',act:((c.money||0)>=200*(c.injury.sev||1)?{label:'🩹 Physio',act:'treatinjury'}:{label:'🛌 Rest',act:'careerrest'})});
+  if((c.burnout||0)>=60)R.push({p:10,k:'burnout',e:'🔥',t:'You’re badly burnt out — a sabbatical resets it before it wrecks your results.',act:{label:'🌴 Sabbatical',act:'sabbatical'}});
+  else if((c.tilt||0)>=60)R.push({p:12,k:'tilt',e:'😖',t:'You’re on tilt — rest or hit a camp before your next game.',act:{label:'🛌 Rest',act:'careerrest'}});
   if(inTour&&c.tour.round<c.tour.rounds){var note=conditionNote(c);R.push({p:14,e:'♟️',t:'Round '+(c.tour.round+1)+'/'+c.tour.rounds+' of '+esc(c.tour.name)+' — you’re '+note.t+' ('+(cm>=0?'+':'')+cm+' Elo). '+(cm>=8?'Good time to play it out for full value.':cm<=-12?'Consider simulating to limit the damage.':'Play on, or simulate.'),act:{label:'▶ Play round',act:'careerplay'}});}
   else if(c.energy<30)R.push({p:15,e:'😴',t:'Low energy ('+Math.round(c.energy)+') — rest before entering your next event.',act:{label:'🛌 Rest',act:'careerrest'}});
-  if(dailyAvailable(c))R.push({p:18,e:'📅',t:'Your daily reward is ready — free money & XP.',act:{label:'Claim',act:'claimdaily'}});
-  if((c.skillPts||0)>0)R.push({p:20,e:'⭐',t:'You have '+c.skillPts+' skill point'+(c.skillPts>1?'s':'')+' to spend — upgrade a skill in the Skills panel.'});
+  if(dailyAvailable(c))R.push({p:18,k:'daily',e:'📅',t:'Your daily reward is ready — free money & XP.',act:{label:'Claim',act:'claimdaily'}});
+  if((c.skillPts||0)>0)R.push({p:20,k:'skill',e:'⭐',t:'You have '+c.skillPts+' skill point'+(c.skillPts>1?'s':'')+' to spend — upgrade a skill in the Skills panel.'});
   if(!inTour&&yr!=null){var best=null;Object.keys(INVITE_EVENTS).forEach(function(id){var t=TOURNAMENTS.find(function(x){return x.id===id;});if(t&&!tourLocked(t,c)){var fee=appearanceFee(t,c);if(!best||fee>best.fee)best={t:t,fee:fee};}});
-    if(best)R.push({p:22,e:'✉️',t:'You’re invited to '+esc(best.t.name)+' — enter to bank a 💰'+best.fee+' appearance fee and chase circuit points.',act:{label:'Enter',act:'careerjoin',val:best.t.id}});}
+    if(best)R.push({p:22,k:'invite',e:'✉️',t:'You’re invited to '+esc(best.t.name)+' — enter to bank a 💰'+best.fee+' appearance fee and chase circuit points.',act:{label:'Enter',act:'careerjoin',val:best.t.id}});}
   if(inTour&&!c.preppedOpening&&c.tour.normEligible)R.push({p:24,e:'📕',t:'You haven’t prepared for this event — scout your opponent and study a line below for an in-game edge.'});
   var imN=normsCount(c,'IM'),gmN=normsCount(c,'GM');
   if(gmN>=1&&gmN<3&&!(c.titles||[]).includes('GM'))R.push({p:26,e:'📜',t:'You hold '+gmN+'/3 GM norms — enter strong norm events to complete the title.'});
   else if(imN>=1&&imN<3&&!(c.titles||[]).includes('IM'))R.push({p:26,e:'📜',t:'You hold '+imN+'/3 IM norms — keep entering norm-eligible events to finish the title.'});
   if(!inTour&&yr!=null&&c.circuit&&(c.circuit.pts||0)>0){var cf=circuitField(c),rank=cf.findIndex(function(p){return p.you;})+1,wk=(c.weeks||0)%52;if(rank<=4&&wk>=26)R.push({p:28,e:'🏆',t:'You’re #'+rank+' on the Grand Circuit with the season half gone — enter elite legs to push for Champion (and a Candidates seat).'});}
-  if(!c.sponsor){var offs=sponsorOffers(c);if(offs.length)R.push({p:30,e:'🤝',t:'Sponsor offers are on the table — sign one for steady weekly income.',act:{label:'Sign steady deal',act:'signsponsor',val:1}});}
+  if(!c.sponsor){var offs=sponsorOffers(c);if(offs.length)R.push({p:30,k:'sponsor',e:'🤝',t:'Sponsor offers are on the table — sign one for steady weekly income.',act:{label:'Sign steady deal',act:'signsponsor',val:1}});}
   if((c.money||0)<2500){var bo=backerOffer(c);if(bo)R.push({p:31,e:'💸',t:'Money is tight — a backer will stake you 💰'+bo.advance+' now for a cut of future prizes.',act:{label:'Accept stake',act:'signbacker'}});}
   if(c.social&&(c.social.followers||0)>=2000&&(c.social.cd||0)<=0)R.push({p:33,e:'📲',t:'You can run a sponsored post — turn '+fmtFollowers(c.social.followers)+' followers into cash.',act:{label:'Sponsored post',act:'social',val:'sponsored'}});
   if(!inTour&&(c.money||0)<1500&&c.energy>=20)R.push({p:34,e:'💰',t:'Between events and short on cash? A paid simul is quick money.',act:{label:'Run a simul',act:'careersimul'}});
@@ -17291,11 +17553,6 @@ function careerAdvisor(c){
   if(!R.length)R.push({p:50,e:'✅',t:'Nothing urgent — you’re in good shape. Pick an event and keep building your career.'});
   R.sort(function(a,b){return a.p-b.p;});return R;
 }
-function careerManagerPanel(c){var R=careerAdvisor(c).slice(0,6);
-  var h='<div class="card" style="margin-bottom:12px;border-color:#22d3ee55"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">🧠 Career manager</div><div class="dim small">'+R.length+' suggestion'+(R.length>1?'s':'')+'</div></div>'+
-    '<div class="dim small" style="margin-top:3px;margin-bottom:4px">Your manager reads every part of your career and tells you what to focus on next.</div>';
-  h+=R.map(function(r){return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border)"><span class="small">'+r.e+' '+r.t+'</span>'+(r.act?'<button class="btn sec sm" style="flex:0 0 auto" data-act="'+r.act.act+'"'+(r.act.val!=null?' data-val="'+esc(String(r.act.val))+'"':'')+'>'+esc(r.act.label)+'</button>':'')+'</div>';}).join('');
-  return h+'</div>';}
 function viewCareer(){
   const c=store.career;
   if(!c.setup)return careerSetupView();
@@ -17305,16 +17562,18 @@ function viewCareer(){
   worldMaybeTick();
   arcTick(c);
   let h='<div style="max-width:920px;margin:0 auto">';
+  autoTick(c);                       // bounded housekeeping: claims, offers, upgrades
+  // One line, then the tabs. What used to sit above every tab — the dashboard,
+  // three rating boxes and the titles card, 1.3 screens on a phone — is in the
+  // line, behind its ▾, on the Play tab's “now” card and on the Progress tab.
+  h+=careerStrip(c);
+  h+=careerTabBar(c);
   if(app.careerToast){h+='<div class="card" style="margin-bottom:10px;border-color:var(--brand);background:linear-gradient(90deg,var(--brand)18,transparent)"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><span style="font-weight:600">'+esc(app.careerToast)+'</span><button class="btn ghost sm" data-act="toastdismiss">✕</button></div></div>';}
   if(app.careerFinish)h+=careerFinishBanner(app.careerFinish);
   h+=careerSeasonBanner(c);
-  autoTick(c);                       // bounded housekeeping: claims, offers, upgrades
-  h+=careerDashboard(c);
-  h+=careerHeader(c);
   h+=careerScandalPanel(c);
   h+=careerDilemmaPanel(c);
   h+=careerPressPanel(c);
-  h+=careerTabBar(c);
   h+=careerTabContent(c,careerActiveTab(c));
   h+='</div>';
   return h;
@@ -17337,20 +17596,31 @@ function careerTabDot(c,k){
 }
 function careerTabBar(c){
   const cur=careerActiveTab(c);
-  return '<div class="ctabs">'+CAREER_TABS.map(t=>'<button class="ctab'+(t.k===cur?' active':'')+'" data-act="careertab" data-val="'+t.k+'">'+t.e+' '+t.l+(careerTabDot(c,t.k)?'<span class="dot"></span>':'')+'</button>').join('')+'</div>';
+  // the anchor stays where the bar would be if it were not pinned: a new tab
+  // opens at its top, not wherever the last one was scrolled to
+  return '<div id="ctabs-at"></div><div class="ctabs" role="tablist" aria-label="Career">'+CAREER_TABS.map(t=>'<button class="ctab'+(t.k===cur?' active':'')+'" role="tab" aria-selected="'+(t.k===cur)+'" data-act="careertab" data-val="'+t.k+'">'+t.e+' '+t.l+(careerTabDot(c,t.k)?'<span class="dot"></span>':'')+'</button>').join('')+'</div>';
+}
+/* Tapping a tab while scrolled down a long one starts the new tab at its top,
+   right under the pinned bar. From higher up the page stays where it is. */
+function careerTabTop(){
+  try{const a=document.getElementById('ctabs-at');if(!a)return;
+    const y=a.getBoundingClientRect().top+window.scrollY-(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--toph'))||52);
+    if(window.scrollY>y+1)window.scrollTo(0,Math.max(0,y));}catch(e){}
 }
 function careerTabContent(c,tab){
   let h='';
   if(tab==='play'){
+    // what is happening, what is waiting, then where to play — the rest after
     h+=resumeCard(true);
-    h+=careerArcPanel(c);
-    h+=careerRoadmapPanel(c);
-    h+=careerManagerPanel(c);
-    h+=careerDailyPanel(c);
-    h+=careerQuestPanel(c);
+    h+=careerNowCard(c);
+    h+=careerInboxPanel(c);
     if(c.tour){h+=careerTourView(c);h+=careerScoutPanel(c);h+=careerPrepPanel(c);}
     else{if(proDue(c))h+=careerProPanel(c);   // a league weekend is not something to find on another tab
-      h+=careerLobby(c);h+=careerSimulPanel(c);h+=careerChallenges(c);h+=careerParkPanel(c);h+=careerCalendarPanel(c);h+=careerPrepPanel(c);}
+      h+=careerLobby(c);h+=careerChallenges(c);h+=careerCalendarPanel(c);h+=careerSimulPanel(c);h+=careerParkPanel(c);h+=careerPrepPanel(c);}
+    h+=careerDailyPanel(c);
+    h+=careerQuestPanel(c);
+    h+=careerArcPanel(c);
+    h+=careerRoadmapPanel(c);
   } else if(tab==='you'){
     h+=careerAvatarPanel(c);
     h+=careerCharacterPanel(c);
@@ -17360,6 +17630,7 @@ function careerTabContent(c,tab){
     h+=careerAchievementsPanel(c);
     h+=careerTrophyPanel(c);
   } else if(tab==='progress'){
+    h+=careerHeader(c);           // your ratings in detail, and the titles card
     h+=careerRoadPanel(c);
     h+=careerRatingGraph(c);
     h+=careerNorms(c);
@@ -17487,14 +17758,15 @@ function careerFinishBanner(f){
 function fmtRating(v){return v==null?'Unrated':String(v);}
 function honorEmoji(h){if(/World Champion/.test(h))return'👑';if(/Rapid/.test(h))return'🚀';if(/Blitz/.test(h))return'💥';if(/World Cup/.test(h))return'🗺️';if(/Olympiad/.test(h))return'🤝';if(/Candidates/.test(h))return'♛';return'🏆';}
 /* =========================================================================
-   THE DASHBOARD — one card, above every tab, that answers "what is going on".
+   THE CAREER SCREEN ON A PHONE
 
-   A career spreads across seven tabs and forty panels. This is the bit you
-   should be able to read in two seconds: who you are and what you are rated
-   in each format, what the money looks like against the bills that are
-   coming, how your body and head are holding up, what is actually happening
-   right now (round three of nine — or Wednesday, with rent due), and anything
-   that is quietly waiting for you to click it.
+   This used to open every tab under a dashboard card, three rating boxes and
+   the titles card: 1.3 phone screens before a tab showed anything of its own.
+   Now there is one line (careerStrip) — who you are, your rating, your money,
+   your energy and what is waiting — and the tabs pinned under the top bar.
+   The line opens to the detail (careerDashboard), the Play tab starts with
+   what is happening right now (careerNowCard) and the inbox, and the ratings
+   in full and the titles card are on the Progress tab.
    ========================================================================= */
 function dashMeters(c){
   var em=maxEnergy(c);
@@ -17511,25 +17783,6 @@ function dashMeters(c){
       cbar(pct,100,x.col)+'</div>';
   }).join('')+'</div>';
 }
-/* Everything that is waiting on a click, in one row. */
-function dashAlerts(c){
-  var a=[];
-  if(c.injury)a.push({e:'🤒',t:esc(c.injury.type)+' · '+c.injury.weeksLeft+'wk',tab:'life',col:'#f43f5e'});
-  if((c.debt||0)>0)a.push({e:'💸',t:'debt 💰'+(c.debt||0),tab:'life',col:'#f43f5e'});
-  if((c.burnout||0)>=60)a.push({e:'🔥',t:'burnout '+Math.round(c.burnout),tab:'life',col:'#f97316'});
-  if((c.tilt||0)>=60)a.push({e:'😖',t:'on tilt',tab:'life',col:'#f43f5e'});
-  if(dailyAvailable(c))a.push({e:'🎁',t:'daily reward',tab:'play',col:'#22c55e'});
-  var q=questsEnsure();
-  var qr=(q.items||[]).filter(function(it){return !it.claimed&&it.prog>=it.goal;}).length;
-  if(qr)a.push({e:'✅',t:qr+' quest'+(qr>1?'s':'')+' ready',tab:'play',col:'#22c55e'});
-  if((c.skillPts||0)>0)a.push({e:'⭐',t:(c.skillPts||0)+' skill point'+(c.skillPts>1?'s':''),tab:'you',col:'#f59e0b'});
-  if(!c.sponsor&&(sponsorOffers(c).length||c.sponsorRenew))a.push({e:'🤝',t:c.sponsorRenew?'sponsor renewal':'sponsor offer',tab:'media',col:'#f59e0b'});
-  if(c.pressPending)a.push({e:'🎤',t:'press waiting',tab:'play',col:'#a855f7'});
-  if(c.dilemma)a.push({e:'⚖️',t:'a decision',tab:'play',col:'#a855f7'});
-  if(c.seasonReview)a.push({e:'🗓️',t:'season review',tab:'progress',col:'#f59e0b'});
-  if(!a.length)return '<span class="dim small">✓ Nothing waiting — you are all caught up.</span>';
-  return a.map(function(x){return '<button class="chip" data-act="careertab" data-val="'+x.tab+'" style="border-color:'+x.col+'55;color:'+x.col+';cursor:pointer">'+x.e+' '+x.t+'</button>';}).join('');
-}
 /* The one line that says what you should be doing. */
 function dashNow(c){
   if(c.tour){
@@ -17538,7 +17791,7 @@ function dashNow(c){
     return {icon:tr.emoji||'🏟️',title:esc(tr.name),
       sub:done?'All rounds played — collect your result.'
               :(st?esc(st.head):('Round '+(tr.round+1)+' of '+tr.rounds+' · '+fmtLabel(tr.format||'classical')+' '+(FORMAT_TC[tr.format||'classical']||''))),
-      btn:done?null:{act:'careertab',val:'play',label:'▶ Go to the round'}};
+      btn:done?null:{act:'jump',val:'play:tourcard',label:'▶ Go to the round'}};
   }
   var bills=lifeCosts(c,1),day=(c.day||0);
   var left=7-day;
@@ -17546,15 +17799,39 @@ function dashNow(c){
     sub:(left>0?left+' day'+(left===1?'':'s')+' left · ':'')+'rent + food 💰'+bills.total+' due Sunday'+((c.money||0)<bills.total?' — you are short':''),
     btn:{act:'autoday',val:null,label:'▶ Play today for me'}};
 }
+function compactMoney(v){var a=Math.abs(Math.round(v||0)),s=(v||0)<0?'−':'';
+  return s+(a>=1e6?(a/1e6).toFixed(a>=1e7?0:1).replace(/\.0$/,'')+'M':a>=1e5?Math.round(a/1e3)+'k':a.toLocaleString());}
+/* The line above the tabs. Tapping your name (or ▾) opens the detail below it;
+   📥 goes to the inbox with the number of things waiting on you. */
+function careerStrip(c){
+  var bt=bestTitle(c),money=c.money||0,bills=lifeCosts(c,1).total,n=inboxItems(c).length,open=!!store.settings.stripOpen,
+      en=Math.round(c.energy||0),em=maxEnergy(c),enCol=en<em*0.35?'#f87171':en<em*0.6?'#fbbf24':'#4ade80',
+      yr=c.provisional?null:c.rating,
+      rt=yr!=null?yr:((c.ratedGames||0)+'/5');
+  var h='<div class="cstrip" id="cstrip">'+
+    '<button class="cs-me" data-act="striptoggle" aria-expanded="'+open+'" title="Your details">'+playerAvatar(c,30)+
+      // the first name is enough on one line; the whole of it is behind ▾
+      '<span class="cs-name" title="'+esc(c.name||'You')+'">'+(bt?'<span style="color:var(--brand2)">'+bt+'</span> ':'')+esc(String(c.name||'You').split(' ')[0])+' '+(c.flag||'')+'</span></button>'+
+    '<span class="cs-v" title="'+(yr!=null?'Classical rating':'Rated games towards your first published rating')+'">♟ '+rt+'</span>'+
+    '<span class="cs-v" style="color:'+(money<bills?'#f87171':'#fbbf24')+'" title="Money">💰'+compactMoney(money)+'</span>'+
+    '<span class="cs-v cs-en" style="color:'+enCol+'" title="Energy">⚡'+en+'</span>'+
+    '<button class="cs-in'+(n?' on':'')+'" data-act="jump" data-val="play:inboxcard" title="Inbox" aria-label="Inbox: '+(n?n+' waiting':'nothing waiting')+'">📥'+(n?'<b>'+n+'</b>':'')+'</button>'+
+    '<button class="cs-tg" data-act="striptoggle" aria-expanded="'+open+'" aria-label="'+(open?'Hide':'Show')+' your details">'+(open?'▴':'▾')+'</button>'+
+  '</div>';
+  if(open)h+=careerDashboard(c);
+  return h;
+}
+/* The detail behind the line: every rating with its world rank, the money
+   against the week's bills, and how your body and your head are holding up. */
 function careerDashboard(c){
-  var bt=bestTitle(c),now=dashNow(c),sum=autoSummary(c);
+  var bt=bestTitle(c);
   var rt=function(e,lab,v,rank){return '<div class="dashrt"><span class="dim small">'+e+' '+lab+'</span><span class="dashv">'+(v==null?'—':v)+'</span>'+(rank?'<span class="dim" style="font-size:10px">#'+rank+'</span>':'')+'</div>';};
   var money=(c.money||0),bills=lifeCosts(c,1).total;
-  var h='<div class="card dash" style="margin-bottom:12px">'+
+  return '<div class="card dash" id="dashcard" style="margin-bottom:8px">'+
     '<div class="row" style="gap:11px;align-items:center;justify-content:space-between;flex-wrap:wrap">'+
       '<div class="row" style="gap:10px;align-items:center;min-width:0">'+playerAvatar(c,44)+
         '<div style="min-width:0"><div style="font-weight:800;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(bt?'<span style="color:var(--brand2)">'+bt+'</span> ':'')+esc(c.name||'You')+' <span style="font-size:13px">'+(c.flag||'♟')+'</span></div>'+
-        '<div class="dim small">Age '+Math.floor(c.age||16)+' · Lv '+charLevel(c)+' · '+(c.won||0)+'–'+(c.lost||0)+'–'+(c.drawn||0)+'</div></div></div>'+
+        '<div class="dim small">Age '+Math.floor(c.age||16)+' · Lv '+charLevel(c)+' · '+(c.won||0)+'–'+(c.lost||0)+'–'+(c.drawn||0)+' · '+esc(c.fed||'FIDE')+'</div></div></div>'+
       '<div class="dashrts">'+
         rt('♟','Classical',c.provisional?null:c.rating,worldRank(c,'classical'))+
         rt('⚡','Rapid',c.ratingRapid,worldRank(c,'rapid'))+
@@ -17562,17 +17839,100 @@ function careerDashboard(c){
         '<div class="dashrt"><span class="dim small">💰 Money</span><span class="dashv" style="color:'+(money<bills?'#f87171':'#fbbf24')+'">'+money.toLocaleString()+'</span><span class="dim" style="font-size:10px">−'+bills+'/wk</span></div>'+
       '</div></div>'+
     dashMeters(c)+
-    '<div class="dashnow"><div style="font-size:20px;line-height:1;flex:0 0 auto">'+now.icon+'</div>'+
+    '<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:9px"><button class="btn ghost sm" data-act="careertab" data-val="progress">📈 Ratings &amp; titles</button><button class="btn ghost sm" data-act="careertab" data-val="life">🧬 Life</button></div>'+
+    '</div>';
+}
+/* The top of the Play tab: what is happening right now, how you are, and the
+   buttons that move the week along. */
+function careerNowCard(c){
+  var now=dashNow(c),sum=autoSummary(c);
+  return '<div class="card dash" id="nowcard" style="margin-bottom:12px">'+
+    '<div class="dashnow" style="margin-top:0"><div style="font-size:20px;line-height:1;flex:0 0 auto">'+now.icon+'</div>'+
       '<div class="dashtxt"><div class="t">'+now.title+'</div><div class="dim small">'+now.sub+'</div></div>'+
       (now.btn?'<button class="btn primary sm" style="flex:0 0 auto" data-act="'+now.btn.act+'"'+(now.btn.val?' data-val="'+now.btn.val+'"':'')+'>'+now.btn.label+'</button>':'')+'</div>'+
-    '<div class="row" style="gap:5px;flex-wrap:wrap;align-items:center;margin-top:9px">'+dashAlerts(c)+'</div>'+
+    dashMeters(c)+
     '<div class="row" style="gap:6px;flex-wrap:wrap;align-items:center;margin-top:9px;padding-top:8px;border-top:1px solid var(--border)">'+
-      '<button class="chip" data-act="careertab" data-val="life" style="cursor:pointer">🤖 '+sum.plan.e+' '+esc(sum.plan.n)+' · '+sum.count+'/'+AUTO_TOGGLES.length+' automated</button>'+
+      '<button class="chip" data-act="jump" data-val="life:autocard" style="cursor:pointer">🤖 '+sum.plan.e+' '+esc(sum.plan.n)+' · '+sum.count+'/'+AUTO_TOGGLES.length+' automated</button>'+
       (c.tour?'':'<button class="btn sec sm" data-act="autoweek">⏩ Finish the week</button>')+
     '</div>'+
     (c.objective?'<div class="dim small" style="margin-top:7px">🎯 '+esc(c.objective.text)+(c.objective.reward?' · reward 💰'+c.objective.reward:'')+'</div>':'')+
     '</div>';
-  return h;
+}
+/* ===== The inbox: everything waiting on you, and where it is =====
+   The manager's advice and the chips on the dashboard were two lists of the
+   same kind of thing, and neither said where the thing was — which is how a
+   sponsor offer or a norm could sit unseen. One list now. First whatever is
+   waiting for an answer — the press, a decision, an offer or a renewal, an
+   invitation, a rest day worth taking, a norm you have not looked at — each
+   a row that takes you to the card it is on, on whichever tab. Then the
+   manager's advice, without repeating any of it. */
+const INVITE_IDS=['supergm','tatasteel','superbet','norway','candidates','wcc','worldcup','olympiad'];
+function inboxInvites(c){
+  var out=[];if(c.tour||youRating(c,'classical')==null)return out;
+  var w=weekOfSeason(c);
+  INVITE_IDS.forEach(function(id){
+    var t=TOURNAMENTS.find(function(x){return x.id===id;});if(!t)return;
+    if(!tourLocked(t,c)){out.push({id:'tour-'+id,t:'You are invited to '+esc(t.name)+' — enter now'+(INVITE_EVENTS[id]?' (💰'+appearanceFee(t,c).toLocaleString()+' appearance fee)':'')});return;}
+    // qualified, and it is coming up in the next few weeks
+    var wk=EVENT_WEEK[id];
+    if(wk!=null&&wk>w&&wk-w<=4&&!tourLockedBy(t,c)&&heldThisSeason(id,c)&&(c.calDone||[]).indexOf(id)<0)
+      out.push({id:'tour-'+id,t:'You are invited to '+esc(t.name)+' — it starts week '+wk+' (in '+(wk-w)+' week'+(wk-w===1?'':'s')+')'});
+  });
+  return out;
+}
+function inboxItems(c){
+  var I=[],add=function(e,t,tab,id,col){I.push({e:e,t:t,tab:tab,id:id,col:col});};
+  if(c.scandal)add('🚨','A fair-play accusation needs your answer','play','scandalcard','#ef4444');
+  if(c.pressPending)add('🎤','The press want a quote about '+esc(c.pressPending.event||'your result'),'play','presscard','#a855f7');
+  if(c.dilemma)add('⚖️','A career crossroads is waiting on your decision','play','dilemmacard','#a855f7');
+  if(c.seasonReview)add('🗓️','Your season '+c.seasonReview.season+' review is in','play','seasoncard','#f59e0b');
+  if(c.sponsorRenew)add('🤝',esc(c.sponsorRenew.name)+' want to renew your deal, on better terms','media','sponsorcard','#f59e0b');
+  else if(!c.sponsor){var so=sponsorOffers(c);if(so.length)add('🤝',so.length+' sponsor offer'+(so.length>1?'s are':' is')+' on the table','media','sponsorcard','#f59e0b');}
+  var ns=c.norms||[],nn=ns.length-(c.normsSeen==null?ns.length:c.normsSeen);
+  if(nn>0){var ln=ns[ns.length-1];add('📜',(nn>1?nn+' new norms — the latest, ':'New norm: ')+esc(ln.type)+' norm at '+esc(ln.event||'your last event'),'progress','normscard','#22c55e');}
+  inboxInvites(c).forEach(function(x){add('✉️',x.t,'play',x.id,'#60a5fa');});
+  if(c.tour&&tourRestOk(c.tour)&&(c.energy||0)<maxEnergy(c)*0.75){var rl=tourRestLeft(c.tour);add('🛌','Rest day before the next round — energy '+Math.round(c.energy||0)+', '+rl+' rest day'+(rl===1?'':'s')+' left in this event','play','restrow','#22c55e');}
+  if(!c.tour&&proDue(c))add('✍️',esc((c.pro&&c.pro.club)||'Your club')+' play this weekend — your board is waiting','play','procard','#60a5fa');
+  if(dailyAvailable(c))add('🎁','Your daily reward is ready','play','dailycard','#22c55e');
+  var q=questsEnsure(),qr=(q.items||[]).filter(function(it){return !it.claimed&&it.prog>=it.goal;}).length;
+  if(qr)add('✅',qr+' quest'+(qr>1?'s':'')+' to claim','play','questcard','#22c55e');
+  if((c.skillPts||0)>0)add('⭐',c.skillPts+' skill point'+(c.skillPts>1?'s':'')+' to spend','you','perkscard','#f59e0b');
+  if(c.injury)add('🤒',esc(c.injury.type)+' — '+c.injury.weeksLeft+' week'+(c.injury.weeksLeft===1?'':'s')+' to heal','life','lifecard','#f43f5e');
+  if((c.debt||0)>0)add('💸','You owe '+money(c.debt),'life','homecard','#f43f5e');
+  if((c.burnout||0)>=60)add('🔥','Burnout '+Math.round(c.burnout)+' — time off would reset it','life','lifecard','#f97316');
+  else if((c.tilt||0)>=60)add('😖','You are on tilt — rest before the next game','life','lifecard','#f43f5e');
+  return I;
+}
+// advice the inbox already carries, by kind, so it is not said twice
+const INBOX_KINDS=['scandal','dilemma','injury','burnout','tilt','daily','skill','invite','sponsor'];
+function careerInboxPanel(c){
+  var I=inboxItems(c),A=careerAdvisor(c).filter(function(r){return INBOX_KINDS.indexOf(r.k)<0;}).slice(0,3);
+  var h='<div class="card" id="inboxcard" style="margin-bottom:12px;border-color:#22d3ee55"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">📥 Inbox</div><div class="dim small">'+(I.length?I.length+' waiting':'nothing waiting')+'</div></div>';
+  if(!I.length)h+='<div class="dim small" style="margin-top:4px">✓ Nothing is waiting on you.</div>';
+  h+=I.map(function(x){return '<button class="inrow" data-act="jump" data-val="'+x.tab+':'+x.id+'" style="border-left-color:'+x.col+'"><span aria-hidden="true">'+x.e+'</span><span class="it">'+x.t+'</span><span class="ig" aria-hidden="true">›</span></button>';}).join('');
+  if(A.length)h+='<div class="dim" style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin:11px 0 1px">🧠 Your manager suggests</div>'+
+    A.map(function(r){return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border)"><span class="small">'+r.e+' '+r.t+'</span>'+(r.act?'<button class="btn sec sm" style="flex:0 0 auto" data-act="'+r.act.act+'"'+(r.act.val!=null?' data-val="'+esc(String(r.act.val))+'"':'')+'>'+esc(r.act.label)+'</button>':'')+'</div>';}).join('');
+  return h+'</div>';
+}
+/* Go to a card: its tab, then the card itself, lit up for a moment. */
+function careerJump(val){
+  var v=String(val||''),i=v.indexOf(':'),tab=i>=0?v.slice(0,i):v,id=i>=0?v.slice(i+1):'',c=store.career;
+  if(tab&&CAREER_TABS.some(function(t){return t.k===tab;}))app.careerTab=tab;
+  if(id==='normscard'&&c)c.normsSeen=(c.norms||[]).length;
+  if(id==='dashcard')store.settings.stripOpen=true;
+  if(/^tour-/.test(id))store.settings.lobbyFmt='all';   // an invitation is shown whatever the filter was
+  // a folded card is opened on the way
+  if(FOLD_OF[id]){store.settings.fold=store.settings.fold||{};store.settings.fold[FOLD_OF[id]]=true;}
+  app._jump=id||'ctabs-at';
+  if(c&&c.setup)save();
+  if(app.view!=='career')go('career');else render();
+}
+function careerJumpApply(){
+  var id=app._jump;if(!id||app.view!=='career')return;app._jump=null;
+  var el=document.getElementById(id);if(!el)return;
+  try{el.scrollIntoView({block:'start',behavior:motionReduced()?'auto':'smooth'});}catch(e){try{el.scrollIntoView();}catch(e2){}}
+  if(id==='ctabs-at')return;
+  try{el.classList.add('jumpflash');setTimeout(function(){try{el.classList.remove('jumpflash');}catch(e){}},1600);}catch(e){}
 }
 function careerHeader(c){
   const bt=bestTitle(c);
@@ -17660,26 +18020,74 @@ function fedPlayers(c,fed){return worldRanking(c,'classical').filter(function(p)
 function fedRank(c){var yr=youRating(c,'classical');if(yr==null)return null;var L=fedPlayers(c,c.fed),i=L.findIndex(function(p){return p.you;});return i<0?null:i+1;}
 function olympiadSelected(c){var yr=youRating(c,'classical');if(yr==null||c.provisional)return {ok:false,why:'needs a rating'};if(yr<2200)return {ok:false,why:'needs 2200'};var fr=fedRank(c);if(fr!=null&&fr>OLY_TEAM_SIZE)return {ok:false,why:'be top '+OLY_TEAM_SIZE+' for '+c.fed+' (#'+fr+')'};return {ok:true,rank:fr};}
 function simOlympiadTeam(myPct){var mates=0;for(var i=0;i<3;i++)mates+=0.40+Math.random()*0.35;var teamPct=(myPct+mates)/4;var place=teamPct>=0.72?1:teamPct>=0.66?2:teamPct>=0.60?3:teamPct>=0.52?Math.ceil(4+Math.random()*3):Math.ceil(6+Math.random()*4);return {place:place,teamPct:teamPct};}
+/* ===== Where to play =====
+   The list used to be every event in the game, forty of them, the locked ones
+   written out in full: seven phone screens, with the two a new player can
+   enter at the top and the challenges, the simuls and the park somewhere
+   below the rest. Now each format shows what you can enter, then what is
+   coming up that you already qualify for (and the week it starts), and folds
+   everything else into one line that says what it is waiting for. A filter
+   narrows it to one format. */
+const LOBBY_FMTS=[['all','All'],['classical','♟ Classical'],['rapid','⚡ Rapid'],['blitz','🔥 Blitz']];
+function lobbyRow(t,c,lock,soonWk){
+  const chips=(t.var960?' <span class="chip brand" style="font-size:10px">🎲 960</span>':'')+(t.country&&t.country!=='Open'&&t.country!=='World'?' <span class="chip" style="font-size:10px">'+esc(t.country)+'</span>':'')+(normsOnOffer(t,c)?' <span class="chip amber" style="font-size:10px">norm</span>':'')+(t.champion?' <span class="chip green" style="font-size:10px">title</span>':'')+(INVITE_EVENTS[t.id]?' <span class="chip" style="font-size:10px;background:#7c2d1244;border-color:#7c2d12">✉️ invite</span>':'');
+  const _pl=prizeLine(t,c);
+  const meta='Field avg '+t.avg+' · '+t.rounds+' rounds'+(t.cycle?' · qualify: '+cycleHow(t):t.minRating>0?' · rated '+t.minRating+'+':' · open')+(_pl?' · '+_pl:'')+(INVITE_EVENTS[t.id]&&!tourLockedBy(t,c)?' · 💰'+appearanceFee(t,c)+' appearance fee':'')+(INVITE_EVENTS[t.id]&&tourLockedBy(t,c)?' · invitation: world top '+INVITE_EVENTS[t.id].rank:'');
+  const w=weekOfSeason(c);
+  const right=!lock?'<button class="btn primary sm" data-act="careerjoin" data-val="'+t.id+'">Enter</button>'
+    :soonWk!=null?(c.tour?'<span class="dim small" style="text-align:right">week '+soonWk+'</span>':'<button class="btn sec sm" data-act="calwait" data-val="'+soonWk+'" title="Live the weeks until it starts">⏩ Week '+soonWk+'</button>')
+    :'<span class="dim small" style="width:104px;text-align:right">Locked · '+esc(lock)+'</span>';
+  return '<div id="tour-'+t.id+'" style="display:flex;align-items:center;gap:11px;padding:10px 13px;border-top:1px solid var(--border)'+(lock&&soonWk==null?';opacity:.55':'')+'">'+
+    '<div style="font-size:23px;width:30px;text-align:center">'+t.emoji+'</div>'+
+    '<div style="flex:1;min-width:0"><div style="font-weight:700">'+esc(t.name)+chips+'</div>'+
+      (soonWk!=null?'<div class="small" style="color:var(--brand2)">You qualify — it starts week '+soonWk+', in '+(soonWk-w)+' week'+(soonWk-w===1?'':'s')+'</div>':'<div class="dim small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(t.blurb)+'</div>')+
+      '<div class="dim small" style="margin-top:2px">'+meta+'</div></div>'+right+'</div>';
+}
+function lobbyWhy(list){
+  const k={};
+  list.forEach(function(x){const l=String(x.lock||'');
+    k[/needs a rating/.test(l)?'pub':/^needs \d/.test(l)?'rating':/entry fee/.test(l)?'fee':/invite|qualif|win the|top \d|be top|World Cup|Candidates|Grand/i.test(l)?'invite':'cal']=1;});
+  const parts=[];
+  if(k.pub)parts.push('a published rating');if(k.rating)parts.push('a higher rating');if(k.invite)parts.push('an invitation or a qualifying result');if(k.fee)parts.push('the entry fee');if(k.cal)parts.push('their week of the year');
+  return parts.length>1?parts.slice(0,-1).join(', ')+' or '+parts[parts.length-1]:(parts[0]||'more');
+}
 function careerLobby(c){
-  let h='<div class="card" style="padding:0;margin-bottom:12px"><div style="padding:11px 13px;font-weight:700;border-bottom:1px solid var(--border)">🏟️ Tournaments — choose an event</div>';
-  [['classical','♟ Classical'],['rapid','⚡ Rapid'],['blitz','🔥 Blitz']].forEach(([fmt,lab])=>{
-    h+='<div style="padding:7px 13px;font-weight:700;font-size:12px;color:var(--brand2);background:rgba(255,255,255,.025);border-top:1px solid var(--border)">'+lab+' · '+FORMAT_TC[fmt]+'</div>';
-    TOURNAMENTS.filter(t=>eventFormat(t)===fmt).forEach(t=>{
+  const f=store.settings.lobbyFmt||'all',w=weekOfSeason(c),more=app.lobbyMore||{};
+  let h='<div class="card" id="lobbycard" style="padding:0;margin-bottom:12px"><div style="padding:11px 13px;border-bottom:1px solid var(--border)"><div style="font-weight:700">🏟️ Tournaments</div>'+
+    '<div class="row" style="gap:5px;flex-wrap:wrap;margin-top:7px" role="group" aria-label="Format">'+LOBBY_FMTS.map(function(x){return '<button class="btn '+(x[0]===f?'primary':'ghost')+' sm" data-act="lobbyfmt" data-val="'+x[0]+'" aria-pressed="'+(x[0]===f)+'">'+x[1]+'</button>';}).join('')+'</div></div>';
+  [['classical','♟ Classical'],['rapid','⚡ Rapid'],['blitz','🔥 Blitz']].forEach(function(F){
+    const fmt=F[0],lab=F[1];
+    if(f!=='all'&&f!==fmt)return;
+    const open=[],soon=[],locked=[];
+    TOURNAMENTS.filter(function(t){return eventFormat(t)===fmt;}).forEach(function(t){
       const lock=tourLocked(t,c);
-      const chips=(t.var960?' <span class="chip brand" style="font-size:10px">🎲 960</span>':'')+(t.country&&t.country!=='Open'&&t.country!=='World'?' <span class="chip" style="font-size:10px">'+esc(t.country)+'</span>':'')+(normsOnOffer(t,c)?' <span class="chip amber" style="font-size:10px">norm</span>':'')+(t.champion?' <span class="chip green" style="font-size:10px">title</span>':'')+(INVITE_EVENTS[t.id]?' <span class="chip" style="font-size:10px;background:#7c2d1244;border-color:#7c2d12">✉️ invite</span>':'');
-      const _pl=prizeLine(t,c);
-      const meta='Field avg '+t.avg+' · '+t.rounds+' rounds'+(t.cycle?' · qualify: '+cycleHow(t):t.minRating>0?' · rated '+t.minRating+'+':' · open')+(_pl?' · '+_pl:'')+(INVITE_EVENTS[t.id]&&!lock?' · 💰'+appearanceFee(t,c)+' appearance fee':'')+(INVITE_EVENTS[t.id]&&lock?' · invitation: world top '+INVITE_EVENTS[t.id].rank:'');
-      h+='<div style="display:flex;align-items:center;gap:11px;padding:10px 13px;border-top:1px solid var(--border)'+(lock?';opacity:.55':'')+'">'+
-        '<div style="font-size:23px;width:30px;text-align:center">'+(lock?'🔒':t.emoji)+'</div>'+
-        '<div style="flex:1;min-width:0"><div style="font-weight:700">'+esc(t.name)+chips+'</div>'+
-          '<div class="dim small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(t.blurb)+'</div>'+
-          '<div class="dim small" style="margin-top:2px">'+meta+'</div></div>'+
-        (lock?'<span class="dim small" style="width:104px;text-align:right">Locked · '+esc(lock)+'</span>':'<button class="btn primary sm" data-act="careerjoin" data-val="'+t.id+'">Enter</button>')+
-        '</div>';
+      if(!lock){open.push(t);return;}
+      // qualified, and only waiting for its week of the year: the next six
+      // weeks are "coming up", later in the season goes in the fold with its
+      // week — except a title event you have earned a place in, which is the
+      // point of the season however far off it is
+      const wk=EVENT_WEEK[t.id];
+      if(!tourLockedBy(t,c)&&wk!=null&&wk>w&&heldThisSeason(t.id,c)&&(c.calDone||[]).indexOf(t.id)<0){
+        if(wk-w<=6||t.cycle)soon.push({t:t,lock:lock,wk:wk});else locked.push({t:t,lock:'week '+wk+' · in '+(wk-w)+' weeks'});return;}
+      locked.push({t:t,lock:lock});
     });
+    soon.sort(function(a,b){return a.wk-b.wk;});
+    // three coming up, and every title event you are in
+    const later=soon.filter(function(x,i){return i>=3&&!x.t.cycle;});
+    const near=soon.filter(function(x,i){return i<3||x.t.cycle;});
+    h+='<div style="padding:7px 13px;font-weight:700;font-size:12px;color:var(--brand2);background:rgba(255,255,255,.025);border-top:1px solid var(--border)">'+lab+' · '+FORMAT_TC[fmt]+' <span class="dim" style="font-weight:600">· '+open.length+' open'+(near.length?' · '+near.length+' coming up':'')+'</span></div>';
+    open.forEach(function(t){h+=lobbyRow(t,c,null,null);});
+    near.forEach(function(x){h+=lobbyRow(x.t,c,x.lock,x.wk);});
+    if(!open.length&&!soon.length)h+='<div class="dim small" style="padding:9px 13px;border-top:1px solid var(--border)">Nothing you can enter in '+fmtLabel(fmt).toLowerCase()+' right now.</div>';
+    const rest=later.map(function(x){return {t:x.t,lock:'week '+x.wk};}).concat(locked);
+    if(rest.length){
+      const shown=!!more[fmt];
+      h+='<button class="lobbymore" data-act="lobbymore" data-val="'+fmt+'" aria-expanded="'+shown+'">🔒 '+rest.length+' more — '+(rest.every(function(x){return /^week /.test(x.lock);})?'later this season':'they need '+lobbyWhy(rest))+' <span aria-hidden="true">'+(shown?'▴':'▾')+'</span></button>';
+      // one line each — and for the title events, how a place is earned
+      if(shown)rest.forEach(function(x){h+='<div id="tour-'+x.t.id+'" style="display:flex;align-items:center;gap:9px;padding:6px 13px;border-top:1px solid var(--border);opacity:.62"><span style="width:22px;text-align:center" aria-hidden="true">'+x.t.emoji+'</span><span class="small" style="flex:1;min-width:0"><span style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>'+esc(x.t.name)+'</b> <span class="dim">· avg '+x.t.avg+'</span></span>'+(x.t.cycle?'<span class="dim" style="display:block;font-size:11px">qualify: '+esc(cycleHow(x.t))+'</span>':'')+'</span><span class="dim small" style="flex:0 0 auto;max-width:48%;text-align:right">🔒 '+esc(x.lock)+'</span></div>';});
+    }
   });
-  h+='</div>';
-  return h;
+  return h+'</div>';
 }
 function careerChallenges(c){
   const fmt=app.chalFormat||'classical';
@@ -17781,12 +18189,13 @@ function parkResult(score){
 }
 function careerParkPanel(c){
   var p=parkInit(c);
+  if(!foldOpen('park')&&!app.parkDouble)return foldCard('park','parkcard','🏙️ The chess park','Blitz for cash, not rated · street cred '+(p.cred||0)+' · net '+((p.net||0)>=0?'+':'−')+'💰'+Math.abs(p.net||0));
   var si=app.parkStake==null?0:app.parkStake;
   var stakeBtns=['Low','Mid','High'].map(function(l,i){return '<button class="btn '+(i===si?'primary':'ghost')+' sm" data-act="parkstake" data-val="'+i+'">'+l+'</button>';}).join(' ');
-  var h='<div class="card" style="padding:0;margin-bottom:12px">'+
+  var h='<div class="card" id="parkcard" style="padding:0;margin-bottom:12px">'+
     '<div style="padding:11px 13px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
       '<div><div style="font-weight:700">🏙️ The chess park</div><div class="dim small">Blitz for cash. Not rated — just your money and your nerve.</div></div>'+
-      '<div class="row" style="gap:6px">'+stakeBtns+'</div></div>'+
+      '<div class="row" style="gap:6px;flex-wrap:wrap">'+stakeBtns+(app.parkDouble?'':' '+foldBtn('park',true))+'</div></div>'+
     '<div class="row" style="padding:8px 13px;gap:10px;flex-wrap:wrap"><span class="chip amber" style="font-size:11px">🧢 Street cred '+(p.cred||0)+'</span><span class="chip" style="font-size:11px">'+p.w+'W–'+p.l+'L–'+p.d+'D</span><span class="chip '+((p.net||0)>=0?'green':'')+'" style="font-size:11px">Net '+((p.net||0)>=0?'+':'−')+'💰'+Math.abs(p.net||0)+'</span>'+(p.streak>1?'<span class="chip brand" style="font-size:11px">🔥 '+p.streak+' in a row</span>':'')+'</div>';
   if(app.parkDouble&&(c.money||0)>=app.parkDouble.stake){
     var dh=parkById(app.parkDouble.id);
@@ -17877,8 +18286,10 @@ function simulStrip(tr){
       return '<span title="Board '+(i+1)+' · '+esc(o.name)+' ('+o.rating+')" style="flex:1;min-width:14px;height:9px;border-radius:3px;background:'+bg+'"></span>';}).join('')+'</div></div>';
 }
 function careerSimulPanel(c){
-  var h='<div class="card" style="padding:0;margin-bottom:12px">'+
-    '<div style="padding:11px 13px;border-bottom:1px solid var(--border)"><div style="font-weight:700">🎪 Simultaneous exhibitions</div>'+
+  if(!foldOpen('simul')){var avail=SIMUL_TIERS.filter(function(s){return !simulLocked(s,c);});
+    return foldCard('simul','simulcard','🎪 Simultaneous exhibitions',avail.length?avail.length+' of '+SIMUL_TIERS.length+' open to you · from 💰'+avail[0].fee+' a room, every game rated':'None open to you yet — the first is a club night');}
+  var h='<div class="card" id="simulcard" style="padding:0;margin-bottom:12px">'+
+    '<div style="padding:11px 13px;border-bottom:1px solid var(--border)"><div class="foldrow"><div style="font-weight:700">🎪 Simultaneous exhibitions</div>'+foldBtn('simul',true)+'</div>'+
     '<div class="dim small">Take on a whole room, board by board. Every game is rated, the fee is paid up front, and clearing the room pays a bonus.</div></div>';
   SIMUL_TIERS.forEach(function(s){
     var lock=simulLocked(s,c);
@@ -17923,7 +18334,7 @@ function viewPlayer(){
   const yr=youRating(c,'classical');
   const gap=(yr!=null)?rc-yr:null;
   const formWord=frm>=1.5?'climbing fast':frm>=0.4?'trending up':frm<=-1.5?'falling away':frm<=-0.4?'drifting down':'steady';
-  const reps=oppOpenings(p.name),ow=reps.w?byId.get(reps.w):null,ob=reps.b?byId.get(reps.b):null;
+  const reps=oppOpenings(p.name,wpRating(p,'classical')),ow=reps.w?byId.get(reps.w):null,ob=reps.b?byId.get(reps.b):null,ob2=reps.b2?byId.get(reps.b2):null;
   let h='<div style="max-width:720px;margin:0 auto">'+
     '<div class="row" style="align-items:center;gap:6px;margin-bottom:10px"><button class="btn ghost sm" data-act="back">←</button><h1 style="font-size:19px;margin:0">Player profile</h1></div>';
   h+='<div class="card" style="margin-bottom:12px"><div class="row" style="gap:14px;align-items:center">'+
@@ -17960,12 +18371,12 @@ function viewPlayer(){
   h+='</div>';
   // what they play
   h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:2px">🔎 What they play</div>'+
-    '<div class="dim small" style="margin-bottom:5px">Scouted from their games. Study these lines and you start with a real edge when you meet.</div>';
-  [[ow,'as White'],[ob,'as Black']].forEach(function(pair){
+    '<div class="dim small" style="margin-bottom:5px">'+(reps.real?'What they are known to play, and their likely choice where they are not.':'Scouted from their games at this level.')+' Study these lines and you start with a real edge when you meet.</div>';
+  [[ow,'as White',reps.known.w],[ob,'against 1.e4',reps.known.b],[ob2,'against 1.d4',reps.known.b2]].forEach(function(pair){
     var o=pair[0];if(!o)return;
     var r=studyReadiness(o);
     h+='<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--border);flex-wrap:wrap">'+
-      '<span class="small"><b>'+esc(o.name)+'</b> <span class="dim">'+esc(o.eco)+' · '+pair[1]+'</span></span>'+
+      '<span class="small"><b>'+esc(o.name)+'</b> <span class="dim">'+esc(o.eco)+' · '+pair[1]+'</span>'+(pair[2]?' <span class="chip green" style="font-size:10px">known for it</span>':'')+'</span>'+
       '<span class="row" style="gap:5px">'+(r.has?'<span class="chip '+(r.m>=50?'green':'amber')+'" style="font-size:10px">'+(r.m>=50?'prepared':'learning')+' '+r.m+'%</span>':'<button class="btn ghost sm" data-act="addrep" data-val="'+o.id+'">+ Add</button>')+
       '<button class="btn sec sm" data-act="explore" data-val="'+o.id+'">📖 Study</button></span></div>';
   });
@@ -18085,7 +18496,7 @@ function careerTourView(c){
   const tr=c.tour,done=tr.round,total=tr.rounds;
   const scoreTot=tr.results.reduce((s,r)=>s+r.score,0);
   let liveTpr='—';if(tr.results.length){const a=Math.round(tr.results.reduce((s,r)=>s+r.rating,0)/tr.results.length);liveTpr=String(Math.round(a+dpFromPct(scoreTot/tr.results.length)));}
-  let h=(tr.kind==='match'?matchScoreStrip(tr)+(tr.wm?wmPanel(c,tr):''):tr.kind==='simul'?simulStrip(tr):'')+'<div class="card" style="margin-bottom:12px">'+
+  let h=(tr.kind==='match'?matchScoreStrip(tr)+(tr.wm?wmPanel(c,tr):''):tr.kind==='simul'?simulStrip(tr):'')+'<div class="card" id="tourcard" style="margin-bottom:12px">'+
     '<div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px"><div style="min-width:0">'+
       '<div style="font-weight:800;font-size:17px">'+tr.emoji+' '+esc(tr.name)+'</div>'+
       '<div class="dim small">'+(tr.ko
@@ -21457,7 +21868,15 @@ function applyCareerCondition(){var c=store.career;if(!c||!c.setup)return;lifeIn
   app.tiltEval=(c.tilt>=60);}
 /* The opponent plays their scouted repertoire for their colour; if you've studied
    that exact line, your mastery of it becomes an in-game edge. */
-function oppBookEdge(opp,side){var c=store.career;var oppColor=side==='w'?'b':'w';var id=oppOpenings(opp.name)[oppColor];var o=id?byId.get(id):null;if(!o)return null;var edge=inRep(o.id)?(progress(o,store.srs).mastery||0)*theoryMod(c,o.id):0;return {book:o,bookNode:o.root,id:o.id,studyEdge:Math.max(0,Math.min(1,edge))};}
+function oppBookEdge(opp,side){var c=store.career,R=oppOpenings(opp.name,opp.rating);
+  // you have White: they answer 1.e4 one way and 1.d4 another; you have Black: their White
+  var books=(side==='w'?[R.b,R.b2]:[R.w]).map(function(id){return id?byId.get(id):null;}).filter(Boolean);
+  if(!books.length)return null;
+  var edgeOf=function(o){return Math.max(0,Math.min(1,inRep(o.id)?(progress(o,store.srs).mastery||0)*theoryMod(c,o.id):0));};
+  var o=books[0],alt=books[1]||null;
+  return {book:o,bookNode:o.root,id:o.id,studyEdge:edgeOf(o),alt:alt,altEdge:alt?edgeOf(alt):0};}
+/* Their second answer as Black, for when your first move is the other one. */
+function oppBookAlt(oe){app.playBookAlt=oe&&oe.alt?oe.alt:null;app.playBookAltEdge=oe?oe.altEdge||0:0;}
 function playTourRound(){
   // If this round was already begun and interrupted, pick that game up rather
   // than quietly starting it again — whichever button was pressed.
@@ -21478,7 +21897,7 @@ function playTourRound(){
     {tc,careerOpp:'tour',careerElo:Math.round(oppStrength(opp,tr.format)-wmE),careerTour:true,roundOpp:opp,c960:g?g.state:null,book:book,bookNode:bookNode});
   app.careerBanter=oppBanter(c,opp);
   if(prep){app.careerPrepUsed=prep.id;app.careerNovelty=!!prep.novelty;}
-  app.careerStudyEdge=oe?oe.studyEdge:0;
+  app.careerStudyEdge=oe?oe.studyEdge:0;oppBookAlt(oe);
   applyCareerCondition();
 }
 /* One-off rated game vs a chosen world-ranking opponent. */
@@ -21495,7 +21914,7 @@ function startChallenge(id){
     {tc:tcById(FORMAT_TC[fmt]||'30+20'),careerOpp:'oneoff',careerElo:Math.round(wpStrength(p,fmt)),roundOpp:opp,oneoff:fmt,book:book,bookNode:bookNode});
   app.careerBanter=oppBanter(c,opp);
   if(prep){app.careerPrepUsed=prep.id;app.careerNovelty=!!prep.novelty;}
-  app.careerStudyEdge=oe?oe.studyEdge:0;
+  app.careerStudyEdge=oe?oe.studyEdge:0;oppBookAlt(oe);
   applyCareerCondition();
 }
 /* ================= PRIZE MONEY =================
@@ -21600,7 +22019,7 @@ function prizeLine(t,c){
 }
 function careerEconomy(c){const money=c.money||0;
   let h='<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">💼 Off the board</div><div style="font-weight:800;color:#fbbf24">💰 '+money.toLocaleString()+'</div></div>'+
-    '<div class="dim small" style="margin-top:4px">Prize money is paid out by your tournament finishes — bigger events and higher places pay more. Hire coaches and sign sponsors above to spend and earn between events.</div>';
+    '<div class="dim small" style="margin-top:4px">Prize money is paid out by your tournament finishes — bigger events and higher places pay more. Sponsors are just below; coaches are hired on the Life tab.</div>';
   if(c.nemesis)h+='<div class="row" style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);align-items:center;gap:6px;flex-wrap:wrap"><span class="chip" style="background:#7f1d1d44;border-color:#7f1d1d">😠 Nemesis: '+esc(c.nemesis.name)+' '+(c.nemesis.flag||'')+' ('+c.nemesis.rating+')</span><span class="dim small">Beat them in an event to settle the score.</span></div>';
   return h+'</div>';}
 /* =========================================================================
@@ -22519,7 +22938,8 @@ function viewPlay(){
   const det=detectOpening(app.playMoves.slice(0,app.playView).map(m=>m.san));
   const openingLine=det?'<span class="chip brand">📖 '+esc(det.name)+'</span>'+(det.comment?'<span class="dim small" style="margin-left:6px">'+esc(det.comment)+'</span>':''):'';
   const inBook=app.playBookNode&&app.playBookNode.children&&app.playBookNode.children.length&&app.playStatus!=='over';
-  let h='<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap"><div class="row" style="align-items:center"><button class="btn ghost sm" data-act="nav" data-val="library">←</button><h1 style="font-size:18px">'+(app.pass?'Two players':'Play vs Stockfish')+'</h1><span class="chip brand">'+esc(app.playTitle)+'</span></div>'+
+  const _ph=playHeading(),_pc=app.careerOpp?playNote():app.playTitle;
+  let h='<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap"><div class="row" style="align-items:center;min-width:0"><button class="btn ghost sm" data-act="nav" data-val="'+(app.careerOpp?'career':'library')+'" aria-label="Back">←</button><h1 style="font-size:18px">'+esc(_ph)+'</h1>'+(_pc?'<span class="chip brand">'+esc(_pc)+'</span>':'')+'</div>'+
     '<div class="row"><span class="chip">'+(app.tc&&app.tc.base?app.tc.cat+' '+app.tc.label:'No clock')+'</span>'+(app.pass?'':'<span class="chip">'+(app.careerElo?'Opponent '+oppRatingShown(app.careerElo):'Lvl: '+lvl.label)+'</span>')+'</div></div>';
   // Everything above the board is fixed for the whole game, so the board never
   // moves. Anything that can appear or vanish mid-game goes in the notice rail
@@ -22555,7 +22975,7 @@ function viewPlay(){
     streamPanel()+
     boothPanel()+
     '<div class="card" style="margin-top:12px"><div class="l" style="text-transform:uppercase;font-size:11px;letter-spacing:.08em;color:var(--muted)">Moves</div><div class="moves" style="margin-top:6px;line-height:2.1">'+playMoveList()+'</div></div>'+
-    '<div class="card" style="margin-top:12px"><div class="row"><button class="btn sec sm" data-act="phint" '+((interactive&&!app.pass&&(!app.careerOpp||(app.careerHintsLeft||0)>0))?'':'disabled')+(app.pass?' title="No hints between two players"':'')+'>'+(app.careerOpp?('💡 Tactic ('+(app.careerHintsLeft||0)+')'):'💡 Hint')+'</button><button class="btn sec sm" data-act="pundo" '+((app.playStack.length>1&&!app.careerOpp)?'':'disabled')+(app.careerOpp?' title="No takebacks in a rated game"':'')+'>↶ Take back</button><button class="btn ghost sm" data-act="pflip">⇅ Flip</button><button class="btn '+(app.tiltEval||aidsLocked()?'ghost':(store.settings.showEval?'primary':'ghost'))+' sm" data-act="toggleeval" title="'+(aidsLocked()?'The evaluation is for after the game':app.tiltEval?'On tilt — the eval bar is locked this game':'Show/hide the engine evaluation')+'"'+(app.tiltEval||aidsLocked()?' disabled':'')+'>'+(aidsLocked()?'📊 Eval after the game':app.tiltEval?'😖 Tilt':'📊 Eval')+'</button><button class="btn '+(app.blindfold?'primary':'ghost')+' sm" data-act="pblind">🙈 Blindfold</button>'+(app.blindfold?'<button class="btn ghost sm" data-act="ppeek">'+(app.peek?'🙈 Hide':'👁 Peek')+'</button>':'')+'</div>'+(app.blindfold?'<div class="dim small" style="margin-top:6px">🙈 Blindfold on — pieces hidden. Visualise the position; tap squares to move. Use 👁 Peek if you get stuck.</div>':'')+
+    '<div class="card" style="margin-top:12px"><div class="row">'+(app.careerOpp?'':'<button class="btn sec sm" data-act="phint" '+((interactive&&!app.pass)?'':'disabled')+(app.pass?' title="No hints between two players"':'')+'>💡 Hint</button>')+'<button class="btn sec sm" data-act="pundo" '+((app.playStack.length>1&&!app.careerOpp)?'':'disabled')+(app.careerOpp?' title="No takebacks in a rated game"':'')+'>↶ Take back</button><button class="btn ghost sm" data-act="pflip">⇅ Flip</button><button class="btn '+(app.tiltEval||aidsLocked()?'ghost':(store.settings.showEval?'primary':'ghost'))+' sm" data-act="toggleeval" title="'+(aidsLocked()?'The evaluation is for after the game':app.tiltEval?'On tilt — the eval bar is locked this game':'Show/hide the engine evaluation')+'"'+(app.tiltEval||aidsLocked()?' disabled':'')+'>'+(aidsLocked()?'📊 Eval after the game':app.tiltEval?'😖 Tilt':'📊 Eval')+'</button><button class="btn '+(app.blindfold?'primary':'ghost')+' sm" data-act="pblind">🙈 Blindfold</button>'+(app.blindfold?'<button class="btn ghost sm" data-act="ppeek">'+(app.peek?'🙈 Hide':'👁 Peek')+'</button>':'')+'</div>'+(app.blindfold?'<div class="dim small" style="margin-top:6px">🙈 Blindfold on — pieces hidden. Visualise the position; tap squares to move. Use 👁 Peek if you get stuck.</div>':'')+
     '<div class="row" style="margin-top:8px"><button class="btn sec sm" data-act="pdraw" '+(app.playStatus==='play'?'':'disabled')+'>½ Offer draw</button><button class="btn danger sm" data-act="presign" '+((app.playStatus==='play'||app.playStatus==='engine')?'':'disabled')+'>⚑ Resign</button><button class="btn ghost sm" data-act="ppgn" '+(app.playMoves.length?'':'disabled')+'>'+(app.pgnCopied?'✓ Copied':'⧉ Copy PGN')+'</button></div>'+
     '<div class="row" style="margin-top:8px"><button class="btn sec sm" style="flex:1" data-act="revplay" '+((app.playMoves.length&&!aidsLocked())?'':'disabled title="After the game"')+'>🔍 Game Review</button><button class="btn sec sm" style="flex:1" data-act="anafromplay" '+(app.playStatus==='play'||app.playStatus==='engine'?'disabled title="After the game"':'')+'>🔬 Analyse</button></div>'+
     '<div class="row" style="margin-top:8px"><button class="btn sec sm" data-act="pnew">⟳ Rematch</button><button class="btn ghost sm" data-act="psetup">⚙ New game</button>'+(app.playOpening?'<button class="btn ghost sm" data-act="explore" data-val="'+app.playOpening+'">Opening</button>':'')+'</div>'+

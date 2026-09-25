@@ -42,6 +42,9 @@ ok(X.isUnlocked('theme','ice')===true && X.isUnlocked('accent','emerald')===true
 
 // panel renders both states
 c.peak=1200;
+X.store.settings.fold={};
+ok(/Cosmetic unlocks/.test(X.careerUnlockPanel(c))&&/of \d+ unlocked/.test(X.careerUnlockPanel(c))&&!/🔒/.test(X.careerUnlockPanel(c)),'folded, the unlocks card is one line: how many are yours');
+X.store.settings.fold={unlocks:true};
 const panel=X.careerUnlockPanel(c);
 ok(/Cosmetic unlocks/.test(panel)&&/🔒/.test(panel)&&/unlocked/.test(panel),'unlock panel renders progress with locked entries');
 

@@ -927,6 +927,7 @@ ok(/win the Candidates/.test(X.tourLocked(wcc,c)||''),'and the title match is sh
 c=cyc(2900);
 ok(X.worldRank(c,'classical')<=X.CAND_RATING_RANK,'the world number one…');
 ok(X.tourLocked(cand,c,true)===null,'…is in the Candidates on rating, the way FIDE gives a rating spot');
+X.app.lobbyMore={classical:true,rapid:true,blitz:true};   // the events you cannot enter yet are folded; open them
 ok(/qualify: World Cup final, Grand Swiss top two, Grand Circuit winner or world top 3/.test(X.careerLobby(c)),'the lobby says how a Candidates place is earned, not a rating floor');
 /* a place is for one cycle */
 c=cyc(2690,2);X.cycleQualify(c,'a test');
@@ -1066,7 +1067,8 @@ ok(['candidates','wcc','intl','club','imrr','gmrr','supergm'].every(id=>!X.ANNUA
 c=pc(2300);
 ok(!X.normsOnOffer(TT('worldrapid'),c)&&!X.normsOnOffer(TT('indiablitz'),c),'a rapid or blitz event offers no FIDE norm');
 ok(X.normsOnOffer(TT('intl'),c),'a classical one does');
-const rapidRows=X.careerLobby(c).split('⚡ Rapid')[1].split('🔥 Blitz')[0];
+const rapidRows=X.careerLobby(c).split('⚡ Rapid · ')[1].split('🔥 Blitz · ')[0];
+ok(/Rapid Open|City Rapid/.test(rapidRows),'(the rapid section of the lobby, read on its own)');
 ok(!/>norm</.test(rapidRows),'so the lobby no longer puts a “norm” chip on the rapid events');
 joinAt('cityrapid');
 ok(c.tour&&c.tour.normEligible===false,'and a rapid event does not track a norm you could never be given');

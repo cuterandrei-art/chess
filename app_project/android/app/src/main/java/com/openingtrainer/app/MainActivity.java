@@ -8,7 +8,6 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.KeyEvent;
 import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
@@ -282,12 +281,29 @@ public class MainActivity extends Activity {
         web.saveState(outState);
     }
 
+    /**
+     * Back asks the page first. It closes whatever is open on top, or goes
+     * back a screen, and answers true; only on the career screen with nothing
+     * open, pressed a second time, does it answer false and let the app close.
+     * The page keeps no browser history of its own, so going back through the
+     * WebView's history is only for a page opened from a link.
+     */
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK && web != null && web.canGoBack()) {
-            web.goBack();
-            return true;
+    @SuppressWarnings("deprecation")
+    public void onBackPressed() {
+        if (web == null) {
+            super.onBackPressed();
+            return;
         }
-        return super.onKeyDown(keyCode, event);
+        web.evaluateJavascript(
+                "(function(){try{return !!(window.appBack&&window.appBack());}catch(e){return false;}})()",
+                value -> {
+                    if ("true".equals(value)) return;
+                    if (web.canGoBack()) {
+                        web.goBack();
+                        return;
+                    }
+                    super.onBackPressed();
+                });
     }
 }

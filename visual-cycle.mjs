@@ -46,10 +46,12 @@ await page.evaluate(()=>{
   H.save();H.render();
 });
 await playTab();
+// what you cannot enter yet is folded into one line per format; open it
+await page.locator('[data-act="lobbymore"][data-val="classical"]').click();await page.waitForTimeout(250);
 let t=await txt();
 ok(/Candidates Tournament/.test(t),'the Candidates is in the lobby');
 ok(await page.locator('[data-act="careerjoin"][data-val="candidates"]').count()===0,'but a 2720 without a place cannot enter it');
-ok(/Locked · no place yet/.test(t),'the lock says so in three words');
+ok(/🔒 no place yet/.test(t),'the lock says so in three words');
 ok(/qualify: World Cup final, Grand Swiss top two, Grand Circuit winner or world top 3/.test(t),'and the event says how a place is earned, not a rating floor');
 
 /* the road panel */
@@ -64,7 +66,7 @@ ok(/World Cup: .*in on rating/.test(r),'showing the World Cup is open on rating'
 await page.evaluate(()=>{const H=window.__APPHOOK__;H.cycleQualify(H.store.career,'reaching the final of the World Cup');H.save();H.render();});
 await playTab();
 t=await txt();
-ok(/Locked · opens week 13/.test(t),'with a place, the Candidates is open to you — in its week, which is week 13');
+ok(/Candidates Tournament[\s\S]{0,80}You qualify — it starts week 13, in 3 weeks/.test(t),'with a place, the Candidates is open to you — in its week, which is week 13, listed as coming up');
 ok(/Season 3 · 2028/.test(t),'the calendar shows the season and the year');
 const goto13=page.locator('[data-act="calwait"][data-val="13"]');
 ok(await goto13.count()>0,'and offers to go there');
@@ -83,7 +85,7 @@ await page.screenshot({path:SP+'/cycle-1-candidates.png',fullPage:false});
 /* the title match, in November */
 await playTab();
 t=await txt();
-ok(/Locked · opens week 47/.test(t),'the title match is the challenger’s — in week 47');
+ok(/World Championship Match[\s\S]{0,80}You qualify — it starts week 47/.test(t),'the title match is the challenger’s — in week 47, listed as coming up however far off');
 await page.locator('[data-act="calwait"][data-val="47"]').first().click();await page.waitForTimeout(1500);
 ok(await page.locator('[data-act="careerjoin"][data-val="wcc"]').count()>0,'the title match is open to the challenger');
 await page.click('[data-act="careerjoin"][data-val="wcc"]');await page.waitForTimeout(600);
