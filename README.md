@@ -427,8 +427,8 @@ boards, and now none do.
 
 **7. The World Cup is a knockout.** It was seven games against a drawn field,
 like any other open — and at seven games it could never give a norm. It is now
-a bracket of 128 seeded by rating, with the top two in opposite halves and the
-top four in different quarters. Each round is a two-game match, colours
+a bracket seeded by rating, with the top two in opposite halves and the top
+four in different quarters (206 players since 25 — see there). Each round is a two-game match, colours
 reversed; a level match goes to two rapid games, then two blitz, then
 armageddon (White must win, a draw is Black's), and the tiebreak games are
 rated in rapid and blitz, as they are in life. The rest of the bracket is
@@ -755,9 +755,9 @@ commentating — and instead the event has its own rest days, between rounds and
 one at a time: two in a nine-round classical event, one in the World Cup, none
 in rapid or blitz, each worth about twenty energy and no extra days.
 
-Not done yet: pairings and the World tab use live ratings, not the monthly
-list the board prints; the World Cup is 128 players rather than 206 with byes
-for the top seeds; the chat does not see the game you watch as a spectator.
+Not done yet at the time: pairings and the World tab used live ratings, the
+World Cup was 128 players, and the chat did not see a game you watched. All
+three are done in 25.
 
 **24. The career on a phone, and the small things around it.** Measured on a
 new career at phone size (390×844), every career tab opened under the same
@@ -847,6 +847,58 @@ drama card on a phone (what it is for is written under it), and "Off the board"
 no longer sends you "above" to sponsors that are below it. An exhibition
 against a legend that was left unfinished no longer makes the next one-off
 game count as beating that legend.
+
+**25. Opponents who have read your games, the monthly list, the real World
+Cup, and a chat when you watch.**
+
+*Opponents prepare against you.* Opponents played their own openings whatever
+you did. A strong player goes through your games before a round, so now your
+games are a repertoire other people read: your White opening, your answer to
+1.e4 and your answer to 1.d4, each the one you have played most in your last
+thirty games. The stronger the opponent and the more predictable you are, the
+likelier they have prepared — never a club player, about a quarter of the time
+at 2250, over half at 2450, three times in four at 2800, and your rival always
+(a line needs three games before anybody can prepare it). Prepared, they go
+straight into the main line of your own opening, say so across the board ("I
+have seen your Najdorf games"), and play about 60 points stronger while the
+game stays in their preparation — or once it has gone six moves deep, until
+move twelve. Leave it early and their homework is wasted: 20 points weaker for
+the opening. Preparing a different line of your own sidesteps it. The scouting
+card warns before the round, the chip beside the game's heading says so, the
+news says afterwards whether you walked into it, and the prep card shows your
+repertoire the way your opponents read it, marking what is predictable.
+
+*The rating list, once a month.* Ratings move with every game — the live
+rating — but FIDE pairs, seeds, invites and rates from the list it publishes
+on the first of the month, and so does this now. On the first of each month
+the live ratings are copied into the list. Fields are drawn from it, paired and
+seeded by it, and every game — yours and the world's — is rated against the
+list rating across the board; the World tab ranks by it and says which month
+it is ("the March 2027 list"), the invitations and the rating places for the
+World Cup and the Candidates go by it, and a profile shows the list rating with
+the live one beside it. Your own live rating is on the top line as always; the
+World tab tells you what the next list will show, and a first rating appears on
+the list after the one it was earned in.
+
+*The World Cup is 206 players.* The top fifty seeds sit out the first round;
+the other 156 play it, 51 against 206, 52 against 205, down to 128 against 129,
+and each winner takes the higher seed's place in the bracket of 128 from round
+two on — so a round-one player has eight rounds to win it, a top-fifty seed
+seven. Places and prizes follow: out in round one is joint 79th and $3,500,
+round two joint 65th and $6,000, up to $80,000 for losing the final. The field
+is the list down to 2560 and then every federation's best, and the World Cup
+the world plays when you are not in it is the same 206. A World Cup begun in
+an older version carries on, its first round counted as round two.
+
+*A chat when you watch.* Watching two players from the list was silent. The
+game has the broadcast's chat now, which reacts to every move by name — the
+first capture, the sacrifice, the queen, the queens coming off, who is up
+material, the mate — and talks about the players between moves: their ratings,
+federations, what they are known to play, how you have done against them,
+whether one of them is your rival. The audience follows the names on the
+board and the drama. **📺 Stream it** takes it live on your own channel as a
+watch-along — a day and five energy, your viewers in the chat, paid in
+subscribers, fans and tips when the game ends (or when you leave).
 
 ## The Olympiad is a team event
 
@@ -1594,7 +1646,7 @@ launch builds nothing.
 
 ## Tests
 
-Fifty-seven suites, about 5,550 checks, plus seventeen browser suites that drive the real app with the real engine.
+Fifty-eight suites, about 5,600 checks, plus eighteen browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
@@ -1620,6 +1672,18 @@ card on any tab, the inbox scrolling to the card it names, Back, and the bar
 when the storage is full. `visual-check.mjs` and `visual-trackerx.mjs` used to
 take screenshots without failing on anything — one of them never got past the
 first-run questions — and now check what they look at.
+
+`validate-prepare.mjs` covers what is new in 25: reading your repertoire off
+your games, who prepares and how often, the opponent going into your line and
+what it is worth to them move by move, dodging it, the warning and the news; the
+monthly list (a player 40 up live and unchanged on the list until the next one,
+fields and challenges at list ratings, rating expectation from list ratings,
+your live and list rating on the World tab); and the spectator's chat, by name,
+with a watch-along that costs a day and pays in subscribers. The World Cup's
+206 — the byes, the first-round pairings, eight rounds from round one and seven
+for a seed, the places and prizes — are in `validate-realism.mjs`, and
+`visual-watch.mjs` watches a game with its chat, streams it, and enters a World
+Cup in a real browser.
 
 Career mode's newer systems have their own: `validate-booth.mjs` (what the
 commentators can and cannot know, the grammar guard that fills every line with

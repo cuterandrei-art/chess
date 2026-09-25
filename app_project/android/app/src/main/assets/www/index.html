@@ -4379,7 +4379,7 @@ const TOURNAMENTS=[
   {id:'wcc',        emoji:'👑', name:'World Championship Match',  tier:10,rounds:14,avg:2830, spread:30,  minRating:2750, norm:false, champion:true, honor:'World Champion', cycle:true, kind:'match', blurb:'Fourteen classical games for the world title — against the champion if you won the Candidates, against the challenger if the crown is yours. Level after fourteen, it goes to rapid, blitz and armageddon.'},
   // team & knockout (classical)
   {id:'olympiad',   emoji:'🤝', name:'Chess Olympiad',           tier:7, rounds:9, avg:2480, spread:250, minRating:2200, norm:true,  champion:true, honor:'Olympiad Board Medal', blurb:'Play a top board for your federation across 9 rounds against other nations. Board medals and norms are on offer.'},
-  {id:'worldcup',   emoji:'🗺️', name:'FIDE World Cup',            tier:8, rounds:7, avg:2630, spread:170, minRating:2450, norm:true,  champion:true, honor:'World Cup Winner', qualifier:2, kind:'knockout', cycle:true, blurb:'A 128-player knockout: two classical games a round, tiebreaks if level, out if you lose. The finalists qualify for the Candidates. Get in as a national champion, from the top of a continental championship, or on rating.'},
+  {id:'worldcup',   emoji:'🗺️', name:'FIDE World Cup',            tier:8, rounds:8, avg:2630, spread:170, minRating:2450, norm:true,  champion:true, honor:'World Cup Winner', qualifier:2, kind:'knockout', cycle:true, blurb:'A 206-player knockout — the top 50 seeds start in round two: two classical games a round, tiebreaks if level, out if you lose. The finalists qualify for the Candidates. Get in as a national champion, from the top of a continental championship, or on rating.'},
   // international classical opens & elite events (around the world)
   {id:'hastings',   emoji:'🏴', country:'England',     name:'Hastings Congress',        tier:3, rounds:9, avg:2120, spread:300, minRating:1700, norm:true,  blurb:'The oldest international tournament in the world, running by the English seaside since 1895.'},
   {id:'reykjavik',  emoji:'🇮🇸', country:'Iceland',     name:'Reykjavik Open',           tier:4, rounds:9, avg:2230, spread:340, minRating:1900, norm:true,  blurb:'Iceland’s famous open in the land of Bobby Fischer — titled players on every board.'},
@@ -4708,6 +4708,44 @@ function wpRating(p,fmt){
   if(R)return Math.round(R[i]);
   return Math.round(i===0?(p.r0!=null?p.r0:p.r):i===1?(p.rr0!=null?p.rr0:p.rr):(p.rb0!=null?p.rb0:p.rb));
 }
+/* ===== The rating list, published once a month =====
+   Ratings here move with every game — the live rating. FIDE does not pair,
+   seed, invite or rate anybody on that: it publishes a list on the first of
+   the month, and until the next one that is everybody's rating. So is it
+   here. On the first of each month the live ratings are copied into the list
+   (c.pub); fields are drawn, paired and seeded from it, a game is rated
+   against the opponent's list rating, the World tab ranks by it, and the
+   invitations and the rating places for the World Cup and the Candidates go
+   by it. The live rating is still what moves, and still what the news board
+   and a profile show next to it. A career before its first list is on the
+   live ratings, which is what the list would say anyway. */
+function pubKey(c){const wk=((c&&c.weeks)||0)+1;return Math.floor(wk/52)*12+Math.floor((wk%52)*12/52);}
+function pubPublish(c){
+  const P={k:pubKey(c),w:c.weeks||0,r:{},
+    you:[c.provisional||c.rating==null?null:Math.round(c.rating),c.ratingRapid!=null?Math.round(c.ratingRapid):null,c.ratingBlitz!=null?Math.round(c.ratingBlitz):null]};
+  const wr=c.wr||{};
+  Object.keys(wr).forEach(function(id){const R=wr[id];P.r[id]=[Math.round(R[0]),Math.round(R[1]),Math.round(R[2])];});
+  c.pub=P;_rankCache={};
+  return P;
+}
+/* The first of the month: a new list. */
+function pubTick(c){if(!c||!c.setup)return null;if(c.pub&&c.pub.k===pubKey(c))return null;return pubPublish(c);}
+function pubOf(){const c=(typeof store!=='undefined'&&store)?store.career:null;return (c&&c.pub)||null;}
+/* A player's rating on the current list. */
+function pubRating(p,fmt){
+  const P=pubOf();if(!P)return wpRating(p,fmt);
+  const R=P.r[p.id],i=WR_IDX[fmt]||0;
+  if(R)return R[i];
+  // nobody had rated them when the list came out: the rating they came with
+  return Math.round(i===0?(p.r0!=null?p.r0:p.r):i===1?(p.rr0!=null?p.rr0:p.rr):(p.rb0!=null?p.rb0:p.rb));
+}
+/* Yours on the current list — none if your first rating came after it. */
+function youPub(c,fmt){
+  const P=c&&c.pub;if(!P||!P.you)return youRating(c,fmt);
+  const i=WR_IDX[fmt]||0;return P.you[i]!=null?P.you[i]:null;
+}
+/* The month the list is from, for saying so. */
+function pubMonth(c){const k=(c&&c.pub)?c.pub.k:pubKey(c);return WIRE_MONTHS[k%12]+' '+(FIRST_YEAR+Math.floor(k/12));}
 /* How well they actually play, on the rating scale. A whole list a year older
    is not a list a year weaker against itself: ratings are relative, so the
    strengths are kept on the same scale by one offset a format (see worldSeason). */
@@ -4727,7 +4765,7 @@ function wpK(p,R,fmt){
 /* One rated result for one player: their score against a rating. */
 function worldApply(c,p,fmt,score,oppRating){
   const R=wrEnsure(c,p),i=WR_IDX[fmt]||0;
-  const E=1/(1+Math.pow(10,(oppRating-R[i])/400));
+  const E=1/(1+Math.pow(10,(oppRating-pubRating(p,fmt))/400));
   const d=wpK(p,R,fmt)*(score-E);
   R[i]=Math.round((R[i]+d)*10)/10;
   if(i===0){R[3]=(R[3]||0)+1;R[4]=(R[4]||0)+score;}
@@ -4748,7 +4786,7 @@ function worldGame(c,A,B,fmt,o){
   const s=x<pw?1:(x<pw+d?0.5:0);
   if(_wgWatch)wgWatchGame(A,B,fmt,s);          // a named event: is this the shock of the week?
   if(!o.unrated){
-    const rA=wpRating(A,fmt),rB=wpRating(B,fmt);
+    const rA=pubRating(A,fmt),rB=pubRating(B,fmt);
     worldApply(c,A,fmt,s,rB);worldApply(c,B,fmt,1-s,rA);
   }
   return s;
@@ -4772,7 +4810,7 @@ function worldPlayerOf(o){
 function worldVsYou(c,opp,myScore,fmt){
   const p=worldPlayerOf(opp);
   if(!p||myScore==null)return 0;
-  const yr=youRating(c,fmt||'classical')||c.rating||1500;
+  const yr=youPub(c,fmt||'classical')||youRating(c,fmt||'classical')||c.rating||1500;
   return worldApply(c,p,fmt||'classical',1-myScore,yr);
 }
 function youRating(c,fmt){return fmt==='rapid'?c.ratingRapid:fmt==='blitz'?c.ratingBlitz:c.rating;}
@@ -4780,18 +4818,21 @@ function youRating(c,fmt){return fmt==='rapid'?c.ratingRapid:fmt==='blitz'?c.rat
 /* The list is read many times a screen, and only changes when the world or
    you do, so it is kept until then. */
 let _rankCache={};
-function worldRanking(c,fmt){
-  const X=c&&c.wx,key=[X?X.v:0,(c&&c.wrv)||0,youRating(c,fmt),c&&c.name,c&&c.fed,((c&&c.titles)||[]).join(),(c&&c.cycle&&c.cycle.champ)?1:0].join('|');
-  const hit=_rankCache[fmt];
+function worldRanking(c,fmt,live){
+  const P=c&&c.pub,X=c&&c.wx,key=[X?X.v:0,live||!P?((c&&c.wrv)||0):'p'+P.k,live||!P?youRating(c,fmt):youPub(c,fmt),c&&c.name,c&&c.fed,((c&&c.titles)||[]).join(),(c&&c.cycle&&c.cycle.champ)?1:0].join('|');
+  const ck=fmt+(live?'~':'');
+  const hit=_rankCache[ck];
   if(hit&&hit.c===c&&hit.key===key)return hit.list;
-  const list=rankingFresh(c,fmt);
-  _rankCache[fmt]={c:c,key:key,list:list};
+  const list=rankingFresh(c,fmt,live);
+  _rankCache[ck]={c:c,key:key,list:list};
   return list;
 }
-function rankingFresh(c,fmt){
-  const list=buildWorld().map(p=>({id:p.id,name:p.name,fed:p.fed,flag:p.flag,real:p.real,rating:wpRating(p,fmt),change:wpChange(p,fmt),you:false,title:wpTitle(p)}));
-  const yr=youRating(c,fmt);
-  if(yr!=null)list.push({id:'__you',name:c.name,fed:c.fed,flag:c.flag,real:false,rating:yr,change:0,you:true,title:bestTitle(c)||''});
+/* The live list: every game counted, today. */
+function worldRankingLive(c,fmt){return worldRanking(c,fmt,true);}
+function rankingFresh(c,fmt,live){
+  const list=buildWorld().map(p=>({id:p.id,name:p.name,fed:p.fed,flag:p.flag,real:p.real,rating:live?wpRating(p,fmt):pubRating(p,fmt),live:wpRating(p,fmt),change:wpChange(p,fmt),you:false,title:wpTitle(p)}));
+  const yr=live?youRating(c,fmt):youPub(c,fmt);
+  if(yr!=null)list.push({id:'__you',name:c.name,fed:c.fed,flag:c.flag,real:false,rating:yr,live:youRating(c,fmt),change:0,you:true,title:bestTitle(c)||''});
   list.sort((a,b)=>b.rating-a.rating||(a.you?-1:b.you?1:0));
   return rankList(list);
 }
@@ -6041,7 +6082,7 @@ function render(){
   const navIcon=v=>(NAV_META[v]?NAV_META[v][0]:'•');
   const cur=nav.indexOf(app.view)>=0?app.view:'dashboard';
   const LEARN_VIEWS=['learn','courses','clearn','train','library','build','explore','course','endgames','eglesson','classics','guess','blindfold','daily','masters','studies','review','analysis','brilliancy','report','import','tracker','dashboard','reptree'];
-  const CAREER_VIEWS=['career','magazine','hall','player','livegame'];
+  const CAREER_VIEWS=['career','magazine','hall','player','livegame','spectate'];
   const primaryOf=v=>(CAREER_VIEWS.indexOf(v)>=0?'career':v==='play'?'play':v==='puzzles'?'puzzles':LEARN_VIEWS.indexOf(v)>=0?'learn':'');
   const PRIMARY=[['career','🏆','Career'],['play','♟️','Play'],['puzzles','🧩','Puzzles'],['learn','📚','Learn']];
   const curP=primaryOf(cur);
@@ -6119,7 +6160,7 @@ function render(){
   // keep the game on disk while it is being played, and drop it the moment it
   // is finished — one place, so no ending can forget to clean up after itself
   if(app.view==='play')playSave();
-  {const _sc=document.getElementById('streamchat');if(_sc)_sc.scrollTop=_sc.scrollHeight;}
+  {const _sc=document.getElementById('streamchat');if(_sc)_sc.scrollTop=_sc.scrollHeight;const _sp=document.getElementById('specchat');if(_sp)_sp.scrollTop=_sp.scrollHeight;}
   a11yTick();
   animateLast();
 }
@@ -10950,7 +10991,8 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='specpause'){if(app.spec){app.spec.paused=!app.spec.paused;render();if(!app.spec.paused)setTimeout(specStep,200);}}
   else if(act==='specflip'){if(app.spec){app.spec.flip=!app.spec.flip;render();}}
   else if(act==='specnew'){watchTopGame();}
-  else if(act==='specexit'){app.spec=null;go('career');}
+  else if(act==='specexit'){if(app.spec&&app.spec.live&&!app.spec.live.done)specLiveFinish(app.spec,true);specTimer(false);app.spec=null;go('career');}
+  else if(act==='speclive')specLive();
   else if(act==='reptree'){app.repTreeId=val;go('reptree');}
   else if(act==='titlefmt'){const c=store.career;c.titleFormat=(c.titleFormat==='any')?'classical':'any';const nt=checkTitles(c);if(nt&&nt.length){app.careerToast='👑 New title'+(nt.length>1?'s':'')+' under the new rules: '+nt.join(', ')+'!';}save();render();}
   else if(act==='careerreset')uiConfirm('Reset ALL career progress — ratings (classical, rapid & blitz), titles, norms, honours, history and money? This cannot be undone.',function(){store.career=freshCareer();app.spec=null;app.careerFinish=null;app.careerOneoff=null;app.careerTour=false;app.parkBet=null;app.parkDouble=null;save();});
@@ -12345,7 +12387,7 @@ function playSnapshot(){
     bookId:app.playBook?app.playBook.id:null,bookAltId:app.playBookAlt?app.playBookAlt.id:null,bookAltEdge:app.playBookAltEdge||0,
     career:{opp:app.careerOpp||null,elo:app.careerElo||null,tour:!!app.careerTour,
       roundOpp:app.careerRoundOpp||null,oneoff:app.careerOneoff||null,league:!!app.careerLeague,pro:!!app.careerPro,
-      prepUsed:app.careerPrepUsed||null,legend:app.careerLegend||null,
+      prepUsed:app.careerPrepUsed||null,legend:app.careerLegend||null,oppPrep:app.careerOppPrep||null,
       novelty:!!app.careerNovelty,studyEdge:app.careerStudyEdge||0,
       tourId:(store.career&&store.career.tour)?store.career.tour.id:null,
       round:(store.career&&store.career.tour)?store.career.tour.round:null},
@@ -12448,7 +12490,7 @@ function playResume(){
   const cr=g.career||{};
   app.careerOpp=cr.opp||null;app.careerElo=cr.elo||null;app.careerTour=!!cr.tour;
   app.careerRoundOpp=cr.roundOpp||null;app.careerOneoff=cr.oneoff||null;app.careerLeague=!!cr.league;app.careerPro=!!cr.pro;
-  app.careerHintsLeft=0;app.careerPrepUsed=cr.prepUsed||null;app.careerLegend=cr.legend||null;
+  app.careerHintsLeft=0;app.careerPrepUsed=cr.prepUsed||null;app.careerLegend=cr.legend||null;app.careerOppPrep=cr.oppPrep||null;
   app.careerNovelty=!!cr.novelty;app.careerStudyEdge=cr.studyEdge||0;
   app.parkBet=g.park?{id:g.park.id,stake:g.park.stake,double:!!g.park.double}:null;
   // the opening book is a tree, so it is walked back down rather than stored
@@ -12549,7 +12591,7 @@ function startPlay(fen,side,openingId,title,opts){opts=opts||{};
   if(app.pass){side=turnOf(fen);app.playBot=null;}
   app.view='play';app.playFen=fen;app._playStartFen=fen;app.playSide=side;app.playOpening=openingId||null;
   app.playTitle=title||'Free game';app.playFlip=false;app.playStack=[fen];app.playMoves=[];app.playView=0;app.playLast=null;app.playSel=null;app.careerBanter=null;app.careerReaction=null;
-  app.playHint=null;app.playEval=null;app.playResult=null;app.careerStory=null;app.engineErr=false;app.drawMsg=null;app.blunderNote=null;app.coachNote=null;app.whyNot=null;app.oppDraw=null;app.oppSaid=null;app._oppLost=0;app._drawCd=0;app.pgnCopied=false;app.playPremoves=[];app.blindfold=!!opts.blindfold;app.peek=false;app.careerOpp=opts.careerOpp||null;app.careerElo=opts.careerElo||null;app.careerScored=false;app.careerDelta=0;app.careerTour=!!opts.careerTour;app.careerRoundOpp=opts.roundOpp||null;app.careerOneoff=opts.oneoff||null;app.c960=opts.c960||null;app.endgame=opts.endgame||null;app.playBot=opts.bot||null;app.tiltEval=false;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=!!(opts.league);app.careerPro=!!(opts.pro);app.careerLegend=opts.legend||null;app.playBookAlt=null;app.playBookAltEdge=0;app.careerHintsLeft=0;app._fxKey=null;app._lastEvalCp=null;app._engOutOfBook=false;app._engRetry=0;app._evLow=null;app._evHigh=null;
+  app.playHint=null;app.playEval=null;app.playResult=null;app.careerStory=null;app.engineErr=false;app.drawMsg=null;app.blunderNote=null;app.coachNote=null;app.whyNot=null;app.oppDraw=null;app.oppSaid=null;app._oppLost=0;app._drawCd=0;app.pgnCopied=false;app.playPremoves=[];app.blindfold=!!opts.blindfold;app.peek=false;app.careerOpp=opts.careerOpp||null;app.careerElo=opts.careerElo||null;app.careerScored=false;app.careerDelta=0;app.careerTour=!!opts.careerTour;app.careerRoundOpp=opts.roundOpp||null;app.careerOneoff=opts.oneoff||null;app.c960=opts.c960||null;app.endgame=opts.endgame||null;app.playBot=opts.bot||null;app.tiltEval=false;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=!!(opts.league);app.careerPro=!!(opts.pro);app.careerLegend=opts.legend||null;app.playBookAlt=null;app.playBookAltEdge=0;app.careerOppPrep=null;app.careerHintsLeft=0;app._fxKey=null;app._lastEvalCp=null;app._engOutOfBook=false;app._engRetry=0;app._evLow=null;app._evHigh=null;
   app.playBook=opts.bookId?byId.get(opts.bookId):(opts.book||null);
   app.playBookNode=opts.bookNode||(app.playBook?app.playBook.root:null);
   app.playClk=[];
@@ -12630,7 +12672,7 @@ async function engineMove(){app.playStatus='engine';render();
     const sharp=tacticalEdge(ply); // tactical sharpness: puzzles, Killer instinct, the Tactician class
     const studyE=app.careerStudyEdge?Math.round(app.careerStudyEdge*(ply<16?70:25)):0; // you studied the very line they're playing
     const prepE=(app.careerPrepUsed?((ply<16?80:30)+(perkLevel(store.career,'prepmaster')?((ply<16?40:20)+(perkLevel(store.career,'prepmaster')-1)*(ply<16?20:10)):0)+(app.careerNovelty?(ply<20?70:30):0))*(styleClass(store.career).cls==='Gambiteer'?1.25:1):0)+studyE; // home prep edge (Deep-prep perk per level + Gambiteer class + a sprung novelty)
-    lvl={elo:Math.max(600,Math.round(app.careerElo-120-sharp-prepE)),mt:700};
+    lvl={elo:Math.max(600,Math.round(app.careerElo-120-sharp-prepE+prepEloNow())),mt:700};   // + their preparation against you
     if(app.careerRoundOpp&&app.careerRoundOpp.style)lvl.style=app.careerRoundOpp.style;
     // short of time, a human plays worse — the steadier their nerve, the less so
     var _lt=oppLowOnTime();
@@ -12752,7 +12794,7 @@ const COACH_TYPES=[
   {spec:'Endgame guru',salary:60,emoji:'♜',desc:'smaller rating losses'},
 ];
 const SPONSOR_NAMES=['ChessGear','NeoBoard','Gambit Wear','Knightly Foods','Zugzwang Energy','OpenFile Tech','BlitzCola','Endgame Apparel','64 Squares','Caïssa Coffee'];
-function lifeInit(c){wxInit(c);wrInit(c);if(c.age==null)c.age=16;if(c.pace==null)c.pace=1;if(c.weeks==null)c.weeks=0;if(c.energy==null)c.energy=100;if(c.form==null)c.form=0;if(c.tilt==null)c.tilt=0;if(c.fame==null)c.fame=0;if(c.fans==null)c.fans=0;if(c.reputation==null)c.reputation=50;if(!c.coaches)c.coaches=[];if(c.prep==null)c.prep=0;if(!c.h2h)c.h2h={};if(c.sponsor===undefined)c.sponsor=null;if(c.objective===undefined)c.objective=null;if(c.retired==null)c.retired=false;if(c.pressPending===undefined)c.pressPending=null;if(c.rival===undefined)c.rival=null;if(!c.achievements)c.achievements=[];if(!c.news)c.news=[];if(c.preppedOpening===undefined)c.preppedOpening=null;if(c.tacticsTrained==null)c.tacticsTrained=0;if(c.xp==null)c.xp=0;if(!c.perks)c.perks={};if(Array.isArray(c.perks)){var _pm={};c.perks.forEach(function(_k){_pm[_k]=1;});c.perks=_pm;}if(c.season==null)c.season=Math.floor((c.weeks||0)/52)+1;if(!c.prepUsage)c.prepUsage={};if(c.protege===undefined)c.protege=null;if(c.winStreak==null)c.winStreak=0;if(c.bestWinStreak==null)c.bestWinStreak=0;if(c.unbeaten==null)c.unbeaten=0;if(c.weeksAtNo1==null)c.weeksAtNo1=0;if(c.noveltyCharge==null)c.noveltyCharge=1;if(c.noveltyArmed==null)c.noveltyArmed=false;if(c.noveltyCd==null)c.noveltyCd=0;if(!c.theory)c.theory={};if(c.refuted===undefined)c.refuted=null;if(c.trendy===undefined)c.trendy=null;if(c.youngGun===undefined)c.youngGun=null;if(c.scandal===undefined)c.scandal=null;if(c.subs==null)c.subs=0;if(c.collabCd==null)c.collabCd=0;if(!c.assets)c.assets=[];if(c.club===undefined)c.club=null;if(!c.books)c.books=[];if(c.backer===undefined)c.backer=null;if(c.fedCd==null)c.fedCd=0;if(c.broadcasts==null)c.broadcasts=0;if(c.academy===undefined)c.academy=null;if(c.gmsMade==null)c.gmsMade=0;if(!c.legendsBeaten)c.legendsBeaten=[];if(c.injury===undefined)c.injury=null;if(c.burnout==null)c.burnout=0;if(c.calendar===undefined)c.calendar=null;if(!c.calDone)c.calDone=[];if(c.transferred==null)c.transferred=false;if(c.dilemma===undefined)c.dilemma=null;if(c.mercDeeds==null)c.mercDeeds=0;if(c.heroDeeds==null)c.heroDeeds=0;if(c.lastBonusDay===undefined)c.lastBonusDay=null;if(c.skillPts==null)c.skillPts=0;if(c.lvlSeen==null)c.lvlSeen=charLevel(c);if(!c.circuit)c.circuit={pts:0,season:c.season||1};if(!c.social)c.social={followers:0,verified:false,posts:0,cd:0};if(!c.classicsStudied)c.classicsStudied=[];if(!c.roadDone)c.roadDone=[];if(!c.feed)c.feed=[];wireInit(c);if(c.arc===undefined)c.arc=null;if(!c.arcsDone)c.arcsDone=[];if(!c.arcBadges)c.arcBadges=[];if(!c.home)c.home='hostel';if(c.health==null)c.health=100;if(c.mood==null)c.mood=62;if(c.day==null)c.day=0;if(!c.dayLog)c.dayLog=[];if(!c.weekLog)c.weekLog=[];if(c.debt==null)c.debt=0;if(c.lifeWeeks==null)c.lifeWeeks=0;if(!c.seasonStart)c.seasonStart=seasonSnapshot(c);if(c.seasonReview===undefined)c.seasonReview=null;if(!c.avatar)c.avatar=avatarDefaults(c);if(!c.avatarStyle)c.avatarStyle='char';if(c.simuls==null)c.simuls=0;if(c.simulPerfect==null)c.simulPerfect=0;if(!c.moments)c.moments=[];if(c.normsSeen==null)c.normsSeen=(c.norms||[]).length;parkInit(c);autoInit(c);if(!c._seed){c.money=(c.money||0)+1500;c._seed=true;}}
+function lifeInit(c){wxInit(c);wrInit(c);if(c.age==null)c.age=16;if(c.pace==null)c.pace=1;if(c.weeks==null)c.weeks=0;if(c.energy==null)c.energy=100;if(c.form==null)c.form=0;if(c.tilt==null)c.tilt=0;if(c.fame==null)c.fame=0;if(c.fans==null)c.fans=0;if(c.reputation==null)c.reputation=50;if(!c.coaches)c.coaches=[];if(c.prep==null)c.prep=0;if(!c.h2h)c.h2h={};if(c.sponsor===undefined)c.sponsor=null;if(c.objective===undefined)c.objective=null;if(c.retired==null)c.retired=false;if(c.pressPending===undefined)c.pressPending=null;if(c.rival===undefined)c.rival=null;if(!c.achievements)c.achievements=[];if(!c.news)c.news=[];if(c.preppedOpening===undefined)c.preppedOpening=null;if(c.tacticsTrained==null)c.tacticsTrained=0;if(c.xp==null)c.xp=0;if(!c.perks)c.perks={};if(Array.isArray(c.perks)){var _pm={};c.perks.forEach(function(_k){_pm[_k]=1;});c.perks=_pm;}if(c.season==null)c.season=Math.floor((c.weeks||0)/52)+1;if(!c.prepUsage)c.prepUsage={};if(c.protege===undefined)c.protege=null;if(c.winStreak==null)c.winStreak=0;if(c.bestWinStreak==null)c.bestWinStreak=0;if(c.unbeaten==null)c.unbeaten=0;if(c.weeksAtNo1==null)c.weeksAtNo1=0;if(c.noveltyCharge==null)c.noveltyCharge=1;if(c.noveltyArmed==null)c.noveltyArmed=false;if(c.noveltyCd==null)c.noveltyCd=0;if(!c.theory)c.theory={};if(c.refuted===undefined)c.refuted=null;if(c.trendy===undefined)c.trendy=null;if(c.youngGun===undefined)c.youngGun=null;if(c.scandal===undefined)c.scandal=null;if(c.subs==null)c.subs=0;if(c.collabCd==null)c.collabCd=0;if(!c.assets)c.assets=[];if(c.club===undefined)c.club=null;if(!c.books)c.books=[];if(c.backer===undefined)c.backer=null;if(c.fedCd==null)c.fedCd=0;if(c.broadcasts==null)c.broadcasts=0;if(c.academy===undefined)c.academy=null;if(c.gmsMade==null)c.gmsMade=0;if(!c.legendsBeaten)c.legendsBeaten=[];if(c.injury===undefined)c.injury=null;if(c.burnout==null)c.burnout=0;if(c.calendar===undefined)c.calendar=null;if(!c.calDone)c.calDone=[];if(c.transferred==null)c.transferred=false;if(c.dilemma===undefined)c.dilemma=null;if(c.mercDeeds==null)c.mercDeeds=0;if(c.heroDeeds==null)c.heroDeeds=0;if(c.lastBonusDay===undefined)c.lastBonusDay=null;if(c.skillPts==null)c.skillPts=0;if(c.lvlSeen==null)c.lvlSeen=charLevel(c);if(!c.circuit)c.circuit={pts:0,season:c.season||1};if(!c.social)c.social={followers:0,verified:false,posts:0,cd:0};if(!c.classicsStudied)c.classicsStudied=[];if(!c.roadDone)c.roadDone=[];if(!c.feed)c.feed=[];wireInit(c);if(c.arc===undefined)c.arc=null;if(!c.arcsDone)c.arcsDone=[];if(!c.arcBadges)c.arcBadges=[];if(!c.home)c.home='hostel';if(c.health==null)c.health=100;if(c.mood==null)c.mood=62;if(c.day==null)c.day=0;if(!c.dayLog)c.dayLog=[];if(!c.weekLog)c.weekLog=[];if(c.debt==null)c.debt=0;if(c.lifeWeeks==null)c.lifeWeeks=0;if(!c.seasonStart)c.seasonStart=seasonSnapshot(c);if(c.seasonReview===undefined)c.seasonReview=null;if(!c.avatar)c.avatar=avatarDefaults(c);if(!c.avatarStyle)c.avatarStyle='char';if(c.simuls==null)c.simuls=0;if(c.simulPerfect==null)c.simulPerfect=0;if(!c.moments)c.moments=[];if(c.normsSeen==null)c.normsSeen=(c.norms||[]).length;if(c.tour&&c.tour.ko&&!c.tour.ko.v)koMigrate(c.tour.ko);parkInit(c);autoInit(c);if(!c._seed){c.money=(c.money||0)+1500;c._seed=true;}}
 function maxEnergy(c){var base=c.age>=38?Math.max(72,100-Math.round((c.age-38)*2.5)):100;var e=base+(hasAsset(c,'gym')?8:0)+(hasAsset(c,'house')?12:0);e+=Math.round(((c.health==null?100:c.health)-75)/6);if(c.injury)e-=(c.injury.sev||1)*10;return Math.max(40,e);}
 function hasCoach(c,spec){return (c.coaches||[]).some(function(x){return x.spec===spec;});}
 function cbar(v,max,color){var p=Math.max(0,Math.min(100,v/max*100));return '<div style="height:7px;background:#1e293b;border-radius:5px;overflow:hidden;margin-top:3px"><i style="display:block;height:100%;width:'+p+'%;background:'+color+'"></i></div>';}
@@ -14257,7 +14299,7 @@ function proLeagueOf(c){return c.pro?proLeagues(c)[c.pro.league]||null:null;}
 function proLineup(c,club,withYou){
   const I=worldIndex();
   let L=club.roster.map(function(id){return I.id[id];}).filter(Boolean)
-    .map(function(p){return {p:p,rating:wpRating(p,'classical')};});
+    .map(function(p){return {p:p,rating:pubRating(p,'classical')};});
   L.sort(function(a,b){return b.rating-a.rating;});
   if(withYou){
     L=L.slice(0,PRO_BOARDS-1);
@@ -15982,8 +16024,8 @@ const WIRE_QUOTES={
 function wireEvent(c,t,rows,of,extra){
   if(!rows||!rows[0]||!rows[0].p)return null;
   const X=wxInit(c),S=c.season||1,fmt=eventFormat(t),w=rows[0].p,sec=rows[1]&&rows[1].p;
-  const nm=w.name,wr=wpRating(w,fmt),age=Math.floor(wpAge(w));
-  const seed=1+rows.filter(function(x){return x.p!==w&&wpRating(x.p,fmt)>wr;}).length;
+  const nm=w.name,wr=pubRating(w,fmt),age=Math.floor(wpAge(w));
+  const seed=1+rows.filter(function(x){return x.p!==w&&pubRating(x.p,fmt)>wr;}).length;
   const wins=(X.results||[]).filter(function(R){return R.s===S&&R.winner&&R.winner.id===w.id;}).length;
   const margin=(sec&&of)?rows[0].s-rows[1].s:null;
   const rival=!!(c.rival&&(c.rival.id===w.id||c.rival.name===nm));
@@ -16026,7 +16068,7 @@ let _wgWatch=null;
 function wireWatch(t){_wgWatch={t:t,min:t.rr?150:350,floor:Math.max(2400,(t.avg||2400)-60),best:null};}
 function wgWatchGame(A,B,fmt,s){
   const W=_wgWatch;if(!W||s===0.5)return;
-  const win=s===1?A:B,los=s===1?B:A,rw=wpRating(win,fmt),rl=wpRating(los,fmt),gap=rl-rw;
+  const win=s===1?A:B,los=s===1?B:A,rw=pubRating(win,fmt),rl=pubRating(los,fmt),gap=rl-rw;
   if(gap>=W.min&&rl>=W.floor&&(!W.best||gap>W.best.gap))W.best={w:win,l:los,rw:rw,rl:rl,gap:gap};
 }
 function wireShock(c){
@@ -16446,7 +16488,7 @@ function worldHeadlines(c){var l=worldRanking(c,'classical').filter(function(p){
   if(m[0])pushNews(c,m[0].change>0?'📈':'📉',m[0].name+' '+(m[0].change>0?'climbs':'slips')+' to '+m[0].rating+' ('+(m[0].change>0?'+':'')+m[0].change+')');}
 /* rivalry: a peer near your strength you measure yourself against */
 function rivalTitle(c,rr){var p=c.rival&&buildWorld().find(function(x){return x.id===c.rival.id;});return p?wpTitle(p):titleByRating(rr);}
-function rivalRating(c){if(!c.rival)return null;var p=buildWorld().find(function(x){return x.id===c.rival.id;});return p?wpRating(p,'classical'):c.rival.rating;}
+function rivalRating(c){if(!c.rival)return null;var p=buildWorld().find(function(x){return x.id===c.rival.id;});return p?pubRating(p,'classical'):c.rival.rating;}
 function maybeAssignRival(c){if(c.rival||(c.played||0)<6)return;var yr=youRating(c,'classical');if(yr==null)return;
   var cand=buildWorld().filter(function(p){return Math.abs(wpRating(p,'classical')-yr)<=70&&(!c.nemesis||p.name!==c.nemesis.name);});
   if(!cand.length)return;cand.sort(function(a,b){return ((b.real?1:0)-(a.real?1:0))||(Math.abs(wpRating(a,'classical')-yr)-Math.abs(wpRating(b,'classical')-yr));});
@@ -16589,7 +16631,10 @@ function scoutCard(c,opp,label){
       (h2&&(h2.w+h2.l+h2.d)?' · you are <b>'+h2.w+'–'+h2.d+'–'+h2.l+'</b> against them':' · you have not met before')+'</span>'+
       '<button class="btn ghost sm" data-act="profile" data-val="'+wp.id+'">👤 Profile</button></div>';}
   return '<div class="card" style="margin-bottom:12px;border-color:#7c5cff55"><div class="row" style="gap:10px;align-items:center">'+oppAvatar(opp,40)+'<div style="font-weight:700;flex:1;min-width:0">🔍 Scouting — '+esc(label)+': '+(opp.title?esc(opp.title)+' ':'')+esc(opp.name)+' <span class="dim small">('+opp.rating+')</span></div></div>'+who+'<div class="dim small" style="margin:3px 0 2px">'+(reps.real?'What they are known to play, and their likely choice where they are not.':'Their likely lines, from what is played at their level.')+' Study them in the Library and you’ll start the game with a real edge when they come up.</div>'+line(ow,'As White',reps.known.w)+line(ob,'vs 1.e4',reps.known.b)+line(ob2,'vs 1.d4',reps.known.b2)+'</div>';}
-function careerScoutPanel(c){if(!c.tour||c.tour.round>=c.tour.rounds)return '';var opp=c.tour.field[c.tour.round];return opp?scoutCard(c,opp,'Round '+(c.tour.round+1)):'';}
+function careerScoutPanel(c){if(!c.tour||c.tour.round>=c.tour.rounds)return '';var opp=c.tour.field[c.tour.round];if(!opp)return '';
+  var h=scoutCard(c,opp,'Round '+(c.tour.round+1));
+  if(!c.tour.var960){var w=prepWarning(c,opp,tourColourOf(c.tour,c.tour.round),prepKey(c));if(w)h=h.replace(/<\/div>$/,w+'</div>');}
+  return h;}
 function careerPrepPanel(c){
   var ids=store.repertoire||[],ps=prepStrength(),pr=(store.puzzle&&store.puzzle.rating)||1200;
   var h='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:4px">🎓 Prep &amp; training</div>'+
@@ -16598,6 +16643,11 @@ function careerPrepPanel(c){
     '<div><div class="dim small">📚 Opening prep '+ps+'/100 · '+ids.length+' line'+(ids.length===1?'':'s')+'</div>'+cbar(ps,100,'#34d399')+'</div>'+
     '<div><div class="dim small">🧩 Tactical sharpness '+pr+' · '+sharpnessLabel(pr)+'</div>'+cbar(Math.max(0,Math.min(100,(pr-800)/16)),100,'#f59e0b')+'</div></div>'+
     '<div class="dim small" style="margin-top:8px">🎯 There is no help at the board in a career game — no hints, no evaluation. Being sharp is what helps: your tactics make opponents play weaker (−'+tacticalEdge(0)+' Elo now'+(tacticalEdge(40)>tacticalEdge(0)?', −'+tacticalEdge(40)+' from the middlegame':'')+'), and a prepared line knocks ~80 more off them in the opening. You still earn full rating for the win, and solving puzzles keeps your form up.</div>';
+  // what your games say you play — which is what a strong opponent reads before a round
+  var ML=myLines(c),mlRow=function(k,lab){var x=ML[k];if(!x)return '';var o=byId.get(x.id);if(!o)return '';var pct=Math.round(x.n/Math.max(1,x.of)*100);
+    return '<div class="row" style="justify-content:space-between;gap:8px;padding:3px 0"><span class="small">'+lab+': <b>'+esc(o.name)+'</b></span><span class="small" style="color:'+(pct>=70?'#fbbf24':'var(--muted)')+'">'+x.n+' of '+x.of+' games'+(pct>=70?' · predictable':'')+'</span></div>';};
+  var mlh=mlRow('w','As White')+mlRow('b','Against 1.e4')+mlRow('b2','Against 1.d4');
+  if(mlh)h+='<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border)"><div class="dim small" style="margin-bottom:3px">🔎 Your repertoire, as your opponents read it from your games. From 2200 up they prepare for what you play most — the more predictable you are, the likelier.</div>'+mlh+'</div>';
   if(!ids.length)h+='<div class="dim small" style="margin-top:8px">Add openings to your repertoire in the Library, then prepare them here for your matches.</div>';
   else if(c.preppedOpening){var po=byId.get(c.preppedOpening);h+='<div class="row" style="margin-top:10px;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span class="chip green">📕 Prepared: '+esc(po?po.name:'line')+' ('+(po&&po.side==='white'?'as White':'as Black')+')</span><button class="btn ghost sm" data-act="careerprepclear">Clear</button></div><div class="dim small" style="margin-top:4px">When you’re drawn that colour your opponent walks into your line and you start with a form boost.</div>';
     h+='<div class="row" style="margin-top:8px;align-items:center;gap:8px;flex-wrap:wrap">'+(c.noveltyArmed?'<span class="chip brand">🧪 Novelty armed — an uncounterable surprise</span>':((c.noveltyCharge||0)>0?'<button class="btn sec sm" data-act="careernovelty">🧪 Cook up a novelty</button><span class="dim small">a home-prepared surprise: a big opening edge that can’t be scouted</span>':'<span class="dim small">🧪 Novelty recharging — ready in '+(c.noveltyCd||0)+' event'+((c.noveltyCd||0)===1?'':'s')+'</span>'))+'</div>';}
@@ -17460,6 +17510,7 @@ function playNote(){
   const n=[];
   if(app.careerPrepUsed)n.push(app.careerNovelty?'🧪 your novelty is ready':'📕 your prepared line');
   else if((app.careerStudyEdge||0)>=0.5)n.push('🔍 you studied their line');
+  if(app.careerOppPrep)n.push(app.careerOppPrep.dodged?'🎯 their prep was for your '+app.careerOppPrep.name:'⚠️ they prepared your '+app.careerOppPrep.name);
   if(app.careerOpp==='park'&&app.parkBet)n.push('💰'+app.parkBet.stake+' on the table');
   if(app.careerOpp==='stream'&&app.streamShow==='guess'&&app.playStatus!=='over')n.push('rating hidden');
   return n.join(' · ');
@@ -18092,7 +18143,7 @@ function careerLobby(c){
 function careerChallenges(c){
   const fmt=app.chalFormat||'classical';
   const ref=youRating(c,fmt)!=null?youRating(c,fmt):(c.rating!=null?c.rating:1400);
-  const all=buildWorld().map(p=>({p,rating:wpRating(p,fmt)}));
+  const all=buildWorld().map(p=>({p,rating:pubRating(p,fmt)}));
   const near=all.reduce((b,x)=>Math.abs(x.rating-ref)<Math.abs(b.rating-ref)?x:b,all[0]);
   const tough=all.filter(x=>x.rating>ref+50).sort((a,b)=>a.rating-b.rating)[0]||all.slice().sort((a,b)=>b.rating-a.rating)[0];
   const stars=all.filter(x=>x.p.real).sort((a,b)=>b.rating-a.rating);
@@ -18323,7 +18374,9 @@ function viewPlayer(){
   const c=store.career,p=profileOf(app.playerId);
   if(!p)return msgCard('Player not found','That player is no longer on the world list.','<button class="btn sec" data-act="nav" data-val="career">Back to career</button>');
   lifeInit(c);
-  const rc=wpRating(p,'classical'),rr=wpRating(p,'rapid'),rb=wpRating(p,'blitz');
+  // the list ratings, and the live one where games since have moved it
+  const rc=pubRating(p,'classical'),rr=pubRating(p,'rapid'),rb=pubRating(p,'blitz');
+  const liveSub=function(fmt,r){const l=wpRating(p,fmt);return l!==r?'live '+l+' ('+(l>r?'+':'')+(l-r)+')':'';};
   const title=wpTitle(p);
   const opp={id:p.id,name:p.name,rating:rc,title:title,flag:p.flag,fed:p.fed};
   const rank=(worldRanking(c,'classical').find(function(x){return x.id===p.id;})||{}).rank||0;
@@ -18331,7 +18384,7 @@ function viewPlayer(){
   const h2h=(c.h2h&&c.h2h[p.name])||null;
   const isRival=!!(c.rival&&c.rival.name===p.name);
   const isNemesis=!!(c.nemesis&&c.nemesis.name===p.name);
-  const yr=youRating(c,'classical');
+  const yr=youPub(c,'classical')||youRating(c,'classical');
   const gap=(yr!=null)?rc-yr:null;
   const formWord=frm>=1.5?'climbing fast':frm>=0.4?'trending up':frm<=-1.5?'falling away':frm<=-0.4?'drifting down':'steady';
   const reps=oppOpenings(p.name,wpRating(p,'classical')),ow=reps.w?byId.get(reps.w):null,ob=reps.b?byId.get(reps.b):null,ob2=reps.b2?byId.get(reps.b2):null;
@@ -18351,9 +18404,10 @@ function viewPlayer(){
         '<span class="chip" style="font-size:10px">'+esc(formWord)+'</span>'+
       '</div></div></div>'+
     '<div class="row" style="margin-top:11px">'+
-      stat('Classical',String(rc),'var(--brand2)',gap==null?'—':(gap>0?gap+' above you':gap<0?(-gap)+' below you':'level with you'))+
-      stat('Rapid',String(rr),'var(--text)','')+
-      stat('Blitz',String(rb),'var(--text)','')+'</div>'+
+      stat('Classical',String(rc),'var(--brand2)',(gap==null?'—':(gap>0?gap+' above you':gap<0?(-gap)+' below you':'level with you'))+(liveSub('classical',rc)?' · '+liveSub('classical',rc):''))+
+      stat('Rapid',String(rr),'var(--text)',liveSub('rapid',rr))+
+      stat('Blitz',String(rb),'var(--text)',liveSub('blitz',rb))+'</div>'+
+    '<div class="dim small" style="margin-top:5px">Ratings are the '+pubMonth(c)+' list; “live” counts every game since.</div>'+
     '<div class="row" style="gap:7px;flex-wrap:wrap;margin-top:11px">'+
       '<button class="btn primary sm" data-act="careerchal" data-val="'+p.id+'"'+(c.tour?' disabled title="Finish your event first"':'')+'>⚔️ Challenge them</button>'+
       '<button class="btn sec sm" data-act="specvs" data-val="'+p.id+'">🍿 Watch them play</button>'+
@@ -18421,11 +18475,14 @@ function careerLeaderboard(c){
   list.slice(0,10).forEach(p=>rows+=rowHtml(p));
   if(yi>=10){rows+='<div class="dim small" style="text-align:center;padding:3px">⋯</div>';for(let i=Math.max(10,yi-2);i<=Math.min(list.length-1,yi+2);i++)rows+=rowHtml(list[i]);}
   const fmtBtns=['classical','rapid','blitz'].map(f=>'<button class="btn '+(f===fmt?'primary':'ghost')+' sm" data-act="lbfmt" data-val="'+f+'">'+fmtLabel(f)+'</button>').join(' ');
-  const yr=youRating(c,fmt);
-  const sub=yr==null?('Play a '+fmtLabel(fmt).toLowerCase()+' event to enter the world list.'):('You are <b>#'+list[yi].rank.toLocaleString()+'</b> in the world with '+yr+' — the places around you are the real list’s, not a count of the names shown.');
+  // the list is the published one: yours on it, and your live rating beside it
+  const yr=youPub(c,fmt),live=youRating(c,fmt),nextM=WIRE_MONTHS[(((c.pub?c.pub.k:pubKey(c))+1)%12)];
+  const liveNote=(yr!=null&&live!=null&&Math.round(live)!==yr)?' Live you are on '+Math.round(live)+' ('+(live>yr?'+':'')+Math.round(live-yr)+'), which the '+nextM+' list will show.':'';
+  const sub=yr==null?(live!=null?('Your first '+fmtLabel(fmt).toLowerCase()+' rating, '+Math.round(live)+', goes on the '+nextM+' list.'):('Play a '+fmtLabel(fmt).toLowerCase()+' event to enter the world list.'))
+    :('You are <b>#'+list[yi].rank.toLocaleString()+'</b> in the world with '+yr+' — the places around you are the real list’s, not a count of the names shown.'+liveNote);
   const mv=worldMovers(fmt);
   const movers=(mv.up&&mv.up.ch>0?'📈 '+esc(mv.up.p.name.split(' ').pop())+' +'+mv.up.ch:'')+(mv.up&&mv.up.ch>0&&mv.dn&&mv.dn.ch<0?'  ·  ':'')+(mv.dn&&mv.dn.ch<0?'📉 '+esc(mv.dn.p.name.split(' ').pop())+' '+mv.dn.ch:'');
-  return '<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px"><div style="font-weight:700">🌍 World Ranking</div><div class="row" style="gap:6px">'+fmtBtns+'<button class="btn sec sm" data-act="watchtop">🍿 Watch</button></div></div>'+
+  return '<div class="card" id="rankcard" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px"><div style="font-weight:700">🌍 World Ranking <span class="dim small" style="font-weight:600">· the '+pubMonth(c)+' list</span></div><div class="row" style="gap:6px">'+fmtBtns+'<button class="btn sec sm" data-act="watchtop">🍿 Watch</button></div></div>'+
     '<div class="dim small" style="margin-bottom:3px">'+sub+(movers?' <span style="margin-left:6px">'+movers+'</span>':'')+'</div>'+rows+'</div>';
 }
 function matchScoreStrip(tr){
@@ -18500,7 +18557,7 @@ function careerTourView(c){
     '<div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px"><div style="min-width:0">'+
       '<div style="font-weight:800;font-size:17px">'+tr.emoji+' '+esc(tr.name)+'</div>'+
       '<div class="dim small">'+(tr.ko
-        ? (tr.ko.champion?(tr.ko.champion.you?'World Cup winner':'Knocked out'):KO_NAMES[tr.ko.round]+' · game '+(done%2+1)+' of 2')+' · seed '+tr.ko.mySeed+' of '+KO_SIZE
+        ? (tr.ko.champion?(tr.ko.champion.you?'World Cup winner':'Knocked out'):KO_NAMES[tr.ko.round]+' · game '+(done%2+1)+' of 2')+' · seed '+tr.ko.mySeed+' of '+(tr.ko.entrants||KO_SIZE)
         : (done<total?'Round '+(done+1)+' of '+total:'Final round complete')+' · field avg '+tr.avg)+(tr.normEligible?' · norm-eligible':'')+'</div></div>'+
       '<div style="text-align:right"><div style="font-weight:800;font-size:17px">'+fmtScore(scoreTot)+' / '+done+'</div><div class="dim small">live perf '+liveTpr+'</div></div></div>';
   h+=tourStakesCard(c,tr);
@@ -19139,7 +19196,7 @@ function playoffFirst(c,tr){
   if(tied.length<2)return null;
   const speed=function(p){
     const q=worldPlayerOf(p);
-    return {id:q?q.id:null,name:p.name,rating:p.rating,rapid:q?wpRating(q,'rapid'):p.rating,blitz:q?wpRating(q,'blitz'):p.rating};};
+    return {id:q?q.id:null,name:p.name,rating:p.rating,rapid:q?pubRating(q,'rapid'):p.rating,blitz:q?pubRating(q,'blitz'):p.rating};};
   const me=tied.filter(function(p){return p.you;})[0];
   if(me){
     const opp=tied.filter(function(p){return !p.you;})[0],myR=youRating(c,'classical')||c.rating;
@@ -20900,12 +20957,21 @@ function swissCard(tr){
    plays on without you and the event tells you who won it. Survive to the
    quarter-final and you have played ten classical games, which is enough for
    a norm; tiebreak games never count towards one.
+
+   And it is the size FIDE plays it at: 206 players, not 128. The top fifty
+   seeds sit out the first round; the other 156 play it, seed 51 against 206,
+   52 against 205, down to 128 against 129, and each winner takes the place
+   of the higher seed of their match in a bracket of 128 from round two on.
+   Eight rounds, then, for anybody who starts in the first — seven for a top
+   fifty seed — and a first-round exit is joint 79th.
    --------------------------------------------------------------------------- */
-const KO_SIZE=128;
-const KO_ROUNDS=7;
-const KO_NAMES=['Round 1','Round 2','Round 3','Round 4','Quarter-final','Semi-final','Final'];
-const KO_SHORT=['R1','R2','R3','R4','QF','SF','F'];
-const KO_PLACE=[65,33,17,9,5,3,2];   // where losing in each round leaves you; the winner is first
+const KO_ENTRANTS=206;          // the field
+const KO_BYES=50;               // the top fifty seeds start in round two
+const KO_SIZE=128;              // the bracket from round two on
+const KO_ROUNDS=8;
+const KO_NAMES=['Round 1','Round 2','Round 3','Round 4','Round 5','Quarter-final','Semi-final','Final'];
+const KO_SHORT=['R1','R2','R3','R4','R5','QF','SF','F'];
+const KO_PLACE=[79,65,33,17,9,5,3,2];   // where losing in each round leaves you; the winner is first
 /* The order seeds sit in a bracket so that 1 and 2 can only meet in the final,
    1 and 4 not before the semi-final, and so on: 1,128,64,65,32,97,… */
 function koOrder(n){
@@ -20964,48 +21030,75 @@ function koSimMatch(A,B){
 }
 const KO_FLOOR=2560;            // the rating list fills the bracket down to here
 const KO_QUAL_MIN=2250;         // the weakest national champion in the draw
-function koInit(c,tr,t){
-  // the rating list supplies the top of the bracket; below KO_FLOOR the real
-  // World Cup is national champions and continental qualifiers, not whoever
-  // happens to be 127th on a list that runs down to club players
-  const list=worldRanking(c,'classical').filter(function(p){return !p.you&&p.rating>=KO_FLOOR;}).slice(0,KO_SIZE-1);
-  const world=buildWorld(),byId={};world.forEach(function(p){byId[p.id]=p;});
-  const players=list.map(function(p){
-    const w=byId[p.id];
-    return {id:p.id,name:p.name,fed:p.fed,flag:p.flag,real:!!p.real,rating:p.rating,
-      rapid:w?wpRating(w,'rapid'):p.rating,blitz:w?wpRating(w,'blitz'):p.rating,
-      title:p.title!=null?p.title:titleFor(p.rating),style:pickStyle()};
-  });
-  // below the rating places: every federation's best who is not already in,
-  // the way national championships and continental events send them, then the
-  // next strongest from the list
-  const inIds={};list.forEach(function(p){inIds[p.id]=1;});
-  const below=worldRanking(c,'classical').filter(function(p){return !p.you&&!inIds[p.id]&&p.rating<KO_FLOOR&&p.rating>=KO_QUAL_MIN;});
+const KO_RATING_SPOTS=110;      // places on rating; the rest are federations' qualifiers
+/* The 206: the rating list down to KO_FLOOR, then the best of every federation
+   not already in (the national champions and continental qualifiers the real
+   draw is full of), then the next strongest, and — only if the list has run
+   dry — qualifiers nobody has heard of. `busy` are players somewhere else. */
+function koEntrants(c,busy,withYou){
+  busy=busy||{};
+  const need=KO_ENTRANTS-(withYou?1:0),world=buildWorld(),byId={};world.forEach(function(p){byId[p.id]=p;});
+  const rank=worldRanking(c,'classical').filter(function(p){return !p.you&&!busy[p.id];});
+  const mk=function(p,q){const w=byId[p.id];
+    return {id:p.id,name:p.name,fed:p.fed,flag:p.flag,real:!!p.real,qualifier:!!q,rating:p.rating,
+      rapid:w?pubRating(w,'rapid'):p.rating,blitz:w?pubRating(w,'blitz'):p.rating,
+      title:p.title!=null&&p.title!==''?p.title:titleFor(p.rating),style:pickStyle()};};
+  const top=rank.filter(function(p){return p.rating>=KO_FLOOR;}).slice(0,Math.min(need,KO_RATING_SPOTS));
+  const players=top.map(function(p){return mk(p,false);});
+  const inIds={};top.forEach(function(p){inIds[p.id]=1;});
+  const below=rank.filter(function(p){return !inIds[p.id]&&p.rating>=KO_QUAL_MIN;});
   const byFed={},quals=[];
   below.forEach(function(p){if(!byFed[p.fed]){byFed[p.fed]=1;quals.push(p);}});
   below.forEach(function(p){if(quals.indexOf(p)<0)quals.push(p);});
-  quals.slice(0,KO_SIZE-1-players.length).forEach(function(p){
-    const w=byId[p.id];
-    players.push({id:p.id,name:p.name,fed:p.fed,flag:p.flag,real:!!p.real,qualifier:true,rating:p.rating,
-      rapid:w?wpRating(w,'rapid'):p.rating,blitz:w?wpRating(w,'blitz'):p.rating,title:p.title||titleFor(p.rating),style:pickStyle()});
-  });
-  while(players.length<KO_SIZE-1){
+  quals.slice(0,need-players.length).forEach(function(p){players.push(mk(p,true));});
+  while(players.length<need){
     const r=Math.round(Math.max(KO_QUAL_MIN,KO_FLOOR-10-Math.abs(gauss())*110)),fed=randFed();
     players.push({id:'q'+players.length,name:randName(),fed:fed.c,flag:fed.f,real:false,qualifier:true,rating:r,
       rapid:r+Math.round(gauss()*40),blitz:r+Math.round(gauss()*50),title:titleFor(r),style:pickStyle()});
   }
-  const myR=youRating(c,'classical')||c.rating||2450;
-  players.push({id:'__you',name:c.name||'You',fed:c.fed,flag:c.flag,you:true,rating:myR,
-    rapid:c.ratingRapid||myR,blitz:c.ratingBlitz||myR,title:bestTitle(c)||''});
+  if(withYou){
+    const myR=youPub(c,'classical')||youRating(c,'classical')||c.rating||2450;
+    players.push({id:'__you',name:c.name||'You',fed:c.fed,flag:c.flag,you:true,rating:myR,
+      rapid:youPub(c,'rapid')||c.ratingRapid||myR,blitz:youPub(c,'blitz')||c.ratingBlitz||myR,title:bestTitle(c)||''});
+  }
   players.sort(function(a,b){return b.rating-a.rating||(a.you?-1:b.you?1:0);});
   players.forEach(function(p,i){p.seed=i+1;});
+  return players;
+}
+/* Round one: seed 51 against 206, 52 against 205 … 128 against 129, laid out
+   as pairs; the top fifty wait for round two. */
+function koRoundOne(players){
   const bySeed={};players.forEach(function(p){bySeed[p.seed]=p;});
-  const slots=koOrder(KO_SIZE).map(function(s){return bySeed[s];});
-  tr.ko={round:0,slots:slots,mySeed:(players.find(function(p){return p.you;})||{}).seed,
-    mine:[],notes:[],out:false,champion:null,topOut:[]};
+  const pairs=[];
+  for(let k=KO_BYES+1;k<=KO_SIZE;k++){const A=bySeed[k],B=bySeed[KO_BYES+KO_ENTRANTS+1-k];if(A&&B)pairs.push(A,B);}
+  const byes=[];for(let k=1;k<=KO_BYES;k++)if(bySeed[k])byes.push(bySeed[k]);
+  return {pairs:pairs,byes:byes};
+}
+/* Round two's bracket of 128: a top-fifty seed in their own place, and in
+   every other place the winner of the first-round match its seed played. */
+function koBracket(byes,winners){
+  return koOrder(KO_SIZE).map(function(sd){return sd<=KO_BYES?byes[sd-1]:winners[sd];});
+}
+function koInit(c,tr,t){
+  const players=koEntrants(c,{},true),R1=koRoundOne(players);
+  tr.ko={v:2,round:0,slots:R1.pairs,byes:R1.byes,mySeed:(players.find(function(p){return p.you;})||{}).seed,
+    mine:[],notes:[],out:false,champion:null,topOut:[],entrants:players.length};
+  tr.ko.bye=tr.ko.mySeed<=KO_BYES;
   tr.field=[];tr.colours=[];tr.rounds=0;tr.drawn=0;
+  // a top-fifty seed watches round one being played, and starts in round two
+  if(tr.ko.bye)koAdvanceRound(tr,null);
   koScheduleMe(tr);
   return tr.ko;
+}
+/* A World Cup begun before there were 206 was a bracket of 128 from its first
+   round: that is round two now, and everybody in it had a bye. */
+function koMigrate(K){
+  if(!K||K.v)return K;
+  K.round=(K.round||0)+1;
+  (K.mine||[]).forEach(function(m){m.round=(m.round||0)+1;});
+  (K.notes||[]).forEach(function(n){n.round=(n.round||0)+1;});
+  K.bye=true;K.v=2;
+  return K;
 }
 /* Whoever sits next to you in the current round's slots. */
 function koOpponent(tr){
@@ -21026,22 +21119,25 @@ function koScheduleMe(tr){
 }
 /* Play out every other match of the current round and move the winners on. */
 function koAdvanceRound(tr,myWinner){
-  const K=tr.ko,next=[],notes=[];
+  const K=tr.ko,next=[],notes=[],r1=K.round===0&&K.byes,won1={};
   for(let i=0;i<K.slots.length;i+=2){
     const A=K.slots[i],B=K.slots[i+1];
     let w,l,m=null;
     if(A.you||B.you){w=myWinner;l=A===myWinner?B:A;}
     else{m=koSimMatch(A,B);w=m.winner;l=m.loser;}
     next.push(w);
+    if(r1)won1[Math.min(A.seed,B.seed)]=w;          // the winner takes the higher seed's place
     // the news: a top-ten seed going out to somebody seeded far below them
     if(!l.you&&l.seed<=10&&w.seed>=l.seed+20)
       notes.push((l.real?l.name:l.name)+' (seed '+l.seed+') is out, beaten by '+w.name+' (seed '+w.seed+')'+
         (m&&m.stage!=='classical'?' in '+(m.stage==='armageddon'?'armageddon':m.stage+' tiebreaks'):'')+'.');
     if(!l.you&&l.seed<=16)K.topOut.push(l.seed);
   }
-  const top16=next.filter(function(p){return p.seed<=16;}).length;
-  K.notes.push({round:K.round,items:notes.slice(0,3),top16:top16,left:next.length});
-  K.slots=next;
+  const slots=r1?koBracket(K.byes,won1):next;
+  if(r1)K.byes=null;
+  const top16=slots.filter(function(p){return p.seed<=16;}).length;
+  K.notes.push({round:K.round,items:notes.slice(0,3),top16:top16,left:slots.length});
+  K.slots=slots;
   K.round++;
 }
 /* After you have finished a game of the World Cup. */
@@ -21084,7 +21180,7 @@ function koPlace(tr){
   if(!K)return null;
   if(K.champion&&K.champion.you)return 1;
   const last=K.mine[K.mine.length-1];
-  if(!last)return KO_PLACE[0];
+  if(!last)return KO_PLACE[K.bye?1:0];
   return last.won?KO_PLACE[Math.min(KO_ROUNDS-1,last.round+1)]:KO_PLACE[last.round];
 }
 function koRoundLabel(tr,i){return KO_SHORT[Math.floor(i/2)]+'·'+(i%2+1);}
@@ -21094,7 +21190,7 @@ function koNormNote(tr){
   return '<div style="margin-top:9px;padding:9px 11px;background:rgba(250,204,21,.06);border:1px solid #854d0e44;border-radius:8px">'+
     '<div style="font-weight:700;font-size:12px;color:#fcd34d;margin-bottom:4px">📜 Norm tracker</div>'+
     '<div class="dim small" style="line-height:1.6">A norm needs nine classical games, and tiebreaks do not count. You have played '+n+
-    '. Reach the quarter-final and you will have played ten.</div></div>';
+    '. Reach '+(tr.ko&&tr.ko.bye?'the quarter-final':'round 5')+' and you will have played ten.</div></div>';
 }
 /* The bracket, as far as it concerns you. */
 function koCard(tr){
@@ -21105,7 +21201,8 @@ function koCard(tr){
   for(let r=0;r<KO_ROUNDS;r++){
     const m=K.mine.find(function(x){return x.round===r;});
     let body,col='var(--muted)';
-    if(m){
+    if(r===0&&K.bye){col='var(--green)';body='<span class="dim">bye — the top '+KO_BYES+' seeds start in round 2</span>';}
+    else if(m){
       col=m.won?'var(--green)':'#f87171';
       body=(m.won?'✓ ':'✗ ')+'vs '+(m.opp.title?m.opp.title+' ':'')+esc(m.opp.name)+' <span class="dim">('+m.opp.rating+', seed '+m.opp.seed+')</span> '+
         fmtScore(m.classical)+'–'+fmtScore(2-m.classical)+
@@ -21122,8 +21219,8 @@ function koCard(tr){
   }
   const lastNote=K.notes[K.notes.length-1];
   return '<div class="card" style="margin-bottom:12px;border-color:#f59e0b55;background:linear-gradient(150deg,rgba(245,158,11,.08),transparent 62%),var(--panel)">'+
-    '<div style="font-weight:800">🗺️ Knockout · '+KO_SIZE+' players · you are seed '+K.mySeed+'</div>'+
-    '<div class="dim small" style="margin:3px 0 6px;line-height:1.6">Two classical games a round; level after two goes to rapid, then blitz, then armageddon. Lose a match and you are out.</div>'+
+    '<div style="font-weight:800">🗺️ Knockout · '+(K.entrants||KO_ENTRANTS)+' players · you are seed '+K.mySeed+'</div>'+
+    '<div class="dim small" style="margin:3px 0 6px;line-height:1.6">The top '+KO_BYES+' seeds start in round 2; everybody else plays round 1. Two classical games a round; level after two goes to rapid, then blitz, then armageddon. Lose a match and you are out.</div>'+
     rows+
     (K.champion?'<div class="small" style="margin-top:7px;font-weight:700">🏆 '+(K.champion.you?'You won the World Cup.':'The World Cup went to '+esc(K.champion.name)+' (seed '+K.champion.seed+').')+'</div>':'')+
     (lastNote?'<div class="dim small" style="margin-top:6px;line-height:1.6">After '+KO_NAMES[lastNote.round]+': '+lastNote.left+' left, '+
@@ -21414,7 +21511,7 @@ function circuitRate(p,r){
 function worldBusy(c){
   const b={},tr=c&&c.tour;if(!tr)return b;
   (tr.hall||[]).concat(tr.players||[],tr.field||[]).forEach(function(o){if(o&&o.wid)b[o.wid]=1;});
-  if(tr.ko)(tr.ko.slots||[]).forEach(function(o){if(o&&o.id&&o.id!=='__you')b[o.id]=1;});
+  if(tr.ko)(tr.ko.slots||[]).concat(tr.ko.byes||[]).forEach(function(o){if(o&&o.id&&o.id!=='__you')b[o.id]=1;});
   if(tr.oly)(tr.oly.nations||[]).forEach(function(n){(n.squad||[]).forEach(function(o){if(o.wid)b[o.wid]=1;});});
   if(tr.oly)(tr.oly.mates||[]).forEach(function(o){if(o.wid)b[o.wid]=1;});
   return b;
@@ -21435,7 +21532,7 @@ function worldField(c,t,n,busy,fmt){
 /* A Swiss between people on the list, paired on score, every game rated. */
 function simSwiss(c,players,rounds,fmt,unrated){
   const n=players.length,sc=players.map(function(){return 0;}),wh=players.map(function(){return 0;}),met={};
-  const form=players.map(function(){return Math.round(gauss()*WORLD_FORM);}),rt=players.map(function(p){return wpRating(p,fmt);});
+  const form=players.map(function(){return Math.round(gauss()*WORLD_FORM);}),rt=players.map(function(p){return pubRating(p,fmt);});
   const opp=players.map(function(){return [];});
   for(let r=0;r<rounds;r++){
     const order=players.map(function(_,i){return i;}).sort(function(a,b){return sc[b]-sc[a]||rt[b]-rt[a];});
@@ -21463,7 +21560,7 @@ function simRoundRobin(c,players,cycles,fmt,unrated){
     const s=worldGame(c,players[i],players[j],fmt,{aWhite:iWhite,formA:form[i],formB:form[j],unrated:unrated});
     sc[i]+=s;sc[j]+=1-s;
   }
-  return players.map(function(p,i){return {p:p,s:sc[i],bh:0};}).sort(function(a,b){return b.s-a.s||wpRating(b.p,fmt)-wpRating(a.p,fmt);});
+  return players.map(function(p,i){return {p:p,s:sc[i],bh:0};}).sort(function(a,b){return b.s-a.s||pubRating(b.p,fmt)-pubRating(a.p,fmt);});
 }
 /* The places in the next Candidates the world has earned: the World Cup's
    finalists and the Grand Swiss's top two, then the rating list. */
@@ -21472,7 +21569,7 @@ function candidatesField(c,n,busy){
   const okP=function(p){return p&&!inIds[p.id]&&!(busy&&busy[p.id])&&!(ch&&!ch.you&&p.name===ch.name);};
   ((X.qual&&X.qual.season>=S-1)?X.qual.ids:[]).forEach(function(id){const p=I[id];if(out.length<n&&okP(p)){inIds[p.id]=1;out.push(p);}});
   worldRanking(c,'classical').forEach(function(q){if(q.you||out.length>=n)return;const p=I[q.id];if(okP(p)){inIds[p.id]=1;out.push(p);}});
-  return out.map(function(p){return worldRanking(c,'classical').filter(function(q){return q.id===p.id;})[0]||{id:p.id,name:p.name,fed:p.fed,flag:p.flag,rating:wpRating(p,'classical'),real:p.real,title:wpTitle(p)};});
+  return out.map(function(p){return worldRanking(c,'classical').filter(function(q){return q.id===p.id;})[0]||{id:p.id,name:p.name,fed:p.fed,flag:p.flag,rating:pubRating(p,'classical'),real:p.real,title:wpTitle(p)};});
 }
 function worldQualify(c,ids){
   const X=wxInit(c),S=c.season||1;
@@ -21569,12 +21666,13 @@ function worldOlympiad(c,busy){
 }
 /* The World Cup, when you are not in it. */
 function worldKnockout(c,busy){
-  const I=worldIndex().id,list=worldRanking(c,'classical').filter(function(p){return !p.you&&!busy[p.id];}).slice(0,KO_SIZE);
-  if(list.length<KO_SIZE)return null;
-  const players=list.map(function(p,i){busy[p.id]=1;const w=I[p.id];
-    return {id:p.id,name:p.name,fed:p.fed,flag:p.flag,rating:p.rating,rapid:w?wpRating(w,'rapid'):p.rating,blitz:w?wpRating(w,'blitz'):p.rating,seed:i+1};});
-  const bySeed={};players.forEach(function(p){bySeed[p.seed]=p;});
-  let slots=koOrder(KO_SIZE).map(function(sd){return bySeed[sd];});
+  const I=worldIndex().id,players=koEntrants(c,busy,false);
+  if(players.filter(function(p){return I[p.id];}).length<KO_SIZE)return null;
+  players.forEach(function(p){if(I[p.id])busy[p.id]=1;});
+  // round one among seeds 51 to 206, then the bracket of 128
+  const R1=koRoundOne(players),won1={};
+  for(let i=0;i<R1.pairs.length;i+=2){const A=R1.pairs[i],B=R1.pairs[i+1];won1[Math.min(A.seed,B.seed)]=koSimMatch(A,B).winner;}
+  let slots=koBracket(R1.byes,won1);
   let final=null;
   while(slots.length>1){
     const next=[];
@@ -21613,6 +21711,7 @@ function worldCircuit(c,busy){
 function worldWeek(c){
   if(!c||!c.setup)return;
   wrInit(c);
+  pubTick(c);                       // the first of the month: a new list
   const w=weekOfSeason(c),busy=worldBusy(c),done=c.calDone||[];
   calendarEvents(c).forEach(function(t){
     if(EVENT_WEEK[t.id]!==w)return;
@@ -21632,7 +21731,7 @@ function worldWeek(c){
   proWeek(c);
   wireLeagues(c);
   // the top of the list, when it changes hands
-  const X=wxInit(c),top=worldRanking(c,'classical').filter(function(p){return !p.you;})[0];
+  const X=wxInit(c),top=worldRankingLive(c,'classical').filter(function(p){return !p.you;})[0];
   if(top&&X.no1&&X.no1!==top.id)pushFeed(c,'🌍',esc(top.name)+' is the new world number one on the live list, on '+top.rating+'.','world');
   if(top)X.no1=top.id;
   wireListTick(c);                  // and on the first of the month, the list
@@ -21672,7 +21771,7 @@ function worldEventsTick(c){
       const ch=worldChampion(c),chl=worldChallenger(c);
       if(ch&&chl&&!ch.you){
         const full=function(p){const q=worldPlayerOf(p);
-          return {id:q?q.id:null,name:p.name,rating:p.rating||2750,rapid:q?wpRating(q,'rapid'):p.rating,blitz:q?wpRating(q,'blitz'):p.rating};};
+          return {id:q?q.id:null,name:p.name,rating:p.rating||2750,rapid:q?pubRating(q,'rapid'):p.rating,blitz:q?pubRating(q,'blitz'):p.rating};};
         const m=simTitleMatch(full(ch),full(chl),14);
         const sc=fmtScore(Math.max(m.a,m.b))+'–'+fmtScore(Math.min(m.a,m.b))+(m.tb?', then the '+m.tb+(m.tb==='armageddon'?'':' tiebreak'):'');
         if(m.aWins)say(ch.name+' keeps the world title against '+chl.name+' — '+sc+'.');
@@ -21719,7 +21818,7 @@ function matchAfterGame(c,tr){
   if(you*2!==tr.results.length)return;
   const opp=(tr.field||[])[0]||{};
   const W=worldPlayerOf(opp);
-  const B={id:W?W.id:null,rating:opp.rating,rapid:W?wpRating(W,'rapid'):opp.rating,blitz:W?wpRating(W,'blitz'):opp.rating};
+  const B={id:W?W.id:null,rating:opp.rating,rapid:W?pubRating(W,'rapid'):opp.rating,blitz:W?pubRating(W,'blitz'):opp.rating};
   const myR=youRating(c,'classical')||c.rating;
   const A={id:'__you',you:true,rating:myR,rapid:c.ratingRapid||myR,blitz:c.ratingBlitz||myR};
   const tb=koTiebreak(A,B);
@@ -21792,27 +21891,204 @@ function specRate(S,whiteScore){
   const car=store.career;if(!car||S.rated)return;
   const W=worldPlayerOf(S.w),B=worldPlayerOf(S.b);
   if(!W||!B)return;
-  const rw=wpRating(W,'classical'),rb=wpRating(B,'classical');
+  const rw=pubRating(W,'classical'),rb=pubRating(B,'classical');
   const dw=worldApply(car,W,'classical',whiteScore,rb),db=worldApply(car,B,'classical',1-whiteScore,rw);
   S.rated={w:Math.round(dw*10)/10,b:Math.round(db*10)/10};
   S.result+=' · rated: '+W.name.split(' ').pop()+' '+(dw>=0?'+':'')+(Math.round(dw*10)/10)+', '+B.name.split(' ').pop()+' '+(db>=0?'+':'')+(Math.round(db*10)/10);
   save();
 }
-function startSpectate(wp,bp){app.spec={w:wp,b:bp,fen:new Chess().fen(),moves:[],last:null,status:'play',flip:false,paused:false};go('spectate');setTimeout(specStep,500);}
+/* ===== The chat, when you watch a game =====
+   The stream chat only ever watched your own games; watching two players from
+   the list, you sat in silence. A watched game has its chat now — the
+   broadcast's — and it talks about the two of them and every move: the
+   capture, the sacrifice, the queens coming off, who is up material, the
+   mate, read from the moves the way the booth reads yours. Between moves it
+   talks about the players: their ratings, their federations, what they are
+   known to play, how you have done against them, whether one is your rival.
+   And you can take it live on your own channel as a watch-along: a day and a
+   little energy, your viewers in the chat, paid in subscribers and tips when
+   the game ends. It is not your game, so nothing is held back. */
+const SPEC_CHAT={
+  intro:['{w} vs {b}, let’s go 🍿','{w} ({wr}) against {b} ({br}) — who you got?','{gapLine}','first time watching {w} live!','top board energy ⚡','{fedLine}'],
+  opening:['the {name} 📖','{name}, classic','{mover} knows this line well','book moves so far','{name}!! I play this too'],
+  firstblood:['first capture: {mover}','trades already 🔪','{mover} takes first'],
+  queentaken:['{mover} TAKES THE QUEEN 😱','the queen is gone!!','no way, {other} lost the queen','clip it 📼'],
+  bigcapture:['{mover} wins the {piece}!','a whole {piece} 😳','there goes the {piece}','{other} will regret that'],
+  sac:['{sacker} SACRIFICES 🔥','{sacker} gave up material — for an attack?','sac!! {sacker} is going for it','real sac or a blunder by {sacker}? 👀','this is why I watch {sacker}'],
+  queensoff:['queens off, endgame time','{w} and {b} trade queens 😴','technique from here','no queens, no problems'],
+  castled:['{mover} castles','{mover} tucks the king away'],
+  opposite:['opposite-side castling 🌪️ pawn storms incoming','RACE','this is getting sharp'],
+  firstcheck:['check from {mover}!','{mover} starts checking','first check of the game 👀'],
+  materialup:['{leader} is up material now','{leader} is winning?? 👀','{trailer} needs a swindle','convert it, {leader}'],
+  promote:['{mover} QUEENS 👑','new queen for {mover}','the pawn made it for {mover}'],
+  move40:['move 40, made the time control','they both made it to 40'],
+  mate:['CHECKMATE by {mover}!!','GG {mover}','what a finish by {mover} 🏆'],
+  quiet:['who is better here? 🤔','such a tense middlegame','{w} is thinking hard','I’d play h4 here lol','classical chess at its finest','{b} looks calm'],
+  idle:['🍿🍿','hi from {country}!','{w} is my favourite player','{b} has been in form lately','who wins this? 🤔','{fedLine}','{rivalLine}','{repLine}','{h2hLine}','{rankLine}'],
+  win:['GG {winner}!','{winner} takes it 🏆','what a game by {winner}','{loser} will be gutted','that’s rating points for {winner}'],
+  draw:['draw, fair result','handshake 🤝','solid game from both','half a point each']
+};
+function specShort(p){return String((p&&p.name)||'').split(' ').pop();}
+/* How many watch a game between these two: the famous names bring people. */
+function specBase(S){
+  const rt=Math.max(S.w.rating||0,S.b.rating||0);
+  let v=40+Math.max(0,rt-2300)*2.5;
+  if(S.w.real)v*=2.2;if(S.b.real)v*=2.2;
+  return Math.max(12,Math.round(v));
+}
+function specVars(S){
+  const c=store.career||{},W=S.w,B=S.b,gap=(W.rating||0)-(B.rating||0),wn=specShort(W),bn=specShort(B);
+  const rival=c.rival&&(c.rival.name===W.name||c.rival.name===B.name)?(c.rival.name===W.name?wn:bn):null;
+  const RW=oppOpenings(W.name,W.rating),known=RW.known&&RW.known.w&&byId.get(RW.w);
+  const h2=(c.h2h&&(c.h2h[W.name]||c.h2h[B.name]))||null,h2n=c.h2h&&c.h2h[W.name]?wn:bn;
+  const rk=(worldRanking(c,'classical').find(function(x){return x.id===W.id;})||{}).rank;
+  return {w:wn,b:bn,wr:W.rating||'?',br:B.rating||'?',
+    gapLine:Math.abs(gap)<30?'dead even on paper':(gap>0?wn:bn)+' is '+Math.abs(gap)+' points higher, upset watch 👀',
+    fedLine:(W.fed&&B.fed&&W.fed!==B.fed)?W.fed+' vs '+B.fed+' 🌍':(W.fed?'all-'+W.fed+' game':'what a pairing'),
+    rivalLine:rival?'isn’t '+rival+' your rival?? 😂':'who is streaming this? 👋',
+    repLine:known?wn+' is a '+known.name+' player, watch for it':'what will '+wn+' open with?',
+    h2hLine:h2&&(h2.w+h2.d+h2.l)?'you are '+h2.w+'–'+h2.d+'–'+h2.l+' against '+h2n+', right?':'imagine playing either of them 😅',
+    rankLine:rk?wn+' is world #'+rk+' on the list':'the list will move after this',
+    country:streamPick(['Brazil','India','Romania','Canada','Spain','Norway','Chile','Kenya','Vietnam','Poland','Egypt','Mexico'])};
+}
+function specSay(S,t,k,u){
+  if(S.chat.slice(-10).some(function(m){return m.t===t;}))return null;
+  const m={id:++S.n,u:u||(S.live&&Math.random()<0.3&&S.live.regulars.length?streamPick(S.live.regulars):streamPick(STREAM_USERS)),t:t,k:k||'chat'};
+  S.chat.push(m);if(S.chat.length>STREAM_KEEP)S.chat.shift();
+  return m;
+}
+function specChatInit(S){
+  S.chat=[];S.n=0;S.st={};S.ply=0;S.hype=10;S.stack=S.stack||[S.fen];
+  S.viewers=specBase(S);S.peak=S.viewers;S.next=Date.now()+2200;
+  const v=specVars(S);
+  specSay(S,'🍿 '+S.w.name+' vs '+S.b.name+' — the broadcast chat','sys','');
+  SPEC_CHAT.intro.slice().sort(function(){return Math.random()-0.5;}).slice(0,2).forEach(function(l){specSay(S,streamFill(l,v));});
+  specTimer(true);
+}
+function specTimer(on){
+  if(app._specTimer){clearInterval(app._specTimer);app._specTimer=null;}
+  if(on&&typeof window!=='undefined'&&window.setInterval)app._specTimer=setInterval(specChatTick,1000);
+}
+/* A move: the chat reacts to it, by name. */
+function specChatMove(S){
+  if(!S||!S.chat)return;
+  const ply=S.moves.length;if(ply<=S.ply)return;S.ply=ply;
+  const g={moves:S.moves.map(function(x){return {san:x};}),stack:S.stack,side:'w'};
+  const facts=boothFacts(g,ply,S.st);
+  let f=facts[0];
+  if(f&&f.k==='queentaken'){const qo=facts.filter(function(x){return x.k==='queensoff';})[0];if(qo)f=qo;}
+  const san=S.moves[ply-1]||'';
+  if(/x/.test(san))S.st.firstBlood=true;
+  if(/^O-O/.test(san)){S.st.castled=true;S.st.castledLong=/^O-O-O/.test(san);}
+  if(!f){S.hype=Math.max(0,S.hype-1);return;}
+  if(f.k==='firstcheck')S.st.firstCheck=true;
+  if(f.k==='opening')S.st.opening=true;
+  if(f.k==='materialup'||f.k==='materialdown')S.st.matSaid=f.k==='materialup'?'up':'down';
+  const key=f.k==='materialdown'?'materialup':f.k;
+  const pool=SPEC_CHAT[key];if(!pool)return;
+  const Wn=specShort(S.w),Bn=specShort(S.b),v=specVars(S);
+  // "mine" in the booth's facts is White, since the booth is told White is watching
+  const whiteDid=!!f.mine;
+  Object.assign(v,{mover:whiteDid?Wn:Bn,other:whiteDid?Bn:Wn,sacker:whiteDid?Wn:Bn,name:f.name||'',piece:f.piece||'piece',
+    leader:f.k==='materialdown'?Bn:Wn,trailer:f.k==='materialdown'?Wn:Bn});
+  const n=f.w>=70?3:f.w>=45?2:1;
+  for(let i=0,tries=0;i<n&&tries<8;tries++)if(specSay(S,streamFill(streamPick(pool),v)))i++;
+  S.hype=Math.min(100,S.hype+Math.round(f.w/5));
+}
+/* Between moves: the audience moves, and somebody always has something to say. */
+function specChatTick(){
+  const S=app.spec;
+  if(!S||app.view!=='spectate'||!S.chat){specTimer(false);return;}
+  const target=specBase(S)*(0.75+S.hype/40);
+  S.viewers=Math.max(1,Math.round(S.viewers+(target-S.viewers)*0.15+(Math.random()-0.5)*Math.max(1,S.viewers*0.04)));
+  if(S.viewers>S.peak)S.peak=S.viewers;
+  if(S.live&&!S.live.done){
+    const L=S.live;L.viewers=Math.max(1,Math.round(L.viewers+(L.base*(0.7+S.hype/45)-L.viewers)*0.15));if(L.viewers>L.peak)L.peak=L.viewers;
+    if(Math.random()<Math.min(0.25,L.viewers/900+S.hype/600)){L.subs++;specSay(S,'⭐ '+streamPick(STREAM_USERS)+' subscribed!','sub','');}
+    if(Math.random()<0.04){const t=5*(1+Math.floor(Math.random()*5));L.tips+=t;specSay(S,'💸 '+streamPick(STREAM_USERS)+' tipped '+money(t),'tip','');}
+  }
+  S.hype=Math.max(0,S.hype-0.4);
+  if(!S.paused&&S.status==='play'&&Date.now()>=S.next){
+    specSay(S,streamFill(streamPick(Math.random()<0.25?SPEC_CHAT.quiet:SPEC_CHAT.idle),specVars(S)));
+    S.next=Date.now()+2200+Math.random()*3200;
+  }
+  specPaint();
+}
+function specStats(S){
+  return (S.live&&!S.live.done?'<span class="live">● LIVE</span> <span>👁 '+S.live.viewers.toLocaleString()+' on your channel</span> <span>⭐ +'+S.live.subs+'</span> · ':'')+
+    '<span>🍿 '+S.viewers.toLocaleString()+' watching</span> <span class="dim">· peak '+S.peak.toLocaleString()+'</span>';
+}
+function specPaint(){
+  const S=app.spec;if(!S||typeof document==='undefined')return;
+  const box=document.getElementById('specchat'),st=document.getElementById('specstats');
+  if(box){const atEnd=box.scrollTop+box.clientHeight>=box.scrollHeight-30;box.innerHTML=S.chat.slice(-18).map(streamMsg).join('');if(atEnd)box.scrollTop=box.scrollHeight;}
+  if(st)st.innerHTML=specStats(S);
+}
+/* The end of the game: the chat, and a watch-along's takings. */
+function specChatEnd(S,winner){
+  if(!S||!S.chat)return;
+  const v=specVars(S);
+  if(winner){const W=winner==='w'?S.w:S.b,Lp=winner==='w'?S.b:S.w;Object.assign(v,{winner:specShort(W),loser:specShort(Lp)});}
+  for(let i=0;i<2;i++)specSay(S,streamFill(streamPick(winner?SPEC_CHAT.win:SPEC_CHAT.draw),v));
+  if(S.live&&!S.live.done)specLiveFinish(S);
+}
+/* Taking it live: a watch-along on your own channel. */
+function specLive(){
+  const S=app.spec,c=store.career;if(!S||!c||!c.setup||S.live||S.status!=='play')return;
+  lifeInit(c);
+  if(c.tour){app.snackMsg={t:'You are at the '+c.tour.name+' — stream after it.',at:Date.now()};render();return;}
+  if((c.energy||0)<5){app.snackMsg={t:'😴 Too tired to stream — rest first.',at:Date.now()};render();return;}
+  c.energy=Math.max(0,c.energy-5);
+  lifeSpendDays(c,1,{id:'stream',e:'📺'});
+  c.stream=c.stream||{sessions:0,peak:0,regulars:[],best:null};
+  const base=Math.max(3,Math.round(4+(c.subs||0)*0.06+(c.fans||0)*0.004+(c.fame||0)*3+((c.social&&c.social.followers)||0)*0.004+specBase(S)*0.08));
+  S.live={base:base,viewers:Math.round(base*0.5),peak:0,subs:0,tips:0,regulars:(c.stream.regulars||[]).slice(0,6),done:false};
+  specSay(S,'🔴 You are live — watching '+S.w.name+' vs '+S.b.name+' with your chat','sys','');
+  specSay(S,streamPick(['watch-along let’s gooo','hi!! what are we watching','🍿 with the streamer','who do you think wins?']));
+  save();render();
+}
+function specLiveFinish(S,left){
+  const c=store.career,L=S.live;if(!L||L.done||!c)return;
+  L.done=true;
+  const fans=Math.round(L.peak*0.6+L.subs*4);
+  c.subs=(c.subs||0)+L.subs;c.fans=(c.fans||0)+fans;c.money=(c.money||0)+L.tips;c.fame=Math.min(100,(c.fame||0)+0.5);
+  c.stream=c.stream||{sessions:0,peak:0,regulars:[],best:null};
+  c.stream.sessions=(c.stream.sessions||0)+1;c.stream.peak=Math.max(c.stream.peak||0,L.peak);
+  L.sum='Watch-along over: peak '+L.peak.toLocaleString()+' viewers, +'+L.subs+' subscribers, +'+fans+' fans'+(L.tips?', '+money(L.tips)+' in tips':'')+'.';
+  pushNews(c,'📺','You streamed a watch-along of '+S.w.name+' vs '+S.b.name+(left?' (you left before the end)':'')+': peak '+L.peak.toLocaleString()+', +'+L.subs+' subscribers.');
+  specSay(S,'📺 '+L.sum,'sys','');
+  save();
+}
+function startSpectate(wp,bp){
+  if(app.spec&&app.spec.live&&!app.spec.live.done)specLiveFinish(app.spec,true);
+  app.spec={w:wp,b:bp,fen:new Chess().fen(),moves:[],last:null,status:'play',flip:false,paused:false};
+  app.spec.stack=[app.spec.fen];specChatInit(app.spec);
+  go('spectate');setTimeout(specStep,500);}
 function watchTopGame(){const fmt=app.lbFormat||'classical';const top=worldRanking(store.career,fmt).filter(p=>!p.you).slice(0,12);
   if(top.length<2)return;let i=Math.floor(Math.random()*top.length),j;do{j=Math.floor(Math.random()*top.length);}while(j===i);
   startSpectate(top[i],top[j]);}
 function specStep(){const S=app.spec;if(!S||app.view!=='spectate'||S.paused||S.status!=='play')return;
   const c=new Chess(S.fen);
   if(c.isGameOver()||S.moves.length>=160){S.status='over';S.result=c.isCheckmate()?((c.turn()==='w'?S.b.name:S.w.name)+' wins by checkmate'):'Draw';
-    specRate(S,c.isCheckmate()?(c.turn()==='w'?0:1):0.5);render();return;}
+    specRate(S,c.isCheckmate()?(c.turn()==='w'?0:1):0.5);specChatEnd(S,c.isCheckmate()?(c.turn()==='w'?'b':'w'):null);render();return;}
   Engine.load().then(ok=>{if(!app.spec||app.spec!==S||app.view!=='spectate')return;
     if(!ok){S.status='over';S.result='Engine needs internet on first load';render();return;}
     const side=turnOf(S.fen),rt=side==='w'?S.w.rating:S.b.rating,lvl=specLvl(rt);
     Engine.think(S.fen,lvl,lvl.mt,best=>{if(!app.spec||app.spec!==S||app.view!=='spectate')return;
       if(best&&best!=='(none)'){const m=tryFromTo(S.fen,best.slice(0,2),best.slice(2,4),best[4]||'q');
-        if(m){S.fen=m.fen;S.last={from:best.slice(0,2),to:best.slice(2,4)};S.moves.push(m.san);sfxSan(m.san);}}
+        if(m){S.fen=m.fen;S.last={from:best.slice(0,2),to:best.slice(2,4)};S.moves.push(m.san);if(S.stack)S.stack.push(m.fen);sfxSan(m.san);specChatMove(S);}}
       render();setTimeout(specStep,650);});});}
+function specChatPanel(S){
+  if(!S.chat)specChatInit(S);
+  const c=store.career,canLive=c&&c.setup&&!c.retired&&!c.tour&&!S.live&&S.status==='play';
+  return '<div class="card streamcard" id="specchatcard" style="margin-top:12px">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap"><div class="sstats small" id="specstats">'+specStats(S)+'</div>'+
+      (canLive?'<button class="btn primary sm" data-act="speclive" title="A day and 5 energy">📺 Stream it</button>':'')+'</div>'+
+    '<div class="chatbox" id="specchat">'+S.chat.slice(-18).map(streamMsg).join('')+'</div>'+
+    (S.live&&S.live.done&&S.live.sum?'<div class="small" style="margin-top:6px">'+esc(S.live.sum)+'</div>':
+     canLive?'<div class="dim small" style="margin-top:6px">📺 Stream it as a watch-along on your own channel — a day and 5 energy, paid in subscribers and tips when the game ends.</div>':'')+
+    '</div>';
+}
 function viewSpectate(){const S=app.spec;if(!S)return viewCareer();
   const orient=S.flip?'black':'white';
   const pl=(p,dot)=>'<div class="row" style="justify-content:space-between;align-items:center;padding:6px 2px"><div class="row" style="gap:7px;align-items:center"><span style="width:11px;height:11px;border-radius:50%;display:inline-block;background:'+dot+';border:1px solid #888"></span><b>'+esc(p.name)+'</b> <span class="dim">'+(p.flag||'')+'</span>'+(p.real?' <span class="dim" style="font-size:10px">★</span>':'')+'</div><span style="font-weight:800">'+(p.title?p.title+' ':'')+p.rating+'</span></div>';
@@ -21822,6 +22098,7 @@ function viewSpectate(){const S=app.spec;if(!S)return viewCareer();
     '<div class="card">'+pl(orient==='white'?S.b:S.w,orient==='white'?'#222':'#f0f0f0')+'<div style="border-top:1px solid var(--border)"></div>'+pl(orient==='white'?S.w:S.b,orient==='white'?'#f0f0f0':'#222')+
     '<div class="dim small" style="margin-top:6px">'+(S.status==='over'?'<b>'+esc(S.result||'Game over')+'</b>':(S.paused?'Paused':'Live — '+esc(turnOf(S.fen)==='w'?S.w.name:S.b.name)+' to move…'))+'</div></div>'+
     '<div class="card" style="margin-top:12px"><div class="l" style="text-transform:uppercase;font-size:11px;letter-spacing:.08em;color:var(--muted)">Moves</div><div class="moves" style="margin-top:6px;line-height:2">'+(mlist||'<span class="dim small">…</span>')+'</div></div>'+
+    specChatPanel(S)+
     '<div class="dim small" style="margin-top:10px">Two leaderboard players, simulated at their ratings. Pause, flip, or spin up a new pairing.</div></div></div></div>';
   return h;}
 function joinTournament(id){
@@ -21849,7 +22126,7 @@ function joinTournament(id){
     // one standings row per player — in a double round-robin the fixture list
     // names everybody twice
     const pool=(c.tour.players||c.tour.hall||c.tour.field).map((o,i)=>({id:o.pid||('p'+i),name:o.name,rating:o.rating,title:o.title,flag:o.flag,score:0,you:false,wid:o.wid||null}));
-    pool.push({id:'__you',name:c.name,rating:youRating(c,c.tour.format)||(c.rating||1400),title:bestTitle(c),flag:c.flag,score:0,you:true});
+    pool.push({id:'__you',name:c.name,rating:youPub(c,c.tour.format)||youRating(c,c.tour.format)||(c.rating||1400),title:bestTitle(c),flag:c.flag,score:0,you:true});
     c.tour.standings=pool;
     swissEnsure(c.tour);                          // round one's pairing goes up
   }
@@ -21877,6 +22154,105 @@ function oppBookEdge(opp,side){var c=store.career,R=oppOpenings(opp.name,opp.rat
   return {book:o,bookNode:o.root,id:o.id,studyEdge:edgeOf(o),alt:alt,altEdge:alt?edgeOf(alt):0};}
 /* Their second answer as Black, for when your first move is the other one. */
 function oppBookAlt(oe){app.playBookAlt=oe&&oe.alt?oe.alt:null;app.playBookAltEdge=oe?oe.altEdge||0:0;}
+/* ===== Opponents who prepare against you =====
+   Opponents played their own openings whatever you did, as if nobody had
+   ever looked at your games. A strong player does: before a round they go
+   through what you play, and if you always play the same thing they arrive
+   booked up in it. So now your games are a repertoire other people can read.
+   The more predictable you are, and the stronger they are, the likelier they
+   have prepared — a club player never, a 2600 usually, your rival always.
+   Prepared, they go straight into the main line of your own opening, and
+   while the game stays in their preparation they play about 60 points
+   stronger. Play something else and the homework is wasted: they are off
+   balance for the opening instead. Scouting says when they have prepared, so
+   it is your choice: walk into it with your own preparation, or dodge. */
+const PREP_ELO=60, PREP_DODGE=20, PREP_MIN_GAMES=3, PREP_DEPTH=6, PREP_PLIES=24;
+/* The Library opening a game was: the deepest tree of that colour its moves follow. */
+function gameOpeningId(moves,color){
+  const sans=(moves||[]).slice(0,20).map(function(m){return typeof m==='string'?m:m.san;});
+  let best=null,bd=0;
+  BUILT.forEach(function(o){
+    if((color==='w')!==(o.side==='white'))return;
+    let n=o.root,d=0;
+    for(let i=0;i<sans.length;i++){const ch=(n.children||[]).find(function(x){return x.move===sans[i];});if(!ch)break;n=ch;d++;}
+    if(d>bd){bd=d;best=o;}
+  });
+  return bd>=4&&best?best.id:null;
+}
+/* What you play, read off your last thirty career games: your White opening,
+   your answer to 1.e4 and your answer to 1.d4 — each the one you play most,
+   with how often. */
+function myLines(c){
+  const cnt={w:{},b:{},b2:{}},tot={w:0,b:0,b2:0};
+  (c.games||[]).filter(function(g){return !g.c960&&!g.startFen&&(g.moves||[]).length>=8;}).slice(0,30).forEach(function(g){
+    const first=g.moves[0]&&g.moves[0].san,k=g.color==='w'?'w':first==='e4'?'b':first==='d4'?'b2':null;
+    if(!k)return;
+    tot[k]++;
+    const id=gameOpeningId(g.moves,g.color);
+    if(id)cnt[k][id]=(cnt[k][id]||0)+1;
+  });
+  const out={};
+  ['w','b','b2'].forEach(function(k){
+    const ids=Object.keys(cnt[k]).sort(function(a,b){return cnt[k][b]-cnt[k][a];});
+    out[k]=ids.length?{id:ids[0],n:cnt[k][ids[0]],of:tot[k]}:null;
+  });
+  return out;
+}
+function prepRoll(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return (h%10000)/10000;}
+/* Whether this opponent, for this game, has prepared against you — and what.
+   `key` fixes the answer for one game, so the scouting card and the board agree. */
+function oppPrepFor(c,opp,side,key){
+  if(!c||!opp||!opp.name)return null;
+  const rival=!!(c.rival&&c.rival.name===opp.name)||!!(c.nemesis&&c.nemesis.name===opp.name);
+  const r=opp.rating||0;
+  const will=rival?1:r>=2600?0.8:r>=2400?0.55:r>=2200?0.25:0;
+  if(!will)return null;
+  const L=myLines(c);
+  let k='w';
+  if(side==='b'){const R=oppOpenings(opp.name,r),f=R.w?bookFirst(byId.get(R.w)):'';k=f==='e4'?'b':f==='d4'?'b2':null;}
+  const line=k&&L[k];
+  if(!line||line.n<PREP_MIN_GAMES||!byId.get(line.id))return null;
+  const share=line.n/Math.max(1,line.of);
+  if(prepRoll(opp.name+'|'+key)>=will*Math.min(1,share*1.15))return null;
+  const o=byId.get(line.id);
+  return {id:line.id,name:o.name,n:line.n,of:line.of,k:k};
+}
+/* How far the game has followed their preparation. */
+function prepDepth(){
+  const P=app.careerOppPrep,o=P&&byId.get(P.id);if(!o)return 0;
+  let n=o.root,d=0;
+  for(const m of (app.playMoves||[])){const ch=(n.children||[]).find(function(x){return x.from===m.from&&x.to===m.to;});if(!ch)break;n=ch;d++;}
+  return d;
+}
+/* What their preparation is worth right now, in rating points for them. */
+function prepEloNow(){
+  const P=app.careerOppPrep;if(!P)return 0;
+  const ply=(app.playMoves||[]).length;if(ply>=PREP_PLIES)return 0;
+  const d=prepDepth();
+  if(d>=ply||d>=PREP_DEPTH)return PREP_ELO;     // still in it, or deep enough that they know what follows
+  return -PREP_DODGE;                           // you left it early: their work is wasted
+}
+/* A round's game: their preparation takes over their opening book. */
+function prepApply(c,opp,side,key,yourPrep){
+  const P=oppPrepFor(c,opp,side,key);
+  app.careerOppPrep=null;
+  if(!P)return null;
+  // your own preparation was of something else: they prepared for the wrong opening
+  if(yourPrep&&yourPrep.id!==P.id){app.careerOppPrep=Object.assign({dodged:true},P);return app.careerOppPrep;}
+  app.careerOppPrep=P;
+  if(!yourPrep){const o=byId.get(P.id);app.playBook=o;app.playBookNode=o.root;app.playBookAlt=null;
+    // your own line: however well you know it is your edge in it
+    app.careerStudyEdge=Math.max(0,Math.min(1,inRep(o.id)?(progress(o,store.srs).mastery||0)*theoryMod(c,o.id):0));}
+  app.careerBanter={who:(opp.name||'').split(' ').pop(),line:pick(['I have seen your '+P.name+' games.','Let’s see how deep your '+P.name+' goes.','You always play the '+P.name+'. I noticed.'])};
+  return P;
+}
+/* The warning on the scouting card. */
+function prepWarning(c,opp,side,key){
+  const P=oppPrepFor(c,opp,side,key);if(!P)return '';
+  const how=P.k==='w'?'as White':P.k==='b'?'against 1.e4':'against 1.d4';
+  return '<div class="note small" style="margin-top:8px;border-color:#f59e0b88;background:rgba(245,158,11,.08)">⚠️ <b>They have prepared for your '+esc(P.name)+'.</b> You played it in '+P.n+' of your last '+P.of+' games '+how+
+    '. Play it and they are booked up — about '+PREP_ELO+' points stronger while the game stays in their preparation; play something else and their homework is wasted. Preparing a different line in <b>Prep &amp; training</b> sidesteps it.</div>';
+}
 function playTourRound(){
   // If this round was already begun and interrupted, pick that game up rather
   // than quietly starting it again — whichever button was pressed.
@@ -21898,13 +22274,14 @@ function playTourRound(){
   app.careerBanter=oppBanter(c,opp);
   if(prep){app.careerPrepUsed=prep.id;app.careerNovelty=!!prep.novelty;}
   app.careerStudyEdge=oe?oe.studyEdge:0;oppBookAlt(oe);
+  if(!g)prepApply(c,opp,side,prepKey(c),prep);   // have they looked at your games?
   applyCareerCondition();
 }
 /* One-off rated game vs a chosen world-ranking opponent. */
 function startChallenge(id){
   const c=store.career,fmt=app.chalFormat||'classical';
   const p=buildWorld().find(x=>x.id===id);if(!p)return;
-  const rt=wpRating(p,fmt),opp={name:p.name,rating:rt,title:wpTitle(p),flag:p.flag,fed:p.fed,id:p.id,style:pickStyle()};
+  const rt=pubRating(p,fmt),opp={name:p.name,rating:rt,title:wpTitle(p),flag:p.flag,fed:p.fed,id:p.id,style:pickStyle()};
   app.careerFinish=null;
   const side=Math.random()<0.5?'w':'b';
   const prep=careerPrepBook(side);
@@ -21915,8 +22292,11 @@ function startChallenge(id){
   app.careerBanter=oppBanter(c,opp);
   if(prep){app.careerPrepUsed=prep.id;app.careerNovelty=!!prep.novelty;}
   app.careerStudyEdge=oe?oe.studyEdge:0;oppBookAlt(oe);
+  prepApply(c,opp,side,'chal|'+(c.weeks||0)+'|'+(c.day||0),prep);
   applyCareerCondition();
 }
+/* The key for a round's preparation: the same game gets the same answer. */
+function prepKey(c){const tr=c&&c.tour;return tr?(tr.id+'|'+(c.season||1)+'|'+tr.round+'|'+(tr.started||0)):'x';}
 /* ================= PRIZE MONEY =================
    Prizes were one formula on the event's tier: four hundred times the tier
    for first, plus a flat bonus for a title event. It ran from 400 for a club
@@ -21949,7 +22329,7 @@ const PRIZE_FIRST={club:150,cityopen:500,regional:600,national:2000,intl:3000,im
 const ENTRY_FEE={club:15,cityopen:30,regional:35,national:60,intl:90,continental:100,
   hastings:80,reykjavik:120,dubai:100,gibraltar:150,aeroflot:150,qatar:120,
   imrr:400,gmrr:600,rapidopen:25,cityrapid:60,blitzopen:20,fischeropen:30,weekendopen:30,cityamateur:25};
-const KO_PRIZE=[6000,10000,16000,25000,35000,55000,80000];   // out in R1 … lost the final
+const KO_PRIZE=[3500,6000,10000,16000,25000,35000,55000,80000];   // out in R1 … lost the final
 const WCC_LOSER=1000000;
 const OPEN_SHAPE=[1,0.65,0.45,0.32,0.24,0.18,0.14,0.11];     // first, second, … of an open
 const OPEN_PAID=0.2;                                         // the hall stands in for a field several times its size,
@@ -22130,6 +22510,10 @@ function careerResult(score){
   if(!app.careerOpp||app.careerScored)return;app.careerScored=true;
   const c=store.career;
   if(app.careerOpp==='stream'){streamShowResult(c,score);return;}     // an online game on stream: not rated, not on your record
+  // they had prepared: did you walk into it?
+  if(app.careerOppPrep&&!app.careerOppPrep.told){const P=app.careerOppPrep,d=prepDepth(),who=esc((app.careerRoundOpp&&app.careerRoundOpp.name)||'Your opponent');P.told=1;
+    pushNews(c,'📚',P.dodged||d<PREP_DEPTH?who+' had prepared your '+esc(P.name)+' — you stepped out of it'+(P.dodged?' with your own preparation':'')+' after '+Math.ceil(Math.max(1,d)/2)+' moves.'
+      :who+' had prepared your '+esc(P.name)+', and you went into it: '+Math.ceil(d/2)+' moves of their homework.');}
   lifeAfterGame(score);
   // How it went, not just how it ended: this colours your mood and your tilt,
   // and the memorable ones end up on the shelf in Legacy.

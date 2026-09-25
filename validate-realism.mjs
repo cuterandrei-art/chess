@@ -25,7 +25,7 @@ const X=new Function(script+'\nreturn {store,app,simGame,SIM_DRAW,_simScore,_sim
   'rrPairs,rrOrient,rrValid,rrSchedule,rrColourSeqs,rrInit,rrLabel,rrCard,rrRoundPairs,xtGrid,standingsSorted,tourDrawPanel,tourLocked,'+
   'swissEligible,swissHallSize,swissInit,swissPairMe,swissEnsure,swissMet,swissCard,swissOppEstimate,normOutlook,drawRevealed,'+
   'fieldRating,fieldCeiling,swissWhiteFirst,swissNoteColour,xtSwissRows,xtSwissTable,swissClash,swissNeeds,'+
-  'koOrder,koTiebreak,koArmageddon,koSimMatch,koInit,koOpponent,koAfterGame,koPlace,koCard,KO_SIZE,KO_PLACE,KO_NAMES,'+
+  'koOrder,koTiebreak,koArmageddon,koSimMatch,koInit,koOpponent,koAfterGame,koPlace,koCard,KO_SIZE,KO_PLACE,KO_NAMES,koEntrants,koMigrate,'+
   'PRIZE_FIRST,ENTRY_FEE,KO_PRIZE,WCC_LOSER,OLY_PAY,prizeFirst,prizeTable,prizeFor,tourPrize,entryFee,prizeLine,careerLobby,'+
   'eventDays,eventTrip,tripCost,lifeSpendDays,weekAccounts,payOrOwe,endOfWeek,doDay,careerStream,careerSimul,careerCamp,careerRest,'+
   'careerSabbatical,careerCommentate,lifeCosts,seasonRollover,streamReset,stopClockTick,'+
@@ -648,23 +648,33 @@ function wcCareer(r){
   X.wcQualify(c,'national champion');             // a place in the draw, whatever the rating
   return c;
 }
-let wc=wcCareer(2650);
+/* the draw: 206, and the top fifty seeds start in round two */
+let wc=wcCareer(2480);
 joinAt('worldcup');
 let K=wc.tour.ko;
-ok(K&&K.slots.length===X.KO_SIZE,'the World Cup is a bracket of 128');
-ok(K.slots.filter(p=>p.you).length===1,'with you in it once');
-ok(K.slots.some(p=>p.real&&p.seed<=5),'and the real top players at the top of it');
-const seeds=K.slots.map(p=>p.seed).sort((a,b)=>a-b);
-ok(seeds[0]===1&&seeds[127]===128,'seeded 1 to 128');
-const bySeed=K.slots.slice().sort((a,b)=>a.seed-b.seed);
+ok(K&&K.entrants===206&&K.round===0&&K.slots.length===156&&K.byes.length===50,'the World Cup is 206 players: 156 play round one, the top fifty seeds wait for round two');
+ok(K.slots.filter(p=>p.you).length===1&&!K.bye,'a 2480 is in round one, once');
+ok(K.byes.some(p=>p.real&&p.seed<=5),'and the real top players are among the byes');
+const all=K.slots.concat(K.byes),seeds=all.map(p=>p.seed).sort((a,b)=>a-b);
+ok(seeds[0]===1&&seeds[205]===206&&new Set(seeds).size===206,'seeded 1 to 206');
+const bySeed=all.slice().sort((a,b)=>a.seed-b.seed);
 let seededOk=true;for(let i=1;i<bySeed.length;i++)if(bySeed[i].rating>bySeed[i-1].rating)seededOk=false;
 ok(seededOk,'by rating, strongest first');
 ok(!wc.tour.standings,'there is no standings table — a knockout does not have one');
 ok(wc.tour.field.length===2&&wc.tour.field[0]===wc.tour.field[1],'your first match is two games against the same opponent');
 ok(wc.tour.colours[0]!==wc.tour.colours[1],'with the colours reversed for the second');
 const firstOpp=X.koOpponent(wc.tour);
-ok(firstOpp.seed+K.mySeed===129,'and that opponent is your mirror seed ('+K.mySeed+' v '+firstOpp.seed+')');
-ok(/Knockout · 128 players/.test(X.tourDrawPanel(wc,wc.tour)),'the event shows its bracket');
+ok(firstOpp.seed+K.mySeed===257,'round one pairs 51 with 206, 52 with 205 … and you meet your mirror ('+K.mySeed+' v '+firstOpp.seed+')');
+ok(/Knockout · 206 players/.test(X.tourDrawPanel(wc,wc.tour)),'the event shows its bracket');
+/* a top-fifty seed */
+let ws=wcCareer(2700);joinAt('worldcup');
+const KS=ws.tour.ko;
+ok(KS.bye&&KS.mySeed<=50&&KS.round===1&&KS.slots.length===128&&!KS.byes,'a top-fifty seed sits out round one and starts in round two, in the bracket of 128 (seed '+KS.mySeed+')');
+const o2=X.koOpponent(ws.tour);
+ok(o2&&o2.seed>50,'against a winner of round one (seed '+(o2&&o2.seed)+')');
+ok(KS.notes[0]&&KS.notes[0].round===0&&KS.notes[0].left===128,'round one was played while they waited, and 128 are left');
+ok(/bye — the top 50 seeds start in round 2/.test(X.koCard(ws.tour)),'the bracket shows the bye');
+ok(KS.slots.filter(p=>p.seed<=50).length===50,'all fifty byes are in the bracket');
 
 /* playing it: results are forced so every branch can be checked */
 function koPlay(c,scoreFn){
@@ -678,36 +688,41 @@ function koPlay(c,scoreFn){
   return T;
 }
 /* lose the first match outright */
-wc=wcCareer(2650);joinAt('worldcup');
+wc=wcCareer(2480);joinAt('worldcup');
 let T=koPlay(wc,()=>0);
 ok(T.results.length===2,'lose both games of round one and your World Cup is two games long');
-ok(wc.history[0].place===65,'you are out in the first round — joint 65th');
+ok(wc.history[0].place===79,'you are out in the first round — joint 79th, with the other 77 who lost in it');
 ok(T.ko.out&&T.ko.champion&&!T.ko.champion.you,'the bracket plays on without you and names a winner ('+T.ko.champion.name+')');
 ok(T.ko.slots.length===1,'down to one');
+/* a top seed who loses their first match is 65th */
+ws=wcCareer(2700);joinAt('worldcup');koPlay(ws,()=>0);
+ok(ws.history[0].place===65,'a top-fifty seed out in their first match — round two — is joint 65th');
 /* win everything */
-wc=wcCareer(2650);joinAt('worldcup');
+wc=wcCareer(2480);joinAt('worldcup');
 T=koPlay(wc,()=>1);
-ok(T.results.length===14,'win every game and it is seven matches, fourteen classical games');
+ok(T.results.length===16,'from round one, win every game and it is eight matches, sixteen classical games');
 ok(wc.history[0].place===1&&T.ko.champion.you,'and you win the World Cup');
 ok((wc.honors||[]).indexOf('World Cup Winner')>=0,'with the honour');
 ok((wc.honors||[]).indexOf('Candidates Qualifier')>=0,'and a place in the Candidates');
 const oppSeeds=T.ko.mine.map(m=>m.opp.seed);
-ok(new Set(oppSeeds).size===7,'seven different opponents');
+ok(new Set(oppSeeds).size===8,'eight different opponents');
 ok(T.ko.mine.every(m=>m.won&&m.classical===2),'each beaten 2–0');
+ws=wcCareer(2700);joinAt('worldcup');
+ok(koPlay(ws,()=>1).results.length===14&&ws.history[0].place===1,'a top-fifty seed needs seven matches, fourteen games');
 /* go out in the quarter-final: enough games for a norm */
-wc=wcCareer(2650);joinAt('worldcup');
-T=koPlay(wc,g=>g<8?1:0);
-ok(wc.history[0].place===5&&T.results.length===10,'win four matches and lose the quarter-final: fifth, after ten classical games');
-ok(T.ko.mine.length===5&&T.ko.mine[4].round===4&&!T.ko.mine[4].won&&/✗ vs/.test(X.koCard(T)),
+wc=wcCareer(2480);joinAt('worldcup');
+T=koPlay(wc,g=>g<10?1:0);
+ok(wc.history[0].place===5&&T.results.length===12,'from round one, win five matches and lose the quarter-final: fifth, after twelve classical games');
+ok(T.ko.mine.length===6&&T.ko.mine[5].round===5&&!T.ko.mine[5].won&&/✗ vs/.test(X.koCard(T)),
   'the bracket records the quarter-final as the match that ended it');
 /* lose the final */
-wc=wcCareer(2650);joinAt('worldcup');
-T=koPlay(wc,g=>g<12?1:0);
+wc=wcCareer(2480);joinAt('worldcup');
+T=koPlay(wc,g=>g<14?1:0);
 ok(wc.history[0].place===2,'lose the final and you are second');
 ok((wc.honors||[]).indexOf('Candidates Qualifier')>=0&&(wc.honors||[]).indexOf('World Cup Winner')<0,
   'which still qualifies you for the Candidates, as the finalists do');
 /* a drawn match goes to tiebreaks, and they are rated */
-wc=wcCareer(2650);joinAt('worldcup');
+wc=wcCareer(2480);joinAt('worldcup');
 const rapid0=wc.ratingRapid,blitz0=wc.ratingBlitz,rg0=wc.ratedRapid||0;
 T=koPlay(wc,g=>g===0?1:(g===1?0:0));
 const m0=T.ko.mine[0];
@@ -715,11 +730,19 @@ ok(m0.classical===1&&m0.tb,'one game each goes to tiebreaks ('+m0.tb.stage+')');
 ok((wc.ratedRapid||0)>=rg0+2,'and the rapid tiebreak games are rated in rapid, as they are in life');
 ok(/tiebreak|armageddon/.test(X.koCard(T)),'the bracket says how it was decided');
 /* the norm rule */
-wc=wcCareer(2650);joinAt('worldcup');
-ok(/nine classical games/.test(X.careerTourView(wc)),'at the start the norm tracker explains the nine-game rule');
-wc=wcCareer(2650);joinAt('worldcup');
+wc=wcCareer(2480);joinAt('worldcup');
+ok(/nine classical games/.test(X.careerTourView(wc))&&/Reach round 5/.test(X.careerTourView(wc)),'at the start the norm tracker explains the nine-game rule, and how far that is from round one');
+ws=wcCareer(2700);joinAt('worldcup');
+ok(/Reach the quarter-final/.test(X.careerTourView(ws)),'and from round two, for a seed');
+wc=wcCareer(2480);joinAt('worldcup');
 koPlay(wc,()=>0);
 ok((wc.norms||[]).length===0,'two games can never be a norm');
+/* an event from before 206 carries on as round two */
+{const K0={round:1,slots:[],mine:[{round:0,won:true,opp:{}}],notes:[{round:0,items:[],top16:16,left:64}]};
+ X.koMigrate(K0);
+ ok(K0.v===2&&K0.round===2&&K0.mine[0].round===1&&K0.notes[0].round===1&&K0.bye,'a World Cup saved in the old 128 format carries on: its first round was round two, with a bye');}
+/* prizes by round */
+ok(X.KO_PRIZE[0]===3500&&X.KO_PRIZE[1]===6000&&X.KO_PRIZE[7]===80000,'a first-round exit pays 3,500 and a second-round one 6,000');
 /* over many events, strength shows */
 function wcPlaces(r,n){const pl=[];for(let i=0;i<n;i++){const c=wcCareer(r);joinAt('worldcup');
   while(c.tour)X._simRound(c);pl.push(c.history[0].place);}return pl;}
@@ -760,8 +783,8 @@ ok(pz.amount===0,'and the middle of the table is paid nothing');
 pz=X.prizeFor(mk([5,8,7,6,5,5,4,4,4,3,3,3,2,2,2,1,1,1,0,0]),4);
 ok(pz.shared===3&&pz.amount===Math.round(960/3),'level with two others across fourth to sixth, you get a third of fourth prize, since fifth and sixth pay nothing ('+pz.amount+')');
 /* the World Cup pays by the round you went out in */
-ok(X.KO_PRIZE[0]===6000&&X.KO_PRIZE[6]===80000&&X.prizeFirst(TT('worldcup'))===110000,
-  'the World Cup: 6,000 for going out in round one, 80,000 for losing the final, 110,000 for winning it');
+ok(X.KO_PRIZE[0]===3500&&X.KO_PRIZE[7]===80000&&X.prizeFirst(TT('worldcup'))===110000,
+  'the World Cup: 3,500 for going out in round one, 80,000 for losing the final, 110,000 for winning it');
 /* events outside the calendar keep their purse */
 ok(X.prizeFor({id:'rivalfinale',tier:6,kind:'match'},1).amount===2800,'the rivalry finale keeps its purse');
 ok(X.prizeFor({id:'intl',stake:500},1).amount===0,'and a money match pays its stake, not a prize');
@@ -1047,10 +1070,10 @@ ok(/once a season/.test(X.tourLocked(TT('worldcup'),c)||''),'and there is one Wo
 c=pc(2480);joinAt('continental');playOut(c,()=>1);
 ok(c.history[0].place<=X.WC_CONT_TOP&&c.cycle&&c.cycle.wc===2,'the top of the Continental Championship go to the World Cup, as its blurb always promised');
 /* the bracket: qualifiers, not club players */
-c=pc(2650);X.wcQualify(c,'national champion');joinAt('worldcup');
-const sl=c.tour.ko.slots.slice().sort((a,b)=>a.seed-b.seed);
-ok(sl.every(p=>p.rating>=X.KO_QUAL_MIN),'nobody in the draw is below '+X.KO_QUAL_MIN+' (lowest '+sl[127].rating+') — the 128th of the rating list used to be a 1900');
-ok(sl[63].rating>=2440,'the middle of the draw is a strong grandmaster ('+sl[63].rating+')');
+c=pc(2650);X.wcQualify(c,'national champion');
+const sl=X.koEntrants(c,{},true);
+ok(sl.length===206&&sl.every(p=>p.rating>=X.KO_QUAL_MIN),'nobody in the draw of 206 is below '+X.KO_QUAL_MIN+' (lowest '+sl[205].rating+') — the 128th of the rating list used to be a 1900');
+ok(sl[102].rating>=2400,'the middle of the draw is a strong player ('+sl[102].rating+')');
 ok(sl.filter(p=>p.qualifier).length>40&&sl.filter(p=>p.qualifier).every(p=>p.rating<X.KO_FLOOR),'the lower half are qualifiers from below the rating-list spots');
 ok(sl[0].real&&sl[0].rating>=2780,'and the top seed is still the world’s best');
 /* named events are held once a year */
