@@ -120,6 +120,8 @@
   .normhelp p{margin:0}
   .normhelp ul{margin:4px 0 0 18px;padding:0}
   .ntbl th{text-align:left;font-weight:600;color:var(--dim);padding:2px 4px;font-size:11px}
+  .snack{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));z-index:85;max-width:min(520px,calc(100vw - 32px));background:var(--panel);color:var(--text);border:1px solid var(--brand);border-radius:12px;padding:10px 14px;font-size:13px;line-height:1.4;box-shadow:0 10px 30px rgba(0,0,0,.5);pointer-events:none;animation:snack 5s forwards}
+  @keyframes snack{0%{opacity:0;transform:translate(-50%,10px)}6%{opacity:1;transform:translate(-50%,0)}85%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,0);visibility:hidden}}
   .srchbox{position:fixed;left:50%;top:8vh;transform:translateX(-50%);z-index:999;width:min(620px,calc(100vw - 24px));max-height:84vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.6)}
   .srchrow{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:7px 8px;border:0;border-radius:9px;background:transparent;color:var(--text);font:inherit;cursor:pointer}
   .srchrow:hover,.srchrow.on{background:var(--panel2)}
@@ -6047,7 +6049,7 @@ function render(){
   // a redraw from something in the background (the engine, a sync) must not
   // throw you out of the text field you are typing in
   let _kf=null;try{const ae=document.activeElement;if(ae&&ae.id&&/^(INPUT|TEXTAREA)$/.test(ae.tagName)&&ae.type!=='file'&&ae.type!=='checkbox'){_kf={id:ae.id,s:null,e:null};try{_kf.s=ae.selectionStart;_kf.e=ae.selectionEnd;}catch(e){}}}catch(e){}
-  document.getElementById('app').innerHTML=chrome+'<div class="wrap">'+body+'</div>'+confirmOverlay()+promoOverlay()+xferSheet()+srchSheet()+newsBoard()+'<input id="importfile" type="file" accept="application/json,.json" style="display:none">';
+  document.getElementById('app').innerHTML=chrome+'<div class="wrap">'+body+'</div>'+confirmOverlay()+promoOverlay()+xferSheet()+srchSheet()+newsBoard()+careerSnack()+'<input id="importfile" type="file" accept="application/json,.json" style="display:none">';
   if(_kf){try{const el=document.getElementById(_kf.id);if(el&&el!==document.activeElement){el.focus({preventScroll:true});if(_kf.s!=null&&el.setSelectionRange)el.setSelectionRange(_kf.s,_kf.e);}}catch(e){}}
   srNode();                       // outside #app, so a redraw never wipes it
   if(app.view==='play'&&app.playStatus==='over'&&resultKind(app.playResult)==='win'&&app._fxKey!==app.playResult){app._fxKey=app.playResult;confetti();}
@@ -10436,6 +10438,7 @@ function viewSettings(){
     '<div class="card" style="margin-top:12px"><div style="font-weight:700;margin-bottom:2px">🎓 Coach &amp; voice</div>'+
     '<div class="dim small" style="margin-bottom:2px">The coach works out why each move is played and can read it aloud while you step through a line. It uses your device\u2019s own speech, so it costs nothing and works offline.'+(Voice.ok()?'':' <b style="color:#fcd34d">This browser has no speech support, so the text still shows but nothing is spoken.</b>')+'</div>'+
     rowSet('Blunder warnings','Mark moves that drop material in the opening explorer, and tell you when one of your own moves does. Worked out from the position, so it needs no engine and works offline.',(store.settings.blunderWarn!==false?'<input type="checkbox" data-setting="blunderWarn" checked>':'<input type="checkbox" data-setting="blunderWarn">'))+
+    rowSet('Training help in free games','While you play a free game against the engine, show the evaluation, the tablebase and the warning when a move drops material, and allow a game review before it ends. Off, those wait for the end of the game — as they always do in a career game.',(store.settings.freeAids===true?'<input type="checkbox" data-setting="freeAids" checked>':'<input type="checkbox" data-setting="freeAids">'))+
     rowSet('Opening database','Show what masters and online players actually play in the position you are looking at — how often, and how it scores. Needs the internet; the bundled repertoire works without it.',(store.settings.expOn!==false?'<input type="checkbox" data-setting="expOn" checked>':'<input type="checkbox" data-setting="expOn">'))+
     rowSet('Tablebase','With seven pieces or fewer on the board, look the position up in the Syzygy tables instead of asking the engine — an exact answer with the distance to mate, and which moves really hold. Needs the internet; everything else carries on without it.',(store.settings.tbOn!==false?'<input type="checkbox" data-setting="tbOn" checked>':'<input type="checkbox" data-setting="tbOn">'))+
     rowSet('Read moves aloud','Speak the explanation as you play through openings, courses and drills.',(store.settings.voiceOn?'<input type="checkbox" data-setting="voiceOn" checked>':'<input type="checkbox" data-setting="voiceOn">'))+
@@ -10734,6 +10737,7 @@ document.getElementById('app').addEventListener('click',e=>{
   const sqEl=e.target.closest('[data-sq]');if(sqEl){app.kbSq=sqEl.dataset.sq;app.kbFocus=false;boardClick(sqEl.dataset.sq);return;}
   const a=e.target.closest('[data-act]');if(!a)return;
   const act=a.dataset.act,val=a.dataset.val,mode=a.dataset.mode,idx=a.dataset.idx;
+  if(app.careerToast&&act!=='toastdismiss'&&act!=='newstoggle'&&act!=='menutoggle')app.careerToast=null;
   if(act==='install'){app.menuOpen=false;installNow();return;}
   if(act==='installclose'){app.installOpen=false;render();return;}
   if(act==='menutoggle'){app.menuOpen=!app.menuOpen;render();return;}
@@ -10854,6 +10858,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='confirmnoop'){/* swallow clicks inside the dialog */}
   else if(act==='hirecoach'){const c=store.career;if((c.money||0)>=1500&&!c.coach){c.money-=1500;c.coach=true;store.settings.showEval=true;save();render();}}
   else if(act==='careerrest')careerRest();
+  else if(act==='tourrest')tourRest();
   else if(act==='careercamp')careerCamp();
   else if(act==='careerstream')careerStream();
   else if(act==='social')socialPost(val);
@@ -10909,7 +10914,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='pfwd')playSeek(1);
   else if(act==='plast')playSeekTo(app.playStack.length-1);
   else if(act==='pseek')playSeekTo(+val);
-  else if(act==='pundo')playUndo();
+  else if(act==='pundo'){if(!app.careerOpp)playUndo();else render();}
   else if(act==='phint'&&!app.pass)playHint();
   else if(act==='pblind'){app.blindfold=!app.blindfold;app.peek=false;render();}
   else if(act==='ppeek'){app.peek=!app.peek;render();}
@@ -11023,6 +11028,8 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='socialfrom'||act==='socialstream'){const _c=store.career;if(_c){const _k=act==='socialfrom'?'n'+val:(socialDrafts(_c).filter(function(d){return d.ctx==='stream';})[0]||{}).key;
     app.socialDraft=_k?{key:_k}:null;app.newsOpen=false;app.careerTab='media';go('career');}}
   else if(act==='streamgo'){streamStart(false);render();}
+  else if(act==='streamshow'){streamShowStart(val);}
+  else if(act==='sponsorrenew'){sponsorRenewDecide(val==='yes');}
   else if(act==='streamauto'){const _c=store.career;if(_c){_c.streamAuto=!_c.streamAuto;save();render();}}
   else if(act==='streamans'){streamAnswer(val);}
   else if(act==='streampoll'){streamPoll();}
@@ -11087,7 +11094,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='rushstart')rushStart();
   else if(act==='rushend')rushEnd();
   /* review */
-  else if(act==='revplay'){reviewStart(app.playMoves||[],app._playStartFen,{side:app.playSide});}
+  else if(act==='revplay'&&!aidsLocked()){reviewStart(app.playMoves||[],app._playStartFen,{side:app.playSide});}
   else if(act==='cgopen')cgOpen(parseInt(val,10));
   else if(act==='cgq')cgSearchNow();
   else if(act==='cgqclear'){app.cgQ='';app.cgPage=0;app.cgMsg=null;render();}
@@ -11135,6 +11142,7 @@ document.getElementById('app').addEventListener('change',e=>{
     else if(ds==='haptics')store.settings.haptics=e.target.checked;
     else if(ds==='boardSize')store.settings.boardSize=+e.target.value;
     else if(ds==='blunderWarn')store.settings.blunderWarn=e.target.checked;
+    else if(ds==='freeAids')store.settings.freeAids=e.target.checked;
     else if(ds==='tbOn'){store.settings.tbOn=e.target.checked;if(!store.settings.tbOn){app.tb=null;app.tbDrill=null;app.tbEx=null;}}
     else if(ds==='expOn'){store.settings.expOn=e.target.checked;if(!store.settings.expOn){app.exp=null;app._expPending=null;}}
     else if(ds==='srsSkip')store.settings.srsSkip=e.target.checked;
@@ -11595,7 +11603,7 @@ function material(fen){const pm=pmap(fen);const cnt={w:{p:0,n:0,b:0,r:0,q:0},b:{
 function capStr(cap,white){const G=white?WPIECE:PIECE;let s='';for(const t of ['q','r','b','n','p'])for(let i=0;i<cap[t];i++)s+=G[t];return s;}
 function playerStrip(color,fen,lvl){
   const isYou=color===app.playSide;const opp=app.careerRoundOpp;const cat=tcCategory(app.tc);
-  const nm=app.pass?((color==='w'?'♔ ':'♚ ')+passName(color)):isYou?'You':(app.careerElo?((opp&&opp.title?opp.title+' ':'')+((opp&&opp.name)||'Opponent')+' ('+app.careerElo+')'+(opp&&opp.style?' · '+styleById(opp.style).emoji+' '+styleById(opp.style).name:''))
+  const nm=app.pass?((color==='w'?'♔ ':'♚ ')+passName(color)):isYou?'You':(app.careerElo?((opp&&opp.title?opp.title+' ':'')+((opp&&opp.name)||'Opponent')+' ('+oppRatingShown(app.careerElo)+')'+(opp&&opp.style?' · '+styleById(opp.style).emoji+' '+styleById(opp.style).name:''))
     :(app.playBot?(app.playBot.emoji+' '+app.playBot.name+' ('+botRating(app.playBot,cat)+')')
                  :('Stockfish · '+lvl.label)));
   const mat=material(fen);const captured=color==='w'?capStr(mat.wCap,false):capStr(mat.bCap,true);
@@ -12170,7 +12178,7 @@ function boothGameOf(){
 }
 function boothPanel(){
   const g=boothGameOf();
-  if(!g)return '';
+  if(!g||app.careerOpp==='stream')return '';
   if(!boothOn())
     return '<div class="card" style="margin-top:12px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px">'+
       '<span class="dim small">🎙️ The commentary booth is off.</span>'+
@@ -12439,7 +12447,7 @@ function startPlay(fen,side,openingId,title,opts){opts=opts||{};
   app.playClk=[];
   app.booth=null;
   _resumeSig=null;                      // a new game replaces any saved one
-  streamReset();                        // whatever was live ended with the last game
+  app.streamShow=null;streamReset();                        // whatever was live ended with the last game
   const tc=opts.tc||tcById((opts.tcId)||'unlimited');app.tc=tc;
   if(tc.base>0){app.clock={w:tc.base*1000,b:tc.base*1000,inc:tc.inc*1000,lastTs:performance.now(),
     botSide:null,botRate:0,botBudget:0,botUsed:0,botFrom:null};Engine.load();}
@@ -12581,7 +12589,7 @@ function playMove(from,to){
   if(app.c960)c960UpdateRights(app.playSide,from);
   app.playStack.push(m.fen);app.playMoves.push({from,to,san:m.san});app.playFen=m.fen;app.playLast={from,to};app.playSel=null;app.playHint=null;app.playView=app.playStack.length-1;
   advanceBook(from,to);addIncrement(app.playSide);playNoteClock();boothMove();sfxSan(m.san);
-  if(store.settings.blunderWarn!==false&&!app.pass){
+  if(store.settings.blunderWarn!==false&&!app.pass&&!aidsLocked()){
     var _bl=vxCostOf(app.playStack[app.playStack.length-2]||app._playStartFen,m.san);
     app.blunderNote=(_bl&&_bl.net>=2)?('⚠️ That drops material — '+_bl.san+' wins the '+VX_NAME[_bl.captured]+'.'):null;
     if(app.blunderNote)Voice.say(app.blunderNote);
@@ -12597,6 +12605,17 @@ function playUndo(){const st=app.playStack;if(!st||st.length<=1)return;
   recomputeBook();if(app.clock)app.clock.lastTs=performance.now();startClockTick();render();}
 /* ---- non-destructive game navigation (review history without changing the game) ---- */
 function playIsLive(){return !app.playStack||app.playView>=app.playStack.length-1;}
+/* While a game is being played the board is all you get: the engine's
+   evaluation, the tablebase, the warning that a move drops material and a
+   game review are for afterwards. In a career game always — nobody at a real
+   board gets them — and in a free game unless training help is switched on in
+   Settings. Stepping back through the moves mid-game does not unlock them:
+   the game is still on. */
+function aidsLocked(){
+  if(!app.playFen||app.playStatus==='over'||app.pass)return false;
+  if(app.careerOpp)return true;
+  return store.settings.freeAids!==true;
+}
 function playSeek(d){if(!app.playStack)return;const n=Math.max(0,Math.min(app.playStack.length-1,app.playView+d));if(n!==app.playView){app.playView=n;app.playSel=null;render();}}
 function playSeekTo(i){if(!app.playStack)return;const n=Math.max(0,Math.min(app.playStack.length-1,i));if(n!==app.playView){app.playView=n;app.playSel=null;render();}else render();}
 function playMoveList(){const mv=app.playMoves||[];if(!mv.length)return '<span class="dim small">No moves played yet — make your first move on the board.</span>';
@@ -12613,7 +12632,7 @@ async function playHint(){if(app.playStatus!=='play')return;
 /* ============================== FIDE career ============================== */
 /* ============ career life-sim: age, condition, team, fame, drama ============ */
 const COACH_TYPES=[
-  {spec:'Engine analyst',salary:40,emoji:'🖥️',desc:'unlocks the engine eval bar in every game'},
+  {spec:'Engine analyst',salary:40,emoji:'🖥️',desc:'engine-checked preparation before every event (+2 prep); the evaluation is for after the game'},
   {spec:'Sports psychologist',salary:55,emoji:'🧘',desc:'tilt rises far slower after losses'},
   {spec:'Fitness trainer',salary:50,emoji:'💪',desc:'energy drains ~30% slower'},
   {spec:'Opening theoretician',salary:70,emoji:'📚',desc:'extra prep before events'},
@@ -12727,30 +12746,55 @@ function lifeCheckObjectiveGame(c,score){var o=c.objective;if(!o)return;var done
   else if(o.kind==='money')done=(c.money||0)>=o.target;
   if(done)completeObjective(c);}
 function sponsorOffer(c){if(c.sponsor)return null;var r=youRating(c,'classical')||1200;if(r<1500&&(c.fame||0)<8)return null;var per=Math.round((r-1100)/4+(c.fame||0)*6+15);if(per<12)per=12;var weeks=12+Math.floor((c.fame||0)/10)*4;return {name:SPONSOR_NAMES[(Math.floor(r/50)+Math.floor(c.fame||0))%SPONSOR_NAMES.length],perWeek:per,weeks:weeks};}
+/* ---- Resting during an event ----
+   An event is days in a row, counted when it ends: a nine-round classical
+   event is eleven days, two of them rest days. A week off in the middle of
+   one was a week that never happened — the tournament waited, the world moved
+   on and the energy came back for nothing. So nothing that takes days can be
+   done during an event; what there is instead is the event's own rest days,
+   between rounds, one at a time, already inside the days it costs. */
+function tourRestAllowance(tr){
+  if(!tr||tr.simul||tr.wm)return 0;                  // a title match has its own rest days
+  if((tr.format||'classical')!=='classical')return 0; // rapid and blitz are over in a day or two
+  if(tr.ko)return 1;
+  if(tr.kind==='match')return Math.floor(tr.rounds/2);
+  return Math.floor(tr.rounds/4);
+}
+function tourRestLeft(tr){return Math.max(0,tourRestAllowance(tr)-((tr&&tr.restUsed)||0));}
+function tourRestOk(tr){return !!tr&&tourRestLeft(tr)>0&&tr.round>0&&tr.round<tr.rounds&&tr.restAt!==tr.round;}
+function tourRest(){
+  const c=store.career,tr=c&&c.tour;if(!tourRestOk(tr))return;
+  lifeInit(c);
+  const gain=20+(hasAsset(c,'chef')?5:0)+(hasCoach(c,'Fitness trainer')?5:0);
+  c.energy=Math.min(maxEnergy(c),c.energy+gain);c.tilt=Math.max(0,(c.tilt||0)-12);c.mood=Math.min(100,(c.mood==null?62:c.mood)+3);
+  tr.restUsed=(tr.restUsed||0)+1;tr.restAt=tr.round;
+  app.careerToast='🛌 A rest day at the '+tr.name+' — +'+gain+' energy. '+(tourRestLeft(tr)?tourRestLeft(tr)+' left.':'That was the last one.');
+  save();render();
+}
+/* Anything that takes days says so, instead of happening, while an event is on. */
+function tourBusy(c){
+  if(!c||!c.tour)return false;
+  app.careerToast='You are at the '+c.tour.name+' — that has to wait until it is over.'+(tourRestOk(c.tour)?' Between rounds you can take one of its rest days.':'');
+  render();return true;
+}
+function tourRestRow(c,tr){
+  const al=tourRestAllowance(tr);if(!al||tr.round>=tr.rounds)return '';
+  const left=tourRestLeft(tr),ok=tourRestOk(tr),em=maxEnergy(c);
+  return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-top:10px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;flex-wrap:wrap">'+
+    '<span class="small">⚡ Energy <b>'+Math.round(c.energy)+'</b>/'+em+' · 🛌 rest days '+left+' of '+al+
+      ' <span class="dim">— '+(tr.round===0?'from after the first round':tr.restAt===tr.round?'taken; next, the round':left?'part of the event, no extra days':'all used')+'</span></span>'+
+    '<button class="btn '+(ok&&c.energy<em?'sec':'ghost')+' sm" data-act="tourrest" '+(ok?'':'disabled')+'>🛌 Rest day</button></div>';
+}
 /* A week off. It is seven days, and the week's accounts — rent, wages, the
    sponsor — are settled as they pass, like any other week. */
-function careerRest(){var c=store.career;lifeInit(c);lifeSpendDays(c,7,{id:'rest',e:'🛌'});c.mood=Math.min(100,(c.mood||62)+5);c.health=Math.min(100,(c.health||100)+6);c.energy=Math.min(maxEnergy(c),c.energy+(hasCoach(c,'Fitness trainer')?40:30));c.tilt=Math.max(0,c.tilt-25);c.form=Math.round(c.form*0.7);c.burnout=Math.max(0,(c.burnout||0)-10);save();render();}
-function careerCamp(){var c=store.career;lifeInit(c);if((c.money||0)<300||c.energy<20)return;c.money-=300;c.energy=Math.max(0,c.energy-20);lifeSpendDays(c,14,{id:'camp',e:'🏕️'});c.tilt=Math.max(0,c.tilt-40);c.form=Math.min(100,c.form+15);c.prep=(c.prep||0)+3;c.burnout=Math.max(0,(c.burnout||0)-20);app.careerToast='🏕️ Training camp done — sharper and calmer.';save();render();}
+function careerRest(){var c=store.career;lifeInit(c);if(tourBusy(c))return;lifeSpendDays(c,7,{id:'rest',e:'🛌'});c.mood=Math.min(100,(c.mood||62)+5);c.health=Math.min(100,(c.health||100)+6);c.energy=Math.min(maxEnergy(c),c.energy+(hasCoach(c,'Fitness trainer')?40:30));c.tilt=Math.max(0,c.tilt-25);c.form=Math.round(c.form*0.7);c.burnout=Math.max(0,(c.burnout||0)-10);save();render();}
+function careerCamp(){var c=store.career;lifeInit(c);if(tourBusy(c))return;if((c.money||0)<300||c.energy<20)return;c.money-=300;c.energy=Math.max(0,c.energy-20);lifeSpendDays(c,14,{id:'camp',e:'🏕️'});c.tilt=Math.max(0,c.tilt-40);c.form=Math.min(100,c.form+15);c.prep=(c.prep||0)+3;c.burnout=Math.max(0,(c.burnout||0)-20);app.careerToast='🏕️ Training camp done — sharper and calmer.';save();render();}
 /* ===== Streaming & content: a channel that grows alongside the chess career ===== */
 const STREAMERS=['BlitzBaron','GambitGwen','RookieRumble','PawnStormPete','GM Giggles','TheChessParrot','EnPassantElla','64SquaresSam','ZugzwangZoe','CheckmateChad','BongcloudBro','TacticsTina','DrawOfferDan','SwindleSue','FlaggedFred','TiltedTed'];
-const CONTENT_EVENTS=[
-  {k:'charity',e:'❤️',n:'Charity simul',earnB:140,earnV:280,subB:40,subV:90,fame:2,energy:14},
-  {k:'guess',e:'🎯',n:'Guess-the-Elo show',earnB:70,earnV:160,subB:60,subV:130,fame:1,energy:8},
-  {k:'speedrun',e:'🚀',n:'Rating speedrun',earnB:110,earnV:220,subB:120,subV:240,fame:3,energy:16},
-];
-function careerStream(){var c=store.career;lifeInit(c);if(c.energy<12)return;var mk=marketMul(c);c.energy=Math.max(0,c.energy-12);lifeSpendDays(c,1,{id:'stream',e:'📺'});
-  var subs=c.subs||0;var earn=Math.round((15+subs*0.04+(c.fans||0)*0.02)*mk);c.money=(c.money||0)+earn;
-  var sg=Math.round((8+(c.fame||0)*0.5+subs*0.03)*mk);c.subs=subs+sg;c.fans=Math.round((c.fans||0)+Math.round(sg*0.6));c.fame=Math.min(100,c.fame+0.5);
-  if(c.collabCd>0)c.collabCd--;
-  app.careerToast='📺 Streamed — +💰'+earn+', +'+sg+' subscribers.';save();render();}
-function careerCollab(){var c=store.career;lifeInit(c);if((c.subs||0)<300||(c.collabCd||0)>0||c.energy<12)return;c.energy=Math.max(0,c.energy-12);lifeSpendDays(c,1,{id:'stream',e:'🤝'});
-  var celeb=pick(STREAMERS),mk=marketMul(c);var sg=Math.round((c.subs*0.25+150+(c.fame||0)*5)*mk),earn=Math.round((c.subs*0.12+200)*mk);
-  c.subs=(c.subs||0)+sg;c.money=(c.money||0)+earn;c.fans=Math.round((c.fans||0)+Math.round(sg*0.5));c.fame=Math.min(100,c.fame+3);c.collabCd=2;
-  pushNews(c,'🤝','You streamed a collab with '+celeb+' — +'+sg+' subscribers!');app.careerToast='🤝 Collab with '+celeb+' — +💰'+earn+', +'+sg+' subs!';unlockAch(c,'creator');save();render();}
-function careerContentEvent(k){var c=store.career;lifeInit(c);var ev=CONTENT_EVENTS.find(function(x){return x.k===k;});if(!ev||c.energy<ev.energy)return;c.energy=Math.max(0,c.energy-ev.energy);lifeSpendDays(c,1,{id:'stream',e:ev.e});
-  var mk=marketMul(c);var earn=Math.round((ev.earnB+Math.random()*ev.earnV)*mk),sg=Math.round((ev.subB+Math.random()*ev.subV)*mk);
-  c.money=(c.money||0)+earn;c.subs=(c.subs||0)+sg;c.fans=Math.round((c.fans||0)+Math.round(sg*0.6));c.fame=Math.min(100,c.fame+ev.fame);
-  pushNews(c,ev.e,'You ran a '+ev.n+' stream — +'+sg+' subs.');app.careerToast=ev.e+' '+ev.n+' — +💰'+earn+', +'+sg+' subs.';save();render();}
+/* The old streaming buttons are shows now (see STREAM SHOWS). */
+function careerStream(){return streamShowStart('game');}
+function careerCollab(){return streamShowStart('collab');}
+function careerContentEvent(k){return streamShowStart(k);}
 /* ================= LIVE: STREAMING THE GAME YOU ARE PLAYING =================
    Streaming used to be a button that paid out a number. Now you go live with
    the game in front of you, and a chat watches it with you.
@@ -12758,8 +12802,8 @@ function careerContentEvent(k){var c=store.career;lifeInit(c);var ev=CONTENT_EVE
    The chat reads what the commentary booth reads — the move list, what came
    off the board, the clocks — and never the engine. A viewer can only be
    excited about the knight you took, never warn you about the one that is
-   hanging, and the moves chat begs you to play are the moves chat always begs
-   for (checks and captures), not good ones. Everything else it talks about is
+   hanging, and the moves chat begs you to play are quiet ones picked at
+   random — never a capture or a check that could point at a tactic. Everything else it talks about is
    your career: your rating, the standings, the event, your rival, the last
    time you met this opponent, the question it has been wanting to ask. In
    rapid and classical it keeps talking while you think; in blitz it only has
@@ -12795,7 +12839,7 @@ const CHAT={
   promote:{m:['NEW QUEEN 👑','promotion!!','the pawn made it'],t:['they queened 😰','new queen for them…']},
   move40:['move 40 😮‍💨','made the time control','breathe'],
   mate:{m:['CHECKMATE!!!','GGGGGG','WHAT A FINISH','🏆🏆🏆'],t:['mated 💀','F','that is mate…']},
-  quiet:['what is the plan here chat?','positional masterclass','so tense','who is better? (no engine pls)','I would push the h-pawn','this is a grind'],
+  quiet:['what is the plan here chat?','positional masterclass','so tense','who is better? (no engine pls)','I would push the h-pawn','this is a grind','any checks?? 👀','sac something 🔥'],
   win:['GG!!','LET’S GOOO','W','{opp} deleted','clip the whole game','W STREAM'],
   loss:['F','unlucky','we go again','still a great stream','next one ❤️'],
   draw:['draw, fair','half a point is a point','solid','peace treaty 🤝'],
@@ -12961,7 +13005,7 @@ function streamIdle(){
   if(Math.random()<Math.min(0.35,S.viewers/1500)){S.subs++;const u=streamPick(STREAM_USERS);streamSay(S,u,'⭐ '+u+' just subscribed!','sub');
     if(S.regulars.indexOf(u)<0&&S.regulars.length<8)S.regulars.push(u);}
   if(Math.random()<Math.min(0.2,S.viewers/2500)){const amt=streamPick([2,5,5,10,10,20,50]);S.tips+=amt;const u=streamPick(STREAM_USERS);
-    streamSay(S,u,'💸 '+u+' tipped '+money(amt)+': “'+streamFill(streamPick(['good luck in this one','for the coffee ☕','play the Bongcloud next','that last move 🔥','from {country} ❤️']),v)+'”','tip');}
+    streamSay(S,u,'💸 '+u+' tipped '+money(amt)+(S.show==='charity'?' for charity ❤️':'')+': “'+streamFill(streamPick(S.show==='charity'?['for a good cause','happy to help ❤️','go go go','from {country} ❤️']:['good luck in this one','for the coffee ☕','play the Bongcloud next','that last move 🔥','from {country} ❤️']),v)+'”','tip');}
   if(!S.raid&&S.viewers>=40&&Math.random()<0.004){const r=streamPick(STREAMERS),n=Math.round(S.viewers*(0.3+Math.random()*0.8));
     S.raid={who:r,n:n};S.viewers+=n;S.hype=Math.min(100,S.hype+8);streamSay(S,r,'🚀 '+r+' is raiding with '+n+' viewers!','raid');}
   if(now<S.next){streamPaint(true);return;}
@@ -12977,7 +13021,10 @@ function streamIdle(){
   }
   const r=Math.random(),yourTurn=app.playStatus==='play'&&turnOf(app.playFen)===app.playSide;
   const trollP=Math.min(0.12,0.02+S.viewers/4000+((c.rival&&(app.careerRoundOpp||{}).name===c.rival.name)?0.04:0));
-  if(r<trollP)streamChat(S,streamPick(CHAT.troll),v,'troll');
+  if(S.show==='guess'&&Math.random()<0.25){      // guess the Elo: chat has opinions about the hidden number
+    const o=app.careerRoundOpp||{},g=Math.round(((o.rating||1500)+gauss()*280)/50)*50;
+    streamChat(S,streamPick(['I say '+g,g+' max','easily '+g,'this is a '+g+' player','nah, '+g+' at most','my guess: '+g]),v);}
+  else if(r<trollP)streamChat(S,streamPick(CHAT.troll),v,'troll');
   else if(yourTurn&&r<0.32){const bs=streamBackseat();if(bs)streamChat(S,streamPick(['{m}!!','just play {m}','{m} wins (trust me)','{m} {m} {m}','have you considered {m}?']),Object.assign({},v,{m:bs}));}
   else if(r<0.55){const x=streamContext(c,S,v);if(x)streamChat(S,x,v);}
   else if(r<0.7&&S.ply>=16)streamChat(S,streamPick(CHAT.quiet),v);
@@ -12985,15 +13032,14 @@ function streamIdle(){
   if(yourTurn&&S.poll)S.poll.opts.forEach(function(o){o.v+=Math.round(Math.random()*S.viewers*0.04*o.w);});
   streamPaint();
 }
-/* The moves chat wants: checks first, then captures, then a pawn push —
-   never the engine's opinion. */
+/* The moves chat wants. Chat must not become an engine, and a capture or a
+   check picked out of the legal moves could point straight at the piece your
+   opponent just left hanging — so the moves chat names are quiet ones, picked
+   at random, and it tells you nothing a crowd could not. */
+function streamQuiet(fen){try{return new Chess(fen).moves().filter(function(m){return !/[x+#]/.test(m);});}catch(e){return [];}}
 function streamBackseat(){
-  try{
-    const ms=new Chess(app.playFen).moves();
-    const ch=ms.filter(function(m){return /\+/.test(m);}),cp=ms.filter(function(m){return /x/.test(m);}),pw=ms.filter(function(m){return /^[a-h][1-8]$/.test(m);});
-    const pool=ch.length&&Math.random()<0.6?ch:cp.length&&Math.random()<0.6?cp:pw.length?pw:ms;
-    return pool.length?streamPick(pool):null;
-  }catch(e){return null;}
+  const ms=streamQuiet(app.playFen);
+  return ms.length?streamPick(ms):null;
 }
 /* Chat knows your career: the standings, the rating, this opponent. */
 function streamContext(c,S,v){
@@ -13011,6 +13057,7 @@ function streamContext(c,S,v){
   if(c.rival&&opp.name!==c.rival.name)out.push(c.rival.name+' is probably watching 👀');
   if(c.rival&&opp.name===c.rival.name)out.push('RIVAL GAME 🔥🔥','we cannot lose this one','the whole chat hates '+opp.name+' today');
   if(app.careerPro||app.careerLeague)out.push('for the club!! 🛡️','the team needs this point');
+  if(S.show==='collab'&&opp.name)out.push(opp.name+' chat says hi 👋','who is winning this collab?',opp.name+' is dangerous in rapid','best collab of the year');
   if(c.subs)out.push('how many subs are we at? '+(c.subs+S.subs).toLocaleString()+'!');
   const nx=streamNextEvent(c);if(nx)out.push('are you playing the '+nx.name+'?');
   return out.length?streamPick(out):null;
@@ -13036,11 +13083,10 @@ function streamAnswer(i){
 function streamPoll(){
   const S=app.stream;if(!S||S.poll||S.done)return;
   if(!(app.playStatus==='play'&&turnOf(app.playFen)===app.playSide))return;
-  let ms=[];try{ms=new Chess(app.playFen).moves();}catch(e){}
+  // three quiet moves at random: a poll is a crowd's taste, not a hint
+  const ms=streamQuiet(app.playFen);
   if(ms.length<2)return;
   const opts=[],take=function(list,w){const f=list.filter(function(m){return !opts.some(function(o){return o.san===m;});});if(f.length&&opts.length<3)opts.push({san:streamPick(f),v:0,w:w});};
-  take(ms.filter(function(m){return /\+/.test(m);}),1.6);
-  take(ms.filter(function(m){return /x/.test(m);}),1.3);
   while(opts.length<Math.min(3,ms.length))take(ms,1);
   S.poll={opts:opts};
   streamSay(S,store.career.name||'You','📊 Chat, what’s the move? '+opts.map(function(o){return o.san;}).join(' · '),'you');
@@ -13178,6 +13224,246 @@ function streamPaint(statsOnly){
     if(row&&row.parentNode){const b=document.createElement('button');b.className='btn primary sm';b.setAttribute('data-act','streamclip');b.textContent='✂️ Clip that';row.parentNode.appendChild(b);}
   }
 }
+/* ================= STREAM SHOWS =================
+   The streaming card used to be buttons that paid out a number: a stream, a
+   collab, a charity simul, a guess-the-Elo show, a speedrun. They are shows
+   now, and every one of them is a game you play live, with the same chat,
+   viewers, subscribers, tips and clips as a streamed career game — an online
+   game, so it does not touch your FIDE rating, and it takes the day.
+
+   · Stream a game — a viewer near your level, rapid, chat all the way.
+   · Rating speedrun — blitz against somebody far below you; chat counts.
+   · Guess the Elo — a mystery opponent whose rating stays hidden until the
+     end, while chat guesses it.
+   · Charity stream — the tips go to charity: respect and fame, not money.
+   · Collab — you play a well-known streamer, with both chats watching. */
+const STREAM_SHOWS=[
+  {k:'game',e:'📺',n:'Stream a game',d:'online rapid against a viewer near your level',fmt:'rapid',off:0,energy:10,mult:1},
+  {k:'speedrun',e:'🚀',n:'Rating speedrun',d:'online blitz against somebody far below you — chat counts the wins',fmt:'blitz',off:-450,energy:8,mult:1.2},
+  {k:'guess',e:'🎯',n:'Guess the Elo',d:'online rapid against a mystery opponent; chat guesses the rating, revealed at the end',fmt:'rapid',off:null,energy:10,mult:1.15},
+  {k:'charity',e:'❤️',n:'Charity stream',d:'online rapid against a viewer; the tips go to charity',fmt:'rapid',off:-120,energy:10,mult:1.3},
+  {k:'collab',e:'🤝',n:'Collab',d:'play a well-known streamer, with both chats watching',fmt:'rapid',off:'streamer',energy:12,mult:2.2,subs:300}
+];
+function streamShowBy(k){return STREAM_SHOWS.filter(function(x){return x.k===k;})[0]||null;}
+function streamShowBlock(c,K){
+  if(!K)return 'no such show';
+  if(c.tour)return 'you are at the '+c.tour.name;
+  if(c.energy<K.energy)return 'not enough energy ('+K.energy+')';
+  if(K.subs&&(c.subs||0)<K.subs)return K.subs+' subscribers first';
+  if(K.k==='collab'&&(c.collabCd||0)>0)return 'the last collab was '+(3-c.collabCd)+' stream'+(c.collabCd===2?'':'s')+' ago';
+  return '';
+}
+function streamShowStart(k){
+  const c=store.career;if(!c)return null;lifeInit(c);
+  const K=streamShowBy(k);
+  if(tourBusy(c))return null;
+  const why=streamShowBlock(c,K);if(why){app.careerToast='📺 Not now — '+why+'.';render();return null;}
+  const my=youRating(c,K.fmt)||c.rating||1500;
+  let r,name;
+  if(K.off==='streamer'){name=streamPick(STREAMERS);r=Math.round(1750+Math.random()*650);}
+  else{name=streamPick(STREAM_USERS);r=Math.round(my+(K.off==null?(Math.random()-0.5)*700:K.off)+gauss()*70);}
+  r=Math.max(800,Math.min(2900,r));
+  const opp={name:name,rating:r,title:'',flag:'🌐',online:true,style:pickStyle()};
+  c.energy=Math.max(0,c.energy-K.energy);
+  if(c.collabCd>0)c.collabCd--;
+  if(k==='collab')c.collabCd=2;
+  lifeSpendDays(c,1,{id:'stream',e:K.e});
+  const side=Math.random()<0.5?'w':'b';
+  const title=K.e+' '+K.n+' · '+fmtLabel(K.fmt)+' online vs '+name+(k==='guess'?' (rating hidden)':' ('+r+')');
+  startPlay(new Chess().fen(),side,null,title,{tc:tcById(FORMAT_TC[K.fmt]),careerOpp:'stream',careerElo:r,roundOpp:opp});
+  app.streamShow=k;
+  const S=streamStart(false);
+  if(S){
+    S.show=k;S.base=Math.max(3,Math.round(S.base*K.mult));S.viewers=Math.max(S.viewers,Math.round(S.base*0.6));
+    const v=streamVars(c,S);
+    if(k==='speedrun'){const n=((c.stream&&c.stream.speed)||0);streamSay(S,'','🚀 Speedrun — '+n+' win'+(n===1?'':'s')+' in a row so far','sys');streamChat(S,'speedrun time 🚀',v);}
+    if(k==='guess'){streamSay(S,'','🎯 Guess the Elo — the opponent’s rating is hidden until the end','sys');streamChat(S,'I say 1500 max',v);}
+    if(k==='charity'){streamSay(S,'','❤️ Charity stream — every tip today goes to charity','sys');streamChat(S,'for a good cause ❤️',v);}
+    if(k==='collab'){streamSay(S,'','🤝 Collab with '+name+' — both chats are here','sys');streamChat(S,name+' chat in the house 🎉',v);streamChat(S,'this is the crossover we needed',v);}
+  }
+  save();render();
+  return S;
+}
+/* A show's game is over: the stream pays what it pays, and the show adds its
+   own ending. Not FIDE-rated, not a head-to-head on your record. */
+function streamShowResult(c,score){
+  const k=app.streamShow,K=streamShowBy(k),S=app.stream,opp=app.careerRoundOpp||{name:'your opponent',rating:0};
+  if(score===0)c.tilt=Math.min(100,(c.tilt||0)+3);
+  else if(score===1)c.mood=Math.min(100,(c.mood==null?62:c.mood)+2);
+  if(S&&!S.done){
+    const v=streamVars(c,S);
+    if(k==='guess'){streamSay(S,'','🎯 '+opp.name+' is rated '+opp.rating+'!','sys');
+      ['I SAID IT','no way 😳','way off lol','chat is terrible at this'].forEach(function(t){streamChat(S,t,v);});}
+    if(k==='speedrun'){c.stream=c.stream||{sessions:0,peak:0,regulars:[],best:null};
+      c.stream.speed=score===1?(c.stream.speed||0)+1:0;
+      streamSay(S,'',score===1?'🚀 Speedrun: '+c.stream.speed+' in a row':'🚀 Speedrun over — back to zero','sys');}
+  }
+  const tipsBefore=S?S.tips:0;
+  const R=streamFinish(score,app.playResult||'');
+  if(!R)return null;
+  const nm=c.name||'You';
+  if(k==='charity'&&R.tips>0){
+    // the tips were never yours: they go to the cause, and it is noticed
+    c.money=(c.money||0)-R.tips;
+    c.reputation=Math.min(100,(c.reputation||50)+4);c.fame=Math.min(100,(c.fame||0)+2);
+    R.charity=R.tips;
+    wirePush(c,{cat:'media',e:'❤️',src:'home',h:nm+' raises '+money(R.tips)+' for charity on stream',
+      d:'A charity stream against '+opp.name+' drew '+R.peak.toLocaleString()+' viewers at its peak, and every tip went to the cause.'});
+  }
+  if(k==='collab'){
+    const extra=Math.round(R.peak*0.08+60);c.subs=(c.subs||0)+extra;R.subs+=extra;
+    wirePush(c,{cat:'media',e:'🤝',src:'daily',h:nm+' and '+opp.name+' play a collab game on stream',
+      d:(score===1?nm+' won':score===0?opp.name+' won':'It was drawn')+', in front of '+R.peak.toLocaleString()+' viewers at the peak.'});
+    unlockAch(c,'creator');
+  }
+  if(k==='speedrun'&&c.stream&&c.stream.speed>=5&&c.stream.speed%5===0)
+    wirePush(c,{cat:'media',e:'🚀',src:'daily',h:nm+'’s speedrun reaches '+c.stream.speed+' wins in a row',d:'The latest was against '+opp.name+' ('+opp.rating+').'});
+  save();
+  return R;
+}
+function careerStreamPanel(c){
+  const subs=c.subs||0,R=c.stream||{},busy=!!c.tour;
+  let h='<div class="card" id="streamcard" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><div style="font-weight:700">🎬 Streaming &amp; content</div>'+
+    '<div class="dim small">📺 '+subs.toLocaleString()+' subscribers'+(R.sessions?' · '+R.sessions+' streamed · best '+R.best.peak.toLocaleString()+' viewers':'')+'</div></div>'+
+    '<div class="dim small" style="margin-top:4px">Every show is a game you play live, with the chat watching — an online game, so your FIDE rating is safe. It takes the day and some energy; the stream pays in subscribers, tips and ads when the game ends.</div>';
+  if(busy)h+='<div class="small" style="margin-top:8px;color:#fcd34d">You are at the '+esc(c.tour.name)+' — the shows wait until it is over. Your games there can be streamed from the board.</div>';
+  h+='<div style="margin-top:6px">'+STREAM_SHOWS.map(function(K){
+    const why=streamShowBlock(c,K);
+    return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border)">'+
+      '<span class="small">'+K.e+' <b>'+esc(K.n)+(K.k==='collab'?'':'')+'</b> <span class="dim">— '+esc(K.d)+' · ⚡'+K.energy+'</span></span>'+
+      '<button class="btn '+(why?'ghost':'sec')+' sm" data-act="streamshow" data-val="'+K.k+'" '+(why?'disabled title="'+esc(why)+'"':'')+'>🔴 Go live</button></div>';}).join('')+'</div>';
+  if(R.last)h+='<div class="dim small" style="margin-top:6px">Last stream: peak '+R.last.peak.toLocaleString()+' against '+esc(R.last.opp)+', +'+R.last.subs+' subscribers'+(R.last.viral?' — the clip went viral 🚀':'')+'.</div>';
+  h+='<label class="small dim" style="display:flex;gap:6px;align-items:center;margin-top:8px"><input type="checkbox" data-act="streamauto" '+(c.streamAuto?'checked':'')+'> Go live for every career game too</label>';
+  return h+'<div class="row" style="margin-top:8px"><button class="btn sec sm" data-act="careersimul" '+(c.energy>=18&&!busy?'':'disabled')+'>♟ Give a paid simul</button></div></div>';
+}
+/* ================= MEDIA & DRAMA =================
+   These were stat changes that landed at the top of the page, out of sight,
+   so the buttons looked dead. Each one is something that happens in the open
+   now: a post on your timeline that people answer, a story in the papers,
+   your rival's reply — and what happened is shown on the card itself. */
+const HOT_TAKES=['Hot take: the Berlin is killing classical chess 🔥','Hot take: blitz ratings mean nothing 🔥',
+  'Hot take: engines made everybody play the same moves 🔥','Hot take: Chess960 should replace classical 🔥',
+  'Hot take: the London is fine and you are all scared of it 🔥','Hot take: most opening theory is memorised by people who never reach a middlegame 🔥'];
+const CALLOUTS=['{rival}, any time, any format. 🔥','Some people are rated higher than they play. {rival}, I mean you.',
+  '{rival} ducks every serious game. Prove me wrong. 🔥','Dear {rival}: the board is waiting. 🔥'];
+function mediaNote(c,e,t){c.mediaLast={e:e,t:t,w:c.weeks||0};app.careerToast=e+' '+t;}
+function mediaPost(c,ctx,key,tone,text){
+  const d={key:key,ctx:ctx,e:'📣',l:'',v:{rival:c.rival?c.rival.name:''}};
+  return socialPublish(c,d,tone,text);
+}
+function mediaFoe(c){
+  // somebody worth a feud: a little above you on the list, a famous name if there is one
+  const my=youRating(c,'classical')||c.rating||1500;
+  const L=worldRanking(c,'classical').filter(function(p){return !p.you&&p.rating>=my-50&&p.rating<=my+200;});
+  const real=L.filter(function(p){return p.real;});
+  const q=(real.length?real:L)[Math.floor(Math.random()*Math.min(8,(real.length?real:L).length))];
+  return q?worldIndex().id[q.id]:null;
+}
+function careerDrama(kind){
+  const c=store.career;lifeInit(c);socialInit(c);
+  const nm=c.name||'You';
+  if(kind==='hottake'){
+    const txt=streamPick(HOT_TAKES),p=mediaPost(c,'hottake','ht'+(c.weeks||0)+'_'+(c.social.n+1),'spicy',txt);
+    c.fans=Math.round((c.fans||0)+150+(c.fame||0)*4);
+    mediaNote(c,'🎤','You posted “'+txt+'” — ♥ '+fmtFollowers(p.likes)+', '+p.rp.length+' replies so far. It is on your timeline below.');
+  }
+  else if(kind==='callout'){
+    if(!c.rival){mediaNote(c,'😡','You need a rival to call out — start a feud first.');save();render();return;}
+    const txt=socialFill(streamPick(CALLOUTS),{rival:c.rival.name}),p=mediaPost(c,'rival','co'+(c.weeks||0)+'_'+(c.social.n+1),'spicy',txt);
+    c.fame=Math.min(100,c.fame+3);c.reputation=Math.max(0,c.reputation-4);c.rival.intensity=(c.rival.intensity||1)+1;   // and the post adds one more
+    const rp=worldPlayerOf(c,c.rival);
+    if(rp)socialNpcPost(c,rp,streamPick(['Heard the noise. See you at the board.','Some people talk. I play.','Cute. Book the match.']));
+    wirePush(c,{cat:'media',e:'😡',src:'daily',hot:1,me:1,h:nm+' calls out '+c.rival.name,d:'“'+txt+'” — and '+c.rival.name+' did not stay quiet for long.'});
+    mediaNote(c,'😡','You called out '+c.rival.name+' — ♥ '+fmtFollowers(p.likes)+'. The rivalry is hotter ('+c.rival.intensity+'), and Zugzwang Daily ran it.');
+  }
+  else if(kind==='feud'){
+    if(c.rival){mediaNote(c,'🔥','You already have a rival: '+c.rival.name+'.');save();render();return;}
+    const foe=mediaFoe(c);
+    if(!foe){mediaNote(c,'🔥','Nobody near you on the list is worth a feud yet.');save();render();return;}
+    c.rival={id:foe.id,name:foe.name,flag:foe.flag,rating:wpRating(foe,'classical'),since:Math.floor((c.weeks||0)/52)+1,intensity:1};
+    const txt=socialFill(streamPick(CALLOUTS),{rival:foe.name});
+    mediaPost(c,'rival','fd'+(c.weeks||0),'spicy',txt);
+    c.fame=Math.min(100,c.fame+5);c.reputation=Math.max(0,c.reputation-8);c.fans=Math.round((c.fans||0)+300);
+    wirePush(c,{cat:'media',e:'🔥',src:'daily',hot:1,me:1,pid:foe.id,h:nm+' starts a feud with '+foe.name,d:foe.name+' ('+foe.fed+', '+wpRating(foe,'classical')+') is '+nm+'’s rival now, whether they like it or not.'});
+    mediaNote(c,'🔥','You started a feud with '+foe.name+' — your rival now. The papers have it.');
+  }
+  else if(kind==='peace'){
+    if(!c.rival){save();render();return;}
+    const txt='Respect to '+c.rival.name+'. Hard games, always fair. 🙏';
+    mediaPost(c,'rival','pc'+(c.weeks||0),'humble',txt);
+    c.rival.intensity=Math.max(1,(c.rival.intensity||1)-2);c.reputation=Math.min(100,c.reputation+6);
+    wirePush(c,{cat:'media',e:'🕊️',src:'gazette',me:1,h:nm+' and '+c.rival.name+' bury the hatchet',d:'“'+txt+'”'});
+    mediaNote(c,'🕊️','You made peace with '+c.rival.name+' — respect up, the rivalry cools ('+c.rival.intensity+').');
+  }
+  save();render();
+}
+/* The broadcast you are asked onto is a real one: this week's event, or the next. */
+function mediaBroadcast(c){
+  const w0=weekOfSeason(c);
+  return calendarEvents(c).filter(function(t){return EVENT_WEEK[t.id]!=null&&EVENT_WEEK[t.id]>=w0&&(t.tier||0)>=3&&!(c.tour&&c.tour.id===t.id);})
+    .sort(function(a,b){return EVENT_WEEK[a.id]-EVENT_WEEK[b.id];})[0]||null;
+}
+function careerMediaPanel(c){
+  const r=c.rival,L=c.mediaLast,bc=mediaBroadcast(c),busy=!!c.tour;
+  let h='<div class="card" id="mediacard" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:3px">📣 Media &amp; drama</div>'+
+    '<div class="dim small" style="margin-bottom:8px">Court the spotlight. Drama wins fans and fame fast but costs respect — it goes out on your timeline, people answer, and the papers print it.</div>';
+  if(L&&(c.weeks||0)-L.w<=2)h+='<div class="small" style="margin-bottom:8px;padding:8px 10px;border-radius:10px;background:rgba(96,165,250,.10);border:1px solid var(--border)">'+esc(L.e+' '+L.t)+'</div>';
+  if(r)h+='<div class="small" style="margin-bottom:8px">⚔️ Your rival: <b>'+esc(r.flag||'')+' '+esc(r.name)+'</b> <span class="dim">· heat '+(r.intensity||1)+'</span></div>';
+  h+='<div class="row" style="gap:6px;flex-wrap:wrap">'+
+    '<button class="btn sec sm" data-act="drama" data-val="hottake">🎤 Post a hot take</button>'+
+    (r?'<button class="btn sec sm" data-act="drama" data-val="callout">😡 Call out '+esc(r.name.split(' ').pop())+'</button>'+
+       ((r.intensity||1)>=2?'<button class="btn sec sm" data-act="drama" data-val="peace">🕊️ Make peace</button>':'')
+      :'<button class="btn sec sm" data-act="drama" data-val="feud">🔥 Start a feud</button>')+
+    (r&&!busy?'<button class="btn sec sm" data-act="rivalmatch" '+((c.money||0)>=rivalStake(c)?'':'disabled')+'>⚔️ Money match vs '+esc(r.name.split(' ').pop())+' ('+money(rivalStake(c))+')</button>':'')+
+    '<button class="btn sec sm" data-act="careercommentate" '+((c.fame||0)>=10&&c.energy>=8&&!busy?'':'disabled')+'>🎙️ Commentate'+(bc?' the '+esc(bc.name):'')+((c.fame||0)<10?' (fame 10+)':'')+'</button>'+
+    '</div></div>';
+  return h;
+}
+/* ================= SPONSORS =================
+   Sponsors were one line at the bottom of the team card on the Life tab, and
+   nothing at all when nobody was offering — so a career could not tell they
+   existed, let alone what it takes. They have a card of their own on the
+   Media tab: the deal you have, what it has paid and how long it runs, the
+   offers on the table, and when there are none, what brings them. A sponsor
+   likes to be mentioned: a sponsored post pays, and a deal that was posted
+   about is offered again on better terms when it runs out. */
+function sponsorNeed(c){
+  const r=youRating(c,'classical')||0,f=c.fame||0;
+  return {r:r,f:f,ok:!(r<1500&&f<8)};
+}
+function careerSponsorPanel(c){
+  const S=c.sponsor,N=sponsorNeed(c),soc=c.social||{},fol=soc.followers||0,canPost=fol>=2000&&(soc.cd||0)<=0;
+  let h='<div class="card" id="sponsorcard" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:700">🤝 Sponsors</div>'+
+    '<div class="dim small">'+(S?'💼 '+esc(S.name):'no deal')+'</div></div>';
+  if(S){
+    const tot=(S.weeksTotal||S.weeksLeft||1),done=Math.max(0,tot-S.weeksLeft);
+    h+='<div style="margin-top:8px"><div class="row" style="justify-content:space-between;gap:8px"><span><b>'+esc(S.name)+'</b> <span class="dim small">pays</span> <b>'+money(S.perWeek)+'</b><span class="dim small"> a week</span></span>'+
+      '<span class="dim small">'+S.weeksLeft+' of '+tot+' weeks left</span></div>'+cbar(done,tot,'#f59e0b')+
+      '<div class="dim small" style="margin-top:4px">Paid so far: '+money(S.paid||done*S.perWeek)+' · posts for them: '+(S.posts||0)+
+        ' — '+((S.posts||0)?'they will want you back when it ends':'post about them at least once and they will want you back')+'.</div></div>'+
+      '<div class="row" style="gap:6px;margin-top:8px"><button class="btn '+(canPost?'sec':'ghost')+' sm" data-act="social" data-val="sponsored" '+(canPost?'':'disabled')+'>📣 Sponsored post'+(fol<2000?' (2k followers)':((soc.cd||0)>0?' (cooldown)':''))+'</button></div>';
+  } else if(c.sponsorRenew){
+    const o=c.sponsorRenew;
+    h+='<div class="small" style="margin-top:8px">🔁 <b>'+esc(o.name)+'</b> want to renew: '+money(o.perWeek)+' a week for '+o.weeks+' weeks.</div>'+
+      '<div class="row" style="gap:6px;margin-top:6px"><button class="btn primary sm" data-act="sponsorrenew" data-val="yes">Renew</button><button class="btn ghost sm" data-act="sponsorrenew" data-val="no">Look elsewhere</button></div>';
+  } else {
+    const offs=sponsorOffers(c);
+    if(offs.length)h+='<div class="dim small" style="margin:6px 0 3px">Competing offers — pick one:</div>'+offs.map(function(o,i){
+      return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--border)"><span class="small"><b>'+esc(o.name)+'</b> — '+money(o.perWeek)+'/week · '+o.weeks+' weeks <span class="dim">('+esc(o.note)+')</span></span>'+
+        '<button class="btn sec sm" data-act="signsponsor" data-val="'+i+'">Sign</button></div>';}).join('');
+    else h+='<div class="small" style="margin-top:8px">No sponsor is interested yet. They come at a <b>1500</b> rating or <b>8</b> fame '+
+      '<span class="dim">(you: '+(N.r||'unrated')+' · fame '+Math.round(N.f)+')</span>. Results, streams and posts all make you more visible.</div>';
+  }
+  return h+'</div>';
+}
+function sponsorRenewDecide(yes){
+  const c=store.career,o=c&&c.sponsorRenew;if(!o)return;
+  if(yes){c.sponsor={name:o.name,perWeek:o.perWeek,weeksLeft:o.weeks,weeksTotal:o.weeks,paid:0,posts:0};
+    wirePush(c,{cat:'media',e:'🤝',src:'home',me:1,h:(c.name||'You')+' renews with '+o.name,d:money(o.perWeek)+' a week for '+o.weeks+' weeks.'});
+    app.careerToast='🤝 Renewed with '+o.name+' — '+money(o.perWeek)+'/week.';}
+  else app.careerToast='🤝 You let the '+o.name+' deal go.';
+  c.sponsorRenew=null;save();render();
+}
 /* ===== Social media: grow a following with posts; results & viral hits spike it,
    sponsored posts turn reach into cash, hot takes trade respect for reach. ===== */
 function fmtFollowers(n){n=n||0;return n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'k':''+n;}
@@ -13190,7 +13476,13 @@ function socialPost(kind){var c=store.career;lifeInit(c);var s=c.social,viral=Ma
   else if(kind==='hottake'){g=socialFollowerGain(c,170)*vm;s.followers+=g;c.reputation=Math.max(0,c.reputation-6);c.fame=Math.min(100,c.fame+2);msg='🔥 Posted a hot take';}
   else if(kind==='wholesome'){g=socialFollowerGain(c,70)*vm;s.followers+=g;c.reputation=Math.min(100,c.reputation+4);msg='💚 Posted something wholesome';}
   else if(kind==='analysis'){g=socialFollowerGain(c,95)*vm;s.followers+=g;c.reputation=Math.min(100,c.reputation+2);addXp(c,4);msg='🧠 Shared game analysis';}
-  else if(kind==='sponsored'){if((s.followers||0)<2000||(s.cd||0)>0)return;var pay=Math.round(s.followers*0.02*(1+(c.fame||0)/100));c.money=(c.money||0)+pay;c.reputation=Math.max(0,c.reputation-1);s.cd=3;g=socialFollowerGain(c,20)*vm;s.followers+=g;msg='🤝 Sponsored post (+💰'+pay+')';}
+  else if(kind==='sponsored'){if((s.followers||0)<2000||(s.cd||0)>0)return;var pay=Math.round(s.followers*0.02*(1+(c.fame||0)/100));c.money=(c.money||0)+pay;c.reputation=Math.max(0,c.reputation-1);s.cd=3;g=socialFollowerGain(c,20)*vm;s.followers+=g;msg='🤝 Sponsored post (+💰'+pay+')';
+    // it goes on the timeline like any post, and the sponsor counts it
+    socialInit(c);const sp=c.sponsor?c.sponsor.name:null;if(c.sponsor)c.sponsor.posts=(c.sponsor.posts||0)+1;
+    const P={id:++s.n,a:socialPoster(c),t:sp?'Training hard, and proud to be supported by '+sp+' 💼 #ad':'Good things coming with my partners 💼 #ad',w:c.weeks||0,likes:Math.round(g*3+20),rts:Math.round(g*0.3),tone:'sponsored',ctx:'sponsor',rp:[]};
+    P.rp.push({id:1,a:socialFan(),t:streamPick(['#ad 🙄','congrats on the deal!','they pay you for this? 😂','get that bag 💰']),likes:3,acts:null,done:null});
+    if(sp)P.rp.push({id:2,a:{n:sp,h:null,f:'💼',kind:'sponsor',v:1},t:'Thank you — proud to have you on the team! 💼',likes:12,acts:null,done:null});
+    s.tl.unshift(P);if(s.tl.length>SOCIAL_TL)s.tl.length=SOCIAL_TL;}
   else return;
   s.posts=(s.posts||0)+1;c.fans=Math.round((c.fans||0)+Math.round(g*0.3));
   if(viral){c.fame=Math.min(100,c.fame+3);unlockAch(c,'viral');pushNews(c,'📲','Your post went VIRAL — +'+fmtFollowers(g)+' followers!');msg+=' — VIRAL! 🚀';}
@@ -13475,19 +13767,6 @@ function socialDoPost(){
   app.careerToast='📲 Posted — ♥ '+fmtFollowers(p.likes)+(p.viral?' · VIRAL 🚀':'');
   save();render();
 }
-function careerStreamPanel(c){
-  var subs=c.subs||0,estd=Math.round(15+subs*0.04+(c.fans||0)*0.02);
-  var h='<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">🎬 Streaming &amp; content</div><div class="dim small">📺 '+subs.toLocaleString()+' subscribers · ~💰'+estd+'/stream</div></div>'+
-    '<div class="dim small" style="margin-top:4px">Grow a channel alongside your chess career — it pays the bills and boosts your fame, but eats training time. Collabs &amp; the Creator Cup (in Tournaments) grow it fastest. '+
-      'Or go live during a career game: chat watches it with you, asks you things and votes on your moves.</div>'+
-    (c.stream&&c.stream.sessions?'<div class="small" style="margin-top:6px">🔴 '+c.stream.sessions+' game'+(c.stream.sessions>1?'s':'')+' streamed · best '+c.stream.best.peak.toLocaleString()+' viewers (against '+esc(c.stream.best.opp)+')'+
-      (c.stream.last?' · last: peak '+c.stream.last.peak.toLocaleString()+', +'+c.stream.last.subs+' subs':'')+'</div>':'')+
-    '<label class="small dim" style="display:flex;gap:6px;align-items:center;margin-top:6px"><input type="checkbox" data-act="streamauto" '+(c.streamAuto?'checked':'')+'> Go live for every career game</label>'+
-    '<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:8px">'+
-    '<button class="btn sec sm" data-act="careerstream" '+(c.energy>=12?'':'disabled')+'>📺 Stream</button>'+
-    '<button class="btn sec sm" data-act="careercollab" '+((subs>=300&&(c.collabCd||0)<=0&&c.energy>=12)?'':'disabled')+'>🤝 Celebrity collab'+(subs<300?' (300 subs)':((c.collabCd||0)>0?' (cooldown '+c.collabCd+')':''))+'</button>'+
-    CONTENT_EVENTS.map(function(ev){return '<button class="btn sec sm" data-act="content" data-val="'+ev.k+'" '+(c.energy>=ev.energy?'':'disabled')+'>'+ev.e+' '+ev.n+'</button>';}).join('')+'</div>';
-  return h+'<div class="row" style="margin-top:6px"><button class="btn sec sm" data-act="careersimul" '+(c.energy>=18?'':'disabled')+'>♟ Give a paid simul</button></div></div>';}
 /* ===== Lifestyle: spend your winnings on real-life upgrades that pay you back ===== */
 const LIFESTYLE=[
   {k:'flat',e:'🏙️',n:'Own apartment',cost:4000,desc:'a calm place to work',fame:1},
@@ -13510,7 +13789,7 @@ function careerLifestylePanel(c){
     '<div class="dim small" style="margin-top:4px">Spend your prize money & content income on real-life upgrades — most pay you back with energy, calm, better deals or fame.</div><div style="margin-top:6px">';
   h+=LIFESTYLE.map(function(a){var own=hasAsset(c,a.k),aff=(c.money||0)>=a.cost;return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--border)"><span class="small">'+a.e+' <b>'+esc(a.n)+'</b> <span class="dim">— '+esc(a.desc)+'</span></span>'+(own?'<span class="chip green">owned</span>':'<button class="btn '+(aff?'sec':'ghost')+' sm" data-act="buyasset" data-val="'+a.k+'" '+(aff?'':'disabled')+'>💰'+a.cost.toLocaleString()+'</button>')+'</div>';}).join('');
   return h+'</div></div>';}
-function careerSimul(){var c=store.career;lifeInit(c);if(c.energy<18)return;c.energy=Math.max(0,c.energy-18);lifeSpendDays(c,1,{id:'simul',e:'♟'});
+function careerSimul(){var c=store.career;lifeInit(c);if(tourBusy(c))return;if(c.energy<18)return;c.energy=Math.max(0,c.energy-18);lifeSpendDays(c,1,{id:'simul',e:'♟'});
   var fee=Math.round(250+(c.fame||0)*40+((youRating(c,'classical')||1400)-1400)*0.5+(c.subs||0)*0.05);if(fee<150)fee=150;
   c.money=(c.money||0)+fee;c.fame=Math.min(100,c.fame+1.5);c.fans=Math.round((c.fans||0)+20+(c.fame||0));
   pushNews(c,'♟','You gave a paid exhibition simul (+💰'+fee+').');app.careerToast='♟ Simul done — +💰'+fee+'.';save();render();}
@@ -14283,28 +14562,15 @@ function careerPublishPanel(c){
   else if(!books.length)h+='<div class="dim small" style="margin-top:6px">Study an opening to ~40% mastery (in the Library) to publish a book on it.</div>';
   return h+'</div>';}
 /* proactive drama the player starts */
-function careerDrama(kind){var c=store.career;lifeInit(c);
-  if(kind==='hottake'){c.fame=Math.min(100,c.fame+3);c.fans=Math.round((c.fans||0)+200+(c.fame||0)*5);c.reputation=Math.max(0,c.reputation-3);pushNews(c,'🎤','Your spicy hot take on modern theory set the chess internet alight.');app.careerToast='🎤 Hot take posted — fans ++, respect −.';}
-  else if(kind==='callout'){if(!c.rival){app.careerToast='You need a rival to call out.';render();return;}c.fame=Math.min(100,c.fame+5);c.fans=Math.round((c.fans||0)+400+(c.fame||0)*8);c.reputation=Math.max(0,c.reputation-8);c.rival.intensity=(c.rival.intensity||1)+2;pushNews(c,'😡','You publicly called out '+c.rival.name+' — the feud is the talk of the chess world.');app.careerToast='😡 You called out '+c.rival.name+' — drama ++.';}
-  else{var pool=buildWorld().filter(function(p){return p.real;});var foe=pool[Math.floor(Math.random()*Math.min(10,pool.length))]||pool[0];if(!c.rival&&foe){c.rival={id:foe.id,name:foe.name,flag:foe.flag,rating:wpRating(foe,'classical'),since:Math.floor((c.weeks||0)/52)+1,intensity:2};}c.fame=Math.min(100,c.fame+6);c.fans=Math.round((c.fans||0)+500);c.reputation=Math.max(0,c.reputation-10);pushNews(c,'🔥','You started a very public feud'+(foe?' with '+foe.name:'')+' — everyone has an opinion.');app.careerToast='🔥 Feud started — huge buzz, reputation hit.';}
-  save();render();}
 function rivalStake(c){return Math.max(200,Math.min(2500,Math.round((c.money||0)*0.25)));}
 function startRivalMatch(){var c=store.career;lifeInit(c);if(!c.rival||c.tour)return;var stake=rivalStake(c);if((c.money||0)<stake)return;
   c.money-=stake;var rr=rivalRating(c)||c.rival.rating,games=4,field=[];for(var i=0;i<games;i++)field.push({name:c.rival.name,rating:rr,title:rivalTitle(c,rr),flag:c.rival.flag,style:pickStyle()});
   c.tour={id:'rivalmatch',name:'Grudge Match vs '+c.rival.name,emoji:'⚔️',rounds:games,round:0,field:field,results:[],normEligible:false,avg:rr,tier:5,format:'classical',champion:false,honor:null,kind:'match',var960:false,stake:stake,started:Date.now()};
-  pushNews(c,'⚔️','You staked 💰'+stake+' on a grudge match against '+c.rival.name+'!');app.careerToast='⚔️ Grudge match on — 💰'+stake+' on the line!';save();render();}
-function careerMediaPanel(c){
-  var h='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:3px">📣 Media &amp; drama</div><div class="dim small" style="margin-bottom:8px">Court the spotlight. Drama wins fans &amp; fame fast but costs respect — and can light a fire under a rivalry.</div><div class="row" style="gap:6px;flex-wrap:wrap">'+
-    '<button class="btn sec sm" data-act="drama" data-val="hottake">🎤 Post a hot take</button>'+
-    (c.rival?'<button class="btn sec sm" data-act="drama" data-val="callout">😡 Call out '+esc(c.rival.name.split(' ').pop())+'</button>':'')+
-    '<button class="btn sec sm" data-act="drama" data-val="feud">🔥 Start a feud</button>'+
-    (c.rival&&!c.tour?'<button class="btn sec sm" data-act="rivalmatch" '+((c.money||0)>=rivalStake(c)?'':'disabled')+'>⚔️ Money match vs '+esc(c.rival.name.split(' ').pop())+' (💰'+rivalStake(c)+')</button>':'')+
-    '<button class="btn sec sm" data-act="careercommentate" '+((c.fame||0)>=10&&c.energy>=8?'':'disabled')+'>🎙️ Commentate'+((c.fame||0)<10?' (fame 10+)':'')+'</button>'+
-    '</div></div>';
-  return h;}
+  pushNews(c,'⚔️','You staked 💰'+stake+' on a grudge match against '+c.rival.name+'!');app.careerToast='⚔️ Grudge match on — 💰'+stake+' on the line! It is on the Play tab.';app.careerTab='play';save();render();}
 function hireCoach2(spec){var c=store.career;lifeInit(c);var t=COACH_TYPES.find(function(x){return x.spec===spec;});if(!t||hasCoach(c,spec))return;var fee=t.salary*8;if((c.money||0)<fee)return;c.money-=fee;c.coaches.push({name:randName(),spec:t.spec,salary:t.salary,emoji:t.emoji});if(spec==='Engine analyst'){store.settings.showEval=true;c.coach=true;}if(spec==='Opening theoretician')c.prep=(c.prep||0)+3;save();render();}
 function fireCoach(i){var c=store.career;if(c.coaches&&c.coaches[+i]){var rm=c.coaches.splice(+i,1)[0];if(rm&&rm.spec==='Engine analyst')c.coach=false;}save();render();}
-function signSponsor(i,silent){var c=store.career;lifeInit(c);var offs=sponsorOffers(c);var off=offs[(+i)||0];if(!off)return;c.sponsor={name:off.name,perWeek:off.perWeek,weeksLeft:off.weeks};if(off.bonus)c.money=(c.money||0)+off.bonus;app.careerToast='🤝 Signed with '+off.name+(off.bonus?' (+💰'+off.bonus+' signing bonus)':'')+'!';if(silent)return;save();render();}
+function signSponsor(i,silent){var c=store.career;lifeInit(c);var offs=sponsorOffers(c);var off=offs[(+i)||0];if(!off)return;c.sponsor={name:off.name,perWeek:off.perWeek,weeksLeft:off.weeks,weeksTotal:off.weeks,paid:0,posts:0};c.sponsorRenew=null;
+  wirePush(c,{cat:'media',e:'🤝',src:'home',me:1,h:(c.name||'You')+' signs with '+off.name,d:money(off.perWeek)+' a week for '+off.weeks+' weeks'+(off.bonus?', and '+money(off.bonus)+' on signing':'')+'.'});if(off.bonus)c.money=(c.money||0)+off.bonus;app.careerToast='🤝 Signed with '+off.name+(off.bonus?' (+💰'+off.bonus+' signing bonus)':'')+'!';if(silent)return;save();render();}
 function pressChoose(k){var c=store.career;lifeInit(c);if(!c.pressPending)return;
   if(k==='humble'){c.reputation=Math.min(100,c.reputation+8);c.fame=Math.min(100,c.fame+1);app.careerToast='“I got lucky, my opponents played well.” Respect +.';}
   else if(k==='confident'){c.fame=Math.min(100,c.fame+4);c.fans=Math.round(c.fans+(c.fame*3));app.careerToast='“I knew I’d win.” Fame +.';}
@@ -14501,8 +14767,15 @@ function weekAccounts(c){
   if(wage)c.money=Math.max(0,(c.money||0)-wage);
   if(c.sponsor){
     c.money=(c.money||0)+(c.sponsor.perWeek||0);
+    c.sponsor.paid=(c.sponsor.paid||0)+(c.sponsor.perWeek||0);
     c.sponsor.weeksLeft=(c.sponsor.weeksLeft||0)-1;
-    if(c.sponsor.weeksLeft<=0){pushNews(c,'🤝','Your deal with '+c.sponsor.name+' has ended.');c.sponsor=null;}
+    if(c.sponsor.weeksLeft<=0){
+      const S0=c.sponsor;c.sponsor=null;
+      // a sponsor you posted about wants you back, on better terms
+      if((S0.posts||0)>=1){c.sponsorRenew={name:S0.name,perWeek:Math.round(S0.perWeek*1.15),weeks:S0.weeksTotal||12};
+        pushNews(c,'🤝','Your deal with '+S0.name+' has ended — and they want to renew, at '+money(c.sponsorRenew.perWeek)+' a week. Answer on the Media tab.');}
+      else pushNews(c,'🤝','Your deal with '+S0.name+' has ended. You never posted for them, so they are not renewing.');
+    }
   }
   if(youRating(c,'classical')!=null&&worldRank(c,'classical')===1)c.weeksAtNo1=(c.weeksAtNo1||0)+1;
   // the prodigy chasing you and your protégé grow up by the calendar, not by
@@ -15345,9 +15618,11 @@ function careerLifePanel(c){var em=maxEnergy(c);
   h+='<div class="dim small" style="margin-top:8px">🧭 '+careerPhase(c)+(c.injury?' · <span style="color:#fda4af">🤕 '+esc(c.injury.type)+' ('+c.injury.weeksLeft+' wk'+(c.injury.weeksLeft===1?'':'s')+')</span>':'')+'</div>';
   if((c.burnout||0)>0)h+='<div style="margin-top:6px"><div class="dim small">🔥 Burnout '+Math.round(c.burnout)+(c.burnout>=60?' ⚠️':'')+'</div>'+cbar(c.burnout,100,'#f97316')+'</div>';
   h+='<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:10px">'+
-    '<button class="btn sec sm" data-act="careerrest">🛌 Rest 1wk</button>'+
+    (c.tour?'<button class="btn sec sm" data-act="tourrest" '+(tourRestOk(c.tour)?'':'disabled')+'>🛌 Rest day ('+tourRestLeft(c.tour)+' left)</button>'+
+      '<span class="dim small" style="align-self:center">At the '+esc(c.tour.name)+': a week off, a camp or a stream waits until it is over.</span>'
+    :'<button class="btn sec sm" data-act="careerrest">🛌 Rest 1wk</button>'+
     '<button class="btn sec sm" data-act="careercamp" '+((c.money||0)>=300&&c.energy>=20?'':'disabled')+'>🏕️ Camp (💰300)</button>'+
-    '<button class="btn sec sm" data-act="careerstream" '+(c.energy>=15?'':'disabled')+'>📺 Stream</button>'+
+    '<button class="btn sec sm" data-act="careerstream" '+(c.energy>=15?'':'disabled')+'>📺 Stream</button>')+
     (c.injury?'<button class="btn sec sm" data-act="treatinjury" '+((c.money||0)>=200*(c.injury.sev||1)?'':'disabled')+'>🩹 Physio (💰'+(200*(c.injury.sev||1))+')</button>':'')+
     ((c.burnout||0)>=40?'<button class="btn sec sm" data-act="sabbatical">🌴 Sabbatical (8wk)</button>':'')+
     (c.canRetire?'<button class="btn ghost sm" data-act="careerretire">🏁 Retire</button>':'')+'</div>';
@@ -15363,7 +15638,7 @@ function careerTeamPanel(c){
   if(avail.length)h+='<div class="dim small" style="margin:8px 0 3px">Hire a second (one-off fee = 8 weeks’ salary, then their weekly wage at each event):</div>'+avail.map(function(t){var fee=t.salary*8;return '<div class="row" style="justify-content:space-between;align-items:center;padding:3px 0;gap:8px"><span class="small">'+t.emoji+' '+esc(t.spec)+' <span class="dim">— '+esc(t.desc)+'</span></span><button class="btn '+((c.money||0)>=fee?'sec':'ghost')+' sm" data-act="hirecoach2" data-val="'+esc(t.spec)+'" '+((c.money||0)>=fee?'':'disabled')+'>💰'+fee+'</button></div>';}).join('');
   h+='<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border)">';
   if(c.sponsor)h+='<div class="row" style="justify-content:space-between"><span class="small">🤝 <b>'+esc(c.sponsor.name)+'</b> — 💰'+c.sponsor.perWeek+'/wk</span><span class="dim small">'+c.sponsor.weeksLeft+' wks left</span></div>';
-  else{var offs=sponsorOffers(c);if(offs.length){h+='<div class="dim small" style="margin-bottom:3px">🤝 Competing sponsor offers — pick one:</div>'+offs.map(function(o,i){return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:3px 0"><span class="small"><b>'+esc(o.name)+'</b> — 💰'+o.perWeek+'/wk · '+o.weeks+'wks <span class="dim">('+esc(o.note)+')</span></span><button class="btn sec sm" data-act="signsponsor" data-val="'+i+'">Sign</button></div>';}).join('');}else h+='<div class="dim small">🤝 No sponsor offers yet — raise your rating &amp; fame to attract deals.</div>';}
+  h+='<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-top:4px"><span class="dim small">'+(!c.sponsor&&(sponsorOffers(c).length||c.sponsorRenew)?'🤝 A sponsor is waiting for an answer — ':'')+'Deals, offers and renewals are on the Media tab.</span><button class="btn ghost sm" data-act="careertab" data-val="media">🤝 Sponsors</button></div>';
   return h+'</div></div>';}
 function careerPressPanel(c){if(!c.pressPending)return '';var p=c.pressPending;
   return '<div class="card" style="margin-bottom:12px;border-color:#7c5cff66"><div style="font-weight:700;margin-bottom:3px">🎤 Press conference — '+esc(p.event)+'</div><div class="dim small" style="margin-bottom:8px">You finished '+ordinal(p.place)+'. Give the reporters a quote:</div><div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sec sm" data-act="press" data-val="humble">🙏 Stay humble</button><button class="btn sec sm" data-act="press" data-val="confident">😎 Back yourself</button><button class="btn sec sm" data-act="press" data-val="spicy">🔥 Call out a rival</button></div></div>';}
@@ -15748,6 +16023,17 @@ function wireYourEvent(c,tr,o){
   return it;
 }
 /* ---- the board on screen ---- */
+/* What a button did, shown where you are. The career's toast sits at the top
+   of the page, and a button far down it — Media & drama, the timeline, the
+   streaming card — changed things out of sight: it looked as if nothing had
+   happened. The same line floats up above the bottom bar for five seconds. */
+function careerSnack(){
+  const t=app.careerToast;
+  if(!t||app.view!=='career'){app._snackKey=null;return '';}
+  if(app._snackKey!==t){app._snackKey=t;app._snackAt=Date.now();}
+  const age=Date.now()-(app._snackAt||0);if(age>5000)return '';
+  return '<div class="snack" role="status" style="animation-delay:-'+age+'ms">'+esc(t)+'</div>';
+}
 function newsFabOn(){
   const c=store.career;
   return !!(c&&c.setup&&!c.retired&&store.settings.newsFab!==false&&app.view!=='onboard');
@@ -16021,7 +16307,7 @@ const LIFE_EVENTS=[
   {e:'🎮',t:'You fell down an online-blitz rabbit hole for a week.',ap:function(c){c.form=Math.max(-100,c.form-8);c.fans=Math.round((c.fans||0)+120);c.subs=(c.subs||0)+80;}},
   {e:'💍',t:'A happy turn in your personal life has you playing freely.',ap:function(c){c.tilt=Math.max(0,c.tilt-20);c.form=Math.min(100,c.form+8);}},
   {e:'✈️',t:'Travel chaos — a cancelled flight and lost luggage.',ap:function(c){c.energy=Math.max(0,c.energy-15);c.tilt=Math.min(100,c.tilt+8);}},
-  {e:'📈',t:'A sponsor renewed your deal on better terms.',ap:function(c){if(c.sponsor){c.sponsor.perWeek=Math.round(c.sponsor.perWeek*1.3);c.sponsor.weeksLeft+=8;}else{c.money=(c.money||0)+250;}}},
+  {e:'📈',t:'A sponsor renewed your deal on better terms.',ap:function(c){if(c.sponsor){c.sponsor.perWeek=Math.round(c.sponsor.perWeek*1.3);c.sponsor.weeksLeft+=8;c.sponsor.weeksTotal=(c.sponsor.weeksTotal||c.sponsor.weeksLeft)+8;}else{c.money=(c.money||0)+250;}}},
   {e:'🌟',t:'A famous champion praised your play in a column.',ap:function(c){c.fame=Math.min(100,c.fame+4);c.reputation=Math.min(100,c.reputation+4);c.form=Math.min(100,c.form+5);}},
 ];
 function maybeLifeEvent(c){if(Math.random()<0.34){var ev=pick(LIFE_EVENTS);ev.ap(c);pushNews(c,ev.e,ev.t);toastAdd(ev.e+' '+ev.t);}}
@@ -16243,11 +16529,17 @@ function careerFedPanel(c){
       '<button class="btn '+((c.money||0)>=cost?'sec':'ghost')+' sm" data-act="transferfed" '+((c.money||0)>=cost?'':'disabled')+'>Transfer</button></div>';}
   return h+'</div>';
 }
-function careerCommentate(){var c=store.career;lifeInit(c);if((c.fame||0)<10||c.energy<8)return;
+function careerCommentate(){var c=store.career;lifeInit(c);if(tourBusy(c))return;if((c.fame||0)<10||c.energy<8)return;
   c.energy=Math.max(0,c.energy-8);lifeSpendDays(c,1,{id:'commentate',e:'🎙️'});
   var yr=youRating(c,'classical')||0,fee=Math.round(40+(c.fame||0)*5+(c.fans||0)*0.01+(yr?Math.max(0,yr-1600)/8:0));
   c.money=(c.money||0)+fee;c.fans=Math.round((c.fans||0)+8+Math.round(c.fame||0));c.fame=Math.min(100,c.fame+0.6);c.broadcasts=(c.broadcasts||0)+1;
-  checkAchievements(c);app.careerToast='🎙️ You commentated a live broadcast — +💰'+fee+'.';pushNews(c,'🎙️','You were a guest commentator on a major broadcast.');save();render();}
+  checkAchievements(c);
+  // the broadcast is a real one: this week's event, or the next on the calendar
+  const bc=mediaBroadcast(c),what=bc?'the '+bc.name:'a live broadcast';
+  pushNews(c,'🎙️','You were a guest commentator on '+what+' (+'+money(fee)+').');
+  if(bc&&((bc.tier||0)>=7||(c.fame||0)>=40))wirePush(c,{cat:'media',e:'🎙️',src:'gazette',me:1,h:(c.name||'You')+' joins the commentary team for the '+bc.name,d:'A guest spot in the booth, and a fee of '+money(fee)+'.'});
+  mediaNote(c,'🎙️','You commentated '+what+' — '+money(fee)+', and '+Math.round(8+(c.fame||0))+' new fans.');
+  save();render();}
 /* ===== Legacy & community: a chess academy, the all-time greats, a shareable profile ===== */
 const ACADEMY_TAGS=['Knights','Caïssa','Endgame','Zugzwang','Gambit','Centre','Initiative','Tempo'];
 function academyCost(){return 5000;}
@@ -16368,7 +16660,7 @@ function maybeInjury(c){if(c.injury)return;var risk=0.025+(c.age>=38?(c.age-38)*
 function treatInjury(){var c=store.career;lifeInit(c);if(!c.injury)return;var cost=200*(c.injury.sev||1);if((c.money||0)<cost)return;c.money-=cost;c.injury.weeksLeft=Math.max(0,c.injury.weeksLeft-3);
   if(c.injury.weeksLeft<=0){var t=c.injury.type;c.injury=null;pushNews(c,'💪','Physiotherapy cleared up your '+t+'.');app.careerToast='💪 Physio sorted out your '+t+' (−💰'+cost+').';}
   else app.careerToast='🩹 Treatment is helping — '+c.injury.weeksLeft+' wks to go (−💰'+cost+').';save();render();}
-function careerSabbatical(){var c=store.career;lifeInit(c);lifeSpendDays(c,56,{id:'rest',e:'🌴'});c.health=Math.min(100,(c.health||100)+25);c.mood=Math.min(100,(c.mood||62)+25);c.energy=maxEnergy(c);c.tilt=0;c.burnout=0;c.form=Math.round((c.form||0)*0.4);pushNews(c,'🌴','You took an 8-week sabbatical to recharge.');app.careerToast='🌴 Sabbatical over — fully rested and recharged.';save();render();}
+function careerSabbatical(){var c=store.career;lifeInit(c);if(tourBusy(c))return;lifeSpendDays(c,56,{id:'rest',e:'🌴'});c.health=Math.min(100,(c.health||100)+25);c.mood=Math.min(100,(c.mood||62)+25);c.energy=maxEnergy(c);c.tilt=0;c.burnout=0;c.form=Math.round((c.form||0)*0.4);pushNews(c,'🌴','You took an 8-week sabbatical to recharge.');app.careerToast='🌴 Sabbatical over — fully rested and recharged.';save();render();}
 /* ===== Season calendar & planner (a non-invasive overlay that frames your year) ===== */
 /* ---------------------------------------------------------------------------
    THE CALENDAR
@@ -16910,12 +17202,13 @@ function careerAvatarPanel(c){
     (c.avatarStyle==='piece'?'<div class="dim small" style="margin-top:9px;padding-top:8px;border-top:1px solid var(--border)">You’re using the classic piece avatar, which follows your playing style. Switch to the character look to customise it.</div>':rows)+
     '</div>';
 }
+function oppRatingShown(r){return (app.streamShow==='guess'&&app.playStatus!=='over')?'??':r;}
 function careerMatchupStrip(){var c=store.career,opp=app.careerRoundOpp;if(!opp)return '';
   var fmt=(c.tour&&c.tour.format)||app.careerOneoff||'classical',yr=youRating(c,fmt)||c.rating||'—';
   return '<div class="card" style="margin-bottom:10px;padding:10px 12px"><div class="row" style="justify-content:space-between;align-items:center;gap:10px">'+
     '<div class="row" style="gap:9px;align-items:center;min-width:0">'+playerAvatar(c,40)+'<div style="min-width:0"><div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(c.name||'You')+'</div><div class="dim small">'+yr+' · Lv '+charLevel(c)+'</div></div></div>'+
     '<div style="font-weight:800;color:var(--brand2);flex:0 0 auto">VS</div>'+
-    '<div class="row" style="gap:9px;align-items:center;min-width:0;flex-direction:row-reverse;text-align:right">'+oppAvatar(opp,40)+'<div style="min-width:0"><div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(opp.title?opp.title+' ':'')+esc(opp.name)+'</div><div class="dim small">'+(opp.rating||'—')+(opp.flag?' '+opp.flag:'')+'</div></div></div>'+
+    '<div class="row" style="gap:9px;align-items:center;min-width:0;flex-direction:row-reverse;text-align:right">'+oppAvatar(opp,40)+'<div style="min-width:0"><div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(opp.title?opp.title+' ':'')+esc(opp.name)+'</div><div class="dim small">'+oppRatingShown(opp.rating||'—')+(opp.flag?' '+opp.flag:'')+'</div></div></div>'+
     '</div></div>';
 }
 function careerCharacterPanel(c){
@@ -17093,6 +17386,7 @@ function careerTabContent(c,tab){
     h+=careerLegendsPanel(c);
   } else if(tab==='media'){
     h+=careerEconomy(c);
+    h+=careerSponsorPanel(c);
     h+=careerMediaPanel(c);
     h+=careerSocialPanel(c);
     h+=careerStreamPanel(c);
@@ -17229,7 +17523,7 @@ function dashAlerts(c){
   var qr=(q.items||[]).filter(function(it){return !it.claimed&&it.prog>=it.goal;}).length;
   if(qr)a.push({e:'✅',t:qr+' quest'+(qr>1?'s':'')+' ready',tab:'play',col:'#22c55e'});
   if((c.skillPts||0)>0)a.push({e:'⭐',t:(c.skillPts||0)+' skill point'+(c.skillPts>1?'s':''),tab:'you',col:'#f59e0b'});
-  if(!c.sponsor&&sponsorOffers(c).length)a.push({e:'🤝',t:'sponsor offer',tab:'life',col:'#f59e0b'});
+  if(!c.sponsor&&(sponsorOffers(c).length||c.sponsorRenew))a.push({e:'🤝',t:c.sponsorRenew?'sponsor renewal':'sponsor offer',tab:'media',col:'#f59e0b'});
   if(c.pressPending)a.push({e:'🎤',t:'press waiting',tab:'play',col:'#a855f7'});
   if(c.dilemma)a.push({e:'⚖️',t:'a decision',tab:'play',col:'#a855f7'});
   if(c.seasonReview)a.push({e:'🗓️',t:'season review',tab:'progress',col:'#f59e0b'});
@@ -17799,6 +18093,7 @@ function careerTourView(c){
         : (done<total?'Round '+(done+1)+' of '+total:'Final round complete')+' · field avg '+tr.avg)+(tr.normEligible?' · norm-eligible':'')+'</div></div>'+
       '<div style="text-align:right"><div style="font-weight:800;font-size:17px">'+fmtScore(scoreTot)+' / '+done+'</div><div class="dim small">live perf '+liveTpr+'</div></div></div>';
   h+=tourStakesCard(c,tr);
+  h+=tourRestRow(c,tr);
   h=tourDrawPanel(c,tr)+h;
   if(tr.normEligible)h+=(tr.ko&&tr.rounds<NORM_GAMES)?koNormNote(tr):normTracker(tr,c);
   h+='<div style="margin-top:10px">';
@@ -21126,6 +21421,7 @@ function joinTournament(id){
   // the Olympiad redraws its own field: your nine opponents are the board ones
   // of nine nations, so the country you face is the country the team comes from
   if(t.id==='olympiad')olyInit(c,c.tour);
+  if(hasCoach(c,'Engine analyst'))c.prep=(c.prep||0)+2;      // the engine's work is done before the event, not during it
   // a place in the Candidates is used up by playing it; a title match is a defence or a challenge
   if(t.id==='candidates'){const C=cycleInit(c);C.cand=null;C.candPlayed=c.season||1;}
   if(t.id==='wcc'){c.tour.defence=!!cycleInit(c).champ;wmInit(c.tour);}
@@ -21414,6 +21710,7 @@ function careerMomentsPanel(c){
 function careerResult(score){
   if(!app.careerOpp||app.careerScored)return;app.careerScored=true;
   const c=store.career;
+  if(app.careerOpp==='stream'){streamShowResult(c,score);return;}     // an online game on stream: not rated, not on your record
   lifeAfterGame(score);
   // How it went, not just how it ended: this colours your mood and your tilt,
   // and the memorable ones end up on the shelf in Legacy.
@@ -22209,7 +22506,7 @@ function viewPlay(){
   const lastSq=lastMv?{from:lastMv.from,to:lastMv.to}:null;
   const lvl=LEVELS[store.settings.level]||LEVELS[2];
   const ev=app.playEval;
-  const evalHtml=(ev&&live&&store.settings.showEval&&!app.tiltEval)?'<div class="row" style="justify-content:space-between;margin-bottom:5px"><span class="dim small">Evaluation</span><span class="small" style="font-weight:800">'+esc(evalLabel(ev))+'</span></div><div class="evalbar"><i style="width:'+evalPct(ev.t,ev.v,ev.stm)+'%"></i></div>':'';
+  const evalHtml=(ev&&live&&store.settings.showEval&&!app.tiltEval&&!aidsLocked())?'<div class="row" style="justify-content:space-between;margin-bottom:5px"><span class="dim small">Evaluation</span><span class="small" style="font-weight:800">'+esc(evalLabel(ev))+'</span></div><div class="evalbar"><i style="width:'+evalPct(ev.t,ev.v,ev.stm)+'%"></i></div>':'';
   let status;
   if(!live)status='<div style="font-weight:800;color:var(--amber)">⏪ Reviewing — move '+app.playView+' of '+lastIdx+'</div>';
   else if(app.playStatus==='over'){var rk=app.pass?(app.passWinner==='w'||app.passWinner==='b'?'win':'draw'):resultKind(app.playResult);var rc=rk==='win'?'var(--green)':rk==='loss'?'#f87171':'var(--muted)';var re=app.pass&&rk==='win'?'🏆':rk==='win'?'🎉':rk==='loss'?'😞':'🤝';status='<div class="card" style="border-color:'+rc+';text-align:center;padding:14px 12px"><div style="font-size:30px;line-height:1">'+re+'</div><div style="font-weight:800;font-size:16px;color:'+rc+';margin-top:4px">'+esc(app.playResult||'Game over')+'</div>'+(app.careerOpp&&app.careerStory?'<div class="dim small" style="margin-top:6px">'+app.careerStory.e+' '+esc(app.careerStory.t)+'</div>':'')+'<div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap;margin-top:11px">'+((app.playMoves&&app.playMoves.length)?'<button class="btn sec sm" data-act="revplay">🔬 Review game</button>':'')+(!app.careerOpp?'<button class="btn primary sm" data-act="prematch">↻ Rematch</button><button class="btn sec sm" data-act="nav" data-val="play">New game</button>':'')+'</div>'+'</div>'+((app.oppSaid)?'<div class="note" style="margin-top:8px;border-color:#f59e0b3d;background:#f59e0b14;color:#fde68a">🤝 <b>'+esc((app.careerRoundOpp&&app.careerRoundOpp.name)||'Your opponent')+':</b> “'+esc(app.oppSaid)+'”</div>':'')+((app.careerOpp&&app.careerReaction)?'<div class="note" style="margin-top:8px;border-color:#a855f73d;background:#a855f714;color:#e9d5ff">💬 <b>'+esc(app.careerReaction.who)+':</b> “'+esc(app.careerReaction.line)+'”</div>':'')+(app.careerOpp?careerPlayFooter():'')+(app.endgame?endgameVerdict():'');}
@@ -22223,7 +22520,7 @@ function viewPlay(){
   const openingLine=det?'<span class="chip brand">📖 '+esc(det.name)+'</span>'+(det.comment?'<span class="dim small" style="margin-left:6px">'+esc(det.comment)+'</span>':''):'';
   const inBook=app.playBookNode&&app.playBookNode.children&&app.playBookNode.children.length&&app.playStatus!=='over';
   let h='<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap"><div class="row" style="align-items:center"><button class="btn ghost sm" data-act="nav" data-val="library">←</button><h1 style="font-size:18px">'+(app.pass?'Two players':'Play vs Stockfish')+'</h1><span class="chip brand">'+esc(app.playTitle)+'</span></div>'+
-    '<div class="row"><span class="chip">'+(app.tc&&app.tc.base?app.tc.cat+' '+app.tc.label:'No clock')+'</span>'+(app.pass?'':'<span class="chip">'+(app.careerElo?'Opponent '+app.careerElo:'Lvl: '+lvl.label)+'</span>')+'</div></div>';
+    '<div class="row"><span class="chip">'+(app.tc&&app.tc.base?app.tc.cat+' '+app.tc.label:'No clock')+'</span>'+(app.pass?'':'<span class="chip">'+(app.careerElo?'Opponent '+oppRatingShown(app.careerElo):'Lvl: '+lvl.label)+'</span>')+'</div></div>';
   // Everything above the board is fixed for the whole game, so the board never
   // moves. Anything that can appear or vanish mid-game goes in the notice rail
   // underneath it (see noticeRail below).
@@ -22245,8 +22542,9 @@ function viewPlay(){
   const noticeRail='<div class="noticerail">'+rail+'</div>';
   // Once the board is down to seven men the engine's opinion stops being the
   // best available answer, so ask for the real one.
-  if(live)tbRequest(boardFen,'tb');
-  const tbHtml=live?tbPanel(boardFen,{slot:'tb',max:6}):'';
+  const aidsOff=aidsLocked();
+  if(live&&!aidsOff)tbRequest(boardFen,'tb');
+  const tbHtml=(live&&!aidsOff)?tbPanel(boardFen,{slot:'tb',max:6}):'';
   h+='<div class="layout"><div class="boardwrap">'+topStrip+'<div style="height:7px"></div>'+renderBoard(boardFen,orient,{sel:app.playSel,last:blind?null:lastSq,hint:blind?null:(live?app.playHint:null),premoves:(app.playStatus==='engine'?app.playPremoves:null),interactive,hidePieces:blind})+'<div style="height:7px"></div>'+botStrip+navbar+noticeRail+'</div>'+
     '<div>'+
     (openingLine?'<div class="card" style="padding:9px 12px;margin-bottom:12px">'+openingLine+(inBook?'<div class="dim small" style="margin-top:4px">Engine is still in <b>'+esc(app.playBook.name)+'</b> theory.</div>':'')+'</div>':'')+
@@ -22257,9 +22555,9 @@ function viewPlay(){
     streamPanel()+
     boothPanel()+
     '<div class="card" style="margin-top:12px"><div class="l" style="text-transform:uppercase;font-size:11px;letter-spacing:.08em;color:var(--muted)">Moves</div><div class="moves" style="margin-top:6px;line-height:2.1">'+playMoveList()+'</div></div>'+
-    '<div class="card" style="margin-top:12px"><div class="row"><button class="btn sec sm" data-act="phint" '+((interactive&&!app.pass&&(!app.careerOpp||(app.careerHintsLeft||0)>0))?'':'disabled')+(app.pass?' title="No hints between two players"':'')+'>'+(app.careerOpp?('💡 Tactic ('+(app.careerHintsLeft||0)+')'):'💡 Hint')+'</button><button class="btn sec sm" data-act="pundo" '+(app.playStack.length>1?'':'disabled')+'>↶ Take back</button><button class="btn ghost sm" data-act="pflip">⇅ Flip</button><button class="btn '+(app.tiltEval?'ghost':(store.settings.showEval?'primary':'ghost'))+' sm" data-act="toggleeval" title="'+(app.tiltEval?'On tilt — the eval bar is locked this game':'Show/hide the engine evaluation')+'"'+(app.tiltEval?' disabled':'')+'>'+(app.tiltEval?'😖 Tilt':'📊 Eval')+'</button><button class="btn '+(app.blindfold?'primary':'ghost')+' sm" data-act="pblind">🙈 Blindfold</button>'+(app.blindfold?'<button class="btn ghost sm" data-act="ppeek">'+(app.peek?'🙈 Hide':'👁 Peek')+'</button>':'')+'</div>'+(app.blindfold?'<div class="dim small" style="margin-top:6px">🙈 Blindfold on — pieces hidden. Visualise the position; tap squares to move. Use 👁 Peek if you get stuck.</div>':'')+
+    '<div class="card" style="margin-top:12px"><div class="row"><button class="btn sec sm" data-act="phint" '+((interactive&&!app.pass&&(!app.careerOpp||(app.careerHintsLeft||0)>0))?'':'disabled')+(app.pass?' title="No hints between two players"':'')+'>'+(app.careerOpp?('💡 Tactic ('+(app.careerHintsLeft||0)+')'):'💡 Hint')+'</button><button class="btn sec sm" data-act="pundo" '+((app.playStack.length>1&&!app.careerOpp)?'':'disabled')+(app.careerOpp?' title="No takebacks in a rated game"':'')+'>↶ Take back</button><button class="btn ghost sm" data-act="pflip">⇅ Flip</button><button class="btn '+(app.tiltEval||aidsLocked()?'ghost':(store.settings.showEval?'primary':'ghost'))+' sm" data-act="toggleeval" title="'+(aidsLocked()?'The evaluation is for after the game':app.tiltEval?'On tilt — the eval bar is locked this game':'Show/hide the engine evaluation')+'"'+(app.tiltEval||aidsLocked()?' disabled':'')+'>'+(aidsLocked()?'📊 Eval after the game':app.tiltEval?'😖 Tilt':'📊 Eval')+'</button><button class="btn '+(app.blindfold?'primary':'ghost')+' sm" data-act="pblind">🙈 Blindfold</button>'+(app.blindfold?'<button class="btn ghost sm" data-act="ppeek">'+(app.peek?'🙈 Hide':'👁 Peek')+'</button>':'')+'</div>'+(app.blindfold?'<div class="dim small" style="margin-top:6px">🙈 Blindfold on — pieces hidden. Visualise the position; tap squares to move. Use 👁 Peek if you get stuck.</div>':'')+
     '<div class="row" style="margin-top:8px"><button class="btn sec sm" data-act="pdraw" '+(app.playStatus==='play'?'':'disabled')+'>½ Offer draw</button><button class="btn danger sm" data-act="presign" '+((app.playStatus==='play'||app.playStatus==='engine')?'':'disabled')+'>⚑ Resign</button><button class="btn ghost sm" data-act="ppgn" '+(app.playMoves.length?'':'disabled')+'>'+(app.pgnCopied?'✓ Copied':'⧉ Copy PGN')+'</button></div>'+
-    '<div class="row" style="margin-top:8px"><button class="btn sec sm" style="flex:1" data-act="revplay" '+(app.playMoves.length?'':'disabled')+'>🔍 Game Review</button><button class="btn sec sm" style="flex:1" data-act="anafromplay" '+(app.playStatus==='play'||app.playStatus==='engine'?'disabled title="After the game"':'')+'>🔬 Analyse</button></div>'+
+    '<div class="row" style="margin-top:8px"><button class="btn sec sm" style="flex:1" data-act="revplay" '+((app.playMoves.length&&!aidsLocked())?'':'disabled title="After the game"')+'>🔍 Game Review</button><button class="btn sec sm" style="flex:1" data-act="anafromplay" '+(app.playStatus==='play'||app.playStatus==='engine'?'disabled title="After the game"':'')+'>🔬 Analyse</button></div>'+
     '<div class="row" style="margin-top:8px"><button class="btn sec sm" data-act="pnew">⟳ Rematch</button><button class="btn ghost sm" data-act="psetup">⚙ New game</button>'+(app.playOpening?'<button class="btn ghost sm" data-act="explore" data-val="'+app.playOpening+'">Opening</button>':'')+'</div>'+
     '<div class="dim small" style="margin-top:8px">Arrow keys ◀ ▶ step through the game. Tap a move to jump there. Strength is also in Settings.<br>'+
     '⌨️ Or play from the keyboard: <b>Tab</b> to the board, arrow keys to move the cursor, <b>Enter</b> to pick a piece up and put it down, <b>Esc</b> to let go.</div></div></div></div>';

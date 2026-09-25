@@ -105,6 +105,7 @@ ok(ctx>=3,'in a classical game chat talks while you think, about this game and t
 const bs=[];for(let i=0;i<40;i++){const m=X.streamBackseat();if(m)bs.push(m);}
 const legal=ch2.moves();
 ok(bs.length&&bs.every(m=>legal.indexOf(m)>=0),'the moves chat begs for are legal ones ('+[...new Set(bs)].slice(0,4).join(', ')+')');
+ok(bs.every(m=>!/[x+#]/.test(m)),'and never a capture or a check — nothing that could point at a tactic');
 // a question, answered spicy
 S.qa={k:'rival',u:'fork_lift',q:'what do you think of H. Nakamura?'};
 const int0=c.rival.intensity;X.streamAnswer(1);
@@ -112,7 +113,7 @@ ok(c.rival.intensity===int0+1&&S.quotes.length===1,'calling your rival overrated
 // a poll closes on your move
 X.app.playStatus='play';X.app.playSide='w';X.app.playFen=ch2.fen();X.app.playMoves=[];X.app.playStack=[ch2.fen()];S.ply=0;S.st={};
 X.streamPoll();
-ok(S.poll&&S.poll.opts.length===3&&S.poll.opts.every(o=>legal.indexOf(o.san)>=0),'a poll offers chat three legal moves');
+ok(S.poll&&S.poll.opts.length===3&&S.poll.opts.every(o=>legal.indexOf(o.san)>=0&&!/[x+#]/.test(o.san)),'a poll offers chat three quiet legal moves');
 const pick=S.poll.opts[0].san;S.poll.opts[0].v=99;
 {const m=ch2.move(pick);X.app.playMoves.push({san:m.san,from:m.from,to:m.to});X.app.playStack.push(ch2.fen());X.app.playFen=ch2.fen();X.streamMove();}
 ok(!S.poll&&/CHAT PLAYS CHESS|WE PICKED THAT|chat was right|democracy/.test(S.chat.map(m=>m.t).join(' ')),'and playing chat’s move makes chat very happy');

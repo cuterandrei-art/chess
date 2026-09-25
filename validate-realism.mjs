@@ -28,7 +28,7 @@ const X=new Function(script+'\nreturn {store,app,simGame,SIM_DRAW,_simScore,_sim
   'koOrder,koTiebreak,koArmageddon,koSimMatch,koInit,koOpponent,koAfterGame,koPlace,koCard,KO_SIZE,KO_PLACE,KO_NAMES,'+
   'PRIZE_FIRST,ENTRY_FEE,KO_PRIZE,WCC_LOSER,OLY_PAY,prizeFirst,prizeTable,prizeFor,tourPrize,entryFee,prizeLine,careerLobby,'+
   'eventDays,eventTrip,tripCost,lifeSpendDays,weekAccounts,payOrOwe,endOfWeek,doDay,careerStream,careerSimul,careerCamp,careerRest,'+
-  'careerSabbatical,careerCommentate,lifeCosts,seasonRollover,'+
+  'careerSabbatical,careerCommentate,lifeCosts,seasonRollover,streamReset,stopClockTick,'+
   'cycleInit,cycleValid,cycleQualify,cycleLock,wccOpponent,matchDecided,cycleAfterMatch,matchAfterGame,careerRoadPanel,'+
   'circuitFinalize,worldRanking,worldRank,CYCLE_SEASONS,CAND_RATING_RANK,WORLD_REAL,'+
   'wcQualify,WC_RATING_RANK,WC_CONT_TOP,ANNUAL_EVENTS,normsOnOffer,KO_FLOOR,KO_QUAL_MIN,finalizeTournament,buildWorld,toastAdd,EVENT_WEEK,heldThisSeason,calendarLock,weekOfSeason,seasonYear,worldChampion,'+
@@ -862,7 +862,8 @@ ok(c.sponsor===null,'ending when its weeks are up');
 /* the things that used to be free weeks */
 c=cc();const mS=c.money,wS=c.weeks;
 for(let i=0;i<7;i++){c.energy=100;X.careerStream();}
-ok(c.weeks===wS+1,'seven streams are seven evenings — one week, not seven');
+X.streamReset();X.stopClockTick();X.app.playFen=null;X.app.careerOpp=null;X.app.view='career';   // each stream is a game now; leave the last one
+ok(c.weeks===wS+1,'seven streams are seven days — one week, not seven');
 ok(c.money<mS+7*60,'and the week’s rent is paid out of what they earned ('+(c.money-mS)+')');
 c=cc();const wC=c.weeks,mC=c.money;
 X.careerCamp();
@@ -1555,3 +1556,4 @@ const G=X.proLeagueOf(c);
 ok(G.round===1&&G.last.results.length===4,'and the whole round of the league was played with you in it');
 }
 console.log('\n✅ realism: '+pass+' checks passed');
+process.exit(0);

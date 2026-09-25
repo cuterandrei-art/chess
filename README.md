@@ -677,8 +677,8 @@ comes next on the calendar.
 every career game"). The chat reads what the commentary booth reads — the
 moves, what came off the board, the clocks — and never the engine, so it can
 scream at a sacrifice but cannot warn you that a knight is hanging, and the
-moves it begs you to play are the moves chat always begs for: checks, captures,
-a pawn push. It knows your career: your rating and the next hundred, the
+moves it begs you to play (and the ones a poll offers) are quiet moves picked at
+random — never a capture or a check that could point at a tactic. It knows your career: your rating and the next hundred, the
 standings of the event you are in, whether you beat this opponent last time,
 their world rank, your rival (a rival game is the one the whole chat turns up
 for), the next event. In rapid and classical it keeps talking while you think;
@@ -703,6 +703,58 @@ replies want an answer: clap back at a troll (followers, less respect), fire
 back at your rival (the rivalry, and a story about it), challenge them to a
 money match, give the press a quote (printed). The winners of the big events
 post too, and your rival will ask whether you were watching.
+
+**23. Nothing at the board but the board, and the rest of it where you can see
+it.** Five things that did not hold up in play.
+
+*No help while a game is on.* A career game showed the engine's evaluation if
+you had hired the engine analyst, the tablebase's verdict once seven men were
+left, a warning the moment your move dropped material ("that drops material —
+Nxe5 wins the knight"), and allowed a game review and takebacks mid-game. None
+of that is available at a real board. While a career game is being played there
+is now no evaluation, no tablebase, no material warning, no game review and no
+takeback; the evaluation and the review are there the moment it ends. The
+streaming chat follows the same rule: the moves it begs for and the ones a poll
+offers are quiet moves picked at random, never a capture or a check that could
+point at a tactic. A free game against the engine keeps quiet too unless
+**Training help in free games** is switched on in Settings. The engine analyst
+now does their work before the event (+2 preparation), not during it. The
+💡 tactic hints you earn from your puzzle rating and perks are still there,
+because you choose to spend them.
+
+*Media & drama works where you click it.* Every result of a button used to go
+to a message at the top of the page, far above the Media tab, so the buttons
+looked dead. What a button did now floats up above the bottom bar wherever you
+are, and the Media & drama card says what happened on the card itself. The
+actions are events, too: a hot take is a real post on your timeline that
+people answer; calling out your rival posts it, turns up the rivalry, gets
+their reply and a tabloid story; a feud picks a rival just above you on the
+list (a famous name if there is one); making peace cools it; commentating puts
+you in the booth for this week's real event; a money match takes you to the
+Play tab where it is.
+
+*Streaming shows are streamed games.* Stream a game, a rating speedrun, Guess
+the Elo (the opponent's rating stays hidden while chat guesses, and is revealed
+at the end), a charity stream (the tips go to charity: respect and fame, not
+money) and a collab (you play a well-known streamer, both chats watching) are
+all online games you play live with the chat, viewers, subscribers, tips and
+clips of the stream system. They take the day and some energy, and being
+online they touch neither your FIDE rating nor your head-to-head record.
+
+*Sponsors have a card.* They were a line at the bottom of the team card on the
+Life tab, and nothing at all when nobody was offering. The Media tab has a
+🤝 Sponsors card: the deal you have, what it has paid and how long it runs; the
+competing offers when there are some; what brings them when there are none (a
+1500 rating or 8 fame). A sponsored post goes on the timeline and counts for
+the sponsor, and a sponsor you posted about offers to renew on better terms.
+
+*Rest days, not weeks off, during an event.* An event's days are counted when
+it ends, rest days included, so "Rest 1 week" in the middle of one gave you the
+energy of a week while the tournament waited. During an event nothing that
+takes days can be done — a week off, a camp, a stream, a simul, a sabbatical,
+commentating — and instead the event has its own rest days, between rounds and
+one at a time: two in a nine-round classical event, one in the World Cup, none
+in rapid or blitz, each worth about twenty energy and no extra days.
 
 Not done yet: pairings and the World tab use live ratings, not the monthly
 list the board prints; the World Cup is 128 players rather than 206 with byes
@@ -1453,7 +1505,7 @@ launch builds nothing.
 
 ## Tests
 
-Fifty-six suites, about 5,500 checks, plus fifteen browser suites that drive the real app with the real engine.
+Fifty-six suites, about 5,500 checks, plus sixteen browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
@@ -1515,6 +1567,12 @@ the people it should be — your rival, a compatriot off the list, a journalist 
 and that answering them has consequences. `visual-media.mjs` drags the news
 button across the screen, opens a list, streams a game against your rival in
 a browser, answers a viewer, resigns into the summary, and posts about it.
+
+`visual-life.mjs` plays a five-man ending and a hanging knight in a career game
+and finds no tablebase, no evaluation, no material warning, no review and no
+takeback until it is over; signs a sponsor, posts a hot take, starts a feud and
+calls the rival out; takes a rest day between rounds instead of a week off; and
+streams Guess the Elo to the reveal without touching the FIDE rating.
 
 `validate-olympiad.mjs` plays thirty Olympiads and checks the books balance —
 every match hands out exactly two match points and four game points, no nation
