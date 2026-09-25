@@ -900,6 +900,83 @@ board and the drama. **📺 Stream it** takes it live on your own channel as a
 watch-along — a day and five energy, your viewers in the chat, paid in
 subscribers, fans and tips when the game ends (or when you leave).
 
+**26. The tournament as a place you go to.**
+
+*Walking into the hall.* **Play the round** used to drop you straight on the
+board. Now it walks you in first: the city and the room (Harpa on the harbour
+in Reykjavik, the village hall at Wijk aan Zee, a school sports hall for a
+weekend open, a hotel ballroom for a big open, a glass box on a stage for a
+title match); phones into a pouch at the door at the top level; your board
+number, who is on board one and who is either side of you; your opponent
+arriving the way their style would (an attacker with a minute to spare, a
+positional player already seated with the pen lined up); somebody from your
+life in the audience if they flew out; the arbiter starting the clocks. One
+tap starts the game. **Skip these scenes** turns them off, as does *Round
+scenes* in Settings, and a game that was interrupted goes straight back to the
+board.
+
+*The other boards finish around yours.* The whole round is drawn when you sit
+down — every other board's result and the move of your game at which it ends —
+and a card beside the board shows the top boards and your neighbours:
+*playing*, then *1–0* after 38 moves, and who is leading as it stands. Late in
+a long game yours is the last one still going and the hall gathers round (the
+stream's chat notices too). The round is then played exactly as you watched
+it: the same results go into the standings, the crosstable and the ratings.
+Opens and round-robins; a knockout, a match and the Olympiad have their own
+screens.
+
+*The hall's sounds, and the arbiter.* During a round the hall murmurs — a low
+room noise, clocks pressed on the other boards, the cough there always is —
+made with the Web Audio API, no sound files. The arbiter starts each round
+aloud in your device's own voice. Both have switches in Settings, and both go
+quiet with *Move sounds* off.
+
+*The post-mortem.* When a rated game ends — a round, a challenge, a league
+match — the engine goes through it in the background while you read the
+result (a quick pass, a few seconds, and never while the engine is wanted for
+anything else), and your opponent sits down with you. They point at the moment
+that decided it: "13.Nf1 — that was the moment. I was hoping for it, and I
+couldn't believe it when you played it. d5 holds." Or "I had it… and then
+14…g6 threw it all away", "You let me off", "We both had our chances", "A
+correct game". What they add depends on who they are: an attacker talks about
+the attack, a grinder about the sixth hour, a gambiteer about the pawn. **Show
+me** opens that move on the analysis board.
+
+*The coach's homework.* Then your coach has a word. Each of your mistakes is
+sorted by kind — with the clock nearly gone, in the first ten moves, in an
+endgame (six pieces or fewer), tactical (a blunder, or a capture or check that
+was there) or strategic — and the biggest kind becomes homework: ten puzzles,
+twenty moves of your openings (the one you went wrong in), two endgame drills
+held or won, a Puzzle Rush, or one of the classic games. It sits on the Play
+tab and in the inbox with its progress. Done within three weeks it is worth
+form +10, preparation +1 (+2 when the specialist you hired for it set it — the
+Endgame guru the endgames, the Opening theoretician the openings) and 25 XP;
+forgotten, it lapses, and your coach notices. One piece of homework at a time.
+
+*Travel.* A trip was a line on the bill. Now it is somewhere: every named event
+has its city (and the travelling ones a host by the year), and getting there
+takes something out of you — 12 energy for a long flight, 5 for a short hop, 3
+for a train across the country. After a long flight the first two rounds are
+played jet-lagged, 20 below yourself and a tenth off your clock, unless you fly
+out a day early for a day and a night's hotel. You choose the bed: a hostel at
+about half the price, a hotel, or the players' hotel at 1.7 times the price and
+6 energy back every night (where the organisers put you when they are paying).
+A rest day abroad can be spent seeing the city — +10 energy, −18 tilt, +8 mood
+— instead of in bed. And then the first night home.
+
+*The people in your life.* A career had rivals, sponsors and followers, and
+nobody who knew you before any of that. Now there is a parent, a friend from
+your first club and the coach who taught you — and perhaps, later, somebody
+met at an event. They message after results ("We watched every round!"; after
+a bad week Sunday lunch, or blitz at the club like old times — say yes and it
+takes the tilt off), after an upset, a norm or a title. They have birthdays:
+call, send a present, or not now — and an unanswered one is a forgotten one.
+Somebody close flies out for a big event and is in the audience when you walk
+in. A call is free and takes no day, once a week each. Bonds fade a little
+every week; how close you are to them all nudges your mood each week, up or
+down; and a partner forgotten long enough leaves. They are on the Life tab,
+and a message waiting for an answer is in the inbox.
+
 ## The Olympiad is a team event
 
 Nine individual games with a sentence bolted on the end. Your "team" was three
@@ -1646,7 +1723,7 @@ launch builds nothing.
 
 ## Tests
 
-Fifty-eight suites, about 5,600 checks, plus eighteen browser suites that drive the real app with the real engine.
+Fifty-nine suites, about 5,700 checks, plus nineteen browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
@@ -1684,6 +1761,20 @@ with a watch-along that costs a day and pays in subscribers. The World Cup's
 for a seed, the places and prizes — are in `validate-realism.mjs`, and
 `visual-watch.mjs` watches a game with its chat, streams it, and enters a World
 Cup in a real browser.
+
+`validate-immersion.mjs` covers 26: the scene in the hall (the city, your board,
+the scenes switched off), the round drawn as you sit down and every other board
+finishing with the result you watched, the travel (a long flight, jet lag and
+flying out early, the bill following the bed, a night in the players' hotel, a
+day out in the city, home again), your people (birthdays answered and
+forgotten, a call once a week, somebody flying out to watch, a partner who
+leaves), what your opponent says after each kind of game and the move they
+point at, the kinds of mistake, and the coach's homework (set, counted, done in
+time or lapsed, one at a time, an opening to train with or without a
+repertoire). `visual-immersion.mjs` makes the trip in a real browser: the beds,
+flying out early, the hall and its sounds, the other boards beside yours, a
+post-mortem with the real engine, **Show me**, the homework on the Play tab and
+your people on the Life tab.
 
 Career mode's newer systems have their own: `validate-booth.mjs` (what the
 commentators can and cannot know, the grammar guard that fills every line with

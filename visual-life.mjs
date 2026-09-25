@@ -113,7 +113,8 @@ await page.click('[data-act="simround"]').catch(()=>{});await page.waitForTimeou
 await H(()=>{window.__APPHOOK__.store.career.energy=40;window.__APPHOOK__.render();});
 await page.click('[data-act="tourrest"]');await page.waitForTimeout(300);
 ok(await H(()=>window.__APPHOOK__.store.career.energy)>40&&await H(()=>window.__APPHOOK__.store.career.weeks)===w0,'one between rounds gives energy back, and no week passes');
-ok(await page.locator('[data-act="tourrest"][disabled]').count()===1,'and the next one waits for the next round');
+ok(await page.locator('#restrow [data-act="tourrest"][disabled]').count()>=1&&await page.locator('#restrow [data-act="tourrest"]:not([disabled])').count()===0,'and the next one waits for the next round');
+ok(/See \S+/.test(await page.locator('#restrow').innerText()),'abroad, a rest day can also be a day out in the city');
 await tab('life');
 t=await txt();
 ok(/Rest day \(1 left\)/.test(t)&&!/Rest 1wk/.test(t),'the Life tab offers the event’s rest days, not a week off');

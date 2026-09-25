@@ -45,7 +45,8 @@ await go('career');
 await page.selectOption('#cr-start','master').catch(()=>{});
 await page.click('[data-act="careersetup"]'); await page.waitForTimeout(400);
 await page.locator('[data-act="careerjoin"]').first().click(); await page.waitForTimeout(400);
-await page.click('[data-act="careerplay"]'); await page.waitForTimeout(1200);
+const hall=async()=>{if(await page.locator('[data-act="hallstart"]').count()){await page.click('[data-act="hallstart"]');await page.waitForTimeout(700);}};
+await page.click('[data-act="careerplay"]'); await page.waitForTimeout(500); await hall(); await page.waitForTimeout(500);
 
 /* Wait until it is our move — the bot's classical thinking time is real. */
 const ourTurn=async()=>{
@@ -135,7 +136,7 @@ ok(!/You have a game in progress/.test(careerNow),'and the career screen stops o
 
 /* ---- discarding ---- */
 await page.locator('[data-act="careerplay"]').first().click().catch(()=>{});
-await page.waitForTimeout(1200);
+await page.waitForTimeout(500); await hall(); await page.waitForTimeout(500);
 const s2=await ourTurn();
 await mv(s2.side==='w'?'e2':'e7',s2.side==='w'?'e4':'e5');
 await page.waitForTimeout(500);

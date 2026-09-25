@@ -220,6 +220,9 @@
   .savefail{position:fixed;left:10px;right:10px;bottom:calc(66px + env(safe-area-inset-bottom));z-index:120;display:flex;align-items:center;gap:10px;justify-content:space-between;
     max-width:620px;margin:0 auto;padding:10px 12px;border-radius:12px;border:1px solid #f59e0b;background:#2a1d06f2;color:#fde68a;box-shadow:0 10px 30px rgba(0,0,0,.5)}
   .savefail .btn{flex:0 0 auto}
+  .hallcard{border-color:#f59e0b55;background:linear-gradient(160deg,rgba(245,158,11,.08),transparent 60%),var(--panel)}
+  .hallcard p{margin:9px 0;line-height:1.6}
+  .hallcard .hl-where{font-size:16px;margin-bottom:2px}
   @media(min-width:821px){.savefail{bottom:16px}}
   .ctab{flex:0 0 auto;position:relative;background:#141f38;border:1px solid var(--border);color:var(--muted);font:inherit;font-weight:700;font-size:13px;padding:9px 13px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:6px}
   .ctab:hover{color:var(--text)}
@@ -4776,14 +4779,20 @@ function worldApply(c,p,fmt,score,oppRating){
 function worldDrawBase(avg){return Math.max(0.2,Math.min(0.5,0.24+(avg-2000)/800*0.25));}
 /* A game between two players on the list: played from their strengths (and
    their form this event), rated from their ratings. Returns A's score. */
-function worldGame(c,A,B,fmt,o){
+/* How a game between two people on the list comes out, without rating it. */
+function worldGameScore(A,B,fmt,o){
   o=o||{};fmt=fmt||'classical';
   const sA=wpStrength(A,fmt)+(o.formA||0),sB=wpStrength(B,fmt)+(o.formB||0);
   const edge=o.aWhite==null?0:(o.aWhite?WHITE_EDGE:-WHITE_EDGE);
   const E=1/(1+Math.pow(10,-(sA-sB+edge)/400));
   const d=bulDrawRate(E,worldDrawBase((sA+sB)/2));
   const pw=Math.max(0,Math.min(1-d,E-d/2)),x=Math.random();
-  const s=x<pw?1:(x<pw+d?0.5:0);
+  return x<pw?1:(x<pw+d?0.5:0);
+}
+function worldGame(c,A,B,fmt,o){
+  o=o||{};fmt=fmt||'classical';
+  // a result already drawn (a board beside yours, decided when the round began) is only rated here
+  const s=o.s!=null?o.s:worldGameScore(A,B,fmt,o);
   if(_wgWatch)wgWatchGame(A,B,fmt,s);          // a named event: is this the shock of the week?
   if(!o.unrated){
     const rA=pubRating(A,fmt),rB=pubRating(B,fmt);
@@ -5690,7 +5699,7 @@ function confirmOverlay(){if(!app.confirm)return '';
     '<div class="dim small" style="margin-bottom:15px;line-height:1.55">'+esc(app.confirm.msg)+'</div>'+
     '<div class="row" style="justify-content:flex-end;gap:8px"><button class="btn ghost sm" data-act="confirmno">Cancel</button><button class="btn danger sm" data-act="confirmyes">Confirm</button></div>'+
     '</div></div>';}
-function go(view){const from=app.view;if(from&&from!==view){app.navHist=app.navHist||[];app.navHist.push(from);if(app.navHist.length>30)app.navHist.shift();navScrollKeep(from);}
+function go(view){const from=app.view;if(from==='play'&&view!=='play')Hall.stop();if(from&&from!==view){app.navHist=app.navHist||[];app.navHist.push(from);if(app.navHist.length>30)app.navHist.shift();navScrollKeep(from);}
   if(view==='career'&&from!=='career')app.navHist=[];   /* home: Back from here leaves the app */
   app.view=view;app.sel=null;stopClockTick();if(view!=='puzzles')stopRushTick();if(view!=='livegame'&&view!=='tracker')livePollStop();if(view!=='livegame')replayStop();render();if(from!==view&&!app._jump)navScrollTo(0);}
 /* A new screen opens at its top — it used to open wherever the last one had
@@ -6082,10 +6091,10 @@ function render(){
   const navIcon=v=>(NAV_META[v]?NAV_META[v][0]:'•');
   const cur=nav.indexOf(app.view)>=0?app.view:'dashboard';
   const LEARN_VIEWS=['learn','courses','clearn','train','library','build','explore','course','endgames','eglesson','classics','guess','blindfold','daily','masters','studies','review','analysis','brilliancy','report','import','tracker','dashboard','reptree'];
-  const CAREER_VIEWS=['career','magazine','hall','player','livegame','spectate'];
+  const CAREER_VIEWS=['career','magazine','hall','player','livegame','spectate','round'];
   const primaryOf=v=>(CAREER_VIEWS.indexOf(v)>=0?'career':v==='play'?'play':v==='puzzles'?'puzzles':LEARN_VIEWS.indexOf(v)>=0?'learn':'');
   const PRIMARY=[['career','🏆','Career'],['play','♟️','Play'],['puzzles','🧩','Puzzles'],['learn','📚','Learn']];
-  const curP=primaryOf(cur);
+  const curP=primaryOf(app.view)||primaryOf(cur);     // a career page off the menu (a player, the hall) is still the career
   const topnav='<div class="topnav">'+PRIMARY.map(p=>'<button data-act="nav" data-val="'+p[0]+'" class="'+(curP===p[0]?'active':'')+'">'+p[1]+' '+p[2]+'</button>').join('')+'</div>';
   const menuGrid=(installStatus()==='installed'?'':'<button class="instrow" data-act="install">'+esc(installLabel())+'</button>')+
     '<button class="xferrow" data-act="xferopen">⇄ Move progress to another device</button>'+
@@ -6130,6 +6139,7 @@ function render(){
   else if(app.view==='masters')body=viewMasters();
   else if(app.view==='career')body=viewCareer();
   else if(app.view==='spectate')body=viewSpectate();
+  else if(app.view==='round')body=viewRound();
   else if(app.view==='reptree')body=viewRepTree(app.repTreeId);
   else if(app.view==='blindfold')body=viewBlindfold();
   else if(app.view==='endgames')body=viewEndgames();
@@ -10529,6 +10539,9 @@ function viewSettings(){
     rowSet('Show coordinates','',(store.settings.coords!==false?'<input type="checkbox" data-setting="coords" checked>':'<input type="checkbox" data-setting="coords">'))+
     rowSet('Board size','Drag to resize the board.','<input type="range" min="300" max="760" step="10" value="'+(store.settings.boardSize||520)+'" data-setting="boardSize">')+
     rowSet('Move sounds','',(store.settings.sound!==false?'<input type="checkbox" data-setting="sound" checked>':'<input type="checkbox" data-setting="sound">'))+
+    rowSet('Tournament hall sounds','In a career round: the murmur of the hall, clocks on other boards, and the cough there always is.',(store.settings.hallSound!==false?'<input type="checkbox" data-setting="hallSound" checked>':'<input type="checkbox" data-setting="hallSound">'))+
+    rowSet('Arbiter’s voice','The arbiter starts each career round aloud, in your device’s own voice.',(store.settings.arbiterVoice!==false?'<input type="checkbox" data-setting="arbiterVoice" checked>':'<input type="checkbox" data-setting="arbiterVoice">'))+
+    rowSet('Round scenes','Before each career round: the city, the hall, your board and your opponent sitting down.',(store.settings.roundIntro!==false?'<input type="checkbox" data-setting="roundIntro" checked>':'<input type="checkbox" data-setting="roundIntro">'))+
     rowSet('Sound theme','',('<select data-setting="soundTheme">'+['classic','soft','wood','marimba'].map(function(k){return '<option value="'+k+'"'+((store.settings.soundTheme||'classic')===k?' selected':'')+'>'+k[0].toUpperCase()+k.slice(1)+'</option>';}).join('')+'</select>'))+
     '<div id="motionrow">'+rowSet('Motion','The piece slide, confetti and small interface animations. “Follow my device” uses its reduce-motion setting (it is '+(osReducedMotion()?'on':'off')+' here).','<select data-setting="motion"><option value="auto"'+(motionPref()==='auto'?' selected':'')+'>Follow my device</option><option value="full"'+(motionPref()==='full'?' selected':'')+'>Full motion</option><option value="reduced"'+(motionPref()==='reduced'?' selected':'')+'>Reduced motion</option></select>')+'</div>'+
     rowSet('Smooth animations','Slide pieces when a move is played.',(store.settings.anim!==false?'<input type="checkbox" data-setting="anim" checked>':'<input type="checkbox" data-setting="anim">'))+
@@ -10740,7 +10753,7 @@ function boardClick(sq){
 let _actx=null;
 const SOUND_THEMES={classic:{type:'triangle',move:300,capture:170,check:620},soft:{type:'sine',move:330,capture:210,check:520},wood:{type:'square',move:210,capture:140,check:430},marimba:{type:'sine',move:450,capture:270,check:700}};
 function sfx(type){if(!store.settings.sound)return;try{_actx=_actx||new (window.AudioContext||window.webkitAudioContext)();const o=_actx.createOscillator(),g=_actx.createGain();o.connect(g);g.connect(_actx.destination);const t=_actx.currentTime;const th=SOUND_THEMES[store.settings.soundTheme]||SOUND_THEMES.classic;o.type=th.type;o.frequency.value=type==='capture'?th.capture:type==='check'?th.check:th.move;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.12,t+0.008);g.gain.exponentialRampToValueAtTime(0.0001,t+0.13);o.start(t);o.stop(t+0.14);}catch(e){}}
-function sfxSan(san){if(!san)return;var ty=/[+#]/.test(san)?'check':/x/.test(san)?'capture':'move';sfx(ty);if(store.settings.haptics&&navigator.vibrate){try{navigator.vibrate(ty==='capture'?18:ty==='check'?[10,28,10]:9);}catch(e){}}}
+function sfxSan(san){if(!san)return;var ty=/[+#]/.test(san)?'check':/x/.test(san)?'capture':'move';sfx(ty);if(Hall.on)setTimeout(function(){Hall.click(0.06);},120);if(store.settings.haptics&&navigator.vibrate){try{navigator.vibrate(ty==='capture'?18:ty==='check'?[10,28,10]:9);}catch(e){}}}
 function resultKind(txt){txt=txt||'';if(/you won|you win/i.test(txt))return 'win';if(/you lost|wins\.|resigned/i.test(txt))return 'loss';if(/draw/i.test(txt))return 'draw';return 'over';}
 function confetti(n){try{if(typeof document==='undefined'||!document.body||motionReduced())return;var wrap=document.createElement('div');wrap.className='confetti';var cols=['#f59e0b','#22c55e','#1c84f5','#ec4899','#a855f7','#eab308','#38bdf8'];n=n||90;for(var i=0;i<n;i++){var p=document.createElement('i');p.style.left=(Math.random()*100)+'vw';p.style.background=cols[i%cols.length];p.style.animationDelay=(Math.random()*0.5)+'s';p.style.animationDuration=(1.6+Math.random()*1.5)+'s';p.style.opacity=0.6+Math.random()*0.4;wrap.appendChild(p);}document.body.appendChild(wrap);setTimeout(function(){if(wrap.parentNode)wrap.parentNode.removeChild(wrap);},3400);}catch(e){}}
 
@@ -11001,7 +11014,12 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='confirmnoop'){/* swallow clicks inside the dialog */}
   else if(act==='hirecoach'){const c=store.career;if((c.money||0)>=1500&&!c.coach){c.money-=1500;c.coach=true;store.settings.showEval=true;save();render();}}
   else if(act==='careerrest')careerRest();
-  else if(act==='tourrest')tourRest();
+  else if(act==='tourrest')tourRest(val);
+  else if(act==='hotelpick'){const _tr=store.career&&store.career.tour;if(_tr&&_tr.travel&&_tr.round===0&&!_tr.travel.covered&&HOTELS[val]){_tr.travel.hotel=val;save();}render();}
+  else if(act==='travelearly')travelEarly();
+  else if(act==='pplreply')pplReply(val);
+  else if(act==='pplcall')pplCall(val);
+  else if(act==='pmshow')pmShow(val);
   else if(act==='careercamp')careerCamp();
   else if(act==='careerstream')careerStream();
   else if(act==='social')socialPost(val);
@@ -11071,7 +11089,11 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='careersetup'){const c=store.career;const nm=((document.getElementById('cr-name')||{}).value||'').trim();const fedC=(document.getElementById('cr-fed')||{}).value||'FIDE';const g=((document.getElementById('cr-gender')||{}).value==='women')?'women':'open';const tf=((document.getElementById('cr-titlefmt')||{}).value==='any')?'any':'classical';const fed=FEDS.find(x=>x.c===fedC)||FEDS[0];const pace=Math.max(1,Math.min(3,parseInt((document.getElementById('cr-pace')||{}).value,10)||1));const start=((document.getElementById('cr-start')||{}).value)||'club';c.setup=true;c.name=(nm||'You').slice(0,24);c.fed=fed.c;c.flag=fed.f;c.gender=g;c.titleFormat=tf;c.pace=pace;if(start==='talent'){c.rating=1900;c.peak=1900;c.provisional=false;c.ratedGames=30;c.age=18;}else if(start==='master'){c.rating=2300;c.peak=2300;c.provisional=false;c.ratedGames=30;c.age=20;}app.careerTab='play';save();render();navScrollTo(0);}
   else if(act==='careerpace'){const c=store.career;lifeInit(c);c.pace=(c.pace||1)>=3?1:(c.pace||1)+1;app.careerToast='⏩ Career pace: '+(PACE_NAMES[c.pace]||('×'+c.pace))+' — ratings now move '+(c.pace===1?'at true FIDE speed':(c.pace+'× faster'))+'.';save();render();}
   else if(act==='careerjoin'){joinTournament(val);if(store.career.tour){app.careerTab='play';app._jump='tourcard';render();}}
-  else if(act==='careerplay')playTourRound();
+  else if(act==='careerplay')tourRoundEnter();
+  else if(act==='hallstart'){const _tr=store.career.tour;const _r=_tr?_tr.round+1:0;playTourRound();render();arbiterSay((_tr&&_tr.kind==='match'?'Game ':'Round ')+_r+'. Players, you may start the clocks.');}
+  else if(act==='hallback'){app.roundIntro=null;go('career');}
+  else if(act==='hallsound'){store.settings.hallSound=store.settings.hallSound===false;save();render();}
+  else if(act==='hallskip'){store.settings.roundIntro=false;save();playTourRound();render();}
   else if(act==='calwait')careerWaitUntil(+val);
   else if(act==='wmhire')wmHire(val);
   else if(act==='wmstart')wmStart();
@@ -11285,7 +11307,8 @@ document.getElementById('app').addEventListener('change',e=>{
     if(ds==='newPer')store.settings.newPer=Math.max(1,Math.min(50,+e.target.value||8));
     else if(ds==='level')store.settings.level=Math.max(0,Math.min(LEVELS.length-1,+e.target.value||0));
     else if(ds==='coords')store.settings.coords=e.target.checked;
-    else if(ds==='sound')store.settings.sound=e.target.checked;
+    else if(ds==='sound'){store.settings.sound=e.target.checked;if(!e.target.checked)Hall.stop();}
+    else if(ds==='hallSound'||ds==='arbiterVoice'||ds==='roundIntro'){store.settings[ds]=e.target.checked;if(ds==='hallSound'&&!e.target.checked)Hall.stop();}
     else if(ds==='anim')store.settings.anim=e.target.checked;
     else if(ds==='motion')store.settings.motion=(e.target.value==='full'||e.target.value==='reduced')?e.target.value:'auto';
     else if(ds==='haptics')store.settings.haptics=e.target.checked;
@@ -12477,7 +12500,7 @@ function playResume(){
   app.playView=app.playStack.length-1;app.playLast=g.last||null;app.playSel=null;
   // everything a fresh game clears, cleared again — a stale hint or draw offer
   // from before the interruption would be nonsense now
-  app.playHint=null;app.playEval=null;app.playResult=null;app.careerStory=null;
+  app.playHint=null;app.playEval=null;app.playResult=null;app.careerStory=null;app.pg=null;app._egCounted=false;
   app.engineErr=false;app.drawMsg=null;app.blunderNote=null;app.coachNote=null;app.whyNot=null;
   app.oppDraw=null;app.oppSaid=null;app._oppLost=0;app._drawCd=0;app.pgnCopied=false;
   app.playPremoves=[];app.peek=false;app.careerScored=false;app.careerDelta=0;
@@ -12509,6 +12532,7 @@ function playResume(){
   _resumeSig=null;
   render();
   startClockTick();
+  if(app.careerTour)Hall.start();                 // back in the hall
   if(app.playStatus==='engine')setTimeout(engineMove,420);
   return true;
 }
@@ -12591,7 +12615,7 @@ function startPlay(fen,side,openingId,title,opts){opts=opts||{};
   if(app.pass){side=turnOf(fen);app.playBot=null;}
   app.view='play';app.playFen=fen;app._playStartFen=fen;app.playSide=side;app.playOpening=openingId||null;
   app.playTitle=title||'Free game';app.playFlip=false;app.playStack=[fen];app.playMoves=[];app.playView=0;app.playLast=null;app.playSel=null;app.careerBanter=null;app.careerReaction=null;
-  app.playHint=null;app.playEval=null;app.playResult=null;app.careerStory=null;app.engineErr=false;app.drawMsg=null;app.blunderNote=null;app.coachNote=null;app.whyNot=null;app.oppDraw=null;app.oppSaid=null;app._oppLost=0;app._drawCd=0;app.pgnCopied=false;app.playPremoves=[];app.blindfold=!!opts.blindfold;app.peek=false;app.careerOpp=opts.careerOpp||null;app.careerElo=opts.careerElo||null;app.careerScored=false;app.careerDelta=0;app.careerTour=!!opts.careerTour;app.careerRoundOpp=opts.roundOpp||null;app.careerOneoff=opts.oneoff||null;app.c960=opts.c960||null;app.endgame=opts.endgame||null;app.playBot=opts.bot||null;app.tiltEval=false;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=!!(opts.league);app.careerPro=!!(opts.pro);app.careerLegend=opts.legend||null;app.playBookAlt=null;app.playBookAltEdge=0;app.careerOppPrep=null;app.careerHintsLeft=0;app._fxKey=null;app._lastEvalCp=null;app._engOutOfBook=false;app._engRetry=0;app._evLow=null;app._evHigh=null;
+  app.playHint=null;app.playEval=null;app.playResult=null;app.careerStory=null;app.pg=null;app._egCounted=false;app.engineErr=false;app.drawMsg=null;app.blunderNote=null;app.coachNote=null;app.whyNot=null;app.oppDraw=null;app.oppSaid=null;app._oppLost=0;app._drawCd=0;app.pgnCopied=false;app.playPremoves=[];app.blindfold=!!opts.blindfold;app.peek=false;app.careerOpp=opts.careerOpp||null;app.careerElo=opts.careerElo||null;app.careerScored=false;app.careerDelta=0;app.careerTour=!!opts.careerTour;app.careerRoundOpp=opts.roundOpp||null;app.careerOneoff=opts.oneoff||null;app.c960=opts.c960||null;app.endgame=opts.endgame||null;app.playBot=opts.bot||null;app.tiltEval=false;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=!!(opts.league);app.careerPro=!!(opts.pro);app.careerLegend=opts.legend||null;app.playBookAlt=null;app.playBookAltEdge=0;app.careerOppPrep=null;app.careerHintsLeft=0;app._fxKey=null;app._lastEvalCp=null;app._engOutOfBook=false;app._engRetry=0;app._evLow=null;app._evHigh=null;
   app.playBook=opts.bookId?byId.get(opts.bookId):(opts.book||null);
   app.playBookNode=opts.bookNode||(app.playBook?app.playBook.root:null);
   app.playClk=[];
@@ -12803,6 +12827,8 @@ function lifeAfterGame(score){var c=store.career;lifeInit(c);
   var fmt=(c.tour&&c.tour.format)||app.careerOneoff||'classical';
   var ecost=(fmt==='blitz'?2:fmt==='rapid'?4:7)*(hasCoach(c,'Fitness trainer')?0.7:1)*(1-0.12*perkLevel(c,'stamina'));
   c.energy=Math.max(0,Math.round(c.energy-ecost));
+  // a night in the hotel you chose gives some of it back
+  if(app.careerTour&&c.tour&&c.tour.travel&&travelAway(c.tour)){var _H=HOTELS[c.tour.travel.hotel]||HOTELS.hotel;c.energy=Math.min(maxEnergy(c),c.energy+_H.rec);if(_H.mood)c.mood=Math.max(0,Math.min(100,(c.mood==null?62:c.mood)+_H.mood));}
   var opp=app.careerElo||1500,myr=youRating(c,fmt)||opp;
   c.form=Math.max(-100,Math.min(100,c.form+(score===1?12:score===0?-12:2)+((score===1&&opp>myr)?6:0)));
   var tg=(score===0)?(opp<myr-60?24:10):(score===1?-12:0);if(tg>0&&hasCoach(c,'Sports psychologist'))tg=Math.round(tg*0.55);if(tg>0&&hasPerk(c,'cool'))tg=Math.round(tg*(1-(0.30+0.13*(perkLevel(c,'cool')-1))));if(tg>0&&hasAsset(c,'therapist'))tg=Math.round(tg*0.7);if(tg>0&&styleClass(c).cls==='Fortress')tg=Math.round(tg*0.8);
@@ -12917,13 +12943,23 @@ function tourRestAllowance(tr){
 }
 function tourRestLeft(tr){return Math.max(0,tourRestAllowance(tr)-((tr&&tr.restUsed)||0));}
 function tourRestOk(tr){return !!tr&&tourRestLeft(tr)>0&&tr.round>0&&tr.round<tr.rounds&&tr.restAt!==tr.round;}
-function tourRest(){
+function tourRest(kind){
   const c=store.career,tr=c&&c.tour;if(!tourRestOk(tr))return;
   lifeInit(c);
+  const left=function(){return tourRestLeft(tr)?tourRestLeft(tr)+' left.':'That was the last one.';};
+  // or see the place: less rest, more of a life
+  if(kind==='city'&&travelAway(tr)){
+    const P=tr.place;
+    c.energy=Math.min(maxEnergy(c),c.energy+10);c.tilt=Math.max(0,(c.tilt||0)-18);c.mood=Math.min(100,(c.mood==null?62:c.mood)+8);
+    tr.restUsed=(tr.restUsed||0)+1;tr.restAt=tr.round;tr.walked=(tr.walked||0)+1;
+    pushNews(c,'📸','A day off in '+esc(P.city)+': '+esc(P.sight)+'.');
+    app.careerToast='📸 A day out in '+P.city+' — +10 energy, and you feel human again. '+left();
+    save();render();return;
+  }
   const gain=20+(hasAsset(c,'chef')?5:0)+(hasCoach(c,'Fitness trainer')?5:0);
   c.energy=Math.min(maxEnergy(c),c.energy+gain);c.tilt=Math.max(0,(c.tilt||0)-12);c.mood=Math.min(100,(c.mood==null?62:c.mood)+3);
   tr.restUsed=(tr.restUsed||0)+1;tr.restAt=tr.round;
-  app.careerToast='🛌 A rest day at the '+tr.name+' — +'+gain+' energy. '+(tourRestLeft(tr)?tourRestLeft(tr)+' left.':'That was the last one.');
+  app.careerToast='🛌 A rest day at the '+tr.name+' — +'+gain+' energy. '+left();
   save();render();
 }
 /* Anything that takes days says so, instead of happening, while an event is on. */
@@ -12938,7 +12974,8 @@ function tourRestRow(c,tr){
   return '<div class="row" id="restrow" style="justify-content:space-between;align-items:center;gap:8px;margin-top:10px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;flex-wrap:wrap">'+
     '<span class="small">⚡ Energy <b>'+Math.round(c.energy)+'</b>/'+em+' · 🛌 rest days '+left+' of '+al+
       ' <span class="dim">— '+(tr.round===0?'from after the first round':tr.restAt===tr.round?'taken; next, the round':left?'part of the event, no extra days':'all used')+'</span></span>'+
-    '<button class="btn '+(ok&&c.energy<em?'sec':'ghost')+' sm" data-act="tourrest" '+(ok?'':'disabled')+'>🛌 Rest day</button></div>';
+    '<span class="row" style="gap:5px"><button class="btn '+(ok&&c.energy<em?'sec':'ghost')+' sm" data-act="tourrest" '+(ok?'':'disabled')+'>🛌 Rest day</button>'+
+      (travelAway(tr)&&tr.place?'<button class="btn ghost sm" data-act="tourrest" data-val="city" '+(ok?'':'disabled')+' title="+10 energy, −18 tilt, +8 mood">📸 See '+esc(tr.place.city)+'</button>':'')+'</span></div>';
 }
 /* A week off. It is seven days, and the week's accounts — rent, wages, the
    sponsor — are settled as they pass, like any other week. */
@@ -13112,6 +13149,8 @@ function streamMove(){
     if(f.k==='materialdown')S.st.matSaid='down';
   }
   const san=String((g.moves[ply-1]||{}).san||'');
+  if(c.tour&&c.tour.live&&!c.tour.live.said&&liveLastGame(c.tour)){c.tour.live.said=true;S.hype=Math.min(100,S.hype+12);
+    streamChat(S,streamPick(['ours is the last game in the hall 👀','everyone else has finished — the whole hall is watching','last game standing 😬']),v);}
   if(/x/.test(san))S.st.firstBlood=true;
   if(/^O-O/.test(san)){S.st.castled=true;S.st.castledLong=/^O-O-O/.test(san);}
   // the poll closes on your move
@@ -14998,7 +15037,8 @@ function tripCost(tr,c,days){
   const nightMul=(T.indexOf('GM')>=0)?0:(T.indexOf('IM')>=0||T.indexOf('WGM')>=0)?0.5:1;
   const nights=trip==='local'?0:Math.max(0,days-1);
   const fare=trip==='local'?k.fare*days:k.fare;
-  const total=Math.round(fare+nights*k.night*nightMul);
+  const hotelMul=(tr.travel&&HOTELS[tr.travel.hotel])?HOTELS[tr.travel.hotel].mul:1;
+  const total=Math.round(fare+nights*k.night*nightMul*hotelMul);
   const note=nightMul===0&&nights?'the hotel was on the organisers, as it is for grandmasters':
     nightMul===0.5&&nights?'half the hotel on the organisers, for a titled player':'';
   return {total:total,note:note,nights:nights,fare:fare};
@@ -15124,6 +15164,7 @@ function endOfWeek(c){
   c.weekLog=c.dayLog||[];c.dayLog=[];
   c.lifeWeeks=(c.lifeWeeks||0)+1;
   arcTick(c);
+  pplWeek(c);
   pushNews(c,'📅','Week '+(c.weeks||0)+' done — bills 💰'+((c.bills&&c.bills.total)||0)+' paid.');
 }
 /* =========================================================================
@@ -17213,6 +17254,7 @@ function conditionMod(c){var d=0;
   if((c.burnout||0)>=60)d-=12;
   if(c.injury)d-=(c.injury.sev||1)*12;
   if((c.prep||0)>0)d+=8;
+  if(jetLagNow(c))d-=JET_ELO;
   return d;}
 function conditionNote(c){var d=conditionMod(c);return {d:d,t:(d>=25?'flying':d>=8?'in good form':d<=-25?'badly out of sorts':d<=-8?'below par':'in normal shape')};}
 /* One simulated game of yours.
@@ -17614,6 +17656,7 @@ function viewCareer(){
   arcTick(c);
   let h='<div style="max-width:920px;margin:0 auto">';
   autoTick(c);                       // bounded housekeeping: claims, offers, upgrades
+  debriefCheck(c);                   // the coach's homework: done, or forgotten
   // One line, then the tabs. What used to sit above every tab — the dashboard,
   // three rating boxes and the titles card, 1.3 screens on a phone — is in the
   // line, behind its ▾, on the Play tab's “now” card and on the Progress tab.
@@ -17642,7 +17685,7 @@ function careerActiveTab(c){const k=app.careerTab;return CAREER_TABS.some(t=>t.k
 function careerTabDot(c,k){
   if(k==='play')return dailyAvailable(c)||(c.tour&&c.tour.round<c.tour.rounds);
   if(k==='you')return (c.skillPts||0)>0;
-  if(k==='life')return !!c.injury||(c.burnout||0)>=60||(c.tilt||0)>=60;
+  if(k==='life')return !!c.injury||(c.burnout||0)>=60||(c.tilt||0)>=60||pplPending(c).length>0;
   return false;
 }
 function careerTabBar(c){
@@ -17665,6 +17708,7 @@ function careerTabContent(c,tab){
     h+=resumeCard(true);
     h+=careerNowCard(c);
     h+=careerInboxPanel(c);
+    h+=careerDebriefCard(c);
     if(c.tour){h+=careerTourView(c);h+=careerScoutPanel(c);h+=careerPrepPanel(c);}
     else{if(proDue(c))h+=careerProPanel(c);   // a league weekend is not something to find on another tab
       h+=careerLobby(c);h+=careerChallenges(c);h+=careerCalendarPanel(c);h+=careerSimulPanel(c);h+=careerParkPanel(c);h+=careerPrepPanel(c);}
@@ -17692,6 +17736,7 @@ function careerTabContent(c,tab){
     h+=careerDayPanel(c);
     h+=careerAutoPanel(c);
     h+=careerLifePanel(c);
+    h+=careerPeoplePanel(c);
     h+=careerHomePanel(c);
     h+=careerTeamPanel(c);
     h+=careerLifestylePanel(c);
@@ -17945,9 +17990,13 @@ function inboxItems(c){
   if(c.tour&&tourRestOk(c.tour)&&(c.energy||0)<maxEnergy(c)*0.75){var rl=tourRestLeft(c.tour);add('🛌','Rest day before the next round — energy '+Math.round(c.energy||0)+', '+rl+' rest day'+(rl===1?'':'s')+' left in this event','play','restrow','#22c55e');}
   if(!c.tour&&proDue(c))add('✍️',esc((c.pro&&c.pro.club)||'Your club')+' play this weekend — your board is waiting','play','procard','#60a5fa');
   if(dailyAvailable(c))add('🎁','Your daily reward is ready','play','dailycard','#22c55e');
+  if(debriefActive(c)){var _D=c.debrief,_dh=Math.max(0,Math.min(_D.need,dbCount(c,_D.k)-_D.base));add('📝',esc(_D.coach)+'’s homework: '+esc(_D.t.toLowerCase())+' — '+_dh+' of '+_D.need,'play','debriefcard','#22c55e');}
   var q=questsEnsure(),qr=(q.items||[]).filter(function(it){return !it.claimed&&it.prog>=it.goal;}).length;
   if(qr)add('✅',qr+' quest'+(qr>1?'s':'')+' to claim','play','questcard','#22c55e');
   if((c.skillPts||0)>0)add('⭐',c.skillPts+' skill point'+(c.skillPts>1?'s':'')+' to spend','you','perkscard','#f59e0b');
+  var _pp=pplPending(c),_pu=pplUnread(c);
+  if(_pp.length){var _pw=pplOf(c,_pp[0].k);add('📱',esc(_pw?_pw.name:'Somebody')+(_pp.length>1?' and '+(_pp.length-1)+' more are':' is')+' waiting for an answer','life','peoplecard','#a78bfa');}
+  else if(_pu){var _pm=(c.phone||[]).find(function(m){return !m.read;}),_pn=_pm&&pplOf(c,_pm.k);add('📱',_pu+' new message'+(_pu>1?'s':'')+(_pn?' — '+esc(_pn.name)+' wrote':''),'life','peoplecard','#a78bfa');}
   if(c.injury)add('🤒',esc(c.injury.type)+' — '+c.injury.weeksLeft+' week'+(c.injury.weeksLeft===1?'':'s')+' to heal','life','lifecard','#f43f5e');
   if((c.debt||0)>0)add('💸','You owe '+money(c.debt),'life','homecard','#f43f5e');
   if((c.burnout||0)>=60)add('🔥','Burnout '+Math.round(c.burnout)+' — time off would reset it','life','lifecard','#f97316');
@@ -18562,6 +18611,7 @@ function careerTourView(c){
       '<div style="text-align:right"><div style="font-weight:800;font-size:17px">'+fmtScore(scoreTot)+' / '+done+'</div><div class="dim small">live perf '+liveTpr+'</div></div></div>';
   h+=tourStakesCard(c,tr);
   h+=tourRestRow(c,tr);
+  h+=travelRow(c,tr);
   h=tourDrawPanel(c,tr)+h;
   if(tr.normEligible)h+=(tr.ko&&tr.rounds<NORM_GAMES)?koNormNote(tr):normTracker(tr,c);
   h+='<div style="margin-top:10px">';
@@ -19038,9 +19088,17 @@ function rrRoundPairs(tr,rIdx){
    well they actually play and how their week is going. A hall from before the
    list (or the streamers' charity event) plays from the ratings, unrated. */
 function tourForm(tr,wid){tr.wform=tr.wform||{};if(tr.wform[wid]==null)tr.wform[wid]=Math.round(gauss()*25);return tr.wform[wid];}
-function tourBoardGame(tr,a,b,aWhite){
+function tourBoardGame(tr,a,b,aWhite,forced){
   const c=store.career,A=a&&a.wid?worldById(a.wid):null,B=b&&b.wid?worldById(b.wid):null;
-  if(c&&A&&B)return worldGame(c,A,B,tr.format||'classical',{aWhite:aWhite,formA:tourForm(tr,A.id),formB:tourForm(tr,B.id)});
+  if(c&&A&&B)return worldGame(c,A,B,tr.format||'classical',{aWhite:aWhite,formA:tourForm(tr,A.id),formB:tourForm(tr,B.id),s:forced});
+  if(forced!=null)return forced;
+  const W=aWhite?a:b,Bk=aWhite?b:a,sw=bulSim(W.rating+WHITE_EDGE,Bk.rating);
+  return aWhite?sw:1-sw;
+}
+/* The same board, decided but not rated yet. */
+function tourBoardPredict(tr,a,b,aWhite){
+  const c=store.career,A=a&&a.wid?worldById(a.wid):null,B=b&&b.wid?worldById(b.wid):null;
+  if(c&&A&&B)return worldGameScore(A,B,tr.format||'classical',{aWhite:aWhite,formA:tourForm(tr,A.id),formB:tourForm(tr,B.id)});
   const W=aWhite?a:b,Bk=aWhite?b:a,sw=bulSim(W.rating+WHITE_EDGE,Bk.rating);
   return aWhite?sw:1-sw;
 }
@@ -19064,8 +19122,13 @@ function tourPlayRound(tr,rIdx,myScore){
     if(p.you)swissNoteColour(p,myCol);
     else if(p.id===myOppId)swissNoteColour(p,myCol==='w'?'b':'w');
   });
-  // a round-robin plays its schedule; everything else is paired on score
-  (tr.sched?rrRoundPairs(tr,rIdx):tourPairField(tr,myOppId)).forEach(function(pr){
+  // a round-robin plays its schedule; everything else is paired on score —
+  // unless the round was drawn when you sat down, and played out around you
+  const L=(tr.live&&tr.live.r===rIdx)?tr.live:null,byId_={};(tr.standings||[]).forEach(function(p){byId_[p.id]=p;});
+  const roundPairs=L?L.boards.filter(function(x){return !x.you;}).map(function(x){return {a:byId_[x.a],b:x.b?byId_[x.b]:null,col:x.aWhite,forced:x.s,fromLive:true};}).filter(function(pr){return pr.a&&(pr.b||!pr.b);})
+    :(tr.sched?rrRoundPairs(tr,rIdx):tourPairField(tr,myOppId));
+  tr.live=null;
+  roundPairs.forEach(function(pr){
     if(!pr.b){
       pr.a.score=(pr.a.score||0)+0.5;
       boards.push({a:pr.a.name,ar:pr.a.rating,b:null,s:null,bye:true});
@@ -19074,9 +19137,9 @@ function tourPlayRound(tr,rIdx,myScore){
     }
     // a round-robin's schedule says who has White; in a Swiss it goes to
     // whoever is owed it, the way pairing programs allocate colours
-    const aWhite=pr.col?true:swissWhiteFirst(pr.a,pr.b);
+    const aWhite=pr.fromLive?!!pr.col:(pr.col?true:swissWhiteFirst(pr.a,pr.b));
     const W=aWhite?pr.a:pr.b,B=aWhite?pr.b:pr.a;
-    const s=tourBoardGame(tr,pr.a,pr.b,aWhite);
+    const s=tourBoardGame(tr,pr.a,pr.b,aWhite,pr.fromLive?pr.forced:null);
     pr.a.score=(pr.a.score||0)+s;
     pr.b.score=(pr.b.score||0)+(1-s);
     swissNoteColour(W,'w');swissNoteColour(B,'b');
@@ -22135,6 +22198,7 @@ function joinTournament(id){
   tourColourOf(c.tour,0);                           // the colours are fixed from the start
   c.tour.ref=ratingRef(c,c.tour.format);            // …and so is the rating you are measured from
   var _af=appearanceFee(t,c);if(_af>0){c.money=(c.money||0)+_af;app.careerToast='✉️ Invited to '+t.name+' — appearance fee 💰'+_af+' collected.';pushNews(c,'✉️','You were invited to '+t.name+' (appearance fee 💰'+_af+').');}
+  c.tour.place=eventPlace(t,c);travelArrive(c,c.tour,t);pplAttend(c,c.tour,t);
   save();render();
 }
 /* Fatigue & tilt carry into the actual game: a tired player starts the round with
@@ -22142,6 +22206,7 @@ function joinTournament(id){
 function applyCareerCondition(){var c=store.career;if(!c||!c.setup)return;lifeInit(c);
   if(app.clock&&c.energy<35){var f=0.55+0.45*(Math.max(0,c.energy)/35);app.clock[app.playSide]=Math.round(app.clock[app.playSide]*f);}
   else if(app.clock&&(c.form>=40||hasPerk(c,'clock'))){var _ck=perkLevel(c,'clock');app.clock[app.playSide]=Math.round(app.clock[app.playSide]*(_ck?(1.08+0.04*(_ck-1)):1.06));} // good form / Time-scrambler perk → a time cushion that grows per level
+  if(app.clock&&app.careerTour&&jetLagNow(c))app.clock[app.playSide]=Math.round(app.clock[app.playSide]*0.9);   // jet-lagged: slower, and it shows on the clock
   app.tiltEval=(c.tilt>=60);}
 /* The opponent plays their scouted repertoire for their colour; if you've studied
    that exact line, your mastery of it becomes an in-game edge. */
@@ -22253,6 +22318,691 @@ function prepWarning(c,opp,side,key){
   return '<div class="note small" style="margin-top:8px;border-color:#f59e0b88;background:rgba(245,158,11,.08)">⚠️ <b>They have prepared for your '+esc(P.name)+'.</b> You played it in '+P.n+' of your last '+P.of+' games '+how+
     '. Play it and they are booked up — about '+PREP_ELO+' points stronger while the game stays in their preparation; play something else and their homework is wasted. Preparing a different line in <b>Prep &amp; training</b> sidesteps it.</div>';
 }
+/* =========================================================================
+   THE TOURNAMENT DAY
+
+   A round was a button and then a board. Now it is a day. You walk into the
+   hall — the city, the kind of room the level plays in, your board number and
+   who is on the boards beside you — your opponent sits down, you shake hands,
+   and the arbiter starts the clocks, out loud if you let it. The rest of the
+   round is decided when you sit down and finishes around you while you play:
+   a quick draw on board two, a win on board five, the leaders pulling away,
+   until yours is the last game going and the hall comes to watch. And the room
+   sounds like a room: a murmur, clocks being pressed, somebody's cough.
+   ========================================================================= */
+const FED_REGION={USA:'americas',BRA:'americas',ARG:'americas',IND:'asia',CHN:'asia',PHI:'asia',VIE:'asia',IRI:'asia'};
+function fedRegion(fed){return FED_REGION[fed]||'europe';}
+const FED_CITY={ROU:'Bucharest',USA:'Saint Louis',ENG:'London',GER:'Berlin',FRA:'Paris',ESP:'Madrid',ITA:'Rome',NED:'Amsterdam',
+  RUS:'Moscow',UKR:'Kyiv',IND:'Chennai',CHN:'Beijing',ARM:'Yerevan',AZE:'Baku',POL:'Warsaw',HUN:'Budapest',NOR:'Oslo',CZE:'Prague',
+  SWE:'Stockholm',GEO:'Tbilisi',PHI:'Manila',VIE:'Hanoi',BRA:'São Paulo',ARG:'Buenos Aires',IRI:'Tehran',TUR:'Istanbul',SRB:'Belgrade',CRO:'Zagreb'};
+/* Where the named events are played, and what there is to see on a free day. */
+const EVENT_PLACE={
+  hastings:{city:'Hastings',reg:'europe',hall:'the congress by the sea, played in the town for over a century',sight:'the pier, and fish and chips on the front'},
+  reykjavik:{city:'Reykjavik',reg:'europe',hall:'Harpa, the glass concert hall on the harbour',sight:'a hot pool, and the view from the Hallgrímskirkja tower'},
+  dubai:{city:'Dubai',reg:'asia',hall:'a hotel ballroom cooled to arctic',sight:'the creek by water taxi, and the old souk'},
+  gibraltar:{city:'Gibraltar',reg:'europe',hall:'the hotel under the Rock, boards from the ballroom to the corridors',sight:'the top of the Rock, and its apes'},
+  aeroflot:{city:'Moscow',reg:'europe',hall:'a hotel hall packed with grandmasters',sight:'Red Square at night'},
+  qatar:{city:'Doha',reg:'asia',hall:'a marble conference hall',sight:'the Corniche at sunset'},
+  grandswiss:{city:'Douglas, Isle of Man',reg:'europe',hall:'a seaside hotel given over to the strongest open in the world',sight:'the coast road and the old steam railway'},
+  tatasteel:{city:'Wijk aan Zee',reg:'europe',hall:'De Moriaan, the village hall where the Masters play',sight:'the beach in the North Sea wind'},
+  superbet:{city:'Bucharest',reg:'europe',hall:'a stage built for the Grand Chess Tour',sight:'the old town, and a walk in the park by the lake'},
+  norway:{city:'Stavanger',reg:'europe',hall:'a small studio of a hall, cameras everywhere',sight:'the fjord, and the climb to Pulpit Rock'},
+  cityrapid:{city:'Paris',reg:'europe',hall:'a city-centre hall with a café at the back',sight:'the river at night'},
+  indiarapid:{city:'Kolkata',reg:'asia',hall:'a hall full of fans who know every player by name',sight:'a boat on the Hooghly at dusk'},
+  indiablitz:{city:'Kolkata',reg:'asia',hall:'a hall full of fans who know every player by name',sight:'a boat on the Hooghly at dusk'}
+};
+/* Events that move: a host by the year, from the places they have been played. */
+const EVENT_HOSTS={
+  candidates:[['Toronto','americas'],['Madrid','europe'],['Berlin','europe']],
+  wcc:[['Singapore','asia'],['London','europe'],['Dubai','asia']],
+  olympiad:[['Budapest','europe'],['Chennai','asia'],['Batumi','europe']],
+  worldcup:[['Baku','europe'],['Goa','asia'],['Sochi','europe']],
+  worldrapid:[['Samarkand','asia'],['New York','americas'],['Doha','asia']],
+  worldblitz:[['Samarkand','asia'],['New York','americas'],['Doha','asia']],
+  fischerwc:[['Reykjavik','europe'],['Weissenhaus','europe'],['Las Vegas','americas']],
+  supergm:[['Zagreb','europe'],['Saint Louis','americas'],['Bucharest','europe']]
+};
+const REGION_OPENS={europe:['Budapest','Belgrade','Prague','Sitges','Porto','Novi Sad'],americas:['Saint Louis','Charlotte','São Paulo','Toronto'],asia:['Chennai','Hanoi','Manila','Tashkent']};
+function eventPlace(t,c){
+  const my=fedRegion(c.fed),home=FED_CITY[c.fed]||'your city',trip=eventTrip(t),S=(c.season||1);
+  let city,reg,hall='',sight='';
+  const P=EVENT_PLACE[t.id],H=EVENT_HOSTS[t.id];
+  if(trip==='home'||trip==='local'||trip==='online'){city=home;reg=my;}
+  else if(trip==='national'){city=home;reg=my;}
+  else if(P){city=P.city;reg=P.reg;hall=P.hall;sight=P.sight;}
+  else if(H){const x=H[(S-1)%H.length];city=x[0];reg=x[1];}
+  else if(t.id==='continental'){const L=REGION_OPENS[my];city=L[(S+3)%L.length];reg=my;}
+  else{const L=REGION_OPENS[my];city=L[(S+(t.id||'').length)%L.length];reg=my;}
+  const far=(trip==='abroad'&&reg!==my);
+  return {city:city,reg:reg,hall:hall,sight:sight||'the old town and a good dinner',far:far,trip:trip,
+    flightH:trip==='abroad'?(far?9+((t.id||'').length%5):2+((t.id||'').length%2)):0};
+}
+/* The room the level plays in. */
+function hallLine(t,tr,place){
+  const tier=t.tier||0,fmt=eventFormat(t);
+  if(tr.trip==='online'||(place&&place.trip==='online'))return 'your desk at home, a camera on you for fair play and the clock in the corner of the screen';
+  if(t.id==='wcc')return 'a hall built for two, a glass box on the stage, cameras on every side and the world watching';
+  if(t.id==='candidates'||t.cycle)return 'the biggest stage in chess — cameras, arbiters in blazers, a live audience behind glass';
+  if(place&&place.hall)return place.hall;
+  if(t.id==='club')return 'the club’s back room: folding tables, a tea urn, and clocks everybody has owned since the eighties';
+  if(tier<=3)return fmt==='classical'?'a school sports hall, long rows of tables, parents at the back':'a community hall where the clocks never stop clicking';
+  if(tier<=6)return 'a hotel ballroom, a hundred boards in long rows, the top ten on a stage behind a rope';
+  return 'a quiet hall, a handful of boards on a stage, cameras overhead and an audience behind glass';
+}
+const ARRIVE_LINES={
+  aggressive:'arrives with a minute to spare and sits down like it is a boxing match',
+  positional:'is already seated, pieces straightened, pen lined up with the scoresheet',
+  gambiteer:'grins, and nods at your side of the board as if they know something',
+  solid:'arrives early, coffee in hand, settled in for six hours',
+  grinder:'arrives early, coffee in hand, settled in for six hours',
+  universal:'arrives on time, shakes your hand and says nothing'
+};
+/* The round, drawn when you sit down: the other boards' pairings and their
+   results, each with the point of your game at which it finishes. */
+function roundLive(c,tr){
+  if(!tr||!tr.standings||tr.ko||tr.oly||tr.kind==='match'||tr.simul||tr.round>=tr.rounds)return null;
+  const r=tr.round;
+  if(tr.live&&tr.live.r===r)return tr.live;
+  const myOpp=(tr.field||[])[r],myOppId=(myOpp&&myOpp.pid)||('p'+r);
+  const pairs=tr.sched?rrRoundPairs(tr,r):tourPairField(tr,myOppId);
+  const by={};(tr.standings||[]).forEach(function(p){by[p.id]=p;});
+  const me=(tr.standings||[]).find(function(p){return p.you;}),opp=by[myOppId];
+  const boards=pairs.map(function(pr){
+    if(!pr.b)return {a:pr.a.id,b:null,bye:true,at:0,s:0.5,top:(pr.a.score||0),rt:pr.a.rating||0};
+    const aWhite=pr.col?true:swissWhiteFirst(pr.a,pr.b);
+    const s=tourBoardPredict(tr,pr.a,pr.b,aWhite);
+    // a quick draw, a long draw, or a game somebody wins in the middle of the session
+    const at=s===0.5?(Math.random()<0.28?20+Math.floor(Math.random()*22):50+Math.floor(Math.random()*66)):40+Math.floor(Math.random()*76);
+    return {a:pr.a.id,b:pr.b.id,aWhite:aWhite,s:s,at:at,top:Math.max(pr.a.score||0,pr.b.score||0),rt:Math.max(pr.a.rating||0,pr.b.rating||0)};
+  });
+  boards.push({you:true,a:'__you',b:myOppId,top:Math.max((me&&me.score)||0,(opp&&opp.score)||0),rt:Math.max((me&&me.rating)||0,(opp&&opp.rating)||0)});
+  // board one is the leaders' game
+  boards.sort(function(x,y){return (x.bye?1:0)-(y.bye?1:0)||y.top-x.top||y.rt-x.rt;});
+  boards.forEach(function(b,i){b.no=i+1;});
+  tr.live={r:r,boards:boards,said:false};
+  return tr.live;
+}
+function liveName(tr,id){if(id==='__you')return (store.career&&store.career.name)||'You';const p=(tr.standings||[]).find(function(x){return x.id===id;});return p?p.name:'?';}
+function liveShort(tr,id){return String(liveName(tr,id)).split(' ').pop();}
+/* Which boards have finished, at this point of your game. */
+function liveDone(tr){
+  const L=tr&&tr.live;if(!L)return [];
+  const ply=(app.playMoves||[]).length,over=app.playStatus==='over';
+  return L.boards.filter(function(b){return !b.you&&!b.bye&&(over||ply>=b.at);});
+}
+function liveLastGame(tr){
+  const L=tr&&tr.live;if(!L||app.playStatus==='over'||!app.careerTour)return false;
+  const others=L.boards.filter(function(b){return !b.you&&!b.bye;});
+  return others.length>0&&liveDone(tr).length===others.length;
+}
+/* The standings as the finished boards leave them, you on what you had. */
+function liveLeaders(tr){
+  const sc={};(tr.standings||[]).forEach(function(p){sc[p.id]=p.score||0;});
+  liveDone(tr).forEach(function(b){sc[b.a]=(sc[b.a]||0)+b.s;sc[b.b]=(sc[b.b]||0)+(1-b.s);});
+  (tr.live?tr.live.boards:[]).forEach(function(b){if(b.bye)sc[b.a]=(sc[b.a]||0)+0.5;});
+  const top=Math.max.apply(null,Object.keys(sc).map(function(k){return sc[k];}).concat([0]));
+  return {top:top,ids:Object.keys(sc).filter(function(k){return sc[k]===top;})};
+}
+/* The card beside the board: the rest of the round. */
+function liveBoardsPanel(){
+  const c=store.career,tr=c&&c.tour;
+  if(!app.careerTour||!tr||!tr.live||tr.live.r!==tr.round)return '';
+  const L=tr.live,done=liveDone(tr),doneIds={};done.forEach(function(b){doneIds[b.no]=1;});
+  const mine=L.boards.find(function(b){return b.you;});
+  // the top boards and the ones either side of yours
+  const show=L.boards.filter(function(b){return b.no<=3||Math.abs(b.no-mine.no)<=1;});
+  const others=L.boards.filter(function(b){return !b.you&&!b.bye;}).length;
+  const row=function(b){
+    const nm=b.bye?esc(liveShort(tr,b.a))+' <span class="dim">— bye</span>':esc(liveShort(tr,b.aWhite===false?b.b:b.a))+' – '+esc(liveShort(tr,b.aWhite===false?b.a:b.b));
+    let res;
+    if(b.you)res='<b style="color:var(--brand2)">'+(app.playStatus==='over'?'finished':'▶ you')+'</b>';
+    else if(b.bye)res='<span class="dim">½</span>';
+    else if(doneIds[b.no]){const w=b.aWhite===false?1-b.s:b.s;res='<b>'+(w===1?'1–0':w===0?'0–1':'½–½')+'</b> <span class="dim">'+Math.max(10,Math.round(b.at/2))+'</span>';}
+    else res='<span class="dim">playing</span>';
+    return '<div class="row" style="justify-content:space-between;gap:8px;padding:3px 0;border-top:1px solid var(--border)'+(b.you?';background:rgba(96,165,250,.08)':'')+'"><span class="small" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><span class="dim">B'+b.no+'</span> '+(b.you?'<b>'+esc(liveShort(tr,'__you'))+' – '+esc(liveShort(tr,b.b))+'</b>':nm)+'</span><span class="small" style="flex:0 0 auto">'+res+'</span></div>';
+  };
+  const LL=liveLeaders(tr),lead=LL.ids.map(function(id){return liveShort(tr,id);}).slice(0,3).join(', ');
+  const last=liveLastGame(tr);
+  return '<div class="card" id="liveboards" style="margin-top:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">🏟️ Round '+(tr.round+1)+' — the other boards</div><div class="dim small">'+done.length+' of '+others+' finished</div></div>'+
+    show.map(row).join('')+
+    '<div class="dim small" style="margin-top:6px">'+(last?'<b style="color:var(--amber)">Yours is the last game still going — the hall has gathered round.</b> ':'')+'Leading as it stands: '+esc(lead)+' on '+fmtScore(LL.top)+(app.playStatus==='over'?'':' (your game still to come)')+'.</div></div>';
+}
+/* ---- walking into the hall ---- */
+function roundIntroOn(tr){return store.settings.roundIntro!==false&&!!tr&&!tr.simul&&tr.round<tr.rounds;}
+/* “Play the round”: first the hall — the city, the room, your board, the
+   handshake — unless the game was already under way, or the scenes are off. */
+function tourRoundEnter(){
+  const c=store.career,tr=c&&c.tour;if(!tr||tr.round>=tr.rounds)return;
+  if(resumeIsThisRound(playSavedGame(),c)||!roundIntroOn(tr)){playTourRound();return;}
+  finishDraw(tr);
+  roundLive(c,tr);                                  // the rest of the round is drawn as you sit down
+  app.roundIntro={id:tr.id,r:tr.round};
+  go('round');
+}
+function viewRound(){
+  const c=store.career,tr=c&&c.tour,I=app.roundIntro;
+  if(!tr||!I||I.r!==tr.round)return viewCareer();
+  const t=tourDef(tr),place=tr.place||eventPlace(t,c),opp=tr.field[tr.round]||{},side=tourColourOf(tr,tr.round);
+  const L=tr.live,mine=L?L.boards.find(function(b){return b.you;}):null;
+  const style=(opp.style)||'universal',rival=!!(c.rival&&c.rival.name===opp.name);
+  const nb=L?L.boards.filter(function(b){return !b.you&&!b.bye&&mine&&Math.abs(b.no-mine.no)===1;}):[];
+  const top=L?L.boards.find(function(b){return b.no===1&&!b.you&&!b.bye;}):null;
+  const fan=tr.fan?tr.fan:null;
+  const st=tourStakes(c,tr);
+  const tier=t.tier||0;
+  const lines=[];
+  lines.push('<div class="hl-where">'+(tr.emoji||'🏟️')+' <b>'+esc(tr.name)+'</b> · '+(tr.ko?esc(KO_NAMES[tr.ko.round]||'Round')+', game '+(tr.round%2+1):(tr.kind==='match'?'Game ':'Round ')+(tr.round+1)+' of '+tr.rounds)+'</div>');
+  lines.push('<div class="dim small">📍 '+esc(place.city)+(place.trip==='online'?' · online':'')+'</div>');
+  lines.push('<p>You walk into '+esc(hallLine(t,tr,place))+'.</p>');
+  if(tier>=6&&place.trip!=='online')lines.push('<p class="dim">Phones go into a pouch at the door, and an arbiter runs a scanner over your jacket.</p>');
+  if(mine)lines.push('<p>You are on <b>board '+mine.no+'</b>.'+(top&&mine.no!==1?' On board one, '+(tr.round?'the leaders':'the top seeds')+': '+esc(liveName(tr,top.a))+' against '+esc(liveName(tr,top.b))+'.':'')+
+    (nb.length?' Beside you, '+nb.map(function(b){return esc(liveName(tr,b.a))+' and '+esc(liveName(tr,b.b));}).join('; ')+'.':'')+'</p>');
+  lines.push('<p>'+(opp.title?opp.title+' ':'')+'<b>'+esc(opp.name||'Your opponent')+'</b> '+(rival?'— your rival — ':'')+esc(ARRIVE_LINES[style]||ARRIVE_LINES.universal)+'. '+(rival?'Neither of you smiles.':'You shake hands.')+'</p>');
+  if(fan)lines.push('<p>💜 '+esc(fan.name)+' is in the audience'+(tier>=7?', behind the glass':', near the back')+'.</p>');
+  if(st&&st.head)lines.push('<p class="dim">'+esc(st.head)+'</p>');
+  lines.push('<p>You have '+(side==='w'?'White':'Black')+'. The arbiter looks at the clock on the wall: <i>“Players, you may start the clocks.”</i></p>');
+  return '<div style="max-width:620px;margin:0 auto"><div class="row" style="align-items:center;gap:6px;margin-bottom:10px"><button class="btn ghost sm" data-act="hallback">←</button><h1 style="font-size:19px;margin:0">'+(tr.emoji||'🏟️')+' '+esc(place.city)+'</h1></div>'+
+    '<div class="card hallcard">'+lines.join('')+
+    '<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn primary" data-act="hallstart">♟ Start the game</button>'+
+      '<button class="btn ghost sm" data-act="hallsound">'+(hallSoundOn()?'🔈 Hall sounds on':'🔇 Hall sounds off')+'</button>'+
+      '<button class="btn ghost sm" data-act="hallskip">Skip these scenes</button></div></div></div>';
+}
+/* ---- the room's sound: a murmur, clocks, a cough; and the arbiter ---- */
+function hallSoundOn(){return store.settings.sound!==false&&store.settings.hallSound!==false;}
+function arbiterSay(text){if(store.settings.sound===false||store.settings.arbiterVoice===false)return false;return Voice.say(text,true);}
+const Hall={on:false,nodes:[],timers:[],
+  ctx:function(){try{_actx=_actx||new (window.AudioContext||window.webkitAudioContext)();return _actx;}catch(e){return null;}},
+  noise:function(ac,sec){const n=Math.floor(ac.sampleRate*sec),b=ac.createBuffer(1,n,ac.sampleRate),d=b.getChannelData(0);let last=0;
+    for(let i=0;i<n;i++){const w=Math.random()*2-1;last=(last+0.02*w)/1.02;d[i]=last*3.5;}return b;},
+  burst:function(freq,q,dur,vol,type){
+    const ac=this.ctx();if(!ac||!ac.createBufferSource||!ac.createBiquadFilter)return;
+    try{const src=ac.createBufferSource(),f=ac.createBiquadFilter(),g=ac.createGain(),t=ac.currentTime;
+      src.buffer=this.noise(ac,dur+0.05);f.type=type||'bandpass';f.frequency.value=freq;f.Q.value=q;
+      g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.006);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      src.connect(f);f.connect(g);g.connect(ac.destination);src.start(t);src.stop(t+dur+0.05);}catch(e){}
+  },
+  click:function(vol){if(!this.on)return;this.burst(2600,1.2,0.035,vol||0.05,'highpass');},
+  cough:function(){if(!this.on)return;this.burst(620,0.9,0.16,0.02);const self=this;setTimeout(function(){self.burst(560,0.9,0.14,0.016);},210);},
+  start:function(){
+    if(this.on||!hallSoundOn())return;
+    const ac=this.ctx();if(!ac||!ac.createBufferSource||!ac.createBiquadFilter)return;
+    try{
+      const src=ac.createBufferSource(),f=ac.createBiquadFilter(),g=ac.createGain();
+      src.buffer=this.noise(ac,3);src.loop=true;f.type='lowpass';f.frequency.value=420;g.gain.value=0.012;
+      src.connect(f);f.connect(g);g.connect(ac.destination);src.start();
+      this.nodes=[src,g];this.on=true;
+      const self=this,loop=function(fn,lo,hi){const k=setTimeout(function(){if(!self.on)return;fn();loop(fn,lo,hi);},lo+Math.random()*(hi-lo));self.timers.push(k);};
+      loop(function(){self.click(0.02+Math.random()*0.02);},2500,9000);    // clocks on other boards
+      loop(function(){self.cough();},40000,110000);                         // somebody always coughs
+    }catch(e){this.on=false;}
+  },
+  stop:function(){
+    this.timers.forEach(function(k){clearTimeout(k);});this.timers=[];
+    this.nodes.forEach(function(n){try{if(n.stop)n.stop();if(n.disconnect)n.disconnect();}catch(e){}});this.nodes=[];
+    this.on=false;
+  }
+};
+/* ===== TRAVEL =====
+   Travel was a line on the bill. It is part of the event now: the flight and
+   what it takes out of you; jet lag for the first two rounds after a long one,
+   unless you fly out a day early; the hotel you can afford, which is how much
+   of yourself you get back each night; a rest day spent seeing the city instead
+   of in bed; and the first night home. */
+const HOTELS={budget:{e:'🛏️',n:'Budget hostel',mul:0.55,rec:0,mood:-1},hotel:{e:'🏨',n:'Hotel',mul:1,rec:3,mood:0},players:{e:'⭐',n:'Players’ hotel',mul:1.7,rec:6,mood:1}};
+const JET_ELO=20,JET_ROUNDS=2;
+function tripCovered(tr){return !!(tr&&(tr.sched||tr.ko||tr.oly||tr.kind==='match'||INVITE_EVENTS[tr.id]||tr.id==='candidates'||tr.id==='grandswiss'||tr.id==='natch'));}
+function travelAway(tr){const P=tr&&tr.place;return !!(P&&(P.trip==='abroad'||P.trip==='national'));}
+function travelArrive(c,tr,t){
+  const P=tr.place;if(!P)return;
+  const covered=tripCovered(tr)||((c.titles||[]).indexOf('GM')>=0);
+  tr.travel={jet:(P.far&&eventFormat(t)==='classical')?JET_ROUNDS:0,early:false,covered:covered,
+    hotel:covered?'players':((c.money||0)>=1500?'hotel':'budget')};   // short of money, you book the hostel
+  if(P.trip==='abroad'){
+    c.energy=Math.max(0,(c.energy||0)-(P.far?12:5));
+    pushNews(c,'✈️',(P.far?P.flightH+' hours in the air to ':'A short flight to ')+esc(P.city)+(tr.travel.jet?' — you land jet-lagged.':'.'));
+  } else if(P.trip==='national'){c.energy=Math.max(0,(c.energy||0)-3);pushNews(c,'🚆','A train across the country for the '+esc(tr.name)+'.');}
+}
+function jetLagNow(c){const tr=c&&c.tour;return !!(tr&&tr.travel&&tr.travel.jet>0&&tr.round<tr.travel.jet);}
+/* What a night costs you, at this hotel. */
+function hotelNight(c,tr,k){
+  const trip=eventTrip(tr),base=(TRIP_COST[trip]||TRIP_COST.abroad).night,T=(c.titles||[]);
+  const titleMul=(T.indexOf('GM')>=0)?0:(T.indexOf('IM')>=0||T.indexOf('WGM')>=0)?0.5:1;
+  return Math.round(base*titleMul*(HOTELS[k]||HOTELS.hotel).mul);
+}
+function travelRow(c,tr){
+  const P=tr.place,T=tr.travel;if(!P||!T||!travelAway(tr))return '';
+  const H=HOTELS[T.hotel]||HOTELS.hotel;
+  let h='<div id="travelrow" style="margin-top:10px;padding:8px 10px;border:1px solid var(--border);border-radius:10px">'+
+    '<div class="small">'+(P.trip==='abroad'?'✈️':'🚆')+' <b>'+esc(P.city)+'</b> · '+H.e+' '+esc(H.n)+(T.covered?' <span class="dim">— on the organisers</span>':'')+
+    (jetLagNow(c)?' · <span style="color:#fbbf24">😵 jet-lagged: −'+JET_ELO+' until round '+(T.jet+1)+'</span>':'')+'</div>';
+  if(tr.round===0&&!T.covered){
+    h+='<div class="row" style="gap:5px;flex-wrap:wrap;margin-top:6px">'+Object.keys(HOTELS).map(function(k){const X=HOTELS[k];
+      return '<button class="btn '+(k===T.hotel?'primary':'ghost')+' sm" data-act="hotelpick" data-val="'+k+'" title="'+(X.rec?'+'+X.rec+' energy a night':'no extra rest')+'">'+X.e+' '+esc(X.n)+' · 💰'+hotelNight(c,tr,k)+'/night</button>';}).join('')+'</div>'+
+      '<div class="dim small" style="margin-top:4px">A better bed gives back energy every night: +'+HOTELS.hotel.rec+' at a hotel, +'+HOTELS.players.rec+' in the players’ hotel.</div>';
+  }
+  if(tr.round===0&&T.jet>0&&!T.early)h+='<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-top:6px"><span class="dim small">'+P.flightH+' hours and a time difference: the first '+T.jet+' rounds are played jet-lagged.</span><button class="btn sec sm" data-act="travelearly">🛫 Fly out a day early</button></div>';
+  return h+'</div>';
+}
+function travelEarly(){
+  const c=store.career,tr=c&&c.tour;if(!tr||!tr.travel||tr.round>0||tr.travel.early||!tr.travel.jet)return;
+  lifeInit(c);
+  lifeSpendDays(c,1,{id:'travel',e:'✈️'});
+  if(!tr.travel.covered)payOrOwe(c,hotelNight(c,tr,tr.travel.hotel));
+  tr.travel.jet=0;tr.travel.early=true;c.energy=Math.min(maxEnergy(c),(c.energy||0)+6);
+  app.careerToast='🛫 A day early in '+tr.place.city+' — your body clock has caught up.';
+  save();render();
+}
+function travelHome(c,tr){
+  if(!travelAway(tr))return;
+  c.energy=Math.min(maxEnergy(c),(c.energy||0)+5);
+  pushNews(c,'🏠','Home from '+esc(tr.place.city)+'. Your own bed, at last.');
+}
+/* =========================================================================
+   THE PEOPLE IN YOUR LIFE
+
+   A career had rivals, sponsors, followers — and nobody who knew you before
+   any of that. Now it has a few people: a parent, a friend from your first
+   club, the coach who taught you, and later perhaps a partner. They message
+   you after results, ask for your time on their birthday, fly out to watch a
+   big event, and how you treat them is how they treat you. A call is free and
+   takes no day; being forgotten is not free either. How close you are to
+   them together lifts your mood week by week — or wears it down.
+   ========================================================================= */
+const PPL_REL={parent:'your parent',friend:'your friend from the club',coach:'your first coach',partner:'your partner'};
+const PPL_E={parent:'👪',friend:'🧑‍🤝‍🧑',coach:'🧑‍🏫',partner:'💜'};
+function pplFirst(fed){const B=NAME_BANKS[fed]||[GEN_FNAMES,GEN_LNAMES];return B[0][Math.floor(Math.random()*B[0].length)];}
+function pplLast(fed){const B=NAME_BANKS[fed]||[GEN_FNAMES,GEN_LNAMES];return B[1][Math.floor(Math.random()*B[1].length)];}
+function pplInit(c){
+  if(!c)return [];
+  if(!c.people){
+    const fed=c.fed||'FIDE',w=function(){return Math.floor(Math.random()*52);};
+    c.people=[
+      {k:'parent',name:Math.random()<0.5?'Mum':'Dad',bond:72,bday:w()},
+      {k:'friend',name:pplFirst(fed),bond:62,bday:w()},
+      {k:'coach',name:'Coach '+pplLast(fed),bond:60,bday:w()}
+    ];
+  }
+  if(!c.phone)c.phone=[];
+  if(c.pplN==null)c.pplN=0;
+  return c.people;
+}
+function pplOf(c,k){return (pplInit(c)||[]).find(function(p){return p.k===k;})||null;}
+function pplMsg(c,k,text,rep){
+  const p=pplOf(c,k);if(!p)return null;
+  const m={id:++c.pplN,k:k,t:text,w:c.weeks||0,read:false,rep:rep||null,done:false};
+  c.phone.unshift(m);if(c.phone.length>40)c.phone.length=40;
+  return m;
+}
+function pplBond(p,d){if(p)p.bond=Math.max(0,Math.min(100,Math.round(((p.bond||50)+d)*10)/10));}
+function pplPending(c){return (c.phone||[]).filter(function(m){return m.rep&&!m.done;});}
+function pplUnread(c){return (c.phone||[]).filter(function(m){return !m.read;}).length;}
+function pplRead(c){(c.phone||[]).forEach(function(m){m.read=true;});}
+/* After an event: the people who follow it message you. */
+function pplAfterEvent(c,tr,R){
+  pplInit(c);
+  const par=pplOf(c,'parent'),fr=pplOf(c,'friend'),co=pplOf(c,'coach'),pa=pplOf(c,'partner');
+  const ev=tr.name,won=R.place===1,good=R.place&&R.place<=3,bad=R.score/Math.max(1,R.games)<0.4;
+  if(par&&!tr.simul){
+    if(won)pplMsg(c,'parent','We watched every round of the '+ev+'! The whole family has been calling. 🏆');
+    else if(good)pplMsg(c,'parent',ordinal(R.place)+' at the '+ev+'! So proud of you. Eat something that isn’t from a vending machine.');
+    else if(bad)pplMsg(c,'parent','Whatever the result, we are proud of you. Come home for Sunday lunch?',
+      [{l:'Yes ❤️',t:'Yes. See you Sunday.',fx:{bond:6,mood:4,tilt:-6}},{l:'Next time',t:'Next time, I promise.',fx:{bond:1}}]);
+    else if(Math.random()<0.5)pplMsg(c,'parent','How was the '+ev+'? Call when you can.');
+  }
+  if(fr&&!tr.simul&&Math.random()<(won||bad?0.9:0.45)){
+    if(won)pplMsg(c,'friend',ev+' champion?! Drinks are on you. 🍻',[{l:'Deal 🍻',t:'Deal. Friday?',fx:{bond:6,mood:3}},{l:'Rain check',t:'Rain check — I am wiped out.',fx:{bond:-2}}]);
+    else if(bad)pplMsg(c,'friend','Tough week. The club misses you — blitz on Thursday, like old times?',[{l:'I’ll be there',t:'I’ll be there.',fx:{bond:6,mood:4,tilt:-8}},{l:'Can’t',t:'Can’t this week.',fx:{bond:-2}}]);
+    else pplMsg(c,'friend','Followed the '+ev+' on the live boards. Not bad at all.');
+  }
+  if(co&&R.norms&&R.norms.length)pplMsg(c,'coach','Your '+R.norms.join(' and ')+' norm'+(R.norms.length>1?'s':'')+'! I told everybody at the club. I always said you had it.');
+  if(co&&R.titles&&R.titles.length)pplMsg(c,'coach',R.titles.join(', ')+'! I remember when you hung your queen every Tuesday night.');
+  if(pa&&!tr.simul)pplMsg(c,'partner',won?'You did it! I am so happy for you. Come home. ❤️':good?'I watched the last round with my heart in my mouth. Well played.':'Come home. We can not talk about chess for a week.');
+  if(tr.fan){const f=pplOf(c,tr.fan.k);if(f){pplBond(f,4);pplMsg(c,tr.fan.k,won?'I was there when you won it. I will never forget it.':'Thank you for letting me be there. What a week.');}}
+}
+/* A big event: somebody close flies out to watch. */
+function pplAttend(c,tr,t){
+  pplInit(c);
+  if(!((t.tier||0)>=7||t.cycle||t.id==='olympiad'||t.id==='wcc'))return;
+  const cand=(c.people||[]).filter(function(p){return p.k!=='coach'&&(p.bond||0)>=60;}).sort(function(a,b){return b.bond-a.bond;})[0];
+  if(!cand)return;
+  tr.fan={k:cand.k,name:cand.name};
+  c.mood=Math.min(100,(c.mood==null?62:c.mood)+5);
+  pplMsg(c,cand.k,'I have booked a flight to '+(tr.place?tr.place.city:'the '+tr.name)+'. I will be in the audience. No pressure! 😅');
+}
+/* A big single result: the friend who follows every round. */
+function pplAfterGame(c,opp,score){
+  const fr=pplOf(c,'friend');if(!fr||!opp)return;
+  const my=youRating(c,'classical')||c.rating||0;
+  if(score===1&&(opp.rating||0)>=my+150&&Math.random()<0.5)pplMsg(c,'friend','Did you just beat '+opp.name+'?! 😱');
+}
+/* The week: birthdays, a call not made, how close you are to them all. */
+function pplWeek(c){
+  pplInit(c);
+  const w=weekOfSeason(c);
+  // an unanswered birthday is a forgotten one
+  (c.phone||[]).forEach(function(m){if(m.bday&&!m.done&&(c.weeks||0)-m.w>=1){m.done=true;m.ans='(no answer)';pplBond(pplOf(c,m.k),-10);}});
+  (c.people||[]).forEach(function(p){
+    pplBond(p,-0.4);
+    if(p.bday===w&&p.bdayS!==(c.season||1)){p.bdayS=c.season||1;
+      const m=pplMsg(c,p.k,(p.k==='parent'?'It is my birthday today — ':p.k==='coach'?'It is my birthday, and I am old. ':'My birthday! ')+(c.tour?'I know you are at the '+c.tour.name+'…':'Are you around?'),
+        [{l:'📞 Call',t:'Called for an hour.',fx:{bond:8,mood:3}},{l:'🎁 Send a present (💰60)',t:'Sent a present.',fx:{bond:14,mood:4,cost:60}},{l:'Not now',t:'Not now.',fx:{bond:-10}}]);
+      if(m)m.bday=true;}
+  });
+  // somebody new, met at an event
+  if(!pplOf(c,'partner')&&(c.weeks||0)>=16&&c.tour&&travelAway(c.tour)&&Math.random()<0.05&&!c.pplMet){
+    c.pplMet=1;const nm=pplFirst(c.fed||'FIDE');
+    const m=pplMsg(c,'friend','PS: '+nm+', who you talked to all evening at the '+c.tour.name+' party, asked for your number. Want me to give it?',
+      [{l:'Yes ❤️',t:'Yes — give it.',fx:{mood:5},partner:nm},{l:'Not now',t:'Not now.',fx:{}}]);
+  }
+  // a partner who has been forgotten does not stay
+  const pa=pplOf(c,'partner');
+  if(pa&&(pa.bond||0)<18){c.people=c.people.filter(function(p){return p.k!=='partner';});
+    c.mood=Math.max(0,(c.mood==null?62:c.mood)-12);c.tilt=Math.min(100,(c.tilt||0)+10);
+    pushNews(c,'💔',esc(pa.name)+' has left. “We want different things. I hope you win everything.”');}
+  // together, they are how you feel
+  const ps=(c.people||[]);if(ps.length){const avg=ps.reduce(function(s,p){return s+(p.bond||0);},0)/ps.length;
+    c.mood=Math.max(0,Math.min(100,(c.mood==null?62:c.mood)+Math.max(-2,Math.min(2,(avg-55)/12))));}
+}
+function pplReply(val){
+  const c=store.career;pplInit(c);
+  const i=String(val||'').split(':'),m=(c.phone||[]).find(function(x){return x.id===+i[0];});
+  if(!m||m.done||!m.rep)return;const o=m.rep[+i[1]];if(!o)return;
+  const p=pplOf(c,m.k),fx=o.fx||{};
+  if(fx.cost){if((c.money||0)<fx.cost){app.careerToast='💸 Not enough money for that.';render();return;}c.money-=fx.cost;}
+  pplBond(p,fx.bond||0);
+  if(fx.mood)c.mood=Math.max(0,Math.min(100,(c.mood==null?62:c.mood)+fx.mood));
+  if(fx.tilt)c.tilt=Math.max(0,Math.min(100,(c.tilt||0)+fx.tilt));
+  if(o.partner){c.people.push({k:'partner',name:o.partner,bond:62,bday:Math.floor(Math.random()*52)});pushNews(c,'💜','You and '+esc(o.partner)+' went for dinner. And then again.');}
+  m.done=true;m.ans=o.t;m.read=true;
+  save();render();
+}
+function pplCall(k){
+  const c=store.career,p=pplOf(c,k);if(!p)return;
+  if(p.calledW===(c.weeks||0)){app.careerToast='You already called '+p.name+' this week.';render();return;}
+  p.calledW=c.weeks||0;pplBond(p,5);c.mood=Math.min(100,(c.mood==null?62:c.mood)+2);c.tilt=Math.max(0,(c.tilt||0)-3);
+  app.careerToast='📞 '+p.name+(p.k==='parent'?' was so happy you called.':p.k==='coach'?' went through your last game with you.':' — an hour on the phone.');
+  save();render();
+}
+function careerPeoplePanel(c){
+  pplInit(c);
+  const ps=c.people||[];
+  let h='<div class="card" id="peoplecard" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">📱 Your people</div><div class="dim small">'+(pplUnread(c)?pplUnread(c)+' new':'')+'</div></div>'+
+    '<div class="dim small" style="margin-top:3px">They knew you before the rating did. A call is free and takes no day; being forgotten costs something too.</div>';
+  h+=ps.map(function(p){const called=p.calledW===(c.weeks||0);
+    return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border)"><span class="small" style="min-width:0;flex:1">'+PPL_E[p.k]+' <b>'+esc(p.name)+'</b> <span class="dim">— '+PPL_REL[p.k]+'</span>'+cbar(p.bond||0,100,(p.bond||0)>=60?'#22c55e':(p.bond||0)>=35?'#f59e0b':'#ef4444')+'</span>'+
+      '<button class="btn '+(called?'ghost':'sec')+' sm" data-act="pplcall" data-val="'+p.k+'" '+(called?'disabled':'')+'>📞 '+(called?'Called':'Call')+'</button></div>';}).join('');
+  const msgs=(c.phone||[]).slice(0,6);
+  if(msgs.length)h+='<div style="margin-top:8px">'+msgs.map(function(m){const p=pplOf(c,m.k);
+    return '<div class="pmsg'+(m.read?'':' new')+'"><div class="small"><b>'+PPL_E[m.k]+' '+esc(p?p.name:m.k)+'</b> <span class="dim">· week '+(((m.w||0)%52)+1)+'</span></div><div class="small">'+esc(m.t)+'</div>'+
+      (m.rep&&!m.done?'<div class="row" style="gap:5px;flex-wrap:wrap;margin-top:5px">'+m.rep.map(function(o,i){return '<button class="btn sec sm" data-act="pplreply" data-val="'+m.id+':'+i+'">'+esc(o.l)+'</button>';}).join('')+'</div>'
+        :(m.ans?'<div class="dim small" style="margin-top:3px">↳ you: '+esc(m.ans)+'</div>':''))+'</div>';}).join('')+'</div>';
+  pplRead(c);                                        // seen: lit up this once
+  return h+'</div>';
+}
+/* =========================================================================
+   THE POST-MORTEM
+
+   A rated game used to end with a handshake and a rating change. Players do
+   more than that: they sit down over the board and go through it together.
+   So now, while you read the result, the engine goes through the game in the
+   background — a quick pass, a few seconds, never while it is needed for
+   anything else — and your opponent talks you through it: where they thought
+   they were lost, the move you both missed, the one that decided it. What they
+   say depends on how the game went and on who they are — an attacker talks
+   about the attack, a grinder about the sixth hour. “Show me” opens that
+   moment on the analysis board.
+
+   Then your coach has a word. Your mistakes are sorted by what kind they were
+   — tactical, in the opening, in the endgame, with the clock running down, or
+   no single blunder but a plan that drifted — and the biggest kind becomes a
+   piece of homework: ten puzzles, twenty moves of your repertoire, two
+   endgame drills, a Puzzle Rush or one of the classics. Do it within three
+   weeks and it shows: form, a sharper head for the next game, experience.
+   ========================================================================= */
+const PG_DEPTH=9,PG_MIN_PLIES=12,PG_NOISE_CP=60;
+function pgEligible(){
+  return !!(app.careerOpp&&app.careerOpp!=='stream'&&app.careerOpp!=='park'&&!app.parkBet&&!app.pass&&
+    (app.careerRoundOpp||app.careerLegend)&&(app.playMoves||[]).length>=PG_MIN_PLIES&&(app.playStack||[]).length>(app.playMoves||[]).length);
+}
+function pgStart(score){
+  if(!pgEligible())return null;
+  const opp=app.careerRoundOpp||{name:app.careerLegend||'Your opponent',style:'universal'};
+  const moves=app.playMoves.map(function(m){return {san:m.san,from:m.from,to:m.to};});
+  const P={status:'run',fens:app.playStack.slice(0,moves.length+1),moves:moves,side:app.playSide,score:score,
+    opp:{name:opp.name||'Your opponent',style:opp.style||'universal',rating:opp.rating||0,title:opp.title||''},
+    clk:(app.playClk||[]).slice(),ev:[],best:[],i:0,retry:0,out:null};
+  P.start=P.fens[0];
+  app.pg=P;
+  // no workers, no engine to ask (and under Node, in the tests, nothing to ask it with)
+  if(typeof Worker==='undefined'||(typeof process!=='undefined'&&process.versions&&process.versions.node)){P.status='off';return P;}
+  setTimeout(pgStep,700);
+  return P;
+}
+async function pgStep(){
+  const P=app.pg;if(!P||P.status!=='run')return;
+  if(P.i>=P.fens.length){pgFinish(P);pgRender(true);return;}
+  // anything else that wants the engine comes first: this can wait
+  if(Engine._cur||Engine._next||Engine._orphans||(app.review&&app.review.status==='analyzing')){setTimeout(pgStep,700);return;}
+  const fen=P.fens[P.i];
+  let tc=null;try{tc=new Chess(fen);}catch(e){}
+  if(tc&&tc.isCheckmate()){P.ev[P.i]={t:'mate',v:-1};P.best[P.i]='';P.i++;setTimeout(pgStep,0);return;}
+  if(tc&&(tc.isStalemate()||tc.isInsufficientMaterial())){P.ev[P.i]={t:'cp',v:0};P.best[P.i]='';P.i++;setTimeout(pgStep,0);return;}
+  const ok=await Engine.load();
+  if(app.pg!==P)return;
+  if(!ok){P.status='error';pgRender(true);return;}
+  Engine.analyse(fen,PG_DEPTH,function(best,lines,ev,superseded){
+    if(app.pg!==P||P.status!=='run')return;
+    if(superseded){if(++P.retry>60){P.status='error';pgRender(true);return;}setTimeout(pgStep,700);return;}
+    P.ev[P.i]=ev?{t:ev.t,v:ev.v}:{t:'cp',v:0};P.best[P.i]=best||'';P.i++;
+    if(P.i%8===0)pgRender();
+    setTimeout(pgStep,5);
+  },null,null,1);
+}
+/* Progress shows on the board's page; the result also on the career's. */
+function pgRender(end){if(app.view==='play'||(end&&app.view==='career'))render();}
+/* A move as it is written: 23.Rxe6, 23…Nf4. */
+function pgLabel(P,k){
+  const f=P.fens[k]||'',p=f.split(' '),n=+(p[5]||1),w=(p[1]||'w')==='w';
+  return n+(w?'.':'…')+((P.moves[k]&&P.moves[k].san)||'?');
+}
+function pgSan(fen,uci){
+  if(!uci||uci.length<4)return '';
+  try{const ch=new Chess(fen),m=ch.move({from:uci.slice(0,2),to:uci.slice(2,4),promotion:(uci[4]||'q')});return m?m.san:'';}catch(e){return '';}
+}
+function pgPieces(fen){const b=(fen||'').split(' ')[0];let n=0;for(let i=0;i<b.length;i++)if(/[nbrqNBRQ]/.test(b[i]))n++;return n;}
+/* What kind of mistake: with the clock nearly gone, in the opening, in the
+   endgame, a tactic that was there to be seen, or a plan that drifted. */
+function pgKind(P,k,drop,best){
+  const mine=P.clk.filter(function(x,i){return x!=null&&turnOf(P.fens[i]||'')===P.side;}),start=mine.length?Math.max.apply(null,mine):0;
+  const t=P.clk[k];
+  if(t!=null&&start>0&&t<Math.max(20,start*0.1))return 'clock';
+  if(k<20)return 'opening';
+  if(pgPieces(P.fens[k])<=6)return 'endgame';
+  if(drop>=20||/[x+#]/.test(best||''))return 'tactics';
+  return 'strategy';
+}
+/* Your chances, move by move, and every real mistake either side made. */
+function pgErrors(P){
+  const n=P.moves.length,wp=[],errs=[];
+  for(let k=0;k<=n;k++){const ev=P.ev[k];if(!ev){wp[k]=null;continue;}const w=winPct(cpOf(ev));wp[k]=turnOf(P.fens[k])===P.side?w:100-w;}
+  for(let k=0;k<n;k++){
+    if(!P.ev[k]||!P.ev[k+1])continue;
+    const best=cpOf(P.ev[k]),played=-cpOf(P.ev[k+1]);
+    const drop=Math.max(0,winPct(best)-winPct(played)),lost=Math.max(0,best-played);
+    if(drop<8||lost<PG_NOISE_CP)continue;               // at this depth, smaller swings are noise
+    const you=turnOf(P.fens[k])===P.side,bs=pgSan(P.fens[k],P.best[k]);
+    if(bs===P.moves[k].san)continue;
+    errs.push({k:k,you:you,drop:drop,label:pgLabel(P,k),best:bs,kind:you?pgKind(P,k,drop,bs):null});
+  }
+  return {wp:wp,errs:errs};
+}
+const PM_STYLE={
+  aggressive:{won:'Once my pieces were pointing at your king it was always going to crack.',lost:'I went for your king too early. I always do.',drew:'I wanted to attack, and you gave me nothing to attack.'},
+  positional:{won:'That pawn structure was the whole game.',lost:'Structurally I was fine. And then I wasn’t.',drew:'Neither of us had a weakness worth the name.'},
+  gambiteer:{won:'The pawn I gave was worth it, I think.',lost:'Perhaps that pawn was worth more than I thought.',drew:'I gave you a pawn and got exactly a pawn’s worth.'},
+  solid:{won:'I was happy to sit and wait. You did the rest.',lost:'I was waiting for you to overpress. You never did.',drew:'Honestly, I would take that draw every day.'},
+  grinder:{won:'Long games suit me. The sixth hour is mine.',lost:'I usually win the long ones. Not today.',drew:'I would have played on for another hour if I had had anything.'},
+  universal:{won:'',lost:'',drew:''}
+};
+/* What your opponent says, and the moment they point at. */
+function pgTalk(P,E){
+  const errs=E.errs,wp=E.wp,n=P.moves.length;
+  const mine=errs.filter(function(e){return e.you;}).sort(function(a,b){return b.drop-a.drop;});
+  const theirs=errs.filter(function(e){return !e.you;}).sort(function(a,b){return b.drop-a.drop;});
+  let hi=-1,hiK=-1,lo=101,loK=-1;
+  for(let k=10;k<=n;k++){if(wp[k]==null)continue;if(wp[k]>hi){hi=wp[k];hiK=k;}if(wp[k]<lo){lo=wp[k];loK=k;}}
+  const s=P.score,say=[];let at=null;
+  const yw=mine[0]||null,tw=theirs[0]||null;
+  const after=function(k){return k>0?pgLabel(P,k-1):'the opening';};
+  if(s===1){
+    if(lo<=15&&tw){say.push('I had it. After '+after(loK)+' I was sure I was winning — and then '+tw.label+' threw it all away.'+(tw.best?' '+tw.best+', and you are the one in trouble.':''));at=tw.k;}
+    else if(lo<=15){say.push('I was winning after '+after(loK)+'. How I lost that one I will never know.');at=Math.max(0,loK-1);}
+    else if(tw&&tw.drop>=20){const rep=P.moves[tw.k+1];say.push(tw.label+' was the mistake. I saw '+(rep?rep.san:'your reply')+' a second after I let go of the piece.'+(tw.best?' '+tw.best+' was the move.':''));at=tw.k;}
+    else if(tw){say.push(tw.label+' was where it started to go wrong for me.'+(tw.best?' '+tw.best+' was better.':''));at=tw.k;}
+    else{say.push('I don’t know where I went wrong. Nothing lost it — everything was just a little worse, move by move.');
+      for(let k=10;k<=n;k++)if(wp[k]!=null&&wp[k]>=70){at=Math.max(0,k-1);break;}}
+  } else if(s===0){
+    const slip=hi>=85?(mine.filter(function(e){return e.k>=hiK;})[0]||yw):null;
+    if(hi>=85&&slip){say.push('You had me, you know. After '+after(hiK)+' I was lost — '+(slip.best?slip.best+' instead of '+slip.label:'and then '+slip.label)+', and I could have resigned.');at=slip.k;}
+    else if(hi>=85){say.push('You had me, you know. After '+after(hiK)+' I was lost.');at=Math.max(0,hiK-1);}
+    else if(yw&&yw.drop>=20){say.push(yw.label+' — that was the moment. I was hoping for it, and I couldn’t believe it when you played it.'+(yw.best?' '+yw.best+' holds.':''));at=yw.k;}
+    else if(yw){say.push(yw.label+' was where it turned.'+(yw.best?' '+yw.best+' keeps it level.':''));at=yw.k;}
+    else{say.push('It was a slow squeeze. I don’t think there was one move — you were just a little worse, all the way.');
+      for(let k=10;k<=n;k++)if(wp[k]!=null&&wp[k]<=30){at=Math.max(0,k-1);break;}}
+  } else {
+    const slip=hi>=80?(mine.filter(function(e){return e.k>=hiK;})[0]||null):null;
+    if(slip){say.push('You let me off. After '+after(hiK)+' you were winning — '+(slip.best?slip.best+' instead of '+slip.label+', and I was lost.':'and then '+slip.label+'.'));at=slip.k;}
+    else if(lo<=20&&tw){say.push('I should have won that. '+tw.label+(tw.best?' — '+tw.best+' was there, and I saw it on the way home.':' let you out.'));at=tw.k;}
+    else if(lo<=20){say.push('I should have won that. After '+(yw?yw.label:after(loK))+' I was winning — and I let you off.');at=yw?yw.k:Math.max(0,loK-1);}
+    else if(yw&&tw){say.push('We both had our chances — '+yw.label+' from you, '+tw.label+' from me.');at=yw.drop>=tw.drop?yw.k:tw.k;}
+    else if(yw){say.push('You gave me a chance with '+yw.label+(yw.best?' — '+yw.best+' was the move':'')+'. I didn’t see how to use it.');at=yw.k;}
+    else if(tw){say.push('I gave you a chance with '+tw.label+(tw.best?' — '+tw.best+' was the move for me':'')+'. You let it go.');at=tw.k;}
+    else say.push('A correct game. I kept looking for something, and there was nothing there.');
+  }
+  const st=PM_STYLE[P.opp.style]||PM_STYLE.universal,line=s===1?st.lost:s===0?st.won:st.drew;
+  if(line)say.push(line);
+  return {say:say,at:at};
+}
+/* ---- the coach's homework ---- */
+const DB_TASK={
+  tactics:{t:'Solve 10 puzzles',need:10,why:'your mistakes were tactical — something was there to be calculated',go:{act:'nav',val:'puzzles'},lbl:'🧩 Puzzles'},
+  opening:{t:'Train 20 moves of your openings',need:20,why:'you were worse before move ten',go:{act:'train',val:'all'},lbl:'📚 Train'},
+  endgame:{t:'Win or hold 2 endgame drills',need:2,why:'the endgame is where it went',go:{act:'nav',val:'endgames'},lbl:'♜ Endgames'},
+  clock:{t:'Play a Puzzle Rush',need:1,why:'your mistakes came with the clock running down',go:{act:'rushstart'},lbl:'⚡ Rush'},
+  strategy:{t:'Study one of the classic games',need:1,why:'there was no single blunder — the plan drifted',go:{act:'nav',val:'classics'},lbl:'🏛️ Classics'}
+};
+const DB_SPEC={tactics:'Engine analyst',strategy:'Engine analyst',opening:'Opening theoretician',endgame:'Endgame guru',clock:'Sports psychologist'};
+const DB_WEEKS=3;
+function dbCount(c,k){
+  if(k==='tactics')return (store.puzzle&&store.puzzle.solved)||0;
+  if(k==='opening')return (store.stats&&store.stats.total)||0;
+  if(k==='endgame')return (store.stats&&store.stats.egDone)||0;
+  if(k==='clock')return (store.puzzle&&store.puzzle.rushN)||0;
+  if(k==='strategy')return ((c&&c.classicsStudied)||[]).length;
+  return 0;
+}
+function debriefCoach(c,k){
+  const hired=(c.coaches||[]).find(function(x){return x.spec===DB_SPEC[k];})||(c.coaches||[])[0];
+  if(hired)return {name:hired.name,e:hired.emoji||'🧑‍🏫',match:hired.spec===DB_SPEC[k]};
+  const p=pplOf(c,'coach');
+  return {name:p?p.name:'Your coach',e:'🧑‍🏫',people:!!p};
+}
+function debriefActive(c){const D=c&&c.debrief;return !!(D&&!D.done&&!D.lapsed);}
+/* After the analysis: the coach's word, and homework if there is none open. */
+function debriefFrom(c,P,E){
+  if(!c||!c.setup)return null;
+  const mine=E.errs.filter(function(e){return e.you;});
+  if(!mine.length){const co=debriefCoach(c,'tactics');return {coach:co,line:'A clean game from you — nothing I would change. Keep doing what you are doing.'};}
+  const w={};mine.forEach(function(e){w[e.kind]=(w[e.kind]||0)+e.drop;});
+  const k=Object.keys(w).sort(function(a,b){return w[b]-w[a];})[0],T=DB_TASK[k],co=debriefCoach(c,k);
+  const worst=mine.filter(function(e){return e.kind===k;}).sort(function(a,b){return b.drop-a.drop;})[0];
+  const cnt=mine.filter(function(e){return e.kind===k;}).length;
+  const say={
+    tactics:(cnt>1?cnt+' of your mistakes today were tactical':'The mistake that mattered was tactical')+': '+worst.label+(worst.best?', when '+worst.best+' was there':'')+'.',
+    opening:'You were worse before move ten: '+worst.label+(worst.best?', where '+worst.best+' is the move':'')+'.',
+    endgame:'It went wrong in the endgame — '+worst.label+(worst.best?'; '+worst.best+' was the way':'')+'.',
+    clock:'Your mistakes came with the clock running down — '+worst.label+' was played with seconds left.',
+    strategy:'No single blunder, but the plan drifted from '+worst.label+(worst.best?' — '+worst.best+' kept it together':'')+'.'
+  }[k];
+  if(debriefActive(c)){const D=c.debrief,have=Math.max(0,dbCount(c,D.k)-D.base);
+    return {coach:co,line:say+' But first, the homework you have: '+D.t.toLowerCase()+' — '+Math.min(have,D.need)+' of '+D.need+'.',task:D};}
+  // the opening you went wrong in — or, if it is none of the Library's, one of your own to train
+  let oid=k==='opening'?gameOpeningId(P.moves,P.side):null;
+  if(k==='opening'&&!(oid&&byId.get(oid))){const col=P.side==='w'?'white':'black',o=BUILT.find(function(o){return o.side===col&&inRep(o.id);})||BUILT.find(function(o){return o.side===col;});oid=o?o.id:null;}
+  c.debrief={k:k,t:T.t,need:T.need,base:dbCount(c,k),w:c.weeks||0,due:(c.weeks||0)+DB_WEEKS,coach:co.name,e:co.e,people:!!co.people,match:!!co.match,
+    from:P.opp.name,why:T.why,oid:oid&&byId.get(oid)?oid:null,label:worst.label};
+  return {coach:co,line:say+' So: '+T.t.toLowerCase()+' in the next '+DB_WEEKS+' weeks.',task:c.debrief,fresh:true};
+}
+function pgFinish(P){
+  if(!P||P.status!=='run')return;
+  const E=pgErrors(P);
+  P.out=pgTalk(P,E);
+  P.errs=E.errs;
+  P.mine=E.errs.filter(function(e){return e.you;}).length;
+  P.theirs=E.errs.length-P.mine;
+  const c=store.career;
+  P.debrief=(c&&c.setup)?debriefFrom(c,P,E):null;
+  P.status='done';
+  if(c&&c.setup)save();
+}
+/* Homework done — or forgotten. Looked at whenever the career is. */
+function debriefCheck(c){
+  const D=c&&c.debrief;if(!D||D.done||D.lapsed)return;
+  const have=dbCount(c,D.k)-D.base;
+  if(have>=D.need){
+    D.done=true;D.doneW=c.weeks||0;
+    c.form=Math.min(100,(c.form||0)+10);c.prep=(c.prep||0)+(D.match?2:1);c.mood=Math.min(100,(c.mood==null?62:c.mood)+3);addXp(c,25);
+    if(D.people)pplBond(pplOf(c,'coach'),3);
+    pushNews(c,'🧑‍🏫',esc(D.coach)+': “Good — that was the work.” '+esc(D.t)+' done: form +10, and a sharper head for the next game.');
+    app.careerToast='🧑‍🏫 Homework done — '+D.t.toLowerCase()+'. Form +10, preparation +'+(D.match?2:1)+'.';
+    save();return;
+  }
+  if((c.weeks||0)>D.due){
+    D.lapsed=true;
+    if(D.people)pplBond(pplOf(c,'coach'),-3);
+    pushNews(c,'🧑‍🏫',esc(D.coach)+' noticed the homework never happened ('+esc(D.t.toLowerCase())+').');
+    save();
+  }
+}
+function debriefGo(D){const T=DB_TASK[D.k]||{};const g=T.go||{};
+  return '<button class="btn sec sm" data-act="'+g.act+'"'+(D.k==='opening'&&D.oid?' data-val="'+D.oid+'"':g.val?' data-val="'+g.val+'"':'')+'>'+T.lbl+'</button>';}
+/* The homework on the Play tab. */
+function careerDebriefCard(c){
+  const D=c&&c.debrief;if(!debriefActive(c))return '';
+  const have=Math.max(0,Math.min(D.need,dbCount(c,D.k)-D.base)),left=Math.max(0,D.due-(c.weeks||0));
+  return '<div class="card" id="debriefcard" style="margin-bottom:12px;border-color:#22c55e55"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:700">'+esc(D.e||'🧑‍🏫')+' Homework from '+esc(D.coach)+'</div><div class="dim small">'+(left?left+' week'+(left>1?'s':'')+' left':'due this week')+'</div></div>'+
+    '<div class="small" style="margin-top:4px"><b>'+esc(D.t)+'</b> — '+have+' of '+D.need+'. <span class="dim">After your game against '+esc(D.from)+': '+esc(D.why)+'.</span></div>'+
+    cbar(have,D.need,'#22c55e')+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-top:8px"><span class="dim small">Done in time: form +10, preparation +'+(D.match?2:1)+', XP.</span>'+debriefGo(D)+'</div></div>';
+}
+/* Beside the result: the handshake, then the two of you over the board. */
+function postMortemPanel(){
+  const P=app.pg;if(!P||app.playStatus!=='over')return '';
+  const nm=esc(P.opp.name),who=esc(String(P.opp.name).split(' ').pop());
+  let h='<div class="card" id="postmortem" style="margin-top:12px;border-color:#60a5fa55"><div style="font-weight:700">♟️ Post-mortem with '+nm+'</div>';
+  if(P.status==='run')h+='<div class="dim small" style="margin-top:3px">You sit down together over the board and go through it… <span style="color:var(--brand2)">move '+Math.min(P.moves.length,Math.ceil(P.i/2))+' of '+Math.ceil(P.moves.length/2)+'</span></div>';
+  else if(P.status==='error'||P.status==='off')h+='<div class="dim small" style="margin-top:3px">'+who+' shakes your hand and heads for the bar. (The engine could not load, so there is nothing to go through.)</div>';
+  else if(P.status==='done'&&P.out){
+    h+='<div class="small" style="margin-top:4px">💬 <b>'+who+':</b> “'+esc(P.out.say.join(' '))+'”</div>';
+    h+='<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:7px">'+(P.out.at!=null?'<button class="btn sec sm" data-act="pmshow" data-val="'+P.out.at+'">🔍 Show me '+esc(pgLabel(P,P.out.at))+'</button>':'')+
+      '<span class="dim small" style="align-self:center">'+(P.mine?P.mine+' mistake'+(P.mine>1?'s':'')+' from you':'no mistakes from you')+' · '+(P.theirs?P.theirs+' from '+who:'none from '+who)+'</span></div>';
+    const DB=P.debrief;
+    if(DB&&DB.coach)h+='<div class="small" style="margin-top:9px;padding-top:8px;border-top:1px solid var(--border)">'+esc(DB.coach.e||'🧑‍🏫')+' <b>'+esc(DB.coach.name)+':</b> “'+esc(DB.line)+'”'+
+      (DB.task&&debriefActive(store.career)&&DB.task===store.career.debrief?'<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-top:6px"><span class="dim small">📝 '+esc(DB.task.t)+' — '+Math.max(0,Math.min(DB.task.need,dbCount(store.career,DB.task.k)-DB.task.base))+'/'+DB.task.need+'</span>'+debriefGo(DB.task)+'</div>':'')+'</div>';
+  }
+  return h+'</div>';
+}
+function pmShow(k){
+  const P=app.pg;if(!P||P.status!=='done')return;
+  const a=anaOpen(P.start,P.moves.map(function(m){return m.san;}),+k,'Post-mortem · you vs '+P.opp.name);
+  if(a){a.flip=P.side==='b';render();}
+}
+/* An endgame drill held or won counts as one, once. */
+function egCount(score){
+  if(!app.endgame||app._egCounted)return;
+  if(score!==(app.endgame.goal==='draw'?0.5:1))return;
+  app._egCounted=true;store.stats=store.stats||{};store.stats.egDone=(store.stats.egDone||0)+1;save();
+}
 function playTourRound(){
   // If this round was already begun and interrupted, pick that game up rather
   // than quietly starting it again — whichever button was pressed.
@@ -22260,6 +23010,8 @@ function playTourRound(){
   // starting a round finishes the draw — the ceremony never blocks the chess
   if(store.career.tour)finishDraw(store.career.tour);
   const c=store.career;if(!c.tour)return;const tr=c.tour;if(tr.round>=tr.rounds)return;
+  roundLive(c,tr);                                  // the rest of the round is drawn as you sit down
+  app.roundIntro=null;
   app.careerFinish=null;
   const opp=tr.field[tr.round],side=tourColourOf(tr,tr.round);
   const wmE=tr.wm?wmBeforeGame(c,tr):0;
@@ -22276,6 +23028,7 @@ function playTourRound(){
   app.careerStudyEdge=oe?oe.studyEdge:0;oppBookAlt(oe);
   if(!g)prepApply(c,opp,side,prepKey(c),prep);   // have they looked at your games?
   applyCareerCondition();
+  Hall.start();
 }
 /* One-off rated game vs a chosen world-ranking opponent. */
 function startChallenge(id){
@@ -22507,9 +23260,12 @@ function careerMomentsPanel(c){
   return h+'</div>';
 }
 function careerResult(score){
+  Hall.stop();
+  egCount(score);
   if(!app.careerOpp||app.careerScored)return;app.careerScored=true;
   const c=store.career;
   if(app.careerOpp==='stream'){streamShowResult(c,score);return;}     // an online game on stream: not rated, not on your record
+  pgStart(score);                                  // the post-mortem: the engine goes through it while you read the result
   // they had prepared: did you walk into it?
   if(app.careerOppPrep&&!app.careerOppPrep.told){const P=app.careerOppPrep,d=prepDepth(),who=esc((app.careerRoundOpp&&app.careerRoundOpp.name)||'Your opponent');P.told=1;
     pushNews(c,'📚',P.dodged||d<PREP_DEPTH?who+' had prepared your '+esc(P.name)+' — you stepped out of it'+(P.dodged?' with your own preparation':'')+' after '+Math.ceil(Math.max(1,d)/2)+' moves.'
@@ -22531,6 +23287,7 @@ function careerResult(score){
     if(_opp)momentsFromGame(c,{score:score,opp:_opp,story:st,myRating:youRating(c,_fmt)||c.rating||1200});
   }
   if(app.careerRoundOpp)app.careerReaction=oppReaction(c,app.careerRoundOpp,score);
+  if(!app.parkBet)pplAfterGame(c,_opp,score);
   if(app.parkBet){parkResult(score);save();return;}
   if(app.careerOneoff){
     const fmt=app.careerOneoff,opp=app.careerRoundOpp||{name:'Opponent',rating:1500};
@@ -22704,6 +23461,8 @@ function finalizeTournament(c){
   app._olyPay=0;
   momentsFromFinish(c,app.careerFinish);      // the event is over: keep what was worth keeping
   lifeAfterEvent(tr,place,games);
+  travelHome(c,tr);
+  pplAfterEvent(c,tr,{place:won1st?1:place,score:scoreTot,games:games,norms:gainedNorms,titles:newTitles});
   c.calDone=c.calDone||[];if(c.calDone.indexOf(tr.id)<0)c.calDone.push(tr.id);
   c.tour=null;
 }
@@ -23355,7 +24114,9 @@ function viewPlay(){
     '<div class="card">'+evalHtml+'<div style="margin-top:'+(evalHtml?'10px':'0')+'">'+status+'</div>'+
       (app.drawMsg?'<div class="dim small" style="margin-top:6px">'+esc(app.drawMsg)+'</div>':'')+
       (!live?'<div class="row" style="margin-top:10px"><button class="btn primary sm" data-act="plast">▶▶ Jump to live</button></div>':'')+'</div>'+
+    (app.careerOpp?postMortemPanel():'')+
     tbHtml+
+    liveBoardsPanel()+
     streamPanel()+
     boothPanel()+
     '<div class="card" style="margin-top:12px"><div class="l" style="text-transform:uppercase;font-size:11px;letter-spacing:.08em;color:var(--muted)">Moves</div><div class="moves" style="margin-top:6px;line-height:2.1">'+playMoveList()+'</div></div>'+
@@ -23781,7 +24542,7 @@ function rushStart(){stopRushTick();app.rush={solved:0,strikes:0,end:Date.now()+
 function rushNext(){const base=Math.min(2600,800+app.rush.solved*18);let cand=-1,cb=1e9;for(let i=0;i<PUZZLES.length;i++){if(app.pzSeen.has(i))continue;const d=Math.abs(PUZZLES[i][2]-base);if(d<cb){cb=d;cand=i;}}if(cand<0)cand=Math.floor(Math.random()*PUZZLES.length);pzNext(cand);}
 function rushAfter(success){const R=app.rush;if(!R)return;if(success)R.solved++;else R.strikes++;
   if(R.strikes>=3||Date.now()>=R.end){rushEnd();return;}setTimeout(()=>{if(app.rush)rushNext();},success?420:850);}
-function rushEnd(){const R=app.rush;if(!R)return;stopRushTick();store.puzzle.rush=Math.max(store.puzzle.rush||0,R.solved);save();app.rushResult=R.solved;app.rush=null;app.pz=null;app.view='puzzles';render();}
+function rushEnd(){const R=app.rush;if(!R)return;stopRushTick();store.puzzle.rush=Math.max(store.puzzle.rush||0,R.solved);store.puzzle.rushN=(store.puzzle.rushN||0)+1;save();app.rushResult=R.solved;app.rush=null;app.pz=null;app.view='puzzles';render();}
 function stopRushTick(){if(app.rushTimer){clearInterval(app.rushTimer);app.rushTimer=null;}}
 function startRushTick(){stopRushTick();app.rushTimer=setInterval(()=>{if(!app.rush){stopRushTick();return;}const left=app.rush.end-Date.now();const el=document.getElementById('rushclock');if(el)el.textContent=Math.max(0,Math.ceil(left/1000))+'s';if(left<=0)rushEnd();},250);}
 function viewPuzzles(){
