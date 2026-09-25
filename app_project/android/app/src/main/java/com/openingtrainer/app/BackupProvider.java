@@ -12,8 +12,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 
 /**
- * Serves the one backup file the app has just written to its cache, so the
- * share sheet can hand it to WhatsApp, Drive, email and the rest. A minimal
+ * Serves the one backup file (or result card) the app has just written to its
+ * cache, so the share sheet can hand it to WhatsApp, Drive, email and the rest. A minimal
  * stand-in for androidx's FileProvider (this project does not use AndroidX):
  * read-only, not exported, and reachable only through the temporary grant that
  * comes with the share intent.
@@ -49,7 +49,8 @@ public class BackupProvider extends ContentProvider {
 
     @Override
     public String getType(Uri uri) {
-        return "application/json";
+        String name = uri.getLastPathSegment();
+        return name != null && name.endsWith(".png") ? "image/png" : "application/json";
     }
 
     @Override

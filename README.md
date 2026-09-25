@@ -977,6 +977,84 @@ every week; how close you are to them all nudges your mood each week, up or
 down; and a partner forgotten long enough leaves. They are on the Life tab,
 and a message waiting for an answer is in the inbox.
 
+**27. A junior career, the women's circuit, your own mistakes as puzzles, a
+result card and a biography.**
+
+*A junior career.* Every career began at sixteen. **Junior** on the setup
+screen begins one at eleven: unrated, living at home, in a school year. You
+play your age group — the under-12s while you are under twelve on 1 January,
+then the under-14s — at the national youth championship at Easter, the
+continental one (European, Asian or Pan-American) in the summer holidays and
+the World Cadets or World Youth at the autumn half-term, and the under-20s at
+the continental junior and the World Junior. The halls are children of your
+age from the world's list where it has them, and named the way their country
+names them where it does not. Win your national youth championship (or finish
+second) and the federation picks you for the continental and the world, and
+pays; otherwise your parents pay, out of a chess budget for the season, and
+your pocket money after that. There is school: a term-time week away costs
+about seven points of your grades, a week at school gives one back, holidays
+cost nothing, a day of homework helps, and exams in June say how the year
+went — under 50, your parents stop the trips in term time. At eighteen you
+finish school, move out and start paying rent. Until then a junior career
+waits for a few things: the park's money games and a partner until eighteen,
+streaming until thirteen, buying property until you are an adult. (A career
+started at sixteen is not a junior one, and works as it always did.)
+
+*FIDE's direct titles.* Some titles are handed out for a result, not earned
+by rating and norms, and the career now uses FIDE's table for them (the one in
+force from 1 January 2024): a medal at a World or continental age-group
+championship (a World U10 medal is a CM, a World U16 gold an IM, a World
+Junior gold a grandmaster, a share of first a norm), the girls' sections the
+same with the women's titles, reaching the last sixteen of the World Cup (GM),
+qualifying for it through play (IM), a continental championship medal, and
+65% or 50% at an Olympiad. A title needs a minimum rating at some point (GM
+2300 … WCM 1800); won before that, it is confirmed when the rating gets
+there.
+
+*The women's circuit.* The women's title track had no women's events because
+the list had three women on it. It has the world's best women now, by name,
+from the August 2026 list, and every federation's women below them — named
+the way women in that country are named: Ivanova, Kowalska, Nováková — about
+750 in all, with women's titles. They play the opens like everybody else. On
+the women's track the calendar has its own season beside the open one: a
+national women's championship, a continental women's championship (gold is a
+WGM title, silver and bronze WIM, the top ten go to the World Cup), an elite
+invitational for the top ten women, the Women's World Rapid and Blitz, and in
+their years the Women's Grand Swiss, the Women's World Cup (107 players, the
+top 21 seeds into round two; the last eight is a WGM title, the final an IM
+title, winning it a GM title), the women's section of the Olympiad, the
+Women's Candidates (eight women, a double round-robin) and the Women's World
+Championship match (twelve games). The cycle runs as FIDE runs it — the World
+Cup's top three and the Grand Swiss's top two go to the Candidates with the
+highest-rated women left over, and its winner plays the champion, Ju Wenjun
+when a career begins, the year after — and the world plays it when you are
+not in it. The World tab has a women's list; the Progress tab the road to the
+women's title. The open events stay open.
+
+*Your own mistakes come back as puzzles.* The post-mortem found your mistakes
+and a week later they were gone. Now every real mistake from a rated game —
+and every position you could not find in a Learn-from-your-mistakes session —
+goes into a deck of your own positions that comes back on a schedule: the next
+day, then three days, a week, three weeks, two months. Find the move and it
+moves up a box; miss it and it starts again from tomorrow; five in a row and
+it is learnt. They are played through the same drill as a Game Review (the
+engine judges any move you try) and say where they came from: the game, the
+opponent, the move you played. They are on the Puzzles page, on the Play tab
+and in the inbox when they are due, and in the backup.
+
+*A result card and a biography.* A finished game, a finished event and the
+career itself each make a card — an image drawn on a canvas: the final
+position with the last move marked, both players and their ratings, the
+result and what it did to your rating; or your place, score, performance,
+titles and every game of the event; or your peak, rank, titles and honours.
+**Share** hands it to the share sheet (inside the Android app a small native
+bridge does it); anywhere else it saves as a PNG. And the Legacy tab has your
+biography: an encyclopedia-style article written from what has happened — a
+lead, an infobox, season by season, the championship cycle, the Olympiad,
+your style and your openings, your rivals, the people in your life, your
+honours and your record — about you, by your surname, without guessing at
+pronouns.
+
 ## The Olympiad is a team event
 
 Nine individual games with a sentence bolted on the end. Your "team" was three
@@ -1723,7 +1801,7 @@ launch builds nothing.
 
 ## Tests
 
-Fifty-nine suites, about 5,700 checks, plus nineteen browser suites that drive the real app with the real engine.
+Sixty-one suites, about 5,800 checks, plus twenty-one browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
@@ -1775,6 +1853,21 @@ repertoire). `visual-immersion.mjs` makes the trip in a real browser: the beds,
 flying out early, the hall and its sounds, the other boards beside yours, a
 post-mortem with the real engine, **Show me**, the homework on the Play tab and
 your people on the Life tab.
+
+`validate-junior.mjs` covers the junior career (age groups on 1 January, the
+events dressed for your group and continent, halls of children your age, the
+federation's pick and who pays, school weeks, exams and the term-time lock,
+leaving home at eighteen, what waits until you are older), FIDE's direct
+titles (the table, the minimum rating, a share of first making a lower title
+moot) and the women's circuit (the women on the list and their names, women's
+fields, the Women's World Cup's bracket, the Candidates and the title match,
+the world playing them, the women's list and road). `validate-cards.mjs`
+covers the deck of your own mistakes (the boxes, learning one, the cap, the
+post-mortem feeding it, the backup), the three cards' contents and the
+biography. `visual-cards.mjs` draws the cards in a real browser and saves one,
+brings a mistake back and plays it, and opens the biography;
+`visual-junior.mjs` starts a junior career and a women's-track career from
+the setup screen.
 
 Career mode's newer systems have their own: `validate-booth.mjs` (what the
 commentators can and cannot know, the grammar guard that fills every line with

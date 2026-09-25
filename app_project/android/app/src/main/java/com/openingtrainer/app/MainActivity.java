@@ -31,7 +31,8 @@ import java.nio.charset.StandardCharsets;
  *
  * A WebView on its own cannot save a download or open a file picker, and it
  * has no Web Share, so moving progress between devices needs three small
- * native pieces: a share sheet for the backup file (AndroidBridge.shareBackup),
+ * native pieces: a share sheet for the backup file (AndroidBridge.shareBackup,
+ * and AndroidBridge.shareImage for a result card),
  * a file chooser for "Receive progress", and "Open with Chess Career" for a
  * backup opened or shared from another app (AndroidBridge.takeIncoming).
  *
@@ -222,6 +223,40 @@ public class MainActivity extends Activity {
                 send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 try {
                     startActivity(Intent.createChooser(send, "Send your progress"));
+                } catch (ActivityNotFoundException ignored) {
+                }
+            });
+        }
+
+        /** A result card (a PNG, base64) to the share sheet — save it, send it, post it. */
+        @JavascriptInterface
+        public void shareImage(String name, String base64) {
+            if (!trusted() || name == null || base64 == null) return;
+            final String safe = name.replaceAll("[^A-Za-z0-9._-]", "_");
+            if (!safe.endsWith(".png")) return;
+            try {
+                byte[] png = android.util.Base64.decode(base64, android.util.Base64.DEFAULT);
+                if (png.length == 0 || png.length > MAX_BACKUP) return;
+                File dir = BackupProvider.dir(MainActivity.this);
+                if (!dir.isDirectory() && !dir.mkdirs()) return;
+                File[] old = dir.listFiles();
+                if (old != null) for (File f : old) f.delete();
+                File f = new File(dir, safe);
+                try (OutputStream out = new FileOutputStream(f)) {
+                    out.write(png);
+                }
+            } catch (Exception e) {
+                return;
+            }
+            final Uri uri = Uri.parse("content://" + BackupProvider.AUTHORITY + "/" + safe);
+            runOnUiThread(() -> {
+                Intent send = new Intent(Intent.ACTION_SEND);
+                send.setType("image/png");
+                send.putExtra(Intent.EXTRA_STREAM, uri);
+                send.setClipData(ClipData.newRawUri("", uri));
+                send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                try {
+                    startActivity(Intent.createChooser(send, "Share your result"));
                 } catch (ActivityNotFoundException ignored) {
                 }
             });
