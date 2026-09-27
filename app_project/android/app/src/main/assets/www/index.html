@@ -268,6 +268,18 @@
      moves. That is the board "moving a bit during the game". */
   @media(max-width:860px){.layout{grid-template-columns:minmax(0,1fr)}}
   .boardwrap{max-width:var(--bw,540px);margin:0 auto;width:100%;contain:layout}
+  /* The grip on the board's bottom-right corner: drag it to resize the board.
+     It sits in a zero-height strip just under the board, so it follows the
+     corner wherever the board is, and it is only there for a mouse or a pen —
+     on a phone the board already fills the screen. */
+  .bgrip{position:relative;height:0;z-index:8;display:none}
+  .bgrip i{position:absolute;right:-9px;top:-13px;width:20px;height:20px;cursor:nwse-resize;touch-action:none;border-radius:4px;opacity:.45;transition:opacity .15s;
+    background:linear-gradient(135deg,transparent 42%,var(--muted,#94a3b8) 42%,var(--muted,#94a3b8) 50%,transparent 50%,transparent 60%,var(--muted,#94a3b8) 60%,var(--muted,#94a3b8) 68%,transparent 68%)}
+  @media (hover:hover) and (pointer:fine){.bgrip{display:block}}
+  .boardwrap:hover .bgrip i,.bgrip i:hover,body.bresizing .bgrip i{opacity:1}
+  body.bresizing,body.bresizing *{cursor:nwse-resize!important;user-select:none!important}
+  .bgrip b{position:absolute;right:16px;top:-40px;padding:3px 8px;border-radius:8px;background:rgba(0,0,0,.72);color:#fff;font:600 12px/1.3 system-ui,sans-serif;white-space:nowrap;pointer-events:none;display:none}
+  body.bresizing .bgrip b{display:block}
   /* In-game notices (a blunder warning, a draw offer, the opponent talking)
      live under the board, never above it — anything above would push the
      board down the moment it appeared. */
@@ -6256,7 +6268,8 @@ function viewLearn(){
   return h+'</div>';
 }
 function render(){
-  document.body.style.setProperty('--bw',(store.settings.boardSize||520)+'px');
+  // mid-drag, a redraw (the engine's next line, a clock tick) keeps the size being dragged
+  document.body.style.setProperty('--bw',((_grip&&_grip.w)||store.settings.boardSize||520)+'px');
   applyAppTheme();
   const repOps=BUILT.filter(o=>inRep(o.id));const agg=aggregate(repOps,store.srs);
   const nav=['career','dashboard','play','puzzles','learn','courses','train','library','endgames','classics','guess','blindfold','daily','review','analysis','brilliancy','report','import','tracker','studies','masters','settings'];
@@ -6338,6 +6351,7 @@ function render(){
   // the career tabs pin under the top bar, whose height depends on the phone
   {const _hd=document.querySelector('header.top');if(_hd)document.documentElement.style.setProperty('--toph',_hd.offsetHeight+'px');}
   careerJumpApply();
+  boardGrips();
   if(_kf){try{const el=document.getElementById(_kf.id);if(el&&el!==document.activeElement){el.focus({preventScroll:true});if(_kf.s!=null&&el.setSelectionRange)el.setSelectionRange(_kf.s,_kf.e);}}catch(e){}}
   srNode();                       // outside #app, so a redraw never wipes it
   if(app.view==='play'&&app.playStatus==='over'&&resultKind(app.playResult)==='win'&&app._fxKey!==app.playResult){app._fxKey=app.playResult;confetti();}
@@ -10810,7 +10824,7 @@ function viewSettings(){
     rowSet('Piece set','Choose how the pieces look (loads on first use; cached after).',selOpt('pieces',PIECE_SETS))+
     rowSet('Board theme','Square colours.',selOpt('theme',THEMES))+
     rowSet('Show coordinates','',(store.settings.coords!==false?'<input type="checkbox" data-setting="coords" checked>':'<input type="checkbox" data-setting="coords">'))+
-    rowSet('Board size','Drag to resize the board.','<input type="range" min="300" max="760" step="10" value="'+(store.settings.boardSize||520)+'" data-setting="boardSize">')+
+    rowSet('Board size','Or drag the bottom-right corner of any board (with a mouse or a pen).','<input type="range" min="300" max="1200" step="10" value="'+(store.settings.boardSize||520)+'" data-setting="boardSize">')+
     rowSet('Move sounds','',(store.settings.sound!==false?'<input type="checkbox" data-setting="sound" checked>':'<input type="checkbox" data-setting="sound">'))+
     rowSet('Tournament hall sounds','In a career round: the murmur of the hall, clocks on other boards, and the cough there always is.',(store.settings.hallSound!==false?'<input type="checkbox" data-setting="hallSound" checked>':'<input type="checkbox" data-setting="hallSound">'))+
     rowSet('Arbiter’s voice','The arbiter starts each career round aloud, in your device’s own voice.',(store.settings.arbiterVoice!==false?'<input type="checkbox" data-setting="arbiterVoice" checked>':'<input type="checkbox" data-setting="arbiterVoice">'))+
@@ -11147,6 +11161,67 @@ document.getElementById('app').addEventListener('pointerdown',onPDown);
 window.addEventListener('pointermove',onPMove);
 window.addEventListener('pointerup',onPUp);
 document.getElementById('app').addEventListener('contextmenu',function(e){if(e.target.closest&&e.target.closest('.board'))e.preventDefault();});
+/* ---- resizing the board by dragging its corner ----
+   The board is centred in its column, so its corner moves half as far
+   sideways as the board grows; dragging straight down grows it one for one.
+   Whichever way the pointer went further decides. The size is shown while
+   dragging and applied live, without a redraw; it is saved when you let go.
+   Double-click the grip for the default size. The Settings slider is the same
+   setting, and still the way to do it from the keyboard. */
+const BOARD_MIN=300,BOARD_MAX=1200,BOARD_DEF=520;
+function gripsOn(){try{return !!(window.matchMedia&&window.matchMedia('(hover: hover) and (pointer: fine)').matches);}catch(e){return false;}}
+function boardGrips(){
+  if(!gripsOn())return;
+  document.querySelectorAll('#app .boardwrap').forEach(function(w){
+    const b=w.querySelector('.board');if(!b||w.querySelector('.bgrip'))return;
+    const p=b.parentElement;let d='block';try{d=getComputedStyle(p).display;}catch(e){}
+    if(d!=='block')return;                       // a board in a row (beside an eval bar) has no room under it
+    const g=document.createElement('div');g.className='bgrip';g.setAttribute('aria-hidden','true');
+    g.innerHTML='<i title="Drag to resize the board · double-click for the default size"></i><b></b>';
+    b.insertAdjacentElement('afterend',g);
+  });
+  if(_grip)gripLabel(_grip.w);
+}
+function gripLabel(w){document.querySelectorAll('.bgrip b').forEach(function(el){el.textContent=w+' px';});}
+// var, not let: render() reads it, and may run before this line has (a let would throw there)
+var _grip=null;
+document.addEventListener('pointerdown',function(e){
+  const g=e.target&&e.target.closest?e.target.closest('.bgrip i'):null;if(!g)return;
+  const w=g.closest('.boardwrap');if(!w)return;
+  e.preventDefault();e.stopPropagation();
+  const r=w.getBoundingClientRect(),col=(w.parentElement&&w.parentElement.clientWidth)||r.width;
+  _grip={x:e.clientX,y:e.clientY,w0:r.width,w:Math.round(r.width),max:Math.max(BOARD_MIN,Math.min(BOARD_MAX,col))};
+  try{g.setPointerCapture(e.pointerId);}catch(err){}
+  document.body.classList.add('bresizing');gripLabel(_grip.w);
+},true);
+window.addEventListener('pointermove',function(e){
+  const G=_grip;if(!G)return;
+  const dx=e.clientX-G.x,dy=e.clientY-G.y,d=Math.abs(2*dx)>Math.abs(dy)?2*dx:dy;
+  let w=Math.round(Math.max(BOARD_MIN,Math.min(G.max,G.w0+d)));
+  if(w!==G.w){
+    document.body.style.setProperty('--bw',w+'px');
+    // the column may be narrower than asked for: the board stops at its edge,
+    // and so do the number shown and the size saved
+    const bd=document.querySelector('#app .boardwrap .board'),real=bd?Math.round(bd.getBoundingClientRect().width):w;
+    if(real&&real<w-1){w=Math.max(BOARD_MIN,real);document.body.style.setProperty('--bw',w+'px');}
+    G.w=w;G.moved=true;gripLabel(w);
+  }
+  if(e.cancelable)e.preventDefault();
+},{passive:false});
+function gripEnd(){
+  const G=_grip;if(!G)return;_grip=null;
+  document.body.classList.remove('bresizing');
+  if(!G.moved)return;                              // a click, or half of a double-click: nothing to save or redraw
+  _suppress=true;
+  store.settings.boardSize=G.w;save();
+  render();
+}
+window.addEventListener('pointerup',gripEnd);
+window.addEventListener('pointercancel',gripEnd);
+document.addEventListener('dblclick',function(e){
+  const g=e.target&&e.target.closest?e.target.closest('.bgrip i'):null;if(!g)return;
+  e.preventDefault();store.settings.boardSize=BOARD_DEF;save();render();
+});
 /* Smooth piece glide (FLIP): pieces slide from their old square to the new one
    with a chess.com-like ease; castling also glides the rook. */
 function animateLast(){var b=document.querySelector('.board[data-last]');if(!b)return;var dl=b.getAttribute('data-last')||'';var key=(b.getAttribute('data-fen')||'')+'|'+dl;if(dl.length<4){app._animKey=key;return;}if(app._animKey===key)return;app._animKey=key;if(store.settings.anim===false||motionReduced())return;

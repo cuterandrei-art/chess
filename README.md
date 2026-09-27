@@ -1920,9 +1920,29 @@ launch builds nothing.
 
 ---
 
+## Drag the board to resize it
+
+With a mouse or a pen, every board has a grip on its bottom-right corner.
+Drag it and the board grows or shrinks as you go, with its size shown beside
+the grip; let go and that size is kept, for every board in the app. Dragging
+down grows the board one for one; dragging sideways counts double, because the
+board is centred and its corner only moves half as far as it grows. It stops
+at 300px and at the edge of its column (up to 1,200px on a big screen), and
+the number saved is always the size you see. A double-click on the grip puts
+it back to the default. A redraw in the middle of a drag (the engine's next
+line, a clock tick) keeps the size you are dragging, and a plain click on the
+grip saves nothing.
+
+It is the same setting as **Settings → Board size**, whose slider now reaches
+1,200px and stays the way to do it from the keyboard. On a phone there is no
+grip: the board already fills the screen.
+
+`validate-resize.mjs` covers the grip, dragging both ways, the limits, a redraw
+mid-drag, double-click, that a resize never moves a piece, and phones.
+
 ## Tests
 
-Sixty-four suites, about 5,900 checks, plus twenty-one browser suites that drive the real app with the real engine.
+Sixty-five suites, about 5,920 checks, plus twenty-one browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
