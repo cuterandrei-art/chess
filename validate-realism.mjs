@@ -1085,7 +1085,9 @@ X.joinTournament('intl');playOut(c,()=>0.5);
 ok(X.tourLocked(TT('intl'),c)===null,'an ordinary international open is held somewhere every week');
 c.season++;c.weeks=(c.season-1)*52+15;c.day=0;c.calDone=[];
 ok(X.tourLocked(TT('reykjavik'),c)===null,'and next season, in its week, it is back');
-ok(['candidates','wcc','intl','club','imrr','gmrr','supergm'].every(id=>!X.ANNUAL_EVENTS.has(id)),'the cycle events and the generic ones are not on the annual list');
+ok(['candidates','wcc','intl','imrr','gmrr','supergm'].every(id=>!X.ANNUAL_EVENTS.has(id)),'the cycle events and the generic ones are not on the annual list');
+// the club championship is a championship: entered weekly it let a K-40 teenager farm the 400-point rule (validate-farming.mjs)
+ok(X.ANNUAL_EVENTS.has('club'),'the local club championship is once a season, like every other championship');
 /* norms are made in standard chess */
 c=pc(2300);
 ok(!X.normsOnOffer(TT('worldrapid'),c)&&!X.normsOnOffer(TT('indiablitz'),c),'a rapid or blitz event offers no FIDE norm');

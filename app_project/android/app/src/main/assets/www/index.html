@@ -5249,21 +5249,49 @@ function ratingRef(c,fmt){
   const r0=c[rk]!=null?c[rk]:(c.rating!=null?c.rating:1400);
   return {fmt:fmt,r0:r0,k:(c[gk]||0)<30?40:((c[pk]||0)>=2400?10:20),acc:0};
 }
+/* Your rating and how strong you actually are.
+   A simulated game used to be decided by your rating, and FIDE's rule that a
+   gap of more than 400 counts as 400 means a player far above the field gains
+   a little from every win however weak the opposition. Together that was a
+   loop: beating 1350s raised the rating, the higher rating won the next game
+   more surely, and a career that did nothing but enter the Local Club
+   Championship went 2119, 2521, 2755, 2980 in four seasons. Every player on
+   the world list already had a hidden strength apart from their rating; now
+   you do too. It moves like an Elo with no cap, so beating players far below
+   you is worth what it should be (almost nothing), and simulated games are
+   decided by it. The published rating still follows FIDE's rules exactly,
+   400-point rule included, so farming weak events can inflate the number the
+   way it could in real life, and an inflated rating is lost again as soon as
+   you meet players of that rating.
+   The career's pace setting speeds up the part of a rating change that comes
+   from playing better than your rating, not the free points the 400 rule
+   hands out, so Accelerated no longer doubles them. */
+function eloExpect(me,opp){return 1/(1+Math.pow(10,(opp-me)/400));}
+function youStrength(c,fmt){fmt=fmt||'classical';const r=youRating(c,fmt);const s=c&&c.str&&c.str[fmt];return (s==null||r==null)?r:s;}
+function strengthMove(c,fmt,oppRating,score,k){
+  const r=youRating(c,fmt);if(r==null||oppRating==null)return;
+  c.str=c.str||{};const T=c.str[fmt]==null?r:c.str[fmt];
+  // the same floor as the rating itself: 1400 classical, 1000 rapid and blitz
+  c.str[fmt]=Math.max(fmt==='classical'?1400:1000,Math.round((T+k*paceMul(c)*(score-eloExpect(T,oppRating)))*10)/10);}
+/* A rating change: FIDE's own (with the 400 cap) at realistic speed, plus the
+   pace's extra measured against the uncapped expectation. */
+function paceDelta(c,k,r,oppRating,score){
+  const D=Math.max(-400,Math.min(400,r-oppRating));
+  const We=1/(1+Math.pow(10,-D/400));
+  return k*(score-We)+(paceMul(c)-1)*k*(score-eloExpect(r,oppRating));}
 function applyRatedGame(c,oppRating,score,ref){
   c.ratedGames=(c.ratedGames||0)+1;
   if(c.provisional){c.provScore=(c.provScore||0)+score;c.provOppSum=(c.provOppSum||0)+oppRating;return 0;}
   if(ref&&ref.r0!=null&&ref.fmt==='classical'){
-    const D=Math.max(-400,Math.min(400,ref.r0-oppRating));
-    const We=1/(1+Math.pow(10,-D/400));
-    ref.acc=(ref.acc||0)+ref.k*paceMul(c)*(score-We);
+    strengthMove(c,'classical',oppRating,score,ref.k);
+    ref.acc=(ref.acc||0)+paceDelta(c,ref.k,ref.r0,oppRating,score);
     const next=Math.max(1400,ref.r0+Math.round(ref.acc));
     const delta=next-(c.rating||ref.r0);
     c.rating=next;c.peak=Math.max(c.peak||0,c.rating);
     return delta;
   }
-  const D=Math.max(-400,Math.min(400,(c.rating||1400)-oppRating));
-  const We=1/(1+Math.pow(10,-D/400));
-  const delta=Math.round(kFactor(c)*paceMul(c)*(score-We));
+  const k=kFactor(c);strengthMove(c,'classical',oppRating,score,k);
+  const delta=Math.round(paceDelta(c,k,c.rating||1400,oppRating,score));
   c.rating=Math.max(1400,(c.rating||1400)+delta);
   c.peak=Math.max(c.peak||0,c.rating);
   return delta;
@@ -5282,7 +5310,7 @@ function publishRating(c){
   const n=c.ratedGames+INIT_HYP_GAMES;
   const Ra=(c.provOppSum+INIT_HYP_RATING*INIT_HYP_GAMES)/n;
   const Rp=Math.round(Ra+dpFromPct((c.provScore+INIT_HYP_GAMES*0.5)/n));
-  if(Rp>=1400){c.rating=Rp;c.peak=Math.max(c.peak||0,Rp);c.provisional=false;return true;}
+  if(Rp>=1400){c.rating=Rp;c.peak=Math.max(c.peak||0,Rp);c.provisional=false;c.str=c.str||{};c.str.classical=Rp;return true;}
   return false;
 }
 /* Apply one game in any format. Classical feeds the title/norm progression
@@ -5297,17 +5325,15 @@ function applyByFormat(c,fmt,oppRating,score,ref){
   let delta;
   if(ref&&ref.r0!=null&&ref.fmt===fmt){
     // the same per-event rule as classical: one start rating, one K, one rounding
-    const D=Math.max(-400,Math.min(400,ref.r0-oppRating));
-    const We=1/(1+Math.pow(10,-D/400));
-    ref.acc=(ref.acc||0)+ref.k*paceMul(c)*(score-We);
+    strengthMove(c,fmt,oppRating,score,ref.k);
+    ref.acc=(ref.acc||0)+paceDelta(c,ref.k,ref.r0,oppRating,score);
     const next=Math.max(1000,ref.r0+Math.round(ref.acc));
     delta=next-c[rk];
     c[rk]=next;
   }else{
-    const D=Math.max(-400,Math.min(400,c[rk]-oppRating));
-    const We=1/(1+Math.pow(10,-D/400));
     const K=(c[gk]||0)<30?40:((c[pk]||0)>=2400?10:20);
-    delta=Math.round(K*paceMul(c)*(score-We));
+    strengthMove(c,fmt,oppRating,score,K);
+    delta=Math.round(paceDelta(c,K,c[rk],oppRating,score));
     c[rk]=Math.max(1000,c[rk]+delta);
   }
   c[gk]=(c[gk]||0)+1;
@@ -14668,7 +14694,7 @@ function careerProSim(){
   if(c.tour||!proDue(c))return;
   const m=proMyMatch(c);if(!m)return;
   const w=worldById(m.opp.wid),oppS=w?wpStrength(w,'classical'):m.opp.rating;
-  const myr=(youRating(c,'classical')||c.rating)+conditionMod(c);
+  const myr=(youStrength(c,'classical')||c.rating)+conditionMod(c);
   const E=1/(1+Math.pow(10,(oppS-myr-colourEdge(proColour(m)))/400)),score=_simScore(c,E);
   worldVsYou(c,m.opp,score,'classical');
   app.careerDelta=applyByFormat(c,'classical',m.opp.rating,score);
@@ -17488,7 +17514,7 @@ function careerDailyPanel(c){if(!dailyAvailable(c))return '';var b=dailyBonusAmt
 /* How well somebody off the list actually plays — their rating is only what
    their results say. Anybody else plays at their rating. */
 function oppStrength(opp,fmt){const w=worldPlayerOf(opp);return w?wpStrength(w,fmt||'classical'):opp.rating;}
-function _simRound(c){var tr=c.tour;finishDraw(tr);var opp=tr.field[tr.round];var myr=(youRating(c,tr.format||'classical')||(c.rating||1400))+conditionMod(c)+(tr.wm?wmBeforeGame(c,tr):0);
+function _simRound(c){var tr=c.tour;finishDraw(tr);var opp=tr.field[tr.round];var myr=(youStrength(c,tr.format||'classical')||(c.rating||1400))+conditionMod(c)+(tr.wm?wmBeforeGame(c,tr):0);
   var side=tourColourOf(tr,tr.round);
   var E=1/(1+Math.pow(10,(oppStrength(opp,tr.format)-myr-colourEdge(side))/400)),score=_simScore(c,E);
   app.careerFinish=null;app.careerOpp='tour';app.careerScored=false;app.careerTour=true;app.careerOneoff=null;app.careerRoundOpp=opp;app.careerElo=opp.rating;app.playMoves=[];app.c960=null;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=false;
@@ -18358,7 +18384,11 @@ function nextTitleInfo(c){
    (just like the real super-tournament circuit). */
 const INVITE_EVENTS={supergm:{rank:18,fee:1500},tatasteel:{rank:14,fee:2200},superbet:{rank:14,fee:1800},norway:{rank:10,fee:2600}};
 function appearanceFee(t,c){var inv=INVITE_EVENTS[t&&t.id];if(!inv)return 0;return Math.round(inv.fee*(1+(c.fame||0)/120));}
-const ANNUAL_EVENTS=new Set(['natwch','contwch','welite','wgrandswiss','wolympiad','wworldrapid','wworldblitz','natyouth','contyouth','worldyouth','contjunior','worldjunior','natch','continental','olympiad','hastings','reykjavik','dubai','gibraltar','aeroflot','qatar',
+/* A championship is held once a year, the local club's included: entered every
+   week, a teenager on K 40 could win it 52 times a season and ride FIDE's
+   400-point rule most of the way to 2600 against 1350s. The City Open and the
+   rapid and blitz opens are still there every weekend. */
+const ANNUAL_EVENTS=new Set(['club','natwch','contwch','welite','wgrandswiss','wolympiad','wworldrapid','wworldblitz','natyouth','contyouth','worldyouth','contjunior','worldjunior','natch','continental','olympiad','hastings','reykjavik','dubai','gibraltar','aeroflot','qatar',
   'grandswiss','tatasteel','superbet','norway','cityrapid','indiarapid','worldrapid','indiablitz','worldblitz','fischerwc','creatorcup']);
 function tourLocked(t,c,noCal){
   const why=tourLockedBy(t,c);
@@ -19546,8 +19576,8 @@ function playoffFirst(c,tr){
     return {id:q?q.id:null,name:p.name,rating:p.rating,rapid:q?pubRating(q,'rapid'):p.rating,blitz:q?pubRating(q,'blitz'):p.rating};};
   const me=tied.filter(function(p){return p.you;})[0];
   if(me){
-    const opp=tied.filter(function(p){return !p.you;})[0],myR=youRating(c,'classical')||c.rating;
-    const A={rating:myR,rapid:c.ratingRapid||myR,blitz:c.ratingBlitz||myR},B=speed(opp);
+    const opp=tied.filter(function(p){return !p.you;})[0],myR=youStrength(c,'classical')||c.rating;
+    const A={rating:myR,rapid:youStrength(c,'rapid')||myR,blitz:youStrength(c,'blitz')||myR},B=speed(opp);
     const tb=koTiebreak(Object.assign({you:true,id:'__you'},A),B,from);
     tb.games.forEach(function(x){
       if(x.fmt==='rapid'){worldVsYou(c,opp,x.s,'rapid');applyByFormat(c,'rapid',B.rapid,x.s);}
@@ -21506,7 +21536,9 @@ function koAfterGame(c,tr){
   let won,tb=null;
   if(classical!==1)won=classical>1;
   else{
-    tb=koTiebreak(me,opp);won=tb.aWins;
+    // the tiebreak games are simulated, so they are decided by how strong you are, not by your rating
+    const meS=Object.assign({},me,{rating:youStrength(c,'classical')||me.rating,rapid:youStrength(c,'rapid')||me.rapid,blitz:youStrength(c,'blitz')||me.blitz});
+    tb=koTiebreak(meS,opp);won=tb.aWins;
     // tiebreak games are rated, in rapid and blitz, as they are in life — for both of you
     tb.games.forEach(function(x){
       if(x.fmt==='rapid'){worldVsYou(c,opp,x.s,'rapid');applyByFormat(c,'rapid',opp.rapid||opp.rating,x.s);}

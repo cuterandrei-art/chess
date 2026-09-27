@@ -1600,6 +1600,37 @@ app in a browser against positions whose answers are known independently
 (mates both ways, a queen up each way, finished games, stepping faster than
 the engine can answer, and a game with one known blunder).
 
+## Your rating and your strength
+
+FIDE counts any rating gap above 400 as exactly 400, so a player far above the
+field gains a little from every win however weak the opposition. In the
+career that became a loop. A simulated game was decided by your rating, so
+every point won made the next game easier to win. A career that entered only
+the weakest event every week reached **3058 in four seasons at Realistic pace
+and 3779 at Accelerated**, above anyone who has ever played.
+
+Now you have a hidden playing strength, as every player on the world list
+already did. It moves like an Elo rating with no cap, so beating players far
+below you adds almost nothing to it, and simulated games are decided by it.
+Your published rating still follows FIDE's rules exactly, the 400-point rule
+included. Farming weak events can therefore still nudge the number up, as it
+could in real life, and an inflated rating is lost again as soon as you meet
+players of that rating. Accelerated and Prodigy speed up the part of a rating
+change that comes from playing better than your rating. They no longer
+multiply the free points the 400-point rule hands out. The Local Club
+Championship is also once a season now, like every other championship,
+because a K-40 teenager entering it weekly could ride the 400-point rule
+most of the way to 2600.
+
+`validate-farming.mjs` checks single games against the FIDE numbers at every
+pace, per-event rating, the separate rapid and blitz strengths, the floors, and
+that simulated results follow strength rather than rating. It then plays the
+loophole itself: a player frozen at 1800 who enters the weakest event every
+week for three seasons now peaks around 2000–2100, where before the rating
+alone passed 2840 in two seasons.
+
+---
+
 ## Search
 
 Thirty-odd screens, 29 openings and their courses, puzzles by theme,
@@ -1801,7 +1832,7 @@ launch builds nothing.
 
 ## Tests
 
-Sixty-one suites, about 5,800 checks, plus twenty-one browser suites that drive the real app with the real engine.
+Sixty-two suites, about 5,800 checks, plus twenty-one browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
