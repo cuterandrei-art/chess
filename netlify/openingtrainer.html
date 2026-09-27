@@ -6216,7 +6216,7 @@ function viewMasters(){
   h+='<div class="layout"><div class="boardwrap">'+renderBoard(fens[idx],orient,{last:lasts[idx],interactive:false})+
     '<div class="row" style="justify-content:center;gap:6px;margin-top:8px"><button class="btn ghost sm" data-act="mfirst">⏮</button><button class="btn ghost sm" data-act="mprev" '+(idx>0?'':'disabled')+'>◀</button><button class="btn ghost sm" data-act="mnext" '+(idx<fens.length-1?'':'disabled')+'>▶</button><button class="btn ghost sm" data-act="mlast">⏭</button><button class="btn ghost sm" data-act="mflip">⇅ Flip</button></div></div>'+
     '<div><div class="card"><div style="text-transform:uppercase;font-size:11px;letter-spacing:.08em;color:var(--muted)">Moves</div><div style="max-height:260px;overflow:auto;margin-top:6px;line-height:1.9">'+mlist+'</div></div>'+
-    (store.settings.showEval?'<div class="card" style="margin-top:12px">'+(app.mEval?'<div class="row" style="justify-content:space-between;margin-bottom:5px"><span class="dim small">Engine '+esc(evalDepth(app.mEval))+'</span><span class="small" style="font-weight:800">'+esc(evalLabel(app.mEval))+'</span></div><div class="evalbar"><i style="width:'+evalPct(app.mEval.t,app.mEval.v,app.mEval.stm)+'%"></i></div>'+linesHtml(app.mLines):'<span class="dim small">Analysing… (deep)</span>')+'<button class="btn ghost sm" data-act="meval" style="margin-top:8px">Hide engine</button></div>':'<div class="row" style="margin-top:12px"><button class="btn sec sm" data-act="meval">🔍 Engine eval</button></div>')+
+    (store.settings.showEval?'<div class="card" style="margin-top:12px">'+(app.mEval?'<div class="row" style="justify-content:space-between;margin-bottom:5px"><span class="dim small">'+esc(evalHead(app.mEval))+'</span><span class="small" style="font-weight:800">'+esc(evalLabel(app.mEval))+'</span></div><div class="evalbar"><i style="width:'+evalPct(app.mEval.t,app.mEval.v,app.mEval.stm)+'%"></i></div>'+linesHtml(app.mLines):'<span class="dim small">Analysing… (deep)</span>')+'<button class="btn ghost sm" data-act="meval" style="margin-top:8px">Hide engine</button></div>':'<div class="row" style="margin-top:12px"><button class="btn sec sm" data-act="meval">🔍 Engine eval</button></div>')+
     '<div class="card" style="margin-top:12px"><button class="btn primary sm" data-act="mplay">▶ Play from here vs engine</button><div class="dim small" style="margin-top:6px">'+esc(short(g.w))+' vs '+esc(short(g.b))+(g.o?' · ECO '+esc(g.o):'')+'. Use ◀ ▶ or tap a move.</div></div></div></div>';
   return h;
 }
@@ -10120,7 +10120,7 @@ function viewExplorer(){
     '<button class="btn ghost sm" data-act="exflip">⇅ Flip</button></div></div>';
   h+='<div><div class="card"><div class="muted small">'+esc(o.description)+'</div></div>'+
     (free?'<div class="note" style="margin-top:12px">🧭 Off-book — '+app.exFree.length+' move'+(app.exFree.length>1?'s':'')+' beyond the course. <button class="btn ghost sm" data-act="exclearfree">↩ Back to course</button></div>':'')+
-    (store.settings.showEval?'<div class="card" style="margin-top:12px">'+(app.exEval?'<div class="row" style="justify-content:space-between;margin-bottom:5px"><span class="dim small">Engine '+esc(evalDepth(app.exEval))+'</span><span class="small" style="font-weight:800">'+esc(evalLabel(app.exEval))+'</span></div><div class="evalbar"><i style="width:'+evalPct(app.exEval.t,app.exEval.v,app.exEval.stm)+'%"></i></div>'+linesHtml(app.exLines):'<span class="dim small">Analysing… (deep)</span>')+'<button class="btn ghost sm" data-act="exeval" style="margin-top:8px">Hide engine</button></div>':'<div class="row" style="margin-top:12px"><button class="btn sec sm" data-act="exeval">🔍 Engine eval — play any move to test it</button></div>')+
+    (store.settings.showEval?'<div class="card" style="margin-top:12px">'+(app.exEval?'<div class="row" style="justify-content:space-between;margin-bottom:5px"><span class="dim small">'+esc(evalHead(app.exEval))+'</span><span class="small" style="font-weight:800">'+esc(evalLabel(app.exEval))+'</span></div><div class="evalbar"><i style="width:'+evalPct(app.exEval.t,app.exEval.v,app.exEval.stm)+'%"></i></div>'+linesHtml(app.exLines):'<span class="dim small">Analysing… (deep)</span>')+'<button class="btn ghost sm" data-act="exeval" style="margin-top:8px">Hide engine</button></div>':'<div class="row" style="margin-top:12px"><button class="btn sec sm" data-act="exeval">🔍 Engine eval — play any move to test it</button></div>')+
     '<div class="card" style="margin-top:12px"><div class="l" style="text-transform:uppercase;font-size:11px;letter-spacing:.08em;color:var(--muted)">Moves</div>'+
     '<div class="moves" style="margin-top:4px">'+(sans.length?sans.map((m,i)=>'<button data-act="exjump" data-val="'+i+'">'+(i%2===0?(Math.floor(i/2)+1)+'.':'')+esc(m)+'</button>').join(' '):'<span class="dim">Starting position</span>')+'</div></div>';
   // one explanation, one box: the coach card carries the move, the reason and
@@ -11785,22 +11785,31 @@ const Engine={worker:null,ready:false,loading:null,
      it must not be credited to whatever is running by then — nor may a new
      `position` be sent while that abandoned search is still going. */
   _orphans:0,_orphanT:null,
+  label:null,
+  sources(){return sf19Sources().concat(sf10Sources());},
   load(){
     if(this.ready)return Promise.resolve(true);
     if(this.loading)return this.loading;
-    const urls=['https://cdn.jsdelivr.net/npm/stockfish.js@10.0.2/stockfish.js','https://unpkg.com/stockfish.js@10.0.2/stockfish.js','https://fastly.jsdelivr.net/npm/stockfish.js@10.0.2/stockfish.js'];
     this.loading=(async()=>{
-      for(const u of urls){try{
-        const r=await fetch(u);if(!r.ok)continue;const code=await r.text();
-        const blob=new Blob([code],{type:'text/javascript'});
-        this.worker=new Worker(URL.createObjectURL(blob));
+      let list=[];try{list=this.sources();}catch(e){list=[];}
+      for(const src of list){try{
+        const w=await engineSpawn(src);if(!w)continue;
+        this.worker=w;
         this.worker.onmessage=ev=>{const line=typeof ev.data==='string'?ev.data:(ev.data&&ev.data.data)||'';this._msg(line);};
         // Wait for the handshake. Commands sent before `readyok` can be
         // dropped on the floor, which used to lose the very first analysis.
+        // Stockfish 19 has to answer, or the next source is tried; the old
+        // engine was always given the benefit of the doubt, and still is.
+        // A browser that cannot run it says so with an error, and is not kept
+        // waiting for the full time.
         const ready=new Promise(res=>{this._onReady=res;});
+        const broke=new Promise(res=>{try{w.onerror=()=>res(false);}catch(e){}});
         this.send('uci');this.send('isready');
-        await Promise.race([ready,new Promise(res=>setTimeout(res,4000))]);
-        this._onReady=null;this.ready=true;return true;
+        let tm=null;
+        const got=await Promise.race([ready,src.strict?broke:new Promise(()=>{}),new Promise(res=>{tm=setTimeout(()=>res(false),src.strict?ENGINE_WAIT.strict:ENGINE_WAIT.lenient);})]);
+        clearTimeout(tm);this._onReady=null;try{w.onerror=null;}catch(e){}
+        if(!got&&src.strict){try{w.terminate();}catch(e){}this.worker=null;continue;}
+        this.label=src.label;this.ready=true;return true;
       }catch(e){}}
       return false;
     })();
@@ -11891,7 +11900,7 @@ const Engine={worker:null,ready:false,loading:null,
         req.lines[mp]={t:sc[1],v:v,pv:sp.length>1?sp[1].trim():''};
       }
       if(mp===1){
-        req.ev={t:sc[1],v:v,stm:turnOf(req.fen),d:dp};
+        req.ev={t:sc[1],v:v,stm:turnOf(req.fen),d:dp,eng:this.label||null};
         if(req.onInfo)req.onInfo(sc[1],v,dp);
       }
       return;
@@ -11944,6 +11953,57 @@ const Engine={worker:null,ready:false,loading:null,
       movetime:movetime||(d>=40?6000:Math.max(1500,d*160)),cb:cb,onInfo:onInfo||null});
   }
 };
+/* Two engines.
+   Analysis — the analysis board, the explorer's bar, the live board, Game
+   Review, the post-mortem, the hint — runs on Stockfish 19 (the lite,
+   single-threaded WebAssembly build: 1.6 MB, no special server headers, and a
+   neural-network evaluation). Measured in Chromium it answers in 0.17 s where
+   Stockfish 10 took 0.67, reaches depth 18 in two seconds where 10 reached 14,
+   and looks at 3.6 times as many positions. Its files ship next to the app
+   (engine/), are embedded in the standalone file and the Android app, and
+   are fetched from npm's CDNs as a last resort.
+   Your opponents stay on Stockfish 10. Their strengths were calibrated on it
+   (botParams, the move-choice model and the time use), and a stronger engine
+   underneath would change every bot's rating. Each falls back to the other
+   when it cannot load, so offline the standalone file still plays. */
+const SF10_URLS=['https://cdn.jsdelivr.net/npm/stockfish.js@10.0.2/stockfish.js','https://unpkg.com/stockfish.js@10.0.2/stockfish.js','https://fastly.jsdelivr.net/npm/stockfish.js@10.0.2/stockfish.js'];
+const SF19_FILE='stockfish-19-lite-single';
+// how long each source has to answer `isready` before the next is tried (ms)
+const ENGINE_WAIT={strict:10000,lenient:4000};
+function sf10Sources(){return SF10_URLS.map(function(u){return {label:'Stockfish 10',strict:false,jsUrl:u};});}
+function sf19Sources(){
+  var out=[],W=typeof window!=='undefined'?window:{},proto='',href='';
+  try{proto=location.protocol;href=location.href;}catch(e){}
+  if(W.__SF19&&W.__SF19.js&&W.__SF19.wasm)out.push({label:'Stockfish 19',strict:true,js:W.__SF19.js,wasmB64:W.__SF19.wasm});
+  if(/^https?:$/.test(proto)){try{var b=new URL('engine/',href).href;out.push({label:'Stockfish 19',strict:true,jsUrl:b+SF19_FILE+'.js',wasmUrl:b+SF19_FILE+'.wasm'});}catch(e){}}
+  ['https://cdn.jsdelivr.net/npm/stockfish@19.0.0/bin/','https://unpkg.com/stockfish@19.0.0/bin/'].forEach(function(b){
+    out.push({label:'Stockfish 19',strict:true,jsUrl:b+SF19_FILE+'.js',wasmUrl:b+SF19_FILE+'.wasm'});});
+  return out;
+}
+/* A worker for one source. The WebAssembly build is told where its .wasm is
+   after a # on the worker's address (a worker made from a blob has no folder
+   of its own to look in).
+   The embedded copy cannot be handed over as a blob: URL — a worker started
+   from a page opened as a file gets an origin of its own and may not read the
+   page's blobs. So the .wasm travels inside the worker's own script, and a
+   stand-in fetch gives it to the loader when it asks for EMBED_WASM. */
+const EMBED_WASM='embedded-engine.wasm';
+function embedPrelude(b64){
+  return 'var __SFW="'+b64+'";(function(){var b=null,f=self.fetch;self.fetch=function(u){'+
+    'if(String(u).indexOf("'+EMBED_WASM+'")>=0){if(!b){var s=atob(__SFW),n=s.length;b=new Uint8Array(n);for(var i=0;i<n;i++)b[i]=s.charCodeAt(i);__SFW=null;}'+
+    'return Promise.resolve(new Response(b,{status:200,headers:{"Content-Type":"application/wasm"}}));}'+
+    'return f.apply(self,arguments);};})();\n';
+}
+async function engineSpawn(src){
+  var js=src.js;
+  if(!js){var r=await fetch(src.jsUrl);if(!r.ok)return null;js=await r.text();}
+  var wasm=src.wasmUrl||null;
+  if(src.wasmB64){js=embedPrelude(src.wasmB64)+js;wasm=EMBED_WASM;}
+  var url=URL.createObjectURL(new Blob([js],{type:'text/javascript'}))+(wasm?'#'+encodeURIComponent(wasm):'');
+  return new Worker(url);
+}
+const BotEngine=Object.assign({},Engine,{worker:null,ready:false,loading:null,_seq:0,_cur:null,_next:null,_stopping:false,_wd:null,
+  _orphans:0,_orphanT:null,label:null,sources(){return sf10Sources().concat(sf19Sources());}});
 /* Always from White's point of view, so the number and the bar agree. A mate
    against the side to move must not read the same as a mate for them, and
    "mate in 0" means the side to move has already been mated. */
@@ -11970,6 +12030,8 @@ function evalLabel(ev){
   return evalStr(ev.t,ev.v,ev.stm);
 }
 function evalDepth(ev){return (ev&&ev.d&&!ev.over)?('depth '+ev.d):'';}
+/* Which engine said it, and how deep: "Stockfish 19 · depth 18". */
+function evalHead(ev){const d=evalDepth(ev);return ((ev&&ev.eng)||'Engine')+(d?' · '+d:'');}
 /* A position with no legal moves is not a job for the engine: it reports no
    principal variation at all, which used to leave the eval bar thinking for
    ever and the live board claiming the engine had failed to load. */
@@ -12799,7 +12861,7 @@ function playResume(){
   app.booth=(g.booth&&g.booth.pair)?g.booth:null;
   app.clock=g.clock?{w:g.clock.w,b:g.clock.b,inc:g.clock.inc,lastTs:performance.now(),
     botSide:null,botRate:0,botBudget:0,botUsed:0,botFrom:null}:null;
-  if(app.clock)Engine.load();
+  if(app.clock)BotEngine.load();
   // trust the board over the stored flag: whoever is to move, moves
   app.playStatus=(turnOf(app.playFen)===app.playSide)?'play':'engine';
   stopClockTick();
@@ -12898,7 +12960,7 @@ function startPlay(fen,side,openingId,title,opts){opts=opts||{};
   app.streamShow=null;streamReset();                        // whatever was live ended with the last game
   const tc=opts.tc||tcById((opts.tcId)||'unlimited');app.tc=tc;
   if(tc.base>0){app.clock={w:tc.base*1000,b:tc.base*1000,inc:tc.inc*1000,lastTs:performance.now(),
-    botSide:null,botRate:0,botBudget:0,botUsed:0,botFrom:null};Engine.load();}
+    botSide:null,botRate:0,botBudget:0,botUsed:0,botFrom:null};BotEngine.load();}
   else app.clock=null;
   stopClockTick();
   if(app.pass)app.playFlip=app.pass.flip?false:(side==='b');
@@ -12954,7 +13016,7 @@ async function engineMove(){app.playStatus='engine';render();
       // still in theory; the next move off the book is the one they stop on
       app._engOutOfBook=!(pick.children&&pick.children.length);
       if(!checkOver())app.playStatus='play';render();tryPremove();return;}}
-  const ok=await Engine.load();if(!ok){app.engineErr=true;app.playStatus='play';render();return;}
+  const ok=await BotEngine.load();if(!ok){app.engineErr=true;app.playStatus='play';render();return;}
   // Which format this is decides both how the opponent's rating is read and how
   // well they actually move (see the real-life strength model above).
   const cat=tcCategory(app.tc);
@@ -12999,7 +13061,7 @@ async function engineMove(){app.playStatus='engine';render();
   startBotClock(eng,plan);
   const thinkFen=app.playFen;
   const thinkStart=performance.now();
-  Engine.think(app.playFen,lvl,plan.search,best=>{
+  BotEngine.think(app.playFen,lvl,plan.search,best=>{
     // If the engine gave nothing (it timed out, or the search was taken from
     // it) the position is still its move: ask once more rather than handing
     // the turn back to a player who cannot move.
@@ -23021,10 +23083,10 @@ function specStep(){const S=app.spec;if(!S||app.view!=='spectate'||S.paused||S.s
   const c=new Chess(S.fen);
   if(c.isGameOver()||S.moves.length>=160){S.status='over';S.result=c.isCheckmate()?((c.turn()==='w'?S.b.name:S.w.name)+' wins by checkmate'):'Draw';
     specRate(S,c.isCheckmate()?(c.turn()==='w'?0:1):0.5);specChatEnd(S,c.isCheckmate()?(c.turn()==='w'?'b':'w'):null);render();return;}
-  Engine.load().then(ok=>{if(!app.spec||app.spec!==S||app.view!=='spectate')return;
+  BotEngine.load().then(ok=>{if(!app.spec||app.spec!==S||app.view!=='spectate')return;
     if(!ok){S.status='over';S.result='Engine needs internet on first load';render();return;}
     const side=turnOf(S.fen),rt=side==='w'?S.w.rating:S.b.rating,lvl=specLvl(rt);
-    Engine.think(S.fen,lvl,lvl.mt,best=>{if(!app.spec||app.spec!==S||app.view!=='spectate')return;
+    BotEngine.think(S.fen,lvl,lvl.mt,best=>{if(!app.spec||app.spec!==S||app.view!=='spectate')return;
       if(best&&best!=='(none)'){const m=tryFromTo(S.fen,best.slice(0,2),best.slice(2,4),best[4]||'q');
         if(m){S.fen=m.fen;S.last={from:best.slice(0,2),to:best.slice(2,4)};S.moves.push(m.san);if(S.stack)S.stack.push(m.fen);sfxSan(m.san);specChatMove(S);}}
       render();setTimeout(specStep,650);});});}
@@ -26138,7 +26200,7 @@ function viewAnalysis(){
   var engine;
   if(!anaEngineOn())engine='<div class="card" style="margin-top:12px"><button class="btn sec sm" data-act="anaengine">🔍 Turn the engine on</button></div>';
   else{var ev=a.eval;
-    engine='<div class="card" style="margin-top:12px">'+(ev?'<div class="row" style="justify-content:space-between;margin-bottom:5px"><span class="dim small">Engine '+esc(evalDepth(ev))+'</span><span class="small" style="font-weight:800">'+esc(evalLabel(ev))+'</span></div><div class="evalbar"><i style="width:'+evalPct(ev.t,ev.v,ev.stm)+'%"></i></div>'+
+    engine='<div class="card" style="margin-top:12px">'+(ev?'<div class="row" style="justify-content:space-between;margin-bottom:5px"><span class="dim small">'+esc(evalHead(ev))+'</span><span class="small" style="font-weight:800">'+esc(evalLabel(ev))+'</span></div><div class="evalbar"><i style="width:'+evalPct(ev.t,ev.v,ev.stm)+'%"></i></div>'+
       (a.lines&&a.lines.length?a.lines.map(function(L,i){return '<div class="small" style="margin-top:5px;display:flex;gap:6px;align-items:baseline;min-width:0"><b style="min-width:46px">'+esc(evalStr(L.t,L.v,L.stm))+'</b>'+
         (L.from?'<button class="btn ghost sm" style="padding:1px 7px" data-act="anaplay" data-val="'+L.from+L.to+'" title="Play this move">'+esc(L.sans[0]||'')+'</button>':'')+
         '<span class="dim" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+L.sans.slice(1).map(esc).join(' ')+'</span></div>';}).join(''):'')
@@ -26276,7 +26338,7 @@ async function reviewStep(){const R=app.review;if(!R||R.status!=='analyzing')ret
   Engine.analyse(fen,16,function(best,lines,ev,superseded){
     if(superseded){setTimeout(reviewStep,30);return;}   // something took the engine; ask again
     if(!app.review||app.review!==R||R.status!=='analyzing')return;
-    R.evals[R.i]=ev?{t:ev.t,v:ev.v,d:ev.d}:{t:'cp',v:0};R.best[R.i]=best||'';R.i++;render();setTimeout(reviewStep,5);},null,null,1);}
+    R.evals[R.i]=ev?{t:ev.t,v:ev.v,d:ev.d}:{t:'cp',v:0};if(ev&&ev.eng)R.eng=ev.eng;R.best[R.i]=best||'';R.i++;render();setTimeout(reviewStep,5);},null,null,1);}
 function reviewFinish(){const R=app.review;const n=R.moves.length;const sans=[];
   let accSumW=0,accCntW=0,accSumB=0,accCntB=0;
   for(let k=0;k<n;k++){const stm=turnOf(R.fens[k]);// white if 'w'
@@ -26352,7 +26414,8 @@ function viewReview(){
   const chips=Object.keys(REV_CLASS).filter(c=>counts[c]).map(c=>'<span class="chip" style="color:'+REV_CLASS[c][1]+'">'+counts[c]+' '+REV_CLASS[c][0]+'</span>').join('');
   const atEnd=R.pos>=R.fens.length-1,atStart=R.pos<=0;
   let h='<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px"><h1 style="font-size:20px">Game Review</h1><button class="btn ghost sm" data-act="nav" data-val="review">✕</button></div>';
-  h+='<div class="row" style="margin-bottom:12px">'+stat('White accuracy',R.accW+'%','#e2e8f0')+stat('Black accuracy',R.accB+'%','#94a3b8')+'</div>';
+  h+='<div class="row" style="margin-bottom:'+(R.eng?'4':'12')+'px">'+stat('White accuracy',R.accW+'%','#e2e8f0')+stat('Black accuracy',R.accB+'%','#94a3b8')+'</div>';
+  if(R.eng)h+='<div class="dim small" id="reveng" style="margin-bottom:12px">Reviewed by '+esc(R.eng)+'.</div>';
   // reading that a move was a mistake teaches less than being made to find the
   // better one, so offer the practice right next to the verdict
   const _dn=drillBuild(R).length;

@@ -1,6 +1,6 @@
 // Build the Netlify/PWA bundle from work/openingtrainer.html.
 // Usage: node build-netlify.mjs [newSwVersion]   (e.g. node build-netlify.mjs 43)
-import { readFileSync, writeFileSync, copyFileSync } from 'fs';
+import { readFileSync, writeFileSync, copyFileSync, mkdirSync, readdirSync } from 'fs';
 
 const app = readFileSync('work/openingtrainer.html', 'utf8');
 const head = readFileSync('build/pwa-head.html', 'utf8');
@@ -14,6 +14,11 @@ idx = idx.replace('</body>', sw + '\n</body>');
 
 writeFileSync('netlify/index.html', idx);
 copyFileSync('work/openingtrainer.html', 'netlify/openingtrainer.html');
+
+// the analysis engine (Stockfish 19 lite) is served beside the page, and the
+// service worker keeps it for offline use
+mkdirSync('netlify/engine', { recursive: true });
+for (const f of readdirSync('build/engine')) copyFileSync('build/engine/' + f, 'netlify/engine/' + f);
 
 // bump the service-worker cache version if requested
 const ver = process.argv[2];

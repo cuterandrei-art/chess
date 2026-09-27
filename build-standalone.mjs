@@ -7,10 +7,12 @@
 // to Unicode glyphs via pieceErr() — it works, but it isn't the real board.
 //
 // This build inlines a full piece set as data URIs, makes it the default, and
-// drops the font links so nothing is requested over the wire. Stockfish is
-// deliberately left on its CDN: it is only needed to play the engine, the
-// eval bar and Game Review, and the app already degrades cleanly without it.
+// drops the font links so nothing is requested over the wire. The analysis
+// engine (Stockfish 19 lite, 1.6 MB) is embedded too, so the analysis board,
+// the eval bar and Game Review work offline — and when the opponents' engine
+// (Stockfish 10, on its CDN) cannot load, the games use this one instead.
 import { readFileSync, writeFileSync } from 'fs';
+import { embedEngine } from './build/embed-engine.mjs';
 
 const SRC = 'work/openingtrainer.html';
 const OUT = process.argv[2] || 'ChessCareer-standalone.html';
@@ -50,6 +52,9 @@ html = html
   .replace(/<link rel="preconnect"[^>]*>/g, '')
   .replace(/<link href="https:\/\/fonts\.googleapis\.com[^>]*>/g, '');
 
+// --- 4b. the analysis engine, inside the file -----------------------------
+html = embedEngine(html);
+
 // --- 5. prove it: nothing left that the page loads on its own -------------
 // Resource loads are what matter: <script src>, <img src>, <iframe src> and
 // <link href>. Plain <a href> links are fine — they are places the user can
@@ -62,10 +67,10 @@ if (loadBearing.length) throw new Error('standalone still loads at render time: 
 
 writeFileSync(OUT, html);
 const kept = [...new Set([...html.matchAll(/https?:\/\/[a-z0-9.-]+/gi)].map(m => m[0].toLowerCase()))];
-console.log(`${OUT} = ${html.length} bytes (source ${before}, +${html.length - before} for ${NAMES.length} inlined pieces)`);
+console.log(`${OUT} = ${html.length} bytes (source ${before}, +${html.length - before} for ${NAMES.length} inlined pieces and the embedded analysis engine)`);
 const links = [...new Set([...html.matchAll(/<a\b[^>]*\bhref="(https?:\/\/[^"]+)"/gi)].map(m => m[1].split('?')[0]))];
 console.log('no resource is fetched to render the page. Still referenced:');
-console.log('  on demand (only if you use the feature): the Stockfish CDN, the Lichess study API');
+console.log('  on demand (only if you use the feature): the opponents\' Stockfish 10 CDN, the Lichess study API');
 if (links.length) console.log('  as links you can tap: ' + links.join(', '));
 console.log('hosts appearing anywhere in the file:');
 for (const u of kept.sort()) console.log('  ' + u);

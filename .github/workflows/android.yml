@@ -50,6 +50,8 @@ jobs:
              netlify/apple-touch-icon.png netlify/favicon-32.png "$WWW/"
           # the WebView loads index.html only — don't ship a second 3MB copy
           rm -f "$WWW/openingtrainer.html"
+          # a WebView worker cannot fetch file:// URLs, so the analysis engine goes inside the page
+          node build/embed-engine.mjs "$WWW/index.html"
           ls -la "$WWW"
 
       - uses: actions/setup-java@v4

@@ -59,6 +59,8 @@ jobs:
           cp netlify/index.html netlify/sw.js netlify/manifest.webmanifest _site/
           cp netlify/icon-192.png netlify/icon-512.png netlify/icon-512-maskable.png \
              netlify/apple-touch-icon.png netlify/favicon-32.png _site/
+          # the analysis engine (Stockfish 19 lite) is served beside the page
+          cp -r netlify/engine _site/engine
           touch _site/.nojekyll
           ls -la _site
 

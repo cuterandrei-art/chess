@@ -83,9 +83,10 @@ Screen). It installs like an app and works offline.
 `node build-standalone.mjs`, is the whole game in one file that fetches
 *nothing* — the rules engine, all 25,000 puzzles and the piece graphics are
 inlined, and the web-font links are removed. Put it on a phone, a USB stick or
-a plane and open it. The only thing it will still reach for is Stockfish, and
-only if you play the engine, open the eval bar or run Game Review; everything
-else works with the radio off.
+a plane and open it. Stockfish 19, the analysis engine, is inside it too, so
+the eval bar and Game Review work with the radio off. The one thing it still
+reaches for is Stockfish 10, your opponents' engine, when you play a game; with
+no network it plays them on the built-in Stockfish 19 instead.
 
 `work/openingtrainer.html` is the same app but still pulls the pieces and the
 font from a CDN (pieces fall back to Unicode glyphs offline).
@@ -1480,8 +1481,9 @@ next refresh.
 | `build/` | The PWA `<head>` block and service-worker snippet injected at build time. |
 | `build-netlify.mjs` | Builds `netlify/` from the source file. `node build-netlify.mjs 51` also bumps the service-worker cache to `v51`. |
 | `build-standalone.mjs` | Builds `ChessCareer-standalone.html` — inlines the piece set from `build/pieces/` and strips every network reference the page needs to render. |
+| `build/engine/` | Stockfish 19 lite (the analysis engine), its GPL v3 licence and where it comes from. `build/embed-engine.mjs` puts it inside a page. |
 | `build/pieces/` | The twelve cburnett piece SVGs, committed so the standalone build is reproducible without a network. |
-| `netlify/` | The generated, installable web bundle (`index.html`, `sw.js`, manifest, icons). |
+| `netlify/` | The generated, installable web bundle (`index.html`, `sw.js`, manifest, icons, `engine/`). |
 | `app_project/android/` | The Android WebView wrapper that bundles the same files into an APK. |
 | `validate-*.mjs` | The test battery — one suite per system. |
 | `visual-check.mjs` | Boots the real app in headless Chromium, screenshots key screens and reports page errors. |
@@ -1509,6 +1511,12 @@ node visual-check.mjs
 
 # check the real engine against known positions (needs a network once)
 node engine-check.mjs
+
+# refresh the Android app's copy (its WebView cannot fetch file:// from a
+# worker, so the analysis engine goes inside the page)
+W=app_project/android/app/src/main/assets/www
+cp netlify/index.html netlify/sw.js netlify/manifest.webmanifest "$W/"
+node build/embed-engine.mjs "$W/index.html"
 
 # build the APK
 cd app_project/android && ./gradlew assembleDebug
@@ -1571,9 +1579,11 @@ as does leaving the board.
 
 ## The engine
 
-One Stockfish worker serves six callers: the bot in a game, the hint button,
-the spectator, Game Review, the explorer's eval bar and the live board. Each
-search therefore carries a ticket. Exactly one runs at a time, it owns its own
+There are two engine workers, each with the same queue: Stockfish 10 plays
+your opponents and the games you spectate, and Stockfish 19 does the analysis
+(the hint button, Game Review, the post-mortem, the analysis board, the
+explorer's eval bar and the live board). Several callers share each one, so
+every search carries a ticket. Exactly one runs at a time, it owns its own
 callbacks, and its results are delivered only to it — so an evaluation can
 never belong to a position you have already left, and an eval refresh can
 never take a bot's move with it. A newcomer either waits (a move the player is
@@ -1599,6 +1609,49 @@ anywhere. `engine-check.mjs` downloads the real Stockfish and drives the real
 app in a browser against positions whose answers are known independently
 (mates both ways, a queen up each way, finished games, stepping faster than
 the engine can answer, and a game with one known blunder).
+
+## Stockfish 19 for analysis
+
+The analysis — Game Review, the post-mortem after a game, the analysis board,
+the explorer's eval bar, the live board and the hint — now runs on
+**Stockfish 19** (the lite, single-threaded WebAssembly build, about 1.8 MB).
+In Chromium on the same machine it is ready in 0.2 s instead of 0.7, reaches
+depth 18 where Stockfish 10 reached 14 in two seconds, and searches 3.6 times
+as many positions. Every evaluation says which engine gave it
+("Stockfish 19 · depth 22"), and Game Review says who reviewed the game.
+
+**Your opponents stay on Stockfish 10.** Their strengths were calibrated on it
+(`botParams`, the move-choice model, the time they use), and a stronger engine
+underneath would change every bot's rating. So there are two workers,
+`Engine` for analysis and `BotEngine` for the bots, and each falls back to
+the other when it cannot load.
+
+Where the engine comes from:
+
+- **The website** serves it from `engine/` beside the page, and the installed
+  app keeps it for offline use (the service worker caches it apart from the
+  app shell, so a missing engine can never stop the app from installing).
+- **The standalone file** and **the Android app** have it inside the page.
+  A worker cannot fetch `file://`, and a worker started from a page opened as
+  a file gets an origin of its own, so it cannot read the page's `blob:`
+  URLs either. The `.wasm` therefore travels inside the worker's own script,
+  and a stand-in `fetch` hands it to the loader.
+- Otherwise it is fetched from npm's CDNs, and if none of that works the
+  analysis falls back to Stockfish 10.
+
+Stockfish 19 has to answer `isready` before it is used; a browser that cannot
+run it says so with a worker error and the next source is tried at once. The
+files are in `build/engine/`, unchanged from the npm package `stockfish@19.0.0`,
+with the GPL v3 they are distributed under and a note on where the source is.
+`build-netlify.mjs` copies them to `netlify/engine/`, `build-standalone.mjs`
+embeds them, and the Android build embeds them with
+`node build/embed-engine.mjs`.
+
+`validate-engine19.mjs` covers which engine each caller uses, the order of the
+sources and every fallback, the embedded hand-over, and the build steps. In a
+real browser the website analyses at depth 22 with its opponents on
+Stockfish 10, and the standalone file, opened offline, analyses at depth 22
+on its own copy and still plays a game.
 
 ## A calm career screen
 
@@ -1869,7 +1922,7 @@ launch builds nothing.
 
 ## Tests
 
-Sixty-three suites, about 5,850 checks, plus twenty-one browser suites that drive the real app with the real engine.
+Sixty-four suites, about 5,900 checks, plus twenty-one browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
