@@ -47,6 +47,7 @@
   @media(max-width:370px){.brand .bt{display:none}}
   .menupanel .instrow{grid-column:1/-1;background:var(--brand);color:#fff;font-weight:700}
   .menupanel .xferrow{grid-column:1/-1}
+  .decq{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:0 0 12px;padding:7px 12px;border:1px solid var(--border);border-top:0;border-radius:0 0 12px 12px;background:var(--panel2);font-size:13px}
   .menubtn .caret{margin-left:2px;color:var(--muted);font-size:11px;transition:transform .15s}
   .menubtn.open{background:#1d2b49;color:#fff}
   .menubtn.open .caret{transform:rotate(180deg)}
@@ -11346,6 +11347,10 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='careernew')newCareer();
   else if(act==='toastdismiss'){app.careerToast=null;render();}
   else if(act==='careertab'){app.careerTab=val;render();careerTabTop();}
+  else if(act==='declater'){app.decLater=(app.decLater||[]).filter(function(k){return k!==val;});app.decLater.push(val);if(app.decFirst===val)app.decFirst=null;render();}
+  else if(act==='calmtoggle'){store.settings.careerCalm=!careerCalm();save();render();careerTabTop();}
+  else if(act==='inboxall'){app.inboxAll=true;render();}
+  else if(act==='lobbyall'){app.lobbyAll=val==='1';render();if(!app.lobbyAll)app._jump='lobbycard';}
   else if(act==='striptoggle'){store.settings.stripOpen=!store.settings.stripOpen;save();render();}
   else if(act==='jump')careerJump(val);
   else if(act==='savebackup'){Promise.resolve(sendProgress()).then(function(){if(_saveFail)_saveFail.sent=Date.now();render();});}
@@ -17952,10 +17957,8 @@ function viewCareer(){
   h+=careerTabBar(c);
   if(app.careerToast){h+='<div class="card" style="margin-bottom:10px;border-color:var(--brand);background:linear-gradient(90deg,var(--brand)18,transparent)"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><span style="font-weight:600">'+esc(app.careerToast)+'</span><button class="btn ghost sm" data-act="toastdismiss">✕</button></div></div>';}
   if(app.careerFinish)h+=careerFinishBanner(app.careerFinish);
-  h+=careerSeasonBanner(c);
-  h+=careerScandalPanel(c);
-  h+=careerDilemmaPanel(c);
-  h+=careerPressPanel(c);
+  if(careerCalm())h+=careerActiveTab(c)==='play'?careerDecisionSlot(c):careerDecisionNote(c);
+  else{h+=careerSeasonBanner(c);h+=careerScandalPanel(c);h+=careerDilemmaPanel(c);h+=careerPressPanel(c);}
   h+=careerTabContent(c,careerActiveTab(c));
   h+='</div>';
   return h;
@@ -17991,8 +17994,10 @@ function careerTabTop(){
 }
 function careerTabContent(c,tab){
   let h='';
+  if(tab==='play'&&careerCalm())return careerCalmPlay(c);
   if(tab==='play'){
     // what is happening, what is waiting, then where to play — the rest after
+    h+='<div class="row" style="justify-content:flex-end;margin:-4px 0 8px"><button class="btn ghost sm" data-act="calmtoggle">🧘 Calm view — one thing at a time</button></div>';
     h+=resumeCard(true);
     h+=careerNowCard(c);
     h+=careerInboxPanel(c);
@@ -18248,6 +18253,71 @@ function careerNowCard(c){
     (c.objective?'<div class="dim small" style="margin-top:7px">🎯 '+esc(c.objective.text)+(c.objective.reward?' · reward 💰'+c.objective.reward:'')+'</div>':'')+
     '</div>';
 }
+/* ===== The calm career screen =====
+   With a few seasons behind it the Play tab ran to almost eight phone screens
+   and 81 buttons, and every decision — the season review, a fair-play
+   accusation, a crossroads, the press — sat stacked above every tab at once.
+   The calm view (the default) shows what a day needs: one decision at a time,
+   what is next, the tournament you are in or where to play, and the top of
+   the inbox. Everything else is one line away, and "Everything at once"
+   brings the full screen back for anyone who likes it. */
+function careerCalm(){return store.settings.careerCalm!==false;}
+const DECISION_ORDER=['scandal','press','dilemma','season'];
+const DECISION_IDS={scandal:'scandalcard',press:'presscard',dilemma:'dilemmacard',season:'seasoncard'};
+function careerDecisions(c){
+  var P={scandal:careerScandalPanel,press:careerPressPanel,dilemma:careerDilemmaPanel,season:careerSeasonBanner};
+  var D=DECISION_ORDER.map(function(k){return {k:k,h:P[k](c)};}).filter(function(d){return !!d.h;});
+  var later=app.decLater||[],first=app.decFirst;
+  var rank=function(d){if(d.k===first)return -1;var i=later.indexOf(d.k);return i<0?0:1+i;};
+  return D.map(function(d,i){return {d:d,i:i};}).sort(function(a,b){return rank(a.d)-rank(b.d)||a.i-b.i;}).map(function(x){return x.d;});
+}
+function careerDecisionSlot(c){
+  var D=careerDecisions(c);if(!D.length)return '';
+  var more=D.length-1;
+  return D[0].h.replace(/margin-bottom:12px/,'margin-bottom:0')+
+    '<div class="decq">'+(more?'<span>⏳ '+more+' more waiting — they come one at a time.</span><button class="btn ghost sm" data-act="declater" data-val="'+D[0].k+'">Later</button>':'<span class="dim">Nothing else is waiting on you.</span>')+'</div>';
+}
+function careerDecisionNote(c){
+  var D=careerDecisions(c);if(!D.length)return '';
+  return '<button class="inrow" data-act="jump" data-val="play:'+DECISION_IDS[D[0].k]+'" style="border-left-color:#a855f7;margin-bottom:10px">'+
+    '<span aria-hidden="true">⚖️</span><span class="it">'+D.length+' decision'+(D.length===1?'':'s')+' waiting on the Play tab</span><span class="ig" aria-hidden="true">›</span></button>';
+}
+/* What is behind the "More for today" line, in one sentence. */
+function careerMoreSummary(c){
+  var bits=[];
+  if(dailyAvailable(c))bits.push('🎁 daily reward ready');
+  var q=questsEnsure(),qr=(q.items||[]).filter(function(it){return !it.claimed&&it.prog>=it.goal;}).length;
+  if(qr)bits.push('✅ '+qr+' quest'+(qr>1?'s':'')+' to claim');
+  var g=gmDue().length;if(g)bits.push('🎯 '+g+' of your positions due');
+  if(!c.tour)bits.push('🗓️ calendar, challenges, simuls and the park');else bits.push('🔎 scouting and preparation');
+  bits.push('📖 story and roadmap');
+  return bits.join(' · ');
+}
+function careerCalmPlay(c){
+  // what is happening now, the top of the inbox, then the event you are in or where to play
+  var h=resumeCard(true);
+  h+=careerNowCard(c);
+  h+=careerInboxPanel(c,{calm:true});
+  // homework the coach set has a deadline, so while it runs it is part of today
+  if(debriefActive(c))h+=careerDebriefCard(c);
+  if(c.tour)h+=careerTourView(c);
+  else{if(proDue(c))h+=careerProPanel(c);h+=careerLobbyCalm(c);}
+  if(foldOpen('cmore')){
+    h+='<div class="card" id="morecard" style="margin-bottom:12px"><div class="foldrow"><div class="fsum"><div style="font-weight:700">☰ More for today</div></div><div class="fbtns">'+foldBtn('cmore',true,'Fold away')+'</div></div></div>';
+    if(!debriefActive(c))h+=careerDebriefCard(c);
+    h+=gmCard('career');
+    if(c.tour){h+=careerScoutPanel(c);h+=careerPrepPanel(c);}
+    else{h+=careerChallenges(c);h+=careerCalendarPanel(c);h+=careerSimulPanel(c);h+=careerParkPanel(c);h+=careerPrepPanel(c);}
+    h+=careerDailyPanel(c);
+    h+=careerQuestPanel(c);
+    h+=careerArcPanel(c);
+    h+=careerRoadmapPanel(c);
+  } else h+=foldCard('cmore','morecard','☰ More for today',careerMoreSummary(c),'','Show');
+  h+='<div class="row" style="justify-content:center;margin:4px 0 12px"><button class="btn ghost sm" data-act="calmtoggle">Everything at once</button></div>';
+  return h;
+}
+// cards that live behind "More for today": going to one from the inbox opens the fold on the way
+const CALM_MORE_IDS=['debriefcard','gmcard','calcard','simulcard','parkcard','dailycard','questcard','arccard','roadcard','prepcard','scoutcard','challengecard'];
 /* ===== The inbox: everything waiting on you, and where it is =====
    The manager's advice and the chips on the dashboard were two lists of the
    same kind of thing, and neither said where the thing was — which is how a
@@ -18300,11 +18370,19 @@ function inboxItems(c){
 }
 // advice the inbox already carries, by kind, so it is not said twice
 const INBOX_KINDS=['scandal','dilemma','injury','burnout','tilt','daily','skill','invite','sponsor'];
-function careerInboxPanel(c){
+function careerInboxPanel(c,opts){
   var I=inboxItems(c),A=careerAdvisor(c).filter(function(r){return INBOX_KINDS.indexOf(r.k)<0;}).slice(0,3);
-  var h='<div class="card" id="inboxcard" style="margin-bottom:12px;border-color:#22d3ee55"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">📥 Inbox</div><div class="dim small">'+(I.length?I.length+' waiting':'nothing waiting')+'</div></div>';
+  var hidden=0;
+  if(opts&&opts.calm){
+    // the decisions have their own slot at the top, and the manager's advice waits behind "all"
+    var dec={scandalcard:1,presscard:1,dilemmacard:1,seasoncard:1};
+    I=I.filter(function(x){return !dec[x.id];});
+    if(!app.inboxAll){hidden=Math.max(0,I.length-3);I=I.slice(0,3);A=[];}
+  }
+  var h='<div class="card" id="inboxcard" style="margin-bottom:12px;border-color:#22d3ee55"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">📥 Inbox</div><div class="dim small">'+(I.length+hidden?(I.length+hidden)+' waiting':'nothing waiting')+'</div></div>';
   if(!I.length)h+='<div class="dim small" style="margin-top:4px">✓ Nothing is waiting on you.</div>';
   h+=I.map(function(x){return '<button class="inrow" data-act="jump" data-val="'+x.tab+':'+x.id+'" style="border-left-color:'+x.col+'"><span aria-hidden="true">'+x.e+'</span><span class="it">'+x.t+'</span><span class="ig" aria-hidden="true">›</span></button>';}).join('');
+  if(hidden)h+='<button class="btn ghost sm" data-act="inboxall" style="margin-top:6px">▾ Show all '+(I.length+hidden)+' and your manager’s advice</button>';
   if(A.length)h+='<div class="dim" style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin:11px 0 1px">🧠 Your manager suggests</div>'+
     A.map(function(r){return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border)"><span class="small">'+r.e+' '+r.t+'</span>'+(r.act?'<button class="btn sec sm" style="flex:0 0 auto" data-act="'+r.act.act+'"'+(r.act.val!=null?' data-val="'+esc(String(r.act.val))+'"':'')+'>'+esc(r.act.label)+'</button>':'')+'</div>';}).join('');
   return h+'</div>';
@@ -18315,7 +18393,10 @@ function careerJump(val){
   if(tab&&CAREER_TABS.some(function(t){return t.k===tab;}))app.careerTab=tab;
   if(id==='normscard'&&c)c.normsSeen=(c.norms||[]).length;
   if(id==='dashcard')store.settings.stripOpen=true;
-  if(/^tour-/.test(id))store.settings.lobbyFmt='all';   // an invitation is shown whatever the filter was
+  for(var dk in DECISION_IDS)if(DECISION_IDS[dk]===id)app.decFirst=dk;
+  if(careerCalm()&&CALM_MORE_IDS.indexOf(id)>=0){store.settings.fold=store.settings.fold||{};store.settings.fold.cmore=true;}
+  if(careerCalm()&&id==='inboxcard')app.inboxAll=true;
+  if(/^tour-/.test(id)){store.settings.lobbyFmt='all';app.lobbyAll=true;}   // an invitation is shown whatever the filter was
   // a folded card is opened on the way
   if(FOLD_OF[id]){store.settings.fold=store.settings.fold||{};store.settings.fold[FOLD_OF[id]]=true;}
   app._jump=id||'ctabs-at';
@@ -18499,6 +18580,31 @@ function careerLobby(c){
     }
   });
   return h+'</div>';
+}
+/* The calm view's version: the three events that suit you best right now — a
+   title event you have a place in first, then open ones by how close their
+   field is to you, norms on offer counting in their favour, classical before
+   rapid and blitz — and the full list one tap away. */
+function lobbyPicks(c,n){
+  const r=youRating(c,'classical')!=null?youRating(c,'classical'):(c.rating!=null?c.rating:1400),w=weekOfSeason(c),out=[];
+  TOURNAMENTS.filter(function(t){return tourVisible(t,c);}).forEach(function(t){
+    const lock=tourLocked(t,c),fmt=eventFormat(t),T=t.youth?youthDef(t,c):t;
+    if(!lock){out.push({t:t,lock:null,wk:null,sc:Math.abs((T.avg||r)-r)-(normsOnOffer(t,c)?150:0)-((t.champion||t.honor)?40:0)+(fmt==='classical'?0:120)});return;}
+    const wk=EVENT_WEEK[t.id];
+    if((t.cycle||t.wcycle)&&!tourLockedBy(t,c)&&wk!=null&&wk>w&&heldThisSeason(t.id,c)&&(c.calDone||[]).indexOf(t.id)<0)
+      out.push({t:t,lock:lock,wk:wk,sc:-1000+wk});
+  });
+  return out.sort(function(a,b){return a.sc-b.sc;}).slice(0,n||3);
+}
+function careerLobbyCalm(c){
+  if(app.lobbyAll)return careerLobby(c).replace(/<\/div>$/,'<button class="lobbymore" data-act="lobbyall" data-val="0">▴ Just the best three</button></div>');
+  const P=lobbyPicks(c,3);
+  let open=0;TOURNAMENTS.forEach(function(t){if(tourVisible(t,c)&&!tourLocked(t,c))open++;});
+  let h='<div class="card" id="lobbycard" style="padding:0;margin-bottom:12px"><div style="padding:11px 13px;border-bottom:1px solid var(--border)"><div style="font-weight:700">🏟️ Where to play next</div>'+
+    '<div class="dim small">The events that suit you best right now.</div></div>';
+  if(!P.length)h+='<div class="dim small" style="padding:9px 13px">Nothing you can enter this week. ⏩ Finish the week, and next week’s events open.</div>';
+  P.forEach(function(x){h+=lobbyRow(x.t,c,x.lock,x.wk);});
+  return h+'<button class="lobbymore" data-act="lobbyall" data-val="1">🏟️ All tournaments — '+open+' open this week <span aria-hidden="true">▾</span></button></div>';
 }
 function careerChallenges(c){
   const fmt=app.chalFormat||'classical';

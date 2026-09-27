@@ -124,7 +124,9 @@ ok(sawLeaderLose,'when the leader loses, the bulletin leads on it');
 /* An upset needs two mismatched players on the same score — which is exactly
    how a Swiss produces them, and why they are rare in the first round. */
 let sawUpset=false,sawBoardUpset=false;
-for(let i=0;i<200&&!(sawUpset&&sawBoardUpset);i++){
+// a 650-point underdog wins about one game in seventy: two hundred tries missed it about one run
+// in twenty (3 of 60 measured). The loop stops as soon as it has seen one, so the bound is cheap.
+for(let i=0;i<1500&&!(sawUpset&&sawBoardUpset);i++){
   const t2=tour(8);
   // a 2700 and a 2050 both on two points: the pairing has to put them together
   t2.standings.forEach(function(p){

@@ -1600,6 +1600,43 @@ app in a browser against positions whose answers are known independently
 (mates both ways, a queen up each way, finished games, stepping faster than
 the engine can answer, and a game with one known blunder).
 
+## A calm career screen
+
+With a few seasons behind it, the career's Play tab ran to almost eight phone
+screens and 82 buttons. Every decision sat stacked above every tab at once:
+the season review, a fair-play accusation, a crossroads, the press. The calm
+view, now the default, shows what a day needs:
+
+- **One decision at a time**, on the Play tab only, the most urgent first (an
+  accusation, then the press, then a crossroads, then the season review). A
+  line under it says how many more are waiting, and **Later** brings the next
+  one without losing any. The other tabs carry one line saying how many
+  decisions wait on the Play tab.
+- **What's next** (the "now" card), then the **top three inbox rows**, with
+  "Show all" for the rest and the manager's advice. The inbox no longer repeats
+  the decisions that have their own slot. The coach's homework shows while it
+  runs, because it has a deadline.
+- **The event you are in, or where to play next**: the three events that suit
+  you best right now. A title event you have earned a place in comes first,
+  then open events by how close their field is to your rating, with norms
+  counting in their favour and classical before rapid and blitz. **All
+  tournaments** opens the full list with its filters.
+- **More for today**: one line saying what is behind it (daily reward, quests
+  to claim, positions due, the calendar, challenges, simuls, the park, story
+  and roadmap). Going to any of those from the inbox opens it on the way.
+
+Measured in Chromium on a phone with a three-season career and three
+decisions waiting, the Play tab goes from **7.8 screens, 82 buttons and 15
+cards to 2.1 screens, 27 buttons and 5 cards**. **Everything at once** (at the
+bottom of the tab) brings the old screen back for anyone who prefers it, and
+the choice is remembered.
+
+`validate-calm.mjs` covers the decision queue and Later, the other tabs, the
+inbox and lobby limits and their "all" buttons, jumps into folded cards, the
+tournament case and the switch.
+
+---
+
 ## Your rating and your strength
 
 FIDE counts any rating gap above 400 as exactly 400, so a player far above the
@@ -1832,7 +1869,7 @@ launch builds nothing.
 
 ## Tests
 
-Sixty-two suites, about 5,800 checks, plus twenty-one browser suites that drive the real app with the real engine.
+Sixty-three suites, about 5,850 checks, plus twenty-one browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —

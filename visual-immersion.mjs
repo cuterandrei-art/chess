@@ -25,6 +25,9 @@ const txt=()=>page.locator('#app').innerText();
 await H(()=>window.__APPHOOK__.go('career'));await page.waitForTimeout(200);
 await page.fill('#cr-name','Ada Marín');await page.selectOption('#cr-start','master').catch(()=>{});
 await page.click('[data-act="careersetup"]');await page.waitForTimeout(400);
+// this suite walks features that live behind the calm view's folds (the full inbox, the full
+// tournament list); the calm layout itself is covered by validate-calm.mjs and visual-ux.mjs
+await page.evaluate(()=>{const S=window.__APPHOOK__;S.store.settings.careerCalm=false;S.save();S.render();});
 
 /* ---- the trip ---- */
 await H(()=>{const S=window.__APPHOOK__,c=S.store.career;c.fed='IND';c.flag='🇮🇳';c.money=20000;c.energy=90;c.rating=Math.max(c.rating||0,2000);

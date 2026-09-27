@@ -104,6 +104,9 @@ ok(await page.locator('[data-act="avset"]').count()===0,'and “Done” folds it
 
 /* ---- the tournament list ---- */
 await tab('play');
+// the calm Play tab shows the best three; the full list, with its filter, is one tap away
+ok(await page.locator('#lobbycard [data-act="careerjoin"],#lobbycard [data-act="calwait"]').count()<=3,'the calm Play tab shows the best three events');
+await page.click('[data-act="lobbyall"][data-val="1"]');await page.waitForTimeout(250);
 await page.click('[data-act="lobbyfmt"][data-val="rapid"]');await page.waitForTimeout(250);
 let lob=await page.locator('#lobbycard').innerText();
 ok(/Rapid · /.test(lob)&&!/Classical · /.test(lob)&&!/Blitz · /.test(lob),'the filter shows one format');

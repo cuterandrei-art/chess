@@ -35,6 +35,9 @@ await go('career');
 await page.fill('#cr-name','Ada Marín').catch(()=>{});
 await page.selectOption('#cr-start','master').catch(()=>{});
 await page.click('[data-act="careersetup"]'); await page.waitForTimeout(500);
+// this suite walks features that live behind the calm view's folds (the full inbox, the full
+// tournament list); the calm layout itself is covered by validate-calm.mjs and visual-ux.mjs
+await page.evaluate(()=>{const S=window.__APPHOOK__;S.store.settings.careerCalm=false;S.save();S.render();});
 
 /* a strong grandmaster, outside the world top three, with no place yet */
 await page.evaluate(()=>{
