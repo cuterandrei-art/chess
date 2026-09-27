@@ -197,10 +197,17 @@
   .cstrip .cs-me{display:flex;align-items:center;gap:7px;min-width:0;flex:1 1 auto;background:none;border:0;color:var(--text);font:inherit;font-weight:700;font-size:14px;cursor:pointer;padding:0;text-align:left}
   .cstrip .cs-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
   .cstrip .cs-v{flex:0 0 auto;font-weight:800;font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
-  .cstrip .cs-in,.cstrip .cs-tg{flex:0 0 auto;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;color:var(--text);font:inherit;font-size:13px;padding:4px 7px;cursor:pointer;display:inline-flex;align-items:center;gap:3px}
+  .cstrip .cs-in,.cstrip .cs-tg,.cstrip .cs-cc{flex:0 0 auto;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;color:var(--text);font:inherit;font-size:13px;padding:4px 7px;cursor:pointer;display:inline-flex;align-items:center;gap:3px}
   .cstrip .cs-in.on{border-color:#f59e0b88;background:#f59e0b1a}
   .cstrip .cs-in b{color:#fbbf24}
-  @media(max-width:360px){.cstrip .cs-v.cs-en{display:none}}
+  .cstrip .cs-cc.on{border-color:var(--brand);background:rgba(59,130,246,.12)}
+  .cstrip .cs-cc b{color:var(--brand2);font-size:12px}
+  .ccrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--border);flex-wrap:wrap}
+  .ccrow.now{border-top:0}
+  .ccrow .ccwho{min-width:0;flex:1 1 180px}
+  .ccrow .ccname{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* energy is on the Play tab's “now” card too; on a phone the line needs the room for your name */
+  @media(max-width:420px){.cstrip .cs-v.cs-en{display:none}}
   /* the inbox: one row per thing waiting, each one a way to its card */
   .inrow{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:rgba(255,255,255,.025);border:1px solid var(--border);border-left:3px solid var(--brand);border-radius:9px;color:var(--text);font:inherit;font-size:13px;padding:8px 10px;margin-top:6px;cursor:pointer}
   .inrow .it{flex:1;min-width:0}
@@ -5462,7 +5469,7 @@ function migrateCareer(d){if(!d||typeof d!=='object'||('beaten'in d)||!('setup'i
    freshCareer() for a new career, the merges in restore(), the statistics
    reset — would be handed the state it was supposed to replace. */
 let store=JSON.parse(JSON.stringify(DEF));
-try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],courseProgress:d.courseProgress||{},settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],myGames:d.myGames||[],myGamesMeta:d.myGamesMeta||null,ccProfile:d.ccProfile||null,ccAccount:d.ccAccount||null,daily:d.daily||null,brilliancies:d.brilliancies||[],gmiss:d.gmiss||{},onboarded:!!d.onboarded,career:migrateCareer(d.career),
+try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],courseProgress:d.courseProgress||{},settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],myGames:d.myGames||[],myGamesMeta:d.myGamesMeta||null,ccProfile:d.ccProfile||null,ccAccount:d.ccAccount||null,daily:d.daily||null,brilliancies:d.brilliancies||[],gmiss:d.gmiss||{},onboarded:!!d.onboarded,career:migrateCareer(d.career),careerSlots:Array.isArray(d.careerSlots)?d.careerSlots:[],
   /* These two were missing from the list, so every reload dropped them: the
      daily quests regenerated and lost their progress, and the legacy that
      drives New Game+ never survived a session. */
@@ -5531,6 +5538,7 @@ function restoreBackup(text){
   store.gmiss=d.gmiss||{};                 // the positions from your games that come back
   store.onboarded=!!d.onboarded;
   store.career=migrateCareer(d.career);
+  store.careerSlots=Array.isArray(d.careerSlots)?d.careerSlots:[];   // the careers that were not being played
   if(d.quests)store.quests=d.quests;
   // the hall outlives careers, so a backup has to carry it too
   if(d.legacy)store.legacy=Object.assign({peak:0,careers:0,hall:[]},d.legacy);
@@ -5567,11 +5575,13 @@ function deviceLabel(ua){ua=ua==null?String((typeof navigator!=='undefined'&&nav
 function backupName(t){return 'chess-career-backup-'+dayKey(t||Date.now())+'.json';}
 function backupJson(){return JSON.stringify(Object.assign({_app:'chess-career',_saved:new Date().toISOString(),_device:deviceLabel()},store),null,2);}
 function backupKeys(d){return ['repertoire','srs','custom','courseProgress','settings','stats','puzzle','studies',
-  'myGames','myGamesMeta','ccProfile','ccAccount','daily','brilliancies','career','onboarded','quests','legacy'].filter(function(k){return d[k]!==undefined;});}
+  'myGames','myGamesMeta','ccProfile','ccAccount','daily','brilliancies','career','careerSlots','onboarded','quests','legacy'].filter(function(k){return d[k]!==undefined;});}
 /* The lines a person recognises in a save — the same ones on both sides of the preview. */
 function progressLines(d){d=d||{};var c=d.career&&typeof d.career==='object'&&d.career.setup?d.career:null;var bits=[];
   if(c)bits.push('🏆 '+(c.name||'your career')+' — '+(c.provisional?'unrated':(c.rating||'unrated'))+
     ((c.titles||[]).length?', '+c.titles.join('/'):'')+', week '+(c.weeks||0));
+  var cs=Array.isArray(d.careerSlots)?d.careerSlots.filter(function(x){return x&&x.meta;}):[];
+  if(cs.length)bits.push('👥 '+cs.length+' more career'+(cs.length===1?'':'s')+': '+cs.slice(0,3).map(function(x){return x.meta.name+(x.meta.rating?' '+x.meta.rating:'');}).join(', ')+(cs.length>3?'…':''));
   var rep=d.repertoire||[],pz=d.puzzle||{},st=d.studies||[],mg=d.myGames||[],br=d.brilliancies||[];
   if(rep.length)bits.push('📖 '+rep.length+' opening'+(rep.length===1?'':'s'));
   if(pz.solved||pz.failed)bits.push('🧩 puzzle rating '+pz.rating);
@@ -5581,7 +5591,8 @@ function progressLines(d){d=d||{};var c=d.career&&typeof d.career==='object'&&d.
   return bits;}
 /* A rough size of what would be lost: weeks and games of career, drills done, puzzles tried, things collected. */
 function progressWeight(d){d=d||{};var c=d.career&&typeof d.career==='object'&&d.career.setup?d.career:null,pz=d.puzzle||{},st=d.stats||{};
-  return (c?(+c.weeks||0)*4+(+c.played||0)*3+1:0)+(+st.total||0)+(+pz.solved||0)+(+pz.failed||0)+
+  var cs=Array.isArray(d.careerSlots)?d.careerSlots:[];
+  return (c?(+c.weeks||0)*4+(+c.played||0)*3+1:0)+cs.reduce(function(t,x){return t+(x&&x.meta?(+x.meta.weeks||0)*4+1:0);},0)+(+st.total||0)+(+pz.solved||0)+(+pz.failed||0)+
     (d.repertoire||[]).length*2+(d.studies||[]).length*3+(d.myGames||[]).length+(d.custom||[]).length*3;}
 function ageText(ms){var m=Math.round(ms/60000);if(m<1)return 'just now';if(m<60)return m+' min ago';var h=Math.round(m/60);if(h<24)return h+' hour'+(h===1?'':'s')+' ago';
   var dd=Math.round(h/24);return dd+' day'+(dd===1?'':'s')+' ago';}
@@ -5598,7 +5609,9 @@ function previewBackup(text,now){
   var same=strip(d)===strip(store);
   var fc=d.career&&typeof d.career==='object'&&d.career.setup?d.career:null,hc=store.career&&store.career.setup?store.career:null;
   var warn=null;
-  if(!same&&here.weight>0){
+  var goneC=careerSlots().filter(function(x){return !(Array.isArray(d.careerSlots)?d.careerSlots:[]).some(function(y){return y&&y.id===x.id;});});
+  if(!same&&goneC.length)warn='This device has '+goneC.length+' more career'+(goneC.length===1?'':'s')+' that the file does not ('+goneC.slice(0,3).map(function(x){return x.meta.name;}).join(', ')+(goneC.length>3?'…':'')+'). Replacing would delete '+(goneC.length===1?'it':'them')+'.';
+  else if(!same&&here.weight>0){
     if(hc&&!fc)warn='The file has no career in it. '+(hc.name||'Your career')+' on this device (week '+(hc.weeks||0)+') would be replaced by a blank one.';
     else if(hc&&fc&&(+fc.weeks||0)<(+hc.weeks||0))warn='The career in the file is at week '+(fc.weeks||0)+'; the one on this device is at week '+(hc.weeks||0)+'. Replacing it takes you back '+((hc.weeks||0)-(fc.weeks||0))+' week'+((hc.weeks||0)-(fc.weeks||0)===1?'':'s')+'.';
     else if(here.weight>file.weight)warn='This device has more progress than the file. Replacing it loses the difference.';}
@@ -11355,7 +11368,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='speclive')specLive();
   else if(act==='reptree'){app.repTreeId=val;go('reptree');}
   else if(act==='titlefmt'){const c=store.career;c.titleFormat=(c.titleFormat==='any')?'classical':'any';const nt=checkTitles(c);if(nt&&nt.length){app.careerToast='👑 New title'+(nt.length>1?'s':'')+' under the new rules: '+nt.join(', ')+'!';}save();render();}
-  else if(act==='careerreset')uiConfirm('Reset ALL career progress — ratings (classical, rapid & blitz), titles, norms, honours, history and money? This cannot be undone.',function(){store.career=freshCareer();app.spec=null;app.careerFinish=null;app.careerOneoff=null;app.careerTour=false;app.parkBet=null;app.parkDouble=null;save();});
+  else if(act==='careerreset')uiConfirm('Reset ALL of '+(store.career.name||'this career')+'’s progress — ratings (classical, rapid & blitz), titles, norms, honours, history and money? This cannot be undone.'+(careerSlots().length?' Your other careers are not touched.':''),function(){store.career=freshCareer();app.spec=null;app.careerFinish=null;app.careerOneoff=null;app.careerTour=false;app.parkBet=null;app.parkDouble=null;save();});
   else if(act==='confirmyes'){const f=app.confirm&&app.confirm.onYes;app.confirm=null;if(f)f();render();}
   else if(act==='confirmno'){app.confirm=null;render();}
   else if(act==='confirmnoop'){/* swallow clicks inside the dialog */}
@@ -11420,6 +11433,10 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='dilemma')dilemmaChoose(val);
   else if(act==='careerretire')uiConfirm('Retire from competition? Your career ends and enters the Hall of Fame — you can start a new one afterwards.',retireCareer);
   else if(act==='careernew')newCareer();
+  else if(act==='careersopen'){app.careersOpen=!app.careersOpen;app.careerMsg=null;render();}
+  else if(act==='careerswitch')careerSwitch(val);
+  else if(act==='careeranother')careerStartAnother();
+  else if(act==='careerdel')careerDelete(val);
   else if(act==='toastdismiss'){app.careerToast=null;render();}
   else if(act==='careertab'){app.careerTab=val;render();careerTabTop();}
   else if(act==='declater'){app.decLater=(app.decLater||[]).filter(function(k){return k!==val;});app.decLater.push(val);if(app.decFirst===val)app.decFirst=null;render();}
@@ -11445,7 +11462,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='pblind'){app.blindfold=!app.blindfold;app.peek=false;render();}
   else if(act==='ppeek'){app.peek=!app.peek;render();}
   else if(act==='blindstart'){const c=val==='r'?(Math.random()<0.5?'w':'b'):val;startPlay(new Chess().fen(),c,null,'Blindfold game',{blindfold:true});}
-  else if(act==='careersetup'){const c=store.career;const nm=((document.getElementById('cr-name')||{}).value||'').trim();const fedC=(document.getElementById('cr-fed')||{}).value||'FIDE';const g=((document.getElementById('cr-gender')||{}).value==='women')?'women':'open';const tf=((document.getElementById('cr-titlefmt')||{}).value==='any')?'any':'classical';const fed=FEDS.find(x=>x.c===fedC)||FEDS[0];const pace=Math.max(1,Math.min(3,parseInt((document.getElementById('cr-pace')||{}).value,10)||1));const start=((document.getElementById('cr-start')||{}).value)||'club';c.setup=true;c.name=(nm||'You').slice(0,24);c.fed=fed.c;c.flag=fed.f;c.gender=g;c.titleFormat=tf;c.pace=pace;if(start==='talent'){c.rating=1900;c.peak=1900;c.provisional=false;c.ratedGames=30;c.age=18;}else if(start==='master'){c.rating=2300;c.peak=2300;c.provisional=false;c.ratedGames=30;c.age=20;}else if(start==='junior'){c.age=JUNIOR_START_AGE;c.junior=true;c.money=50;c.school={grade:75,exams:null};c.parents={fund:PARENT_FUND,left:PARENT_FUND,s:1};}app.careerTab='play';save();render();navScrollTo(0);}
+  else if(act==='careersetup'){const c=store.career;const nm=((document.getElementById('cr-name')||{}).value||'').trim();const fedC=(document.getElementById('cr-fed')||{}).value||'FIDE';const g=((document.getElementById('cr-gender')||{}).value==='women')?'women':'open';const tf=((document.getElementById('cr-titlefmt')||{}).value==='any')?'any':'classical';const fed=FEDS.find(x=>x.c===fedC)||FEDS[0];const pace=Math.max(1,Math.min(3,parseInt((document.getElementById('cr-pace')||{}).value,10)||1));const start=((document.getElementById('cr-start')||{}).value)||'club';c.setup=true;careerCid(c);c.name=(nm||'You').slice(0,24);c.fed=fed.c;c.flag=fed.f;c.gender=g;c.titleFormat=tf;c.pace=pace;if(start==='talent'){c.rating=1900;c.peak=1900;c.provisional=false;c.ratedGames=30;c.age=18;}else if(start==='master'){c.rating=2300;c.peak=2300;c.provisional=false;c.ratedGames=30;c.age=20;}else if(start==='junior'){c.age=JUNIOR_START_AGE;c.junior=true;c.money=50;c.school={grade:75,exams:null};c.parents={fund:PARENT_FUND,left:PARENT_FUND,s:1};}app.careerTab='play';save();render();navScrollTo(0);}
   else if(act==='careerpace'){const c=store.career;lifeInit(c);c.pace=(c.pace||1)>=3?1:(c.pace||1)+1;app.careerToast='⏩ Career pace: '+(PACE_NAMES[c.pace]||('×'+c.pace))+' — ratings now move '+(c.pace===1?'at true FIDE speed':(c.pace+'× faster'))+'.';save();render();}
   else if(act==='careerjoin'){joinTournament(val);if(store.career.tour){app.careerTab='play';app._jump='tourcard';render();}}
   else if(act==='careerplay')tourRoundEnter();
@@ -12894,6 +12911,7 @@ function resumeWhere(g){
   return 'move '+n+' · '+turn;
 }
 function resumeCard(onlyCareer){
+  careerUnpark();                 // a career's unfinished game, back once the slot is free
   const g=playSavedGame();
   if(!g)return '';
   // the career screen only speaks for career games; a free game against the
@@ -15341,7 +15359,155 @@ function retireCareer(){var c=store.career;lifeInit(c);c.retired=true;c.hof={pea
   store.legacy.careers=(store.legacy.careers||0)+1;
   hallAdd(c);                       // and it stays there, whatever happens next
   save();render();}
-function newCareer(){var leg=store.legacy;store.career=freshCareer();if(leg&&leg.peak>1200){store.career.xp=Math.min(90,Math.round((leg.peak-1200)/14));store.career.money=(store.career.money||0)+Math.min(4000,leg.careers*1200);}app.careerFinish=null;app.careerToast=(leg&&leg.peak>1200)?('🔄 New Game+ — your reputation precedes you (+'+store.career.xp+' XP head start).'):null;app.careerTour=false;app.careerOneoff=null;save();render();}
+/* A new career, with the head start earlier careers have earned (New Game+). */
+function careerFreshWithLegacy(){var leg=store.legacy,c=freshCareer();if(leg&&leg.peak>1200){c.xp=Math.min(90,Math.round((leg.peak-1200)/14));c.money=(c.money||0)+Math.min(4000,leg.careers*1200);}return c;}
+function newCareer(){var leg=store.legacy;store.career=careerFreshWithLegacy();app.careerFinish=null;app.careerToast=(leg&&leg.peak>1200)?('🔄 New Game+ — your reputation precedes you (+'+store.career.xp+' XP head start).'):null;app.careerTour=false;app.careerOneoff=null;save();render();}
+/* ================= SEVERAL CAREERS =================
+   You can keep up to MAX_CAREERS careers and switch between them; each one
+   waits exactly where you left it — its ratings, money, events, rivals and
+   story, and a game you had not finished. The one you are playing is
+   store.career, as it always was, so nothing else in the app has to know.
+   The others sit in store.careerSlots, gzipped: a few seasons of career are
+   half a megabyte of JSON and every save writes the whole store, so kept as
+   they are, four careers would make each tap write two megabytes and could
+   fill the browser's storage. Gzipped (and written as base64, which storage
+   can hold safely) they take a third of the room: a three-season career of
+   485 KB is kept in 161 KB. Being in the
+   store, they go wherever it goes — backups, the move between PC and phone.
+   Settings, puzzles, openings, studies and the hall of fame are shared. */
+const MAX_CAREERS=8;
+function careerSlots(){if(!Array.isArray(store.careerSlots))store.careerSlots=[];return store.careerSlots;}
+function careerCid(c){if(!c.cid)c.cid='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);return c.cid;}
+function careerCount(){return careerSlots().length+(store.career&&store.career.setup?1:0);}
+function careerMeta(c){
+  return {name:String(c.name||'You').slice(0,24),flag:c.flag||'',title:bestTitle(c)||'',
+    rating:c.provisional?null:(c.rating||null),games:c.ratedGames||0,peak:c.peak||null,
+    season:c.season||1,age:Math.floor(c.age||16),weeks:c.weeks||0,
+    retired:!!c.retired,junior:!!c.junior,women:c.gender==='women',inEvent:!!c.tour};
+}
+function bytesToB64(u8){var out='',CH=0x8000;for(var i=0;i<u8.length;i+=CH)out+=String.fromCharCode.apply(null,u8.subarray(i,i+CH));return btoa(out);}
+function b64ToBytes(b64){var bin=atob(b64),n=bin.length,u8=new Uint8Array(n);for(var i=0;i<n;i++)u8[i]=bin.charCodeAt(i);return u8;}
+function canGzip(){return typeof CompressionStream==='function'&&typeof DecompressionStream==='function'&&typeof Blob==='function'&&typeof Response==='function';}
+async function careerPack(c,parked){
+  const copy=Object.assign({},c);if(parked)copy.parked=parked;
+  const slot={id:careerCid(c),meta:careerMeta(c),at:Date.now()};
+  const json=JSON.stringify(copy);
+  if(canGzip()){
+    const buf=await new Response(new Blob([json]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer();
+    slot.z=bytesToB64(new Uint8Array(buf));
+  }else slot.raw=JSON.parse(json);         // an old browser: kept as it is
+  return slot;
+}
+async function careerUnpack(slot){
+  if(!slot)throw new Error('no such career');
+  let d;
+  if(slot.raw)d=JSON.parse(JSON.stringify(slot.raw));
+  else if(slot.z){
+    if(!canGzip())throw new Error('this browser cannot open it');
+    const text=await new Response(new Blob([b64ToBytes(slot.z)]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+    d=JSON.parse(text);
+  }else throw new Error('it is empty');
+  const c=migrateCareer(d);if(!c.setup)throw new Error('it could not be read');
+  c.cid=slot.id;return c;
+}
+/* The unfinished career game, if there is one: it belongs to this career and travels with it. */
+function careerGameSaved(){try{const g=playSavedGame();return (g&&g.career&&g.career.opp)?localStorage.getItem(RESUME_KEY):null;}catch(e){return null;}}
+function careerUnpark(){
+  const c=store.career;if(!c||!c.parked)return;
+  try{if(!localStorage.getItem(RESUME_KEY)){localStorage.setItem(RESUME_KEY,c.parked);delete c.parked;_resumeSig=null;save();}}catch(e){}
+}
+/* What is on the screen belongs to the career you were playing. */
+const CAREER_UI_KEYS=['careerToast','careerRoundOpp','careerOpp','careerElo','spec','careerFinish','careerOneoff','careerOppPrep','careerPrepUsed',
+  'parkBet','parkDouble','parkStake','careerTour','careerLeague','careerPro','careerLegend','careerNovelty','careerStudyEdge','careerStory','careerDelta',
+  'careerBanter','careerReaction','careerScored','careerOly','_olyPay','socialDraft','socialOpen','socialAll','oppDraw','oppSaid','coachNote','cardCtx',
+  'newsOpen','newsRead','newsMore','newsSeenAt','newsCat','normHelp','normOpen','lobbyMore','lobbyAll','inboxAll','feedAll','momentsAll','decLater','decFirst',
+  'xtFin','xtOpen','xtHist','careerTitlesOpen','magPly','magIdx','stream','streamShow','rush','rushResult','roundIntro','booth','tiltEval','careerHintsLeft',
+  '_fxCareer','playerId','snackMsg','_snackKey','careerMsg'];
+function careerUiReset(){
+  const inCareerGame=!!(app.careerOpp||app.careerTour||app.careerOneoff||app.careerLeague||app.careerPro);
+  ['rushTimer','_streamTimer','_specTimer'].forEach(function(k){if(app[k]){try{clearInterval(app[k]);clearTimeout(app[k]);}catch(e){}app[k]=null;}});
+  if(inCareerGame){try{stopClockTick();}catch(e){}app.playStatus=null;app.playFen=null;app.playMoves=[];app.clock=null;app.playResult=null;}
+  CAREER_UI_KEYS.forEach(function(k){app[k]=null;});
+  app.careerScored=false;app.careerDelta=0;app.careerTour=false;app.careerTab='play';app.lbFormat='classical';app.chalFormat='classical';app.feedAll=false;
+}
+function careerBusy(msg){app.careerBusy=msg;render();}
+async function careerSwitch(id){
+  if(app.careerBusy)return false;
+  const sl=careerSlots(),target=sl.find(function(x){return x.id===id;});if(!target)return false;
+  const cur=store.career;careerBusy('Opening '+target.meta.name+'’s career…');
+  try{
+    const next=await careerUnpack(target);
+    const parked=cur.setup?careerGameSaved():null;
+    const packed=cur.setup?await careerPack(cur,parked):null;
+    // nothing has changed until here, so a failure above loses nothing
+    store.careerSlots=sl.filter(function(x){return x!==target;});
+    if(packed)store.careerSlots.unshift(packed);
+    if(parked)playDiscardSaved();
+    store.career=next;
+    careerUiReset();app.careersOpen=false;
+    app.careerToast='👥 Now playing '+(bestTitle(next)?bestTitle(next)+' ':'')+(next.name||'You')+'’s career'+(packed?' — '+(cur.name||'the other one')+' waits where you left it.':'.');
+    careerUnpark();
+    save();
+  }catch(e){app.careerMsg='That career could not be opened ('+String((e&&e.message)||e)+'). Nothing was changed.';}
+  app.careerBusy=null;render();return true;
+}
+async function careerStartAnother(){
+  if(app.careerBusy)return false;
+  const cur=store.career;
+  if(cur.setup&&careerCount()>=MAX_CAREERS){app.careerMsg='You have '+MAX_CAREERS+' careers, the most there is room for. Delete one to start another.';render();return false;}
+  careerBusy('Putting '+(cur.name||'this career')+' aside…');
+  try{
+    const parked=cur.setup?careerGameSaved():null;
+    const packed=cur.setup?await careerPack(cur,parked):null;
+    if(packed)careerSlots().unshift(packed);
+    if(parked)playDiscardSaved();
+    store.career=careerFreshWithLegacy();
+    careerUiReset();app.careersOpen=false;
+    save();
+  }catch(e){app.careerMsg='This career could not be put aside ('+String((e&&e.message)||e)+'). Nothing was changed.';}
+  app.careerBusy=null;render();navScrollTo(0);return true;
+}
+function careerDelete(id){
+  const s=careerSlots().find(function(x){return x.id===id;});if(!s)return;
+  const m=s.meta;
+  uiConfirm('Delete '+m.name+'’s career'+(m.rating?' ('+m.rating+', season '+m.season+')':'')+'? It cannot be brought back. A career that retired keeps its place in the hall of fame.',function(){
+    store.careerSlots=careerSlots().filter(function(x){return x.id!==id;});save();});
+}
+function careerRow(m,o){
+  o=o||{};
+  const sub=[(m.rating?m.rating+(m.peak&&m.peak>m.rating?' (peak '+m.peak+')':''):(m.games?m.games+'/5 games to a rating':'unrated')),
+    'season '+m.season,'age '+m.age].concat(m.retired?['retired']:[],m.inEvent?['in an event']:[],(!o.now&&o.at)?['played '+ageText(Math.max(0,Date.now()-o.at))]:[]).join(' · ');
+  return '<div class="ccrow'+(o.now?' now':'')+'"'+(o.id?' data-cid="'+esc(o.id)+'"':'')+'>'+
+    '<div class="ccwho"><div class="ccname">'+(m.title?'<span style="color:var(--brand2)">'+esc(m.title)+'</span> ':'')+esc(m.name)+' '+esc(m.flag||'')+
+      (o.now?' <span class="chip brand" style="font-size:11px">playing now</span>':'')+'</div><div class="dim small">'+esc(sub)+'</div></div>'+
+    (o.id?'<div class="row" style="gap:6px;flex:0 0 auto">'+
+      '<button class="btn primary sm" data-act="careerswitch" data-val="'+esc(o.id)+'"'+(app.careerBusy?' disabled':'')+'>▶ Play</button>'+
+      '<button class="btn ghost sm" data-act="careerdel" data-val="'+esc(o.id)+'" title="Delete this career" aria-label="Delete '+esc(m.name)+'’s career"'+(app.careerBusy?' disabled':'')+'>🗑</button></div>':'')+
+  '</div>';
+}
+function careerNotes(){
+  return (app.careerBusy?'<div class="dim small" style="margin-top:8px">⏳ '+esc(app.careerBusy)+'</div>':'')+
+    (app.careerMsg?'<div class="small" role="alert" style="margin-top:8px;color:#f87171">'+esc(app.careerMsg)+'</div>':'');
+}
+function careersPanel(c){
+  const sl=careerSlots(),full=careerCount()>=MAX_CAREERS;
+  let h='<div class="card" id="careerscard" style="margin-bottom:8px">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px"><div style="font-weight:800">👥 Your careers <span class="dim small" style="font-weight:600">'+careerCount()+' of '+MAX_CAREERS+'</span></div>'+
+      '<button class="btn ghost sm" data-act="careersopen">Close</button></div>'+
+    '<div class="dim small" style="margin-bottom:8px;line-height:1.5">Each career keeps its own ratings, money, events and story, and waits exactly where you left it — an unfinished game too. Settings, puzzles, openings, studies and the hall of fame are shared.</div>';
+  h+=careerRow(careerMeta(c),{now:true});
+  sl.forEach(function(x){h+=careerRow(x.meta,{id:x.id,at:x.at});});
+  h+='<div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn sec sm" data-act="careeranother"'+((full||app.careerBusy)?' disabled':'')+'>➕ Start another career</button>'+
+    '<span class="dim small">'+(full?'That is the most there is room for — delete one to start another.':'This one waits here while you do.')+'</span></div>';
+  return h+careerNotes()+'</div>';
+}
+/* On the setup screen and after a retirement: the careers you could go back to. */
+function careerOthersCard(title){
+  const sl=careerSlots();if(!sl.length)return '';
+  let h='<div class="card" id="careerscard" style="max-width:540px;margin:12px auto 0;text-align:left"><div style="font-weight:800;margin-bottom:6px">👥 '+esc(title)+'</div>';
+  sl.forEach(function(x){h+=careerRow(x.meta,{id:x.id,at:x.at});});
+  return h+careerNotes()+'</div>';
+}
 /* ================= A LIFE, NOT A BUTTON =================
    Weeks used to pass in one click. Now a week is seven days and each day is
    something you actually chose to do — sleep, train, study, take a coaching
@@ -18080,7 +18246,7 @@ function viewCareer(){
   const c=store.career;
   if(!c.setup)return careerSetupView();
   lifeInit(c);
-  if(c.retired)return careerHoF(c);
+  if(c.retired)return careerHoF(c)+careerOthersCard('Or go back to one of your other careers');
   if(!c.objective)lifeNewObjective(c);
   worldMaybeTick();
   arcTick(c);
@@ -18222,7 +18388,7 @@ function careerSetupView(){
       rowSet('Starting strength','Already play? Skip the beginner grind. <b>Talent</b> and <b>Master</b> start you with a published rating so you can head straight for norms and titles.','<select id="cr-start" '+inp+'><option value="club" selected>Club player — unrated, age 16</option><option value="talent">Talent — rated ~1900</option><option value="master">Master — rated ~2300</option><option value="junior">Junior — age 11, unrated, still at school</option></select>')+
     '</div>'+
     '<div class="row" style="justify-content:center"><button class="btn primary" data-act="careersetup">Begin career ▸</button></div>'+
-    '</div></div>';
+    '</div>'+careerOthersCard('Or carry on with one of your careers')+'</div>';
 }
 function fmtTb(v){return (Math.round(v*4)/4).toString().replace(/\.5$/,'½').replace(/\.25$/,'¼').replace(/\.75$/,'¾');}
 function careerFinishBanner(f){
@@ -18348,8 +18514,10 @@ function careerStrip(c){
     '<span class="cs-v" style="color:'+(money<bills?'#f87171':'#fbbf24')+'" title="Money">💰'+compactMoney(money)+'</span>'+
     '<span class="cs-v cs-en" style="color:'+enCol+'" title="Energy">⚡'+en+'</span>'+
     '<button class="cs-in'+(n?' on':'')+'" data-act="jump" data-val="play:inboxcard" title="Inbox" aria-label="Inbox: '+(n?n+' waiting':'nothing waiting')+'">📥'+(n?'<b>'+n+'</b>':'')+'</button>'+
+    '<button class="cs-cc'+(app.careersOpen?' on':'')+'" data-act="careersopen" aria-expanded="'+!!app.careersOpen+'" title="Your careers — switch, or start another" aria-label="Your careers: '+careerCount()+'">👥'+(careerCount()>1?'<b>'+careerCount()+'</b>':'')+'</button>'+
     '<button class="cs-tg" data-act="striptoggle" aria-expanded="'+open+'" aria-label="'+(open?'Hide':'Show')+' your details">'+(open?'▴':'▾')+'</button>'+
   '</div>';
+  if(app.careersOpen)h+=careersPanel(c);
   if(open)h+=careerDashboard(c);
   return h;
 }
@@ -26059,6 +26227,7 @@ function applyMotion(){try{document.documentElement.setAttribute('data-motion',m
 function srchNorm(t){return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/['\u2019`]/g,'').replace(/[^a-z0-9#+ ]+/g,' ').replace(/\s+/g,' ').trim();}
 const SRCH_SCREENS=[
   ['career','🏆','Career','Your career: tournaments, rating, titles','fide elo norms gm im'],
+  ['careers','👥','Your careers','Switch careers, or start another alongside','several careers save slots switch parallel another second new profile'],
   ['dashboard','📊','Dashboard','Due reviews, mastery, streak','stats progress'],
   ['play','♟️','Play vs the engine','Stockfish or a bot, any time control','game computer bot blitz rapid'],
   ['play#passcard','👥','Play a friend on this device','Two players, one board','pass and play two player hotseat'],
@@ -26135,6 +26304,7 @@ function srchGoScreen(key){
   if(key.indexOf('@')>0){tab=key.split('@')[1];key=key.split('@')[0];}
   if(key.indexOf('#')>0){anchor=key.split('#')[1];key=key.split('#')[0];}
   if(key==='train'){startTraining('all');return;}
+  if(key==='careers'){app.careersOpen=true;app.careerMsg=null;key='career';}
   if(key==='play')app.playFen=null;
   if(tab)app.careerTab=tab;
   go(key);

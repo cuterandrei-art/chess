@@ -1920,6 +1920,36 @@ launch builds nothing.
 
 ---
 
+## Several careers at once
+
+You can keep up to eight careers side by side and switch between them. The 👥
+button on the career line opens **Your careers**: the one you are playing, then
+the others with their title, rating, season, age and when you last played
+them, each with **▶ Play** and 🗑. **➕ Start another career** puts the current
+one aside and opens the setup for a new one (with the New Game+ head start, as
+after a retirement). The setup screen and a retired career list the others to
+go back to, and search finds it as "Your careers".
+
+Each career waits exactly where you left it: ratings, money, the event you are
+in and its round, rivals, story, and a career game you had not finished — that
+game goes with its career and comes back when you do (if a free game has been
+saved in the meantime, it keeps its place and the career game returns once it
+is done). Nothing on the screen carries over from one career to the next.
+Settings, puzzles, openings, studies and the hall of fame are shared.
+
+The career you are playing is kept exactly as before; the others are gzipped,
+because every save writes the whole store and a few seasons of career are half
+a megabyte. A three-season career of 485 KB is kept in 161 KB, and switching
+takes about a tenth of a second. A browser without compression keeps them as
+they are. Being in the store, they go wherever it goes: a backup carries every
+career, the restore preview lists them, and restoring a file that does not
+have them warns that they would be deleted. A career that cannot be opened is
+reported and nothing is changed; deleting one asks first.
+
+`validate-careers.mjs` covers starting, switching both ways field for field,
+the unfinished game, an event in progress, the limit, deleting, a broken
+career, an old browser, backups, a reload, search and retirement.
+
 ## Drag the board to resize it
 
 With a mouse or a pen, every board has a grip on its bottom-right corner.
@@ -1942,7 +1972,7 @@ mid-drag, double-click, that a resize never moves a piece, and phones.
 
 ## Tests
 
-Sixty-five suites, about 5,920 checks, plus twenty-one browser suites that drive the real app with the real engine.
+Sixty-six suites, about 5,960 checks, plus twenty-one browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
