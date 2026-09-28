@@ -6453,8 +6453,8 @@ function render(){
   boardGrips();
   if(_kf){try{const el=document.getElementById(_kf.id);if(el&&el!==document.activeElement){el.focus({preventScroll:true});if(_kf.s!=null&&el.setSelectionRange)el.setSelectionRange(_kf.s,_kf.e);}}catch(e){}}
   srNode();                       // outside #app, so a redraw never wipes it
-  if(app.view==='play'&&app.playStatus==='over'&&resultKind(app.playResult)==='win'&&app._fxKey!==app.playResult){app._fxKey=app.playResult;confetti();}
-  var _cf=app.careerFinish;if(_cf&&((_cf.newTitles&&_cf.newTitles.length)||(_cf.honors&&_cf.honors.length)||(_cf.norms&&_cf.norms.length)||_cf.published)&&app._fxCareer!==_cf){app._fxCareer=_cf;confetti(130);}
+  if(app.view==='play'&&app.playStatus==='over'&&resultKind(app.playResult)==='win'&&app._fxKey!==app.playResult){app._fxKey=app.playResult;confetti();if(app.careerOpp||app.careerTour||app.careerOneoff)Music.sting('game');}
+  var _cf=app.careerFinish;if(_cf&&((_cf.newTitles&&_cf.newTitles.length)||(_cf.honors&&_cf.honors.length)||(_cf.norms&&_cf.norms.length)||_cf.published)&&app._fxCareer!==_cf){app._fxCareer=_cf;confetti(130);Music.sting(_cf.newTitles&&_cf.newTitles.length?'title':'moment');}
   if(app.view==='clearn'&&app.cl&&app.cl.done&&app._fxCl!==app.cl){app._fxCl=app.cl;confetti(90);}
   // keep the game on disk while it is being played, and drop it the moment it
   // is finished — one place, so no ending can forget to clean up after itself
@@ -6462,6 +6462,7 @@ function render(){
   {const _sc=document.getElementById('streamchat');if(_sc)_sc.scrollTop=_sc.scrollHeight;const _sp=document.getElementById('specchat');if(_sp)_sp.scrollTop=_sp.scrollHeight;}
   a11yTick();
   animateLast();
+  Music.update();
 }
 
 function viewDashboard(repOps,agg){
@@ -10928,6 +10929,8 @@ function viewSettings(){
     rowSet('Tournament hall sounds','In a career round: the murmur of the hall, clocks on other boards, and the cough there always is.',(store.settings.hallSound!==false?'<input type="checkbox" data-setting="hallSound" checked>':'<input type="checkbox" data-setting="hallSound">'))+
     rowSet('Arbiter’s voice','The arbiter starts each career round aloud, in your device’s own voice.',(store.settings.arbiterVoice!==false?'<input type="checkbox" data-setting="arbiterVoice" checked>':'<input type="checkbox" data-setting="arbiterVoice">'))+
     rowSet('Round scenes','Before each career round: the city, the hall, your board and your opponent sitting down.',(store.settings.roundIntro!==false?'<input type="checkbox" data-setting="roundIntro" checked>':'<input type="checkbox" data-setting="roundIntro">'))+
+    rowSet('Music','A soundtrack made on the spot: slow chords between events, a heartbeat when your clock runs under a minute, a fanfare for a title. Silent while you think.','<select data-setting="music">'+[['career','In the career'],['all','Everywhere'],['off','Off']].map(function(o){return '<option value="'+o[0]+'"'+(musicMode()===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>')+
+    (musicMode()!=='off'?rowSet('Music volume','','<input type="range" min="0" max="100" step="5" value="'+Math.round(Music.vol()*100)+'" data-setting="musicVol" aria-label="Music volume">'):'')+
     rowSet('Sound theme','',('<select data-setting="soundTheme">'+['classic','soft','wood','marimba'].map(function(k){return '<option value="'+k+'"'+((store.settings.soundTheme||'classic')===k?' selected':'')+'>'+k[0].toUpperCase()+k.slice(1)+'</option>';}).join('')+'</select>'))+
     '<div id="motionrow">'+rowSet('Motion','The piece slide, confetti and small interface animations. “Follow my device” uses its reduce-motion setting (it is '+(osReducedMotion()?'on':'off')+' here).','<select data-setting="motion"><option value="auto"'+(motionPref()==='auto'?' selected':'')+'>Follow my device</option><option value="full"'+(motionPref()==='full'?' selected':'')+'>Full motion</option><option value="reduced"'+(motionPref()==='reduced'?' selected':'')+'>Reduced motion</option></select>')+'</div>'+
     rowSet('Smooth animations','Slide pieces when a move is played.',(store.settings.anim!==false?'<input type="checkbox" data-setting="anim" checked>':'<input type="checkbox" data-setting="anim">'))+
@@ -11139,6 +11142,130 @@ function boardClick(sq){
 let _actx=null;
 const SOUND_THEMES={classic:{type:'triangle',move:300,capture:170,check:620},soft:{type:'sine',move:330,capture:210,check:520},wood:{type:'square',move:210,capture:140,check:430},marimba:{type:'sine',move:450,capture:270,check:700}};
 function sfx(type){if(!store.settings.sound)return;try{_actx=_actx||new (window.AudioContext||window.webkitAudioContext)();const o=_actx.createOscillator(),g=_actx.createGain();o.connect(g);g.connect(_actx.destination);const t=_actx.currentTime;const th=SOUND_THEMES[store.settings.soundTheme]||SOUND_THEMES.classic;o.type=th.type;o.frequency.value=type==='capture'?th.capture:type==='check'?th.check:th.move;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.12,t+0.008);g.gain.exponentialRampToValueAtTime(0.0001,t+0.13);o.start(t);o.stop(t+0.14);}catch(e){}}
+/* ================= MUSIC =================
+   A soundtrack that follows the moment, made on the spot from a few
+   oscillators — nothing is downloaded and nothing is licensed.
+   · On the career screens: slow chords (A minor, F, C, G) with a bell now and
+     then — the room between events.
+   · In a game: nothing. You are thinking.
+   · Your clock under a minute: a low drone and a heartbeat, faster as it runs
+     out.
+   · A title, a norm, a first rating, a won event: a short fanfare; a won game
+     in your career: three notes.
+   Settings → Music: in the career (the default), everywhere, or off, and a
+   volume. It waits for the first tap (a browser will not play sound before
+   one) and goes quiet when the app is hidden. */
+function musicMode(){const m=store.settings.music;return m==='all'||m==='off'?m:'career';}
+function musicMidi(n){return 440*Math.pow(2,(n-69)/12);}
+const MUSIC_CHORDS=[[45,52,55,59,60],[41,48,52,57,64],[48,55,59,64,67],[43,50,55,59,62]];   // Am9 · Fmaj7 · Cmaj7 · G
+const MUSIC_BAR=6.4;                                                                        // seconds a chord
+const MUSIC_GAIN=0.9;   // at the default volume (35) about −38 dB: under the room, over a phone's own hiss
+var Music={mood:null,armed:false,master:null,layer:null,timer:null,next:0,step:0,duck:null,
+  ctx:function(){try{_actx=_actx||new (window.AudioContext||window.webkitAudioContext)();return _actx;}catch(e){return null;}},
+  vol:function(){const v=store.settings.musicVol;return Math.max(0,Math.min(100,v==null||v===''?35:+v))/100;},
+  /* What should be playing now. */
+  want:function(){
+    const mode=musicMode();
+    if(mode==='off'||!this.armed)return null;
+    if(typeof document!=='undefined'&&document.hidden)return null;
+    const career=!!(app.careerOpp||app.careerTour||app.careerOneoff||app.careerLeague||app.careerPro);
+    if(app.view==='play'){
+      if(mode==='career'&&!career)return null;
+      if(app.clock&&app.playStatus!=='over'&&!app.pass){
+        const left=app.clock[app.playSide==='b'?'b':'w'];
+        if(left!=null&&left>0&&left<=60000)return 'tension';
+      }
+      return null;                                   // silence to think in
+    }
+    if(app.view==='career'||app.view==='player'||app.view==='spectate')return 'calm';
+    return mode==='all'?'calm':null;
+  },
+  update:function(){const m=this.want();if(m!==this.mood)this.play(m);else if(m==='tension')this.tempo();},
+  out:function(){
+    const ac=this.ctx();if(!ac)return null;
+    if(!this.master){try{this.master=ac.createGain();this.master.gain.value=this.vol()*MUSIC_GAIN;this.master.connect(ac.destination);}catch(e){this.master=null;}}
+    return this.master;
+  },
+  setVol:function(){const ac=this.ctx();if(this.master&&ac){try{this.master.gain.setTargetAtTime(this.vol()*MUSIC_GAIN,ac.currentTime,0.1);}catch(e){}}},
+  play:function(m){
+    const ac=this.ctx();
+    // the old layer fades out on its own; nothing is cut off mid-note
+    if(this.layer&&ac){const g=this.layer;try{g.gain.cancelScheduledValues(ac.currentTime);g.gain.setValueAtTime(g.gain.value,ac.currentTime);g.gain.linearRampToValueAtTime(0.0001,ac.currentTime+1.4);}catch(e){}
+      setTimeout(function(){try{g.disconnect();}catch(e){}},1600);}
+    this.layer=null;if(this.timer){clearInterval(this.timer);this.timer=null;}
+    this.mood=m;
+    if(!m||!ac)return;
+    const out=this.out();if(!out)return;
+    try{if(ac.state==='suspended'&&ac.resume)ac.resume();}catch(e){}
+    try{const g=ac.createGain();g.gain.setValueAtTime(0.0001,ac.currentTime);g.gain.linearRampToValueAtTime(1,ac.currentTime+(m==='calm'?2.5:0.8));g.connect(out);this.layer=g;}catch(e){return;}
+    this.next=ac.currentTime+0.1;this.step=0;
+    const self=this;this.timer=setInterval(function(){self.schedule();},200);this.schedule();
+  },
+  /* Notes up to half a second ahead, so a busy moment on a slow phone never makes it stutter. */
+  schedule:function(){
+    const ac=this.ctx();if(!ac||!this.layer)return;
+    const until=ac.currentTime+0.6;
+    let guard=0;
+    while(this.next<until&&guard++<16){
+      if(this.mood==='calm'){this.chord(this.next,MUSIC_CHORDS[this.step%MUSIC_CHORDS.length]);this.next+=MUSIC_BAR;}
+      else if(this.mood==='tension'){if(this.step===0)this.drone(this.next);this.heart(this.next);this.next+=60/this.bpm();}
+      this.step++;
+    }
+  },
+  bpm:function(){const left=app.clock?app.clock[app.playSide==='b'?'b':'w']:60000;return Math.round(72+Math.max(0,Math.min(60,(60000-(left||0))/1000))*0.8);},
+  tempo:function(){},                                // the next beat reads the clock itself
+  tone:function(t,freq,type,att,hold,rel,vol,cut){
+    const ac=this.ctx();if(!ac||!this.layer)return;
+    try{const o=ac.createOscillator(),g=ac.createGain();let dst=g;
+      o.type=type;o.frequency.setValueAtTime(freq,t);
+      if(cut&&ac.createBiquadFilter){const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=cut;o.connect(f);f.connect(g);}else o.connect(g);
+      g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(vol,t+att);g.gain.setValueAtTime(vol,t+att+hold);g.gain.exponentialRampToValueAtTime(0.0001,t+att+hold+rel);
+      g.connect(this.layer);o.start(t);o.stop(t+att+hold+rel+0.05);}catch(e){}
+  },
+  chord:function(t,notes){
+    const self=this;
+    notes.forEach(function(n,i){
+      self.tone(t,musicMidi(n),'triangle',1.8,MUSIC_BAR-2.2,3.2,i===0?0.05:0.028,900);
+      self.tone(t,musicMidi(n)*1.004,'sine',2.2,MUSIC_BAR-2.6,3.2,0.012);          // a slow beat against itself
+    });
+    // a bell or two from the chord, somewhere in the bar
+    const k=1+Math.floor(Math.random()*2);
+    for(let j=0;j<k;j++){const n=notes[1+Math.floor(Math.random()*(notes.length-1))]+24;this.tone(t+1+Math.random()*(MUSIC_BAR-2),musicMidi(n),'sine',0.01,0.05,2.2,0.022);}
+  },
+  drone:function(t){this.tone(t,musicMidi(33),'sawtooth',1,58,2,0.05,170);this.tone(t,musicMidi(40),'sine',1.5,57,2,0.025);},
+  heart:function(t){
+    const ac=this.ctx();if(!ac||!this.layer)return;
+    const thump=function(at,v){try{const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.setValueAtTime(72,at);o.frequency.exponentialRampToValueAtTime(38,at+0.16);
+      g.gain.setValueAtTime(0.0001,at);g.gain.exponentialRampToValueAtTime(v,at+0.012);g.gain.exponentialRampToValueAtTime(0.0001,at+0.2);o.connect(g);g.connect(Music.layer);o.start(at);o.stop(at+0.24);}catch(e){}};
+    thump(t,0.32);thump(t+0.23,0.2);                  // lub — dub
+  },
+  /* A moment: over whatever is playing, which steps back while it sounds. */
+  sting:function(kind){
+    if(musicMode()==='off'||!this.armed)return;
+    const ac=this.ctx(),out=this.out();if(!ac||!out)return;
+    try{if(ac.state==='suspended'&&ac.resume)ac.resume();}catch(e){}
+    const t=ac.currentTime+0.05,L=this.layer;
+    if(L){try{L.gain.cancelScheduledValues(t);L.gain.setValueAtTime(L.gain.value,t);L.gain.linearRampToValueAtTime(0.25,t+0.3);L.gain.linearRampToValueAtTime(1,t+4.5);}catch(e){}}
+    const seq=kind==='game'?[[72,0],[76,0.14],[79,0.28,0.9]]:
+      kind==='title'?[[60,0],[64,0.16],[67,0.32],[72,0.48],[76,0.64],[79,0.8],[84,0.96,1.8]]:
+      [[67,0],[72,0.15],[76,0.3],[79,0.45,1.3]];
+    seq.forEach(function(x){
+      const at=t+x[1],hold=x[2]||0.12;
+      [0,1].forEach(function(v){try{const o=ac.createOscillator(),g=ac.createGain(),f=ac.createBiquadFilter();
+        o.type=v?'sawtooth':'square';o.frequency.setValueAtTime(musicMidi(x[0])*(v?1.003:1),at);f.type='lowpass';f.frequency.value=2400;
+        g.gain.setValueAtTime(0.0001,at);g.gain.exponentialRampToValueAtTime(v?0.05:0.035,at+0.02);g.gain.setValueAtTime(v?0.05:0.035,at+hold);g.gain.exponentialRampToValueAtTime(0.0001,at+hold+0.5);
+        o.connect(f);f.connect(g);g.connect(out);o.start(at);o.stop(at+hold+0.6);}catch(e){}});
+    });
+  },
+  stop:function(){this.play(null);}
+};
+/* A browser plays no sound before the first tap; the music starts from there. */
+(function(){
+  if(typeof document==='undefined')return;
+  const arm=function(){if(Music.armed)return;Music.armed=true;Music.update();};
+  document.addEventListener('pointerdown',arm,true);document.addEventListener('keydown',arm,true);
+  document.addEventListener('visibilitychange',function(){Music.update();});
+})();
 function sfxSan(san){if(!san)return;var ty=/[+#]/.test(san)?'check':/x/.test(san)?'capture':'move';sfx(ty);if(Hall.on)setTimeout(function(){Hall.click(0.06);},120);if(store.settings.haptics&&navigator.vibrate){try{navigator.vibrate(ty==='capture'?18:ty==='check'?[10,28,10]:9);}catch(e){}}}
 function resultKind(txt){txt=txt||'';if(/you won|you win/i.test(txt))return 'win';if(/you lost|wins\.|resigned/i.test(txt))return 'loss';if(/draw/i.test(txt))return 'draw';return 'over';}
 function confetti(n){try{if(typeof document==='undefined'||!document.body||motionReduced())return;var wrap=document.createElement('div');wrap.className='confetti';var cols=['#f59e0b','#22c55e','#1c84f5','#ec4899','#a855f7','#eab308','#38bdf8'];n=n||90;for(var i=0;i<n;i++){var p=document.createElement('i');p.style.left=(Math.random()*100)+'vw';p.style.background=cols[i%cols.length];p.style.animationDelay=(Math.random()*0.5)+'s';p.style.animationDuration=(1.6+Math.random()*1.5)+'s';p.style.opacity=0.6+Math.random()*0.4;wrap.appendChild(p);}document.body.appendChild(wrap);setTimeout(function(){if(wrap.parentNode)wrap.parentNode.removeChild(wrap);},3400);}catch(e){}}
@@ -11776,6 +11903,8 @@ document.getElementById('app').addEventListener('change',e=>{
     else if(ds==='motion')store.settings.motion=(e.target.value==='full'||e.target.value==='reduced')?e.target.value:'auto';
     else if(ds==='haptics')store.settings.haptics=e.target.checked;
     else if(ds==='boardSize')store.settings.boardSize=+e.target.value;
+    else if(ds==='musicVol'){store.settings.musicVol=Math.max(0,Math.min(100,+e.target.value||0));Music.setVol();}
+    else if(ds==='music')store.settings.music=(e.target.value==='all'||e.target.value==='off')?e.target.value:'career';
     else if(ds==='blunderWarn')store.settings.blunderWarn=e.target.checked;
     else if(ds==='freeAids')store.settings.freeAids=e.target.checked;
     else if(ds==='tbOn'){store.settings.tbOn=e.target.checked;if(!store.settings.tbOn){app.tb=null;app.tbDrill=null;app.tbEx=null;}}
@@ -11794,7 +11923,8 @@ document.getElementById('app').addEventListener('change',e=>{
     r.readAsText(f);e.target.value='';}
 });
 document.getElementById('app').addEventListener('input',e=>{if(e.target&&e.target.id==='ana-in'){app.anaText=e.target.value;return;}
-  if(e.target&&e.target.id==='srch-q'&&app.srch){app.srch.q=e.target.value;app.srch.sel=0;srchUpdate();return;}const ds=e.target.dataset&&e.target.dataset.setting;if(ds==='boardSize'){store.settings.boardSize=+e.target.value;document.body.style.setProperty('--bw',store.settings.boardSize+'px');}});
+  if(e.target&&e.target.id==='srch-q'&&app.srch){app.srch.q=e.target.value;app.srch.sel=0;srchUpdate();return;}const ds=e.target.dataset&&e.target.dataset.setting;if(ds==='boardSize'){store.settings.boardSize=+e.target.value;document.body.style.setProperty('--bw',store.settings.boardSize+'px');}
+  if(ds==='musicVol'){store.settings.musicVol=+e.target.value;Music.setVol();}});
 
 /* ============================ Stockfish engine ============================ */
 /* ---------------------------------------------------------------------------
@@ -12277,7 +12407,8 @@ function tickClock(){
     }
     app.clock[active]=Math.max(0,app.clock[active]-dt);
     if(app.clock[active]<=0){app.clock.lastTs=now;updateClockDOM();flagFall(active);return;}}
-  app.clock.lastTs=now;updateClockDOM();}
+  app.clock.lastTs=now;updateClockDOM();
+  if(Music.mood!=='tension'&&active===app.playSide)Music.update();}   // your clock under a minute: the heartbeat
 /* The bot has decided how long this move is worth. Start draining its clock
    towards that, however long the engine actually takes to answer. */
 function startBotClock(side,plan){
@@ -23837,6 +23968,36 @@ function liveBoardsPanel(){
 function roundIntroOn(tr){return store.settings.roundIntro!==false&&!!tr&&!tr.simul&&tr.round<tr.rounds;}
 /* “Play the round”: first the hall — the city, the room, your board, the
    handshake — unless the game was already under way, or the scenes are off. */
+/* The day outside: the month from the calendar, the weather from the place.
+   A January in Wijk aan Zee is sleet off the North Sea; an August in Chennai is
+   the monsoon; Doha in summer is forty degrees and a hall as cold as a fridge.
+   The same round always has the same weather. */
+const CLIMATE={cold:['Reykjavik','Oslo','Stockholm','Moscow','Riga','Stavanger','Kyiv','Warsaw','Toronto'],
+  sea:['Hastings','Wijk aan Zee','London','Amsterdam','Douglas','Douglas, Isle of Man','Weissenhaus'],
+  med:['Madrid','Rome','Sitges','Porto','Gibraltar','Pegeia','Istanbul','Batumi','Sochi'],
+  tropic:['Chennai','Kolkata','Goa','Manila','Hanoi','Singapore'],
+  desert:['Doha','Dubai','Las Vegas'],
+  south:['São Paulo','Buenos Aires']};
+const WEATHER={
+  cold:{w:['snow banked along the pavements','a hard frost, and dark by half past three','sleet blowing sideways off the water'],sp:['a thaw, and slush in the gutters','pale sun and a cold wind'],su:['light until nearly midnight','a cool, bright afternoon'],au:['rain, and the first frost forecast','a cold, grey afternoon']},
+  sea:{w:['a grey afternoon, with rain coming in off the sea','a gale rattling the windows','sleet off the sea'],sp:['showers blowing through between spells of sun','a fresh, bright afternoon'],su:['a warm afternoon, and the beach full','sea mist lifting by noon'],au:['a wet, windy afternoon','a bright, cold day by the water']},
+  med:{w:['a mild, bright afternoon','rain, for once'],sp:['warm sun, and orange blossom in the square','a soft, clear afternoon'],su:['a blazing afternoon, the air conditioning straining','heat shimmering off the street'],au:['a warm, golden afternoon','the first storm of the autumn']},
+  mid:{w:['a grey, freezing afternoon','snow turning to slush','fog that never quite lifts'],sp:['showers and sunshine','a mild afternoon, the trees in blossom'],su:['a hot, close afternoon','a thunderstorm building'],au:['leaves on the steps, and a cold wind','a wet, blustery afternoon','a crisp, bright day']}};
+function climateOf(city){for(const k in CLIMATE)if(CLIMATE[k].indexOf(city)>=0)return k;return 'mid';}
+function roundWeather(c,tr,place){
+  if(!place||place.trip==='online')return 'at your desk at home, the door shut';
+  const mi=Math.floor((((c&&c.weeks)||0)%52)*12/52),k=climateOf(place.city);
+  let h=0;const key=(tr&&tr.id||'')+'|'+((c&&c.season)||1)+'|'+((tr&&tr.round)||0);for(let i=0;i<key.length;i++)h=(h*31+key.charCodeAt(i))>>>0;
+  const pick=function(a){return a[h%a.length];};
+  let w;
+  if(k==='tropic')w=pick(mi>=5&&mi<=8?['a monsoon downpour drumming on the roof','steaming heat between the rains']:(mi>=2&&mi<=4)?['fierce, humid heat','heat that hits you at the door']:['warm and bright, the best of the year','a pleasant, breezy afternoon']);
+  else if(k==='desert')w=pick(mi>=4&&mi<=8?['forty degrees outside, and the hall as cold as a fridge','heat haze over the road']:['a mild, clear afternoon','a warm, dry, cloudless day']);
+  else{
+    const m=k==='south'?(mi+6)%12:mi,sea=(m===11||m<=1)?'w':m<=4?'sp':m<=7?'su':'au';
+    w=pick(WEATHER[k==='south'?'med':k][sea]);
+  }
+  return (WIRE_MONTHS[mi]||'')+' · '+w;
+}
 function tourRoundEnter(){
   const c=store.career,tr=c&&c.tour;if(!tr||tr.round>=tr.rounds)return;
   if(resumeIsThisRound(playSavedGame(),c)||!roundIntroOn(tr)){playTourRound();return;}
@@ -23858,7 +24019,7 @@ function viewRound(){
   const tier=t.tier||0;
   const lines=[];
   lines.push('<div class="hl-where">'+(tr.emoji||'🏟️')+' <b>'+esc(tr.name)+'</b> · '+(tr.ko?esc(koC(tr.ko).names[tr.ko.round]||'Round')+', game '+(tr.round%2+1):(tr.kind==='match'?'Game ':'Round ')+(tr.round+1)+' of '+tr.rounds)+'</div>');
-  lines.push('<div class="dim small">📍 '+esc(place.city)+(place.trip==='online'?' · online':'')+'</div>');
+  lines.push('<div class="dim small" id="roundday">📍 '+esc(place.city)+(place.trip==='online'?' · online':'')+' · '+esc(roundWeather(c,tr,place))+'</div>');
   lines.push('<p>You walk into '+esc(hallLine(t,tr,place))+'.</p>');
   if(tier>=6&&place.trip!=='online')lines.push('<p class="dim">Phones go into a pouch at the door, and an arbiter runs a scanner over your jacket.</p>');
   if(mine)lines.push('<p>You are on <b>board '+mine.no+'</b>.'+(top&&mine.no!==1?' On board one, '+(tr.round?'the leaders':'the top seeds')+': '+esc(liveName(tr,top.a))+' against '+esc(liveName(tr,top.b))+'.':'')+
@@ -26442,6 +26603,7 @@ const SRCH_SCREENS=[
   ['hall','🏛️','The hall','Finished careers',''],
   ['settings','⚙️','Settings','Board, pieces, sounds, engine','options preferences'],
   ['settings#remindcard','🔔','Reminders','A notification when reviews are due','notifications notify alert'],
+  ['settings','🎵','Music','A soundtrack for your career, and its volume','soundtrack sound audio volume songs'],
   ['settings#xfercard','⇄','Move progress to another device','Send it from here, open it there','backup export import sync transfer phone pc'],
   ['settings#motionrow','🌀','Motion','Reduce motion: piece sliding, confetti','animation accessibility reduced motion'],
   ['install','⬇','Install the app','On this PC or phone','pwa home screen'],

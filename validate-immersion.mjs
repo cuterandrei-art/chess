@@ -17,7 +17,7 @@ globalThis.ResizeObserver=class{observe(){}unobserve(){}disconnect(){}}; globalT
 if(!dom.window.matchMedia)dom.window.matchMedia=()=>({matches:false,addEventListener(){},removeEventListener(){},addListener(){},removeListener(){}});
 dom.window.__PUZZLES=[];dom.window.scrollTo=()=>{};
 let pass=0; const ok=(c,m)=>{if(!c)throw new Error('FAIL: '+m);pass++;console.log('  ✓ '+m);};
-const X=new Function(script+'\nreturn {store,app,freshCareer,lifeInit,joinTournament,TOURNAMENTS,EVENT_WEEK,heldThisSeason,weekOfSeason,'+
+const X=new Function(script+'\nreturn {roundWeather,climateOf,store,app,freshCareer,lifeInit,joinTournament,TOURNAMENTS,EVENT_WEEK,heldThisSeason,weekOfSeason,'+
   'playTourRound,tourRoundEnter,roundLive,roundIntroOn,viewRound,liveBoardsPanel,liveDone,liveLastGame,liveLeaders,careerResult,stopClockTick,_simRound,'+
   'viewSettings,arbiterSay,Hall,hallSoundOn,render,'+
   'eventPlace,fedRegion,travelArrive,travelAway,tripCovered,jetLagNow,JET_ELO,HOTELS,hotelNight,travelRow,travelEarly,travelHome,tripCost,conditionMod,applyCareerCondition,lifeAfterGame,tourRest,tourRestRow,'+
@@ -49,6 +49,7 @@ ok(others.length>=5&&others.length===Math.floor((tr.standings.length-2)/2)&&othe
 let V=X.viewRound();
 ok(/You walk into/.test(V)&&/Reykjavik/.test(V),'the scene: the city and the room');
 const opp=tr.field[0];
+ok(/id="roundday">📍 [^<]+ · (January|February|March|April|May|June|July|August|September|October|November|December) · [a-z]/.test(V),'the day outside: the city, the month and the weather ('+(V.match(/id="roundday">([^<]+)</)||[])[1]+')');
 ok(/You are on <b>board \d+<\/b>/.test(V),'your board number');
 ok(V.includes(opp.name),'and '+opp.name+' sitting down');
 ok(/Players, you may start the clocks/.test(V)&&/data-act="hallstart"/.test(V)&&/data-act="hallskip"/.test(V),'the arbiter’s line, a start button and a way to skip the scenes');
@@ -278,5 +279,18 @@ ok(X.app.pg&&X.app.pg.moves.length===20&&X.app.pg.status==='off'&&X.app.pg.opp.n
 X.app.playStatus='over';
 ok(/shakes your hand/.test(X.postMortemPanel()),'(without an engine, just the handshake)');
 
+console.log('\n— the weather —');
+{
+  const C=(w)=>({weeks:w,season:1}),T={id:'x',round:0};
+  const at=(city,w)=>X.roundWeather(C(w),T,{city:city,trip:'abroad'});
+  ok(/^January · /.test(at('Wijk aan Zee',1))&&/(rain|gale|sleet)/.test(at('Wijk aan Zee',1)),'January in Wijk aan Zee: '+at('Wijk aan Zee',1));
+  ok(/monsoon|rains/.test(at('Chennai',32)),'August in Chennai: '+at('Chennai',32));
+  ok(/forty degrees|heat haze/.test(at('Doha',28)),'July in Doha: '+at('Doha',28));
+  ok(/mild|golden|blazing|heat|storm|sun|blossom|clear|rain/.test(at('Buenos Aires',28))&&!/snow|frost|sleet/.test(at('Buenos Aires',28)),'July in Buenos Aires is their winter, and a mild one: '+at('Buenos Aires',28));
+  ok(/^February · /.test(at('Reykjavik',6))&&/snow|frost|sleet/.test(at('Reykjavik',6)),'February in Reykjavik: '+at('Reykjavik',6));
+  ok(at('Budapest',20)===at('Budapest',20),'the same round always has the same weather');
+  ok(X.roundWeather(C(5),T,{city:'Bucharest',trip:'online'})==='at your desk at home, the door shut','and an online round is at home');
+  ok(X.climateOf('Nowhere')==='mid','a city it does not know gets an ordinary middle-of-Europe climate');
+}
 console.log('\n✅ the tournament day, travel, people, the post-mortem and the homework: '+pass+' checks passed');
 process.exit(0);

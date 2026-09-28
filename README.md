@@ -1952,6 +1952,32 @@ reported and nothing is changed; deleting one asks first.
 the unfinished game, an event in progress, the limit, deleting, a broken
 career, an old browser, backups, a reload, search and retirement.
 
+## Music, and the day outside
+
+**Music.** A soundtrack made on the spot from a few oscillators — nothing is
+downloaded and nothing is licensed. On the career screens, slow chords
+(A minor, F, C, G, a chord every 6.4 seconds) with a bell now and then. In a
+game, nothing: you are thinking. With your clock under a minute, a low drone
+and a heartbeat — 80 beats a minute at fifty seconds, 112 at ten; your
+opponent's time trouble is not yours, and a game shared by two people on one
+device gets none. A title is a fanfare climbing to a high C; a norm, a first
+rating or a trophy a shorter one; a won career game three notes; the chords
+step back while they sound. **Settings → Music**: in the career (the default),
+everywhere, or off, and a volume (35 by default, about −38 dB). It waits for
+the first tap, as browsers require, fades rather than stops, and goes quiet
+when the app is hidden. In Chromium the career screen measures −39 dB after a
+tap and a game is silent.
+
+**The day outside.** Walking into the hall now says what kind of day it is:
+the month from the calendar and the weather from the place — January in Wijk
+aan Zee is rain coming in off the sea, August in Chennai the monsoon, July in
+Doha forty degrees and a hall as cold as a fridge, July in Buenos Aires their
+mild winter. The same round always has the same weather, and an online round
+is at your desk at home.
+
+`validate-music.mjs` covers the music with a sound card that writes down every
+note; the weather is in `validate-immersion.mjs`.
+
 ## Fast on a cheap phone
 
 Measured in Chromium with the processor slowed six times (about a cheap
@@ -2042,7 +2068,7 @@ mid-drag, double-click, that a resize never moves a piece, and phones.
 
 ## Tests
 
-Sixty-eight suites, about 6,030 checks, plus twenty-one browser suites that drive the real app with the real engine.
+Sixty-nine suites, about 6,080 checks, plus twenty-one browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —

@@ -118,7 +118,16 @@ if(await mgr.count()){
   await page.waitForTimeout(1200);
   const n1=(await state()).moves.length;
   ok(n1>=n0,'the manager panel\u2019s own Play button resumes the game rather than restarting it ('+n0+' \u2192 '+n1+' moves)');
-}else ok(true,'no second entry point to check');
+}else{
+  // the calm career screen has no manager panel: its way back is the resume card (and the round's Resume ▸)
+  const n0=(await state()).moves.length;
+  const back=page.locator('[data-act="presume"]');
+  ok(await back.count()>0,'the career screen offers the game back');
+  await back.first().click();
+  await page.waitForTimeout(1200);
+  const n1=(await state()).moves.length;
+  ok(n1>=n0,'and Resume picks it up rather than restarting it ('+n0+' \u2192 '+n1+' moves)');
+}
 
 /* ---- play on, and finish the game: the save must not outlive it ---- */
 await page.click('[data-act="presign"]').catch(()=>{});
