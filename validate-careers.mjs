@@ -26,7 +26,9 @@ const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const click=(act,val)=>{const b=$('[data-act="'+act+'"]'+(val!=null?'[data-val="'+val+'"]':''));if(!b)throw new Error('no button '+act+' '+(val||''));b.click();return b;};
 const idle=async()=>{for(let i=0;i<300&&X.app.careerBusy;i++)await tick(5);await tick(5);};
 const setup=(name,fed)=>{X.go('career');$('#cr-name').value=name;if(fed)$('#cr-fed').value=fed;click('careersetup');return X.store.career;};
-const strip=c=>{const x=JSON.parse(JSON.stringify(c));delete x.parked;return JSON.stringify(x);};
+// what a career is, less two bits of bookkeeping: a game parked for later, and which of
+// the other careers its world has caught up with (that changes when they do)
+const strip=c=>{const x=JSON.parse(JSON.stringify(c));delete x.parked;if(x.wx)delete x.wx.gsync;return JSON.stringify(x);};
 const text=()=>$('#app').textContent;
 
 /* ================= one career, then another beside it ================= */

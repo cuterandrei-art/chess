@@ -4809,12 +4809,86 @@ let _worldCache=null;
 function buildWorld(){
   const c=(typeof store!=='undefined'&&store)?store.career:null,X=c&&c.wx;
   if(!X)return baseWorld();
-  if(_worldCache&&_worldCache.c===c&&_worldCache.v===X.v)return _worldCache.list;
+  const gk=ghostKey()+'|'+(c.name||'');          // the names of the others depend on yours, when they are the same
+  if(_worldCache&&_worldCache.c===c&&_worldCache.v===X.v&&_worldCache.g===gk)return _worldCache.list;
+  if(!_worldCache||_worldCache.c!==c||_worldCache.g!==gk)ghostSync(c);
   const list=baseWorld().filter(function(p){return !X.retired[p.id];})
+    .concat(ghostPlayers(c))
     .map(function(p){const b=X.base[p.id];return b?Object.assign({},p,Array.isArray(b)?{r:b[0],rr:b[1],rb:b[2]}:b):p;})
     .concat((X.extra||[]).filter(function(p){return !X.retired[p.id];}));
-  _worldCache={c:c,v:X.v,list:list};
+  _worldCache={c:c,v:X.v,g:gk,list:list};
   return list;
+}
+/* ================= YOUR CAREERS MEET =================
+   Your other careers are players in this one's world: on the rating list at
+   the rating they had when you last played them, playing the openings they
+   play and in the style they play, as strong as they really are (their hidden
+   strength, not a farmed number), with their own face. Their rating moves
+   here with every game, as everybody's does, and starts again from where the
+   career really is each time you have played it since. When an event near
+   their level is drawn, there is a fair chance they are in it — and a game
+   between two of your careers is news in both: here at once, and in theirs
+   the next time you open it. Unrated and retired careers are not on the list. */
+const GHOST_MEET=0.45,GHOST_BAND=175;
+const GHOST_STYLE={solid:'solid',attacker:'aggressive',technician:'grinder',tactician:'gambiteer',universal:'universal'};
+function ghostKey(){const sl=(typeof store!=='undefined'&&store&&Array.isArray(store.careerSlots))?store.careerSlots:[];
+  let k='';for(let i=0;i<sl.length;i++)k+=sl[i].id+':'+sl[i].at+',';return k;}
+function ghostPlayers(c){
+  const sl=(store&&Array.isArray(store.careerSlots))?store.careerSlots:[],out=[],names={};
+  names[String((c&&c.name)||'You')]=1;
+  sl.forEach(function(x,i){
+    const m=x&&x.meta;if(!m||m.retired||m.rating==null)return;
+    let nm=m.name||'You';if(names[nm])nm=nm+' (career '+(i+2)+')';names[nm]=1;
+    const r=Math.round(m.rating),st=m.str!=null?Math.round(m.str):r,rr=m.rr!=null?Math.round(m.rr):r-30,rb=m.rb!=null?Math.round(m.rb):r-45;
+    out.push({id:'y'+x.id,name:nm,fed:m.fed||'FIDE',flag:m.flag||'',real:false,ghost:x.id,w:m.women?1:0,
+      r:st,r0:r,rr:rr,rr0:rr,rb:rb,rb0:rb,title:m.title||'',age0:m.age||20,born:(c&&c.season)||1,
+      style:m.style||null,reps:m.reps||null,av:m.av||null,season:m.season||1});
+  });
+  return out;
+}
+/* A career played since this world last saw it starts again from where it really is. */
+function ghostSync(c){
+  const X=c&&c.wx;if(!X)return;
+  X.gsync=X.gsync||{};
+  const sl=(store&&Array.isArray(store.careerSlots))?store.careerSlots:[];
+  sl.forEach(function(x){
+    const gid='y'+x.id;if(X.gsync[gid]===x.at)return;
+    X.gsync[gid]=x.at;
+    if(c.wr)delete c.wr[gid];
+    delete X.base[gid];delete X.titles[gid];delete X.retired[gid];
+    if(c.pub&&c.pub.r)delete c.pub.r[gid];
+  });
+  try{_rankCache={};}catch(e){}
+}
+function ghostOf(opp){if(!opp)return null;if(opp.ghost&&opp.av!==undefined)return opp;const p=worldPlayerOf(opp);return (p&&p.ghost)?p:null;}
+/* A game between two of your careers, from the side of the one being played. */
+function ghostMeet(c,p,score,fmt){
+  if(!Array.isArray(store.careerMeets))store.careerMeets=[];
+  const M=store.careerMeets,ev=c.tour?c.tour.name:(app.careerLeague?'a club match':app.careerPro?'a league match':'a challenge game');
+  const m={a:careerCid(c),an:c.name||'You',b:p.ghost,bn:p.name,s:score,f:fmt||'classical',ev:ev,rd:c.tour?c.tour.round+1:null,se:c.season||1,at:Date.now()};
+  M.unshift(m);if(M.length>300)M.length=300;
+  const verb=score===1?'beat':score===0?'lost to':'drew with';
+  pushFeed(c,'👥','You '+verb+' '+p.name+' — your other career — '+(m.rd?'in round '+m.rd+' of '+ev:'in '+ev)+'. It will be news in their world too.','you');
+  return m;
+}
+/* The games two careers have played against each other, from a's side. */
+function ghostH2H(a,b){
+  const M=Array.isArray(store.careerMeets)?store.careerMeets:[];let w=0,d=0,l=0;
+  M.forEach(function(m){let s=null;if(m.a===a&&m.b===b)s=m.s;else if(m.a===b&&m.b===a)s=1-m.s;if(s==null)return;if(s===1)w++;else if(s===0)l++;else d++;});
+  return {w:w,d:d,l:l,n:w+d+l};
+}
+/* Opening a career: what happened to it in the others while you were away. */
+function ghostNews(c){
+  const M=Array.isArray(store.careerMeets)?store.careerMeets:[],id=c&&c.cid;if(!id)return null;
+  const fresh=M.filter(function(m){return m.b===id&&!m.seen;});if(!fresh.length)return null;
+  let w=0,d=0,l=0;
+  fresh.slice().reverse().forEach(function(m){
+    m.seen=true;const s=1-m.s;if(s===1)w++;else if(s===0)l++;else d++;
+    const verb=m.s===1?'beat you':m.s===0?'lost to you':'drew with you';
+    pushFeed(c,'👥','Meanwhile, in '+m.an+'’s career: '+m.an+' '+verb+(m.rd?' in round '+m.rd+' of '+m.ev:' in '+m.ev)+' (season '+m.se+').','you');
+  });
+  return 'While you were away, you met '+(fresh.length===1?fresh[0].an:'your other careers')+' '+(fresh.length===1?'once':fresh.length+' times')+' in '+(fresh.length===1?'their':'their')+' world: '+
+    [w?w+' win'+(w>1?'s':''):'',d?d+' draw'+(d>1?'s':''):'',l?l+' loss'+(l>1?'es':''):''].filter(Boolean).join(', ')+'. It is on your news board.';
 }
 function wpBase(p,fmt){return fmt==='rapid'?p.rr:fmt==='blitz'?p.rb:p.r;}
 /* ---------------------------------------------------------------------------
@@ -4972,6 +5046,7 @@ function worldPlayerOf(o){
 function worldVsYou(c,opp,myScore,fmt){
   const p=worldPlayerOf(opp);
   if(!p||myScore==null)return 0;
+  if(p.ghost)ghostMeet(c,p,myScore,fmt);          // two of your careers met
   const yr=youPub(c,fmt||'classical')||youRating(c,fmt||'classical')||c.rating||1500;
   return worldApply(c,p,fmt||'classical',1-myScore,yr);
 }
@@ -4981,7 +5056,7 @@ function youRating(c,fmt){return fmt==='rapid'?c.ratingRapid:fmt==='blitz'?c.rat
    you do, so it is kept until then. */
 let _rankCache={};
 function worldRanking(c,fmt,live){
-  const P=c&&c.pub,X=c&&c.wx,key=[X?X.v:0,live||!P?((c&&c.wrv)||0):'p'+P.k,live||!P?youRating(c,fmt):youPub(c,fmt),c&&c.name,c&&c.fed,((c&&c.titles)||[]).join(),(c&&c.cycle&&c.cycle.champ)?1:0].join('|');
+  const P=c&&c.pub,X=c&&c.wx,key=[X?X.v:0,ghostKey(),live||!P?((c&&c.wrv)||0):'p'+P.k,live||!P?youRating(c,fmt):youPub(c,fmt),c&&c.name,c&&c.fed,((c&&c.titles)||[]).join(),(c&&c.cycle&&c.cycle.champ)?1:0].join('|');
   const ck=fmt+(live?'~':'');
   const hit=_rankCache[ck];
   if(hit&&hit.c===c&&hit.key===key)return hit.list;
@@ -4992,7 +5067,7 @@ function worldRanking(c,fmt,live){
 /* The live list: every game counted, today. */
 function worldRankingLive(c,fmt){return worldRanking(c,fmt,true);}
 function rankingFresh(c,fmt,live){
-  const list=buildWorld().map(p=>({id:p.id,name:p.name,fed:p.fed,flag:p.flag,real:p.real,w:p.w?1:0,age:wpAge(p),rating:live?wpRating(p,fmt):pubRating(p,fmt),live:wpRating(p,fmt),change:wpChange(p,fmt),you:false,title:wpTitle(p)}));
+  const list=buildWorld().map(p=>({id:p.id,name:p.name,fed:p.fed,flag:p.flag,real:p.real,ghost:p.ghost||null,w:p.w?1:0,age:wpAge(p),rating:live?wpRating(p,fmt):pubRating(p,fmt),live:wpRating(p,fmt),change:wpChange(p,fmt),you:false,title:wpTitle(p)}));
   const yr=live?youRating(c,fmt):youPub(c,fmt);
   if(yr!=null)list.push({id:'__you',name:c.name,fed:c.fed,flag:c.flag,real:false,w:isWomen(c)?1:0,age:Math.floor(c.age||16),rating:yr,live:youRating(c,fmt),change:0,you:true,title:bestTitle(c)||''});
   list.sort((a,b)=>b.rating-a.rating||(a.you?-1:b.you?1:0));
@@ -5459,7 +5534,7 @@ function migrateCareer(d){if(!d||typeof d!=='object'||('beaten'in d)||!('setup'i
    freshCareer() for a new career, the merges in restore(), the statistics
    reset — would be handed the state it was supposed to replace. */
 let store=JSON.parse(JSON.stringify(DEF));
-try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],courseProgress:d.courseProgress||{},settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],myGames:d.myGames||[],myGamesMeta:d.myGamesMeta||null,ccProfile:d.ccProfile||null,ccAccount:d.ccAccount||null,daily:d.daily||null,brilliancies:d.brilliancies||[],gmiss:d.gmiss||{},onboarded:!!d.onboarded,career:migrateCareer(d.career),careerSlots:Array.isArray(d.careerSlots)?d.careerSlots:[],
+try{const d=JSON.parse(localStorage.getItem(LS));if(d)store={repertoire:d.repertoire||[],srs:d.srs||{},custom:d.custom||[],courseProgress:d.courseProgress||{},settings:Object.assign({},DEF.settings,d.settings),stats:Object.assign({},DEF.stats,d.stats),puzzle:Object.assign({},DEF.puzzle,d.puzzle),studies:d.studies||[],myGames:d.myGames||[],myGamesMeta:d.myGamesMeta||null,ccProfile:d.ccProfile||null,ccAccount:d.ccAccount||null,daily:d.daily||null,brilliancies:d.brilliancies||[],gmiss:d.gmiss||{},onboarded:!!d.onboarded,career:migrateCareer(d.career),careerSlots:Array.isArray(d.careerSlots)?d.careerSlots:[],careerMeets:Array.isArray(d.careerMeets)?d.careerMeets:[],
   /* These two were missing from the list, so every reload dropped them: the
      daily quests regenerated and lost their progress, and the legacy that
      drives New Game+ never survived a session. */
@@ -5529,6 +5604,7 @@ function restoreBackup(text){
   store.onboarded=!!d.onboarded;
   store.career=migrateCareer(d.career);
   store.careerSlots=Array.isArray(d.careerSlots)?d.careerSlots:[];   // the careers that were not being played
+  store.careerMeets=Array.isArray(d.careerMeets)?d.careerMeets:[];   // and the games they played against each other
   if(d.quests)store.quests=d.quests;
   // the hall outlives careers, so a backup has to carry it too
   if(d.legacy)store.legacy=Object.assign({peak:0,careers:0,hall:[]},d.legacy);
@@ -5565,7 +5641,7 @@ function deviceLabel(ua){ua=ua==null?String((typeof navigator!=='undefined'&&nav
 function backupName(t){return 'chess-career-backup-'+dayKey(t||Date.now())+'.json';}
 function backupJson(){return JSON.stringify(Object.assign({_app:'chess-career',_saved:new Date().toISOString(),_device:deviceLabel()},store),null,2);}
 function backupKeys(d){return ['repertoire','srs','custom','courseProgress','settings','stats','puzzle','studies',
-  'myGames','myGamesMeta','ccProfile','ccAccount','daily','brilliancies','career','careerSlots','onboarded','quests','legacy'].filter(function(k){return d[k]!==undefined;});}
+  'myGames','myGamesMeta','ccProfile','ccAccount','daily','brilliancies','career','careerSlots','careerMeets','onboarded','quests','legacy'].filter(function(k){return d[k]!==undefined;});}
 /* The lines a person recognises in a save — the same ones on both sides of the preview. */
 function progressLines(d){d=d||{};var c=d.career&&typeof d.career==='object'&&d.career.setup?d.career:null;var bits=[];
   if(c)bits.push('🏆 '+(c.name||'your career')+' — '+(c.provisional?'unrated':(c.rating||'unrated'))+
@@ -15370,10 +15446,20 @@ function careerSlots(){if(!Array.isArray(store.careerSlots))store.careerSlots=[]
 function careerCid(c){if(!c.cid)c.cid='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);return c.cid;}
 function careerCount(){return careerSlots().length+(store.career&&store.career.setup?1:0);}
 function careerMeta(c){
-  return {name:String(c.name||'You').slice(0,24),flag:c.flag||'',title:bestTitle(c)||'',
+  const m={name:String(c.name||'You').slice(0,24),flag:c.flag||'',fed:c.fed||'FIDE',title:bestTitle(c)||'',
     rating:c.provisional?null:(c.rating||null),games:c.ratedGames||0,peak:c.peak||null,
     season:c.season||1,age:Math.floor(c.age||16),weeks:c.weeks||0,
     retired:!!c.retired,junior:!!c.junior,women:c.gender==='women',inEvent:!!c.tour};
+  // what the other careers' worlds need to put this one on their list
+  try{
+    m.rr=c.ratingRapid!=null?Math.round(c.ratingRapid):null;m.rb=c.ratingBlitz!=null?Math.round(c.ratingBlitz):null;
+    const st=c.str&&c.str.classical;m.str=st!=null?Math.round(st):null;
+    const ps=playingStyle(c);m.style=ps?(GHOST_STYLE[ps.key]||null):null;
+    const L=myLines(c),reps={};['w','b','b2'].forEach(function(k){if(L[k]&&L[k].id&&L[k].n>=2)reps[k]=L[k].id;});
+    m.reps=Object.keys(reps).length?reps:null;
+    m.av=c.avatar?JSON.parse(JSON.stringify(c.avatar)):null;
+  }catch(e){}
+  return m;
 }
 function bytesToB64(u8){var out='',CH=0x8000;for(var i=0;i<u8.length;i+=CH)out+=String.fromCharCode.apply(null,u8.subarray(i,i+CH));return btoa(out);}
 function b64ToBytes(b64){var bin=atob(b64),n=bin.length,u8=new Uint8Array(n);for(var i=0;i<n;i++)u8[i]=bin.charCodeAt(i);return u8;}
@@ -15434,8 +15520,9 @@ async function careerSwitch(id){
     if(packed)store.careerSlots.unshift(packed);
     if(parked)playDiscardSaved();
     store.career=next;
-    careerUiReset();app.careersOpen=false;
+    careerUiReset();app.careersOpen=false;app.view='career';
     app.careerToast='👥 Now playing '+(bestTitle(next)?bestTitle(next)+' ':'')+(next.name||'You')+'’s career'+(packed?' — '+(cur.name||'the other one')+' waits where you left it.':'.');
+    const gn=ghostNews(next);if(gn)app.careerToast+=' '+gn;
     careerUnpark();
     save();
   }catch(e){app.careerMsg='That career could not be opened ('+String((e&&e.message)||e)+'). Nothing was changed.';}
@@ -15461,15 +15548,18 @@ function careerDelete(id){
   const s=careerSlots().find(function(x){return x.id===id;});if(!s)return;
   const m=s.meta;
   uiConfirm('Delete '+m.name+'’s career'+(m.rating?' ('+m.rating+', season '+m.season+')':'')+'? It cannot be brought back. A career that retired keeps its place in the hall of fame.',function(){
-    store.careerSlots=careerSlots().filter(function(x){return x.id!==id;});save();});
+    store.careerSlots=careerSlots().filter(function(x){return x.id!==id;});
+    if(Array.isArray(store.careerMeets))store.careerMeets=store.careerMeets.filter(function(x){return x.a!==id&&x.b!==id;});
+    save();});
 }
 function careerRow(m,o){
   o=o||{};
   const sub=[(m.rating?m.rating+(m.peak&&m.peak>m.rating?' (peak '+m.peak+')':''):(m.games?m.games+'/5 games to a rating':'unrated')),
     'season '+m.season,'age '+m.age].concat(m.retired?['retired']:[],m.inEvent?['in an event']:[],(!o.now&&o.at)?['played '+ageText(Math.max(0,Date.now()-o.at))]:[]).join(' · ');
+  const hh=o.h2h&&o.h2h.n?'you are '+o.h2h.w+'–'+o.h2h.d+'–'+o.h2h.l+' against each other':(o.onList?'on this career’s rating list — you may meet':'');
   return '<div class="ccrow'+(o.now?' now':'')+'"'+(o.id?' data-cid="'+esc(o.id)+'"':'')+'>'+
     '<div class="ccwho"><div class="ccname">'+(m.title?'<span style="color:var(--brand2)">'+esc(m.title)+'</span> ':'')+esc(m.name)+' '+esc(m.flag||'')+
-      (o.now?' <span class="chip brand" style="font-size:11px">playing now</span>':'')+'</div><div class="dim small">'+esc(sub)+'</div></div>'+
+      (o.now?' <span class="chip brand" style="font-size:11px">playing now</span>':'')+'</div><div class="dim small">'+esc(sub)+'</div>'+(hh?'<div class="small" style="color:var(--brand2)">👥 '+esc(hh)+'</div>':'')+'</div>'+
     (o.id?'<div class="row" style="gap:6px;flex:0 0 auto">'+
       '<button class="btn primary sm" data-act="careerswitch" data-val="'+esc(o.id)+'"'+(app.careerBusy?' disabled':'')+'>▶ Play</button>'+
       '<button class="btn ghost sm" data-act="careerdel" data-val="'+esc(o.id)+'" title="Delete this career" aria-label="Delete '+esc(m.name)+'’s career"'+(app.careerBusy?' disabled':'')+'>🗑</button></div>':'')+
@@ -15484,9 +15574,9 @@ function careersPanel(c){
   let h='<div class="card" id="careerscard" style="margin-bottom:8px">'+
     '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px"><div style="font-weight:800">👥 Your careers <span class="dim small" style="font-weight:600">'+careerCount()+' of '+MAX_CAREERS+'</span></div>'+
       '<button class="btn ghost sm" data-act="careersopen">Close</button></div>'+
-    '<div class="dim small" style="margin-bottom:8px;line-height:1.5">Each career keeps its own ratings, money, events and story, and waits exactly where you left it — an unfinished game too. Settings, puzzles, openings, studies and the hall of fame are shared.</div>';
+    '<div class="dim small" style="margin-bottom:8px;line-height:1.5">Each career keeps its own ratings, money, events and story, and waits exactly where you left it — an unfinished game too. Your rated careers are on each other’s rating lists and can meet in events. Settings, puzzles, openings, studies and the hall of fame are shared.</div>';
   h+=careerRow(careerMeta(c),{now:true});
-  sl.forEach(function(x){h+=careerRow(x.meta,{id:x.id,at:x.at});});
+  sl.forEach(function(x){h+=careerRow(x.meta,{id:x.id,at:x.at,h2h:c.cid?ghostH2H(c.cid,x.id):null,onList:!x.meta.retired&&x.meta.rating!=null});});
   h+='<div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn sec sm" data-act="careeranother"'+((full||app.careerBusy)?' disabled':'')+'>➕ Start another career</button>'+
     '<span class="dim small">'+(full?'That is the most there is room for — delete one to start another.':'This one waits here while you do.')+'</span></div>';
   return h+careerNotes()+'</div>';
@@ -17231,6 +17321,8 @@ function bookFirst(o){var n=o&&o.root&&o.root.children&&o.root.children[0];retur
 function oppOpenings(name,rating){
   var h=0,s=name||'';for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;
   var id=repIdOf(name),K=(id&&KNOWN_REPS[id])||{};
+  // your other career plays what it plays in its own games
+  try{var gp=worldIndex().name[name];if(gp&&gp.ghost&&gp.reps)K=gp.reps;}catch(e){}
   if(rating==null){try{var wp=worldIndex().name[name];if(wp)rating=wpRating(wp,'classical');}catch(e){}}
   var elite=!!id||(rating||0)>=2500;
   var pool=function(k){
@@ -17254,6 +17346,9 @@ function scoutCard(c,opp,label){
     who='<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap"><span class="dim small">'+(opp.flag||'')+' '+esc(wp.fed)+' · age '+Math.floor(wpAge(wp))+(rk?' · world #'+rk.toLocaleString():'')+
       (h2&&(h2.w+h2.l+h2.d)?' · you are <b>'+h2.w+'–'+h2.d+'–'+h2.l+'</b> against them':' · you have not met before')+'</span>'+
       '<button class="btn ghost sm" data-act="profile" data-val="'+wp.id+'">👤 Profile</button></div>';}
+  if(wp&&wp.ghost){var gh=c.cid?ghostH2H(c.cid,wp.ghost):{n:0};
+    who+='<div class="note small" style="margin-top:8px;border-color:var(--brand)">👥 <b>This is '+esc(wp.name)+', your other career</b> (season '+(wp.season||1)+'). They play the openings they play in their own games, in their own style'+
+      (gh.n?', and you are '+gh.w+'–'+gh.d+'–'+gh.l+' against each other':'')+'. Whatever happens here is news in their world too.</div>';}
   return '<div class="card" style="margin-bottom:12px;border-color:#7c5cff55"><div class="row" style="gap:10px;align-items:center">'+oppAvatar(opp,40)+'<div style="font-weight:700;flex:1;min-width:0">🔍 Scouting — '+esc(label)+': '+(opp.title?esc(opp.title)+' ':'')+esc(opp.name)+' <span class="dim small">('+opp.rating+')</span></div></div>'+who+'<div class="dim small" style="margin:3px 0 2px">'+(reps.real?'What they are known to play, and their likely choice where they are not.':'Their likely lines, from what is played at their level.')+' Study them in the Library and you’ll start the game with a real edge when they come up.</div>'+line(ow,'As White',reps.known.w)+line(ob,'vs 1.e4',reps.known.b)+line(ob2,'vs 1.d4',reps.known.b2)+'</div>';}
 function careerScoutPanel(c){if(!c.tour||c.tour.round>=c.tour.rounds)return '';var opp=c.tour.field[c.tour.round];if(!opp)return '';
   var h=scoutCard(c,opp,'Round '+(c.tour.round+1));
@@ -18063,6 +18158,7 @@ function playerAvatar(c,size){
 function oppRing(opp){var t=opp&&opp.title;return t==='GM'?'#fbbf24':t==='IM'?'#e2e8f0':t==='FM'?'#d97706':t==='CM'?'#22d3ee':'#475569';}
 function oppAvatar(opp,size){
   opp=opp||{};
+  {const g=(opp.wid||opp.id||opp.name)?ghostOf(opp):null;if(g&&g.av)return avatarChar(g.av,size,oppRing(opp),null);}
   var key=opp.id||opp.name||('r'+(opp.rating||1500));
   var a=avatarFromSeed(hashStr(String(key)));
   var r=opp.rating||1500;
@@ -19159,6 +19255,7 @@ function viewPlayer(){
       '<div class="dim small">'+esc(p.fed)+' · age '+Math.floor(wpAge(p))+(p.real?' · ★ real-world player':'')+(rank>0?' · world #'+rank.toLocaleString():'')+
         (p.junior?' · 🌱 on the list since season '+p.born:'')+'</div>'+
       '<div class="row" style="gap:5px;flex-wrap:wrap;margin-top:6px">'+
+        (p.ghost?'<span class="chip brand" style="font-size:10px">👥 Your other career</span>':'')+
         (isRival?'<span class="chip" style="background:#7f1d1d44;border-color:#7f1d1d;font-size:10px">⚔️ Your rival</span>':'')+
         (isNemesis?'<span class="chip" style="background:#7c2d1244;border-color:#7c2d12;font-size:10px">😠 Nemesis</span>':'')+
         '<span class="chip '+(ch>0?'green':ch<0?'':'')+'" style="font-size:10px">'+(ch>0?'▲ +'+ch:ch<0?'▼ '+ch:'· level')+' this season</span>'+
@@ -19173,7 +19270,11 @@ function viewPlayer(){
     '<div class="row" style="gap:7px;flex-wrap:wrap;margin-top:11px">'+
       '<button class="btn primary sm" data-act="careerchal" data-val="'+p.id+'"'+(c.tour?' disabled title="Finish your event first"':'')+'>⚔️ Challenge them</button>'+
       '<button class="btn sec sm" data-act="specvs" data-val="'+p.id+'">🍿 Watch them play</button>'+
-    '</div></div>';
+      (p.ghost&&careerSlots().some(function(x){return x.id===p.ghost;})?'<button class="btn ghost sm" data-act="careerswitch" data-val="'+esc(p.ghost)+'">👥 Play as them</button>':'')+
+    '</div>'+
+    (p.ghost?(function(){const gh=c.cid?ghostH2H(c.cid,p.ghost):{n:0};return '<div class="dim small" style="margin-top:8px">👥 Your other career, as this world has them: rated here from where they were when you last played them (season '+(p.season||1)+'), and moving with every game since.'+
+      (gh.n?' Across your careers you are '+gh.w+'–'+gh.d+'–'+gh.l+' against each other.':'')+'</div>';})():'')+
+    '</div>';
   // head to head
   h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:6px">🤝 Head to head</div>';
   if(h2h&&((h2h.w||0)+(h2h.l||0)+(h2h.d||0))>0){
@@ -19230,13 +19331,17 @@ function careerLeaderboard(c){
   const rowHtml=(p)=>'<div style="display:flex;align-items:center;gap:9px;padding:7px 2px;border-top:1px solid var(--border);'+(p.you?'background:rgba(96,165,250,.12);margin:0 -6px;padding-left:8px;padding-right:8px;border-radius:6px':'cursor:pointer')+'"'+(p.you?'':' data-act="profile" data-val="'+p.id+'"')+'>'+
     '<div class="dim small" style="width:48px;font-weight:700">#'+p.rank.toLocaleString()+'</div>'+
     '<div style="width:22px;text-align:center">'+(p.flag||'')+'</div>'+
-    '<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:'+(p.you?'800':'600')+'">'+esc(p.name)+crown(p)+(p.you?' <span class="chip brand" style="font-size:9px">YOU</span>':(p.real?' <span class="dim" style="font-size:10px">★</span>':''))+'</div>'+
+    '<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:'+(p.you?'800':'600')+'">'+esc(p.name)+crown(p)+(p.you?' <span class="chip brand" style="font-size:9px">YOU</span>':p.ghost?' <span class="chip" style="font-size:9px" title="Your other career">👥</span>':(p.real?' <span class="dim" style="font-size:10px">★</span>':''))+'</div>'+
     '<div style="width:34px;text-align:right;font-size:10px;font-weight:700">'+(p.you?'':chHtml(p.change))+'</div>'+
     '<div style="width:30px;text-align:center;font-weight:700;color:var(--brand2);font-size:11px">'+(p.title||'')+'</div>'+
     '<div style="width:48px;text-align:right;font-weight:800">'+p.rating+'</div></div>';
   let rows='';
   list.slice(0,10).forEach(p=>rows+=rowHtml(p));
   if(yi>=10){rows+='<div class="dim small" style="text-align:center;padding:3px">⋯</div>';for(let i=Math.max(10,yi-2);i<=Math.min(list.length-1,yi+2);i++)rows+=rowHtml(list[i]);}
+  // your other careers, wherever they are on the list
+  {const shown=function(i){return i<10||(yi>=10&&i>=yi-2&&i<=yi+2);},gh=[];
+   list.forEach(function(p,i){if(p.ghost&&!shown(i))gh.push(p);});
+   if(gh.length)rows+='<div class="dim small" style="padding:6px 2px 2px;border-top:1px solid var(--border);margin-top:4px">👥 Your other careers</div>'+gh.map(rowHtml).join('');}
   const fmtBtns=['classical','rapid','blitz'].map(f=>'<button class="btn '+(f===fmt?'primary':'ghost')+' sm" data-act="lbfmt" data-val="'+f+'">'+fmtLabel(f)+'</button>').join(' ')+
     ' <button class="btn '+(WL?'primary':'ghost')+' sm" data-act="rankwomen" aria-pressed="'+WL+'">Women</button>';
   // the list is the published one: yours on it, and your live rating beside it
@@ -20013,7 +20118,7 @@ function careerStandings(tr){
   const anyTie=!!T&&S.some(function(p,i){return i>0&&Math.abs((p.score||0)-(S[i-1].score||0))<1e-9;});
   const row=(p,rank)=>'<div style="display:flex;align-items:center;gap:8px;padding:5px 2px;border-top:1px solid var(--border)'+(p.you?';background:rgba(96,165,250,.12);margin:0 -6px;padding-left:8px;padding-right:8px;border-radius:6px':'')+'">'+
     '<div class="dim small" style="width:20px;font-weight:700">'+rank+'</div>'+
-    '<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:'+(p.you?'800':'600')+'">'+(p.title?p.title+' ':'')+esc(p.name)+(p.you?' <span class="chip brand" style="font-size:9px">YOU</span>':'')+' <span class="dim small">'+p.rating+'</span></div>'+
+    '<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:'+(p.you?'800':'600')+'">'+(p.title?p.title+' ':'')+esc(p.name)+(p.you?' <span class="chip brand" style="font-size:9px">YOU</span>':p.ghost?' <span class="chip" style="font-size:9px" title="Your other career">👥</span>':'')+' <span class="dim small">'+p.rating+'</span></div>'+
     (anyTie?'<div class="dim small" style="width:38px;text-align:right" title="'+tbMethod(tr)+'">'+fmtTb((T[p.id]||{})[tk]||0)+'</div>':'')+
     '<div style="width:36px;text-align:right;font-weight:800">'+fmtScore(p.score||0)+'</div></div>';
   let rows='';const n=Math.min(S.length,8);for(let i=0;i<n;i++)rows+=row(S[i],i+1);
@@ -21589,17 +21694,24 @@ function worldPick(targets,opt){
   if(!c)return null;
   let pool=worldRanking(c,fmt).filter(function(p){return !p.you&&!ex[p.id]&&(!opt.women||p.w);});
   if(rule&&rule.strict)pool=pool.filter(function(p){return p.fed===rule.fed;});
-  const used={},out=[];
+  const used={},out=[],forced={};
+  // your other careers, when the event is at their level: a fair chance they entered it
+  pool.forEach(function(g){
+    if(!g.ghost||Math.random()>=GHOST_MEET)return;
+    let bi=-1,bd=Infinity;targets.forEach(function(r,i){const d=Math.abs(g.rating-r);if(d<bd&&!forced[i]){bd=d;bi=i;}});
+    if(bi>=0&&bd<=GHOST_BAND)forced[bi]=g;
+  });
   for(let i=0;i<targets.length;i++){
-    const r=targets[i];let best=null,bc=Infinity;
-    for(let j=0;j<pool.length;j++){
+    const r=targets[i];let best=(forced[i]&&!used[forced[i].id])?forced[i]:null,bc=best?-1:Infinity;
+    for(let j=0;j<pool.length&&!(best&&bc<0);j++){
       const p=pool[j];if(used[p.id])continue;
       const cost=Math.abs(p.rating-r)+(rule&&!rule.strict&&p.fed!==rule.fed?rule.penalty:0)+Math.random()*(opt.jitter||25);
       if(cost<bc){bc=cost;best=p;}
     }
     if(!best)return null;                         // not enough people: the caller invents the rest
     used[best.id]=1;
-    out.push({name:best.name,rating:best.rating,title:best.title||'',fed:best.fed,flag:best.flag,style:pickStyle(),
+    const gp=best.ghost?worldById(best.id):null;
+    out.push({name:best.name,rating:best.rating,title:best.title||'',fed:best.fed,flag:best.flag,style:(gp&&gp.style)||pickStyle(),
       wid:best.id,real:!!best.real});
   }
   return out;

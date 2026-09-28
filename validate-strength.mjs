@@ -230,6 +230,7 @@ c.money=999999; c.energy=100; c.health=100; c.mood=100; c.tilt=0;
 X.autoInit(c).daily=false; X.autoInit(c).quests=false;
 (X.questsEnsure().items||[]).forEach(it=>{it.claimed=true;});
 c.sponsor={name:'x',perWeek:1,weeksLeft:1}; c.pressPending=null; c.dilemma=null; c.seasonReview=null; c.burnout=0;
+c.phone=[];   // the people in your life write at random; a message waiting for an answer is something waiting (about one run in fifteen)
 ok(X.inboxItems(c).length===0&&/Nothing is waiting/.test(X.careerInboxPanel(c)),'and when nothing is, it says so instead of inventing a chore');
 
 c.tour={name:'Tata Steel',emoji:'♟',round:2,rounds:9,format:'classical',score:1.5};

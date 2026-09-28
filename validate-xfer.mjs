@@ -27,6 +27,8 @@ const downloads=[];
 dom.window.HTMLAnchorElement.prototype.click=function(){downloads.push({name:this.download,href:this.href});};
 let pass=0; const ok=(c,m)=>{if(!c)throw new Error('FAIL: '+m);pass++;console.log('  ✓ '+m);};
 const tick=(ms)=>new Promise(r=>setTimeout(r,ms||0));
+// reading a file is asynchronous and slower on a busy machine: wait for what it leads to, not a fixed time
+const until=async(f,ms)=>{const t0=Date.now();while(!f()&&Date.now()-t0<(ms||3000))await tick(10);return f();};
 const X=new Function(script+'\nreturn {store,app,render,go,save,DEF,freshCareer,restoreBackup,previewBackup,receiveBackup,applyReceived,sendProgress,backupJson,backupName,deviceLabel,progressWeight,progressLines,xferSheet,xferCard,xferCheckInbox,dayKey};')();
 const $=q=>document.querySelector(q);
 const click=act=>{const b=$('[data-act="'+act+'"]');if(!b)throw new Error('no button '+act);b.click();};
@@ -176,14 +178,14 @@ ok(input&&input.getAttribute('accept').indexOf('.json')>=0,'there is one file in
 ok(document.querySelectorAll('#importfile').length===1,'only one, wherever the button is');
 Object.defineProperty(input,'files',{value:[new dom.window.File([JSON.stringify(older)],'b.json',{type:'application/json'})],configurable:true});
 input.dispatchEvent(new dom.window.Event('change',{bubbles:true}));
-await tick(20);
+await until(()=>$('[role="dialog"]'));
 ok(/from a file/.test(($('[role="dialog"]')||{}).textContent||'')&&X.store.career.weeks===40,'a picked file opens the preview instead of overwriting at once');
 click('xferclose');
 
 // dropping a file on the window
 const drop=(file)=>{const ev=new dom.window.Event('drop',{bubbles:true,cancelable:true});ev.dataTransfer={files:[file],types:['Files']};dom.window.dispatchEvent(ev);return ev;};
 let ev=drop(new dom.window.File([JSON.stringify(newer)],'chess-career-backup.json',{type:'application/json'}));
-await tick(20);
+await until(()=>$('[role="dialog"]'));
 ok(ev.defaultPrevented&&/dropped on the window/.test(($('[role="dialog"]')||{}).textContent||''),'a backup dropped anywhere on the window opens the preview');
 click('xferclose');
 ev=drop(new dom.window.File(['hello'],'holiday.png',{type:'image/png'}));

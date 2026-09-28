@@ -1950,6 +1950,35 @@ reported and nothing is changed; deleting one asks first.
 the unfinished game, an event in progress, the limit, deleting, a broken
 career, an old browser, backups, a reload, search and retirement.
 
+## Your careers meet
+
+Your other careers are players in each other's worlds. A rated career you are
+not playing is on the rating list of the one you are: at the ratings it had
+when you last played it (classical, rapid and blitz), as strong as it really
+is (its hidden strength, not a farmed number), with its title, federation,
+flag and its own face. The World tab marks it 👥 and always shows it, wherever
+it is on the list.
+
+When an event near its level is drawn there is a fair chance it entered
+(about 45% when the field is within 175 points of it; never in a field far
+from it, and never in a women's event for a career on the open track). Across
+the board it plays the openings it plays in its own games — known, the way a
+famous player's are — in its own style, and the scouting card says who it is
+and what the score between you is. Its profile has **⚔️ Challenge them** and
+**👥 Play as them**.
+
+A game between two of your careers is news in both: on this career's news
+board at once, and in the other the next time you open it ("Meanwhile, in
+Ana's career: Ana beat you in round 3 of the City Open"), with a line saying
+what happened while you were away. **Your careers** shows the score between
+each pair. The other career's rating moves in this world like anybody's; once
+you have played that career again, this world's list catches up with where
+it really is. Unrated and retired careers are not on the list, two careers
+with the same name are told apart, backups carry the games between them, and
+deleting a career takes it off every list.
+
+`validate-meet.mjs` covers all of it.
+
 ## Drag the board to resize it
 
 With a mouse or a pen, every board has a grip on its bottom-right corner.
@@ -1972,7 +2001,7 @@ mid-drag, double-click, that a resize never moves a piece, and phones.
 
 ## Tests
 
-Sixty-six suites, about 5,960 checks, plus twenty-one browser suites that drive the real app with the real engine.
+Sixty-seven suites, about 6,000 checks, plus twenty-one browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
