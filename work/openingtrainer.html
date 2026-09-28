@@ -5548,7 +5548,17 @@ rebuildOpenings();
    says what happened and offers a backup file, which needs no storage, and
    the bar goes the moment a save works again. */
 let _saveFail=null;
+/* Several steps in a row (the days of a week run for you) each save and redraw
+   as they go; one save and one redraw at the end show the same thing. Inside
+   batch() both wait until it is over. var, not let: render() may run first. */
+var _batch=0,_batchSave=false,_batchRender=false;
+function batch(f){
+  _batch++;
+  try{return f();}
+  finally{_batch--;if(!_batch){if(_batchSave){_batchSave=false;save();}if(_batchRender){_batchRender=false;render();}}}
+}
 function save(){
+  if(_batch){_batchSave=true;return;}
   try{localStorage.setItem(LS,JSON.stringify(store));_saveFail=null;}
   catch(e){const full=!!e&&(e.name==='QuotaExceededError'||e.code===22||e.code===1014||/quota|full/i.test(String(e.message||'')));
     _saveFail={at:Date.now(),why:full?'full':'blocked',sent:(_saveFail&&_saveFail.sent)||0};}
@@ -6346,6 +6356,7 @@ function viewLearn(){
   return h+'</div>';
 }
 function render(){
+  if(_batch){_batchRender=true;return;}
   // mid-drag, a redraw (the engine's next line, a clock tick) keeps the size being dragged
   document.body.style.setProperty('--bw',((_grip&&_grip.w)||store.settings.boardSize||520)+'px');
   applyAppTheme();
@@ -12139,10 +12150,23 @@ const SF19_FILE='stockfish-19-lite-single';
 // how long each source has to answer `isready` before the next is tried (ms)
 const ENGINE_WAIT={strict:10000,lenient:4000};
 function sf10Sources(){return SF10_URLS.map(function(u){return {label:'Stockfish 10',strict:false,jsUrl:u};});}
+/* The engine inside the page (the standalone file, the Android app): kept as
+   data (#sf19data) so it is not parsed before the app starts, and read the
+   first time it is needed. window.__SF19 is the same thing set directly. */
+let _sf19E;
+function sf19Embedded(){
+  const W=typeof window!=='undefined'?window:{};
+  if(W.__SF19&&W.__SF19.js&&W.__SF19.wasm)return W.__SF19;
+  if(_sf19E!==undefined)return _sf19E;
+  let d=null;
+  try{const t=typeof document!=='undefined'?document.getElementById('sf19data'):null;if(t){d=JSON.parse(t.textContent);if(!(d&&d.js&&d.wasm))d=null;}}catch(e){d=null;}
+  return (_sf19E=d);
+}
 function sf19Sources(){
   var out=[],W=typeof window!=='undefined'?window:{},proto='',href='';
   try{proto=location.protocol;href=location.href;}catch(e){}
-  if(W.__SF19&&W.__SF19.js&&W.__SF19.wasm)out.push({label:'Stockfish 19',strict:true,js:W.__SF19.js,wasmB64:W.__SF19.wasm});
+  const E=sf19Embedded();
+  if(E)out.push({label:'Stockfish 19',strict:true,js:E.js,wasmB64:E.wasm});
   if(/^https?:$/.test(proto)){try{var b=new URL('engine/',href).href;out.push({label:'Stockfish 19',strict:true,jsUrl:b+SF19_FILE+'.js',wasmUrl:b+SF19_FILE+'.wasm'});}catch(e){}}
   ['https://cdn.jsdelivr.net/npm/stockfish@19.0.0/bin/','https://unpkg.com/stockfish@19.0.0/bin/'].forEach(function(b){
     out.push({label:'Stockfish 19',strict:true,jsUrl:b+SF19_FILE+'.js',wasmUrl:b+SF19_FILE+'.wasm'});});
@@ -14830,7 +14854,13 @@ function proLeagueBuild(c,L,S){
     const str=Math.round(L.str+gauss()*45),roster=[];
     for(let i=0;i<PRO_ROSTER;i++){
       const t=str+70-i*28;let best=null,bc=Infinity;
-      for(let j=0;j<R.length;j++){const p=R[j];if(used[p.id])continue;const d=Math.abs(p.rating-t)+Math.random()*20;if(d<bc){bc=d;best=p;}}
+      // R is sorted by rating, best first: start at t and work outwards, stopping
+      // each way once nobody further out could beat the best so far (a cost is
+      // never less than the rating gap). The same pick as reading the whole list
+      // of five thousand, which is what it did for every place on every roster.
+      let lo=0,hi=R.length;while(lo<hi){const m=(lo+hi)>>1;if(R[m].rating>t)lo=m+1;else hi=m;}
+      for(let j=lo-1;j>=0;j--){const p=R[j],g=Math.abs(p.rating-t);if(g>=bc)break;if(used[p.id])continue;const d=g+Math.random()*20;if(d<bc){bc=d;best=p;}}
+      for(let j=lo;j<R.length;j++){const p=R[j],g=Math.abs(p.rating-t);if(g>=bc)break;if(used[p.id])continue;const d=g+Math.random()*20;if(d<bc){bc=d;best=p;}}
       if(best){used[best.id]=1;roster.push(best.id);}
     }
     return {id:'c'+k,name:name,str:str,roster:roster};
@@ -15935,12 +15965,15 @@ function autoRunDay(c){
 function autoRunWeek(c){
   autoInit(c);
   if(c.tour||c.retired)return 0;
-  var n=0,guard=0,startWeek=c.weeks||0;
-  while((c.weeks||0)===startWeek&&(c.day||0)<7&&guard++<8){
-    if(!autoRunDay(c))break;
-    n++;
-  }
-  return n;
+  // one save and one redraw for the week, not one a day (a quarter of a second on a slow phone)
+  return batch(function(){
+    var n=0,guard=0,startWeek=c.weeks||0;
+    while((c.weeks||0)===startWeek&&(c.day||0)<7&&guard++<8){
+      if(!autoRunDay(c))break;
+      n++;
+    }
+    return n;
+  });
 }
 /* The bounded housekeeping. Safe to call on every render: each branch can only
    fire when there is something genuinely waiting, and each fires at most once. */
@@ -17317,7 +17350,14 @@ function repIdOf(name){
   if(!_repNames){_repNames={};WORLD_REAL.forEach(function(p){_repNames[p.name]=p.id;});LEGENDS.forEach(function(l){if(!_repNames[l.name])_repNames[l.name]=l.id;});}
   return _repNames[name]||null;
 }
-function bookFirst(o){var n=o&&o.root&&o.root.children&&o.root.children[0];return n?(n.move||n.san||''):'';}
+/* The first move of an opening's book. Read from its first line while the
+   course is not built: reading the tree would build it, and choosing an
+   opponent's openings asks this of every opening there is — it built all of
+   them the first time a scouting card was drawn (1.8 s on a slow phone). */
+function bookFirst(o){
+  if(!o)return '';
+  if(!openingBuilt(o)&&Array.isArray(o.lines)&&o.lines.length){const f=String(o.lines[0]).trim().split(/\s+/)[0]||'';if(f)return f;}
+  var n=o.root&&o.root.children&&o.root.children[0];return n?(n.move||n.san||''):'';}
 function oppOpenings(name,rating){
   var h=0,s=name||'';for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;
   var id=repIdOf(name),K=(id&&KNOWN_REPS[id])||{};
@@ -25807,6 +25847,40 @@ function viewPlay(){
    PUZZLES — Lichess CC0 set (validated). Local Elo rating + difficulty bands.
    ========================================================================= */
 const PUZZLES=(typeof window!=='undefined'&&window.__PUZZLES)?window.__PUZZLES:[];
+/* In the built app the puzzles are not part of the page's script — 2.6 MB of
+   it, which had to be parsed before anything else could start (0.85 s of a
+   2.3 s start on a slow phone). The website serves them as puzzles.json; the
+   standalone file and the Android app carry them as data in the page
+   (#pzdata). Either way they arrive a moment after the first screen, and
+   anything that needs them before then waits for them. See build/puzzles.mjs. */
+let _pzLoad=null;
+function pzReady(){return PUZZLES.length>0;}
+function pzLoad(){
+  if(PUZZLES.length)return Promise.resolve(true);
+  if(_pzLoad)return _pzLoad;
+  _pzLoad=(async function(){
+    let arr=null;
+    try{
+      const tag=typeof document!=='undefined'?document.getElementById('pzdata'):null;
+      if(tag){arr=JSON.parse(tag.textContent);tag.textContent='';}          // read once; the text is not needed after
+      else if(typeof location!=='undefined'&&/^https?:$/.test(location.protocol)&&typeof fetch==='function'){
+        const r=await fetch('puzzles.json');if(r&&r.ok)arr=await r.json();
+      }
+    }catch(e){arr=null;}
+    if(Array.isArray(arr))for(let i=0;i<arr.length;i++)PUZZLES.push(arr[i]);
+    if(!PUZZLES.length){_pzLoad=null;return false;}      // offline on a first visit: asked again next time
+    // on the next turn, never in the middle of drawing the screen: the puzzles screen asks for
+    // them while it is being drawn, and a redraw from inside that one is overwritten by it
+    setTimeout(pzArrived,0);return true;
+  })();
+  return _pzLoad;
+}
+/* Whatever was waiting for them. */
+function pzArrived(){
+  if(app.view!=='puzzles')return;
+  const w=app._pzWant;app._pzWant=null;
+  if(w==='daily')pzDaily();else if(w==='rush')rushStart();else if(!app.pz)pzNext(typeof w==='number'?w:undefined);else render();
+}
 const PZ_BANDS=[[0,999,'Beginner'],[1000,1199,'Easy'],[1200,1399,'Intermediate'],[1400,1599,'Tough'],[1600,1799,'Hard'],[1800,1999,'Very hard'],[2000,2199,'Expert'],[2200,9999,'Master']];
 const PZ_THEMES=[['mateIn2','Mate in 2'],['mateIn3','Mate in 3'],['mate','Mating attack'],['promotion','Promotion'],['endgame','Endgame']];
 /* =========================================================================
@@ -26106,10 +26180,13 @@ function pzMissNext(now){
 /* When the set does not contain that index any more (a different build, a
    trimmed file) the entry is dropped rather than served as a broken puzzle. */
 function pzMissValid(idx){
-  return idx!=null&&idx>=0&&typeof PUZZLES!=='undefined'&&idx<PUZZLES.length;
+  // before the set has arrived nothing can be judged — and must not be thrown away
+  if(typeof PUZZLES==='undefined'||!PUZZLES.length)return idx!=null&&idx>=0;
+  return idx!=null&&idx>=0&&idx<PUZZLES.length;
 }
 function pzMissPrune(){
   const M=pzMissStore();
+  if(!pzReady())return M;
   for(const k in M)if(!pzMissValid(+k))delete M[k];
   return M;
 }
@@ -26156,7 +26233,7 @@ function pzPool(){const f=app.pzFilter;const out=[];
   while(pool.length<30&&win<2600){pool=[];for(let i=0;i<PUZZLES.length;i++)if(Math.abs(PUZZLES[i][2]-R)<=win)pool.push(i);win+=120;}
   return pool.length?pool:PUZZLES.map((_,i)=>i);
 }
-function pzNext(idx){if(!PUZZLES.length){app.view='puzzles';app.pz=null;render();return;}
+function pzNext(idx){if(!PUZZLES.length){app.view='puzzles';app.pz=null;app._pzWant=idx==null?null:idx;render();pzLoad();return;}
   app.pzMiss=null;
   if(idx==null&&app.pzFilter&&app.pzFilter.type==='motif'){
     idx=pzMotifPick(app.pzFilter.motif);
@@ -26210,9 +26287,9 @@ function pzMove(from,to){const P=app.pz;if(!P||P.status!=='solving')return false
 function pzHint(){const P=app.pz;if(!P||P.status!=='solving'||turnOf(P.fenNow)!==P.side)return;P.clean=false;P.hintLevel=(P.hintLevel||0)+1;const u=P.moves[P.step]||'';P.hintSq=u.slice(0,2);P.hintTo=P.hintLevel>=2?u.slice(2,4):null;render();}
 function pzShowSolution(){const P=app.pz;if(!P||(P.status!=='failed'&&P.status!=='solving'))return;P.status='shown';
   (function step(){if(app.pz===P&&P.step<P.moves.length){pzApplyExpected();render();setTimeout(step,520);}})();}
-function pzDaily(){let s=''+(new Date()).toDateString();let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;app.pzFilter={type:'auto'};pzNext(PUZZLES.length?h%PUZZLES.length:0);}
+function pzDaily(){if(!PUZZLES.length){app.view='puzzles';app.pz=null;app._pzWant='daily';render();pzLoad();return;}let s=''+(new Date()).toDateString();let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;app.pzFilter={type:'auto'};pzNext(PUZZLES.length?h%PUZZLES.length:0);}
 /* puzzle rush */
-function rushStart(){stopRushTick();app.rush={solved:0,strikes:0,end:Date.now()+180000};app.pzSeen=new Set();startRushTick();rushNext();}
+function rushStart(){if(!PUZZLES.length){app.view='puzzles';app.pz=null;app._pzWant='rush';render();pzLoad();return;}stopRushTick();app.rush={solved:0,strikes:0,end:Date.now()+180000};app.pzSeen=new Set();startRushTick();rushNext();}
 function rushNext(){const base=Math.min(2600,800+app.rush.solved*18);let cand=-1,cb=1e9;for(let i=0;i<PUZZLES.length;i++){if(app.pzSeen.has(i))continue;const d=Math.abs(PUZZLES[i][2]-base);if(d<cb){cb=d;cand=i;}}if(cand<0)cand=Math.floor(Math.random()*PUZZLES.length);pzNext(cand);}
 function rushAfter(success){const R=app.rush;if(!R)return;if(success)R.solved++;else R.strikes++;
   if(R.strikes>=3||Date.now()>=R.end){rushEnd();return;}setTimeout(()=>{if(app.rush)rushNext();},success?420:850);}
@@ -26220,7 +26297,7 @@ function rushEnd(){const R=app.rush;if(!R)return;stopRushTick();store.puzzle.rus
 function stopRushTick(){if(app.rushTimer){clearInterval(app.rushTimer);app.rushTimer=null;}}
 function startRushTick(){stopRushTick();app.rushTimer=setInterval(()=>{if(!app.rush){stopRushTick();return;}const left=app.rush.end-Date.now();const el=document.getElementById('rushclock');if(el)el.textContent=Math.max(0,Math.ceil(left/1000))+'s';if(left<=0)rushEnd();},250);}
 function viewPuzzles(){
-  if(!PUZZLES.length)return msgCard('Puzzles are loading…','If this persists, the puzzle file didn’t load — use the full app (it’s bundled in the hosted and phone versions).','<button class="btn sec" data-act="nav" data-val="dashboard">Dashboard</button>');
+  if(!PUZZLES.length){pzLoad();return msgCard('Puzzles are loading…','25,000 of them — a moment. If this stays, the puzzle file could not be fetched: it needs the internet once, the first time.','<button class="btn sec" data-act="nav" data-val="dashboard">Dashboard</button>');}
   const st=store.puzzle,P=app.pz,f=app.pzFilter;const acc=(st.solved+st.failed)?Math.round(st.solved/(st.solved+st.failed)*100):0;
   let h='<div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:14px;flex-wrap:wrap;gap:10px"><div><h1>Puzzles</h1><div class="muted small">'+PUZZLES.length.toLocaleString()+' tactics · solve to raise your rating</div></div>'+
     '<div class="row">'+stat('Rating',st.rating,'var(--brand2)')+stat('Streak',st.streak+'🔥','var(--text)','best '+st.best)+stat('Solved',st.solved,'var(--green)',acc+'% acc')+(st.rush?stat('Rush best',st.rush,'var(--amber)'):'')+'</div></div>';
@@ -26917,6 +26994,8 @@ render();
 xferCheckInbox();
 remindBoot();
 warmOpenings();
+// the puzzles, a moment after the first screen (sooner if a puzzle is asked for)
+{const _pl=setTimeout(function(){pzLoad();},700);if(_pl&&_pl.unref)_pl.unref();}
 </script>
 </body>
 </html>

@@ -62,7 +62,12 @@ let P=X.liveBoardsPanel();
 ok(/the other boards/.test(P)&&new RegExp('0 of '+others.length+' finished').test(P),'beside the board: the other games, none finished yet');
 X.app.playMoves=new Array(60).fill({san:'e4'});
 const mid=X.liveDone(tr).length;
-ok(mid>0&&mid<others.length,'thirty moves in, '+mid+' have finished');
+// when each board finishes is drawn at random, so thirty moves in it is usually some of
+// them, now and then none yet (about one run in thirty): what matters is that they finish
+// one by one while you play, never all at once
+const seen=new Set();let prev=0,monotone=true;
+for(let k=0;k<=118;k+=2){X.app.playMoves=new Array(k).fill({san:'e4'});const n=X.liveDone(tr).length;if(n<prev)monotone=false;prev=n;seen.add(n);}
+ok(mid<others.length&&monotone&&seen.size>=Math.min(3,others.length+1),'thirty moves in, '+mid+' of '+others.length+' have finished; the rest finish one by one ('+[...seen].join(', ')+')');
 X.app.playMoves=new Array(118).fill({san:'e4'});
 ok(X.liveLastGame(tr)&&/Yours is the last game still going/.test(X.liveBoardsPanel()),'and late on, yours is the last game in the hall');
 const LL=X.liveLeaders(tr);

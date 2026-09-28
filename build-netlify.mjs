@@ -1,6 +1,7 @@
 // Build the Netlify/PWA bundle from work/openingtrainer.html.
 // Usage: node build-netlify.mjs [newSwVersion]   (e.g. node build-netlify.mjs 43)
 import { readFileSync, writeFileSync, copyFileSync, mkdirSync, readdirSync } from 'fs';
+import { puzzleSplit } from './build/puzzles.mjs';
 
 const app = readFileSync('work/openingtrainer.html', 'utf8');
 const head = readFileSync('build/pwa-head.html', 'utf8');
@@ -12,6 +13,11 @@ let idx = app.slice(0, vpEnd) + '\n' + head + app.slice(vpEnd);
 // inject the service-worker + install-button script before </body>
 idx = idx.replace('</body>', sw + '\n</body>');
 
+// the puzzles go beside the page, not in its script: fetched after the first
+// screen instead of parsed before it (see build/puzzles.mjs)
+const split = puzzleSplit(idx);
+idx = split.html;
+writeFileSync('netlify/puzzles.json', split.json);
 writeFileSync('netlify/index.html', idx);
 copyFileSync('work/openingtrainer.html', 'netlify/openingtrainer.html');
 

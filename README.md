@@ -1481,6 +1481,7 @@ next refresh.
 | `build/` | The PWA `<head>` block and service-worker snippet injected at build time. |
 | `build-netlify.mjs` | Builds `netlify/` from the source file. `node build-netlify.mjs 51` also bumps the service-worker cache to `v51`. |
 | `build-standalone.mjs` | Builds `ChessCareer-standalone.html` — inlines the piece set from `build/pieces/` and strips every network reference the page needs to render. |
+| `build/puzzles.mjs` | Takes the 25,000 puzzles out of the page's script: `puzzles.json` for the website, data in the page for the standalone file and the Android app. |
 | `build/engine/` | Stockfish 19 lite (the analysis engine), its GPL v3 licence and where it comes from. `build/embed-engine.mjs` puts it inside a page. |
 | `build/pieces/` | The twelve cburnett piece SVGs, committed so the standalone build is reproducible without a network. |
 | `netlify/` | The generated, installable web bundle (`index.html`, `sw.js`, manifest, icons, `engine/`). |
@@ -1517,6 +1518,7 @@ node engine-check.mjs
 W=app_project/android/app/src/main/assets/www
 cp netlify/index.html netlify/sw.js netlify/manifest.webmanifest "$W/"
 node build/embed-engine.mjs "$W/index.html"
+node build/puzzles.mjs embed "$W/index.html" netlify/puzzles.json
 
 # build the APK
 cd app_project/android && ./gradlew assembleDebug
@@ -1950,6 +1952,45 @@ reported and nothing is changed; deleting one asks first.
 the unfinished game, an event in progress, the limit, deleting, a broken
 career, an old browser, backups, a reload, search and retirement.
 
+## Fast on a cheap phone
+
+Measured in Chromium with the processor slowed six times (about a cheap
+Android phone), on a phone screen, with a three-season career:
+
+| | before | after |
+|---|---|---|
+| Opening the app | 3.9 s | 2.7 s |
+| The Progress tab | 3.2 s | 0.6 s |
+| Finish the week | 1.15 s | 0.55 s |
+| The World tab | 0.7 s | 0.3 s |
+
+(Four times slower: 2.7 → 1.6 s, 1.6 → 0.3 s, 0.75 → 0.34 s, 0.52 → 0.14 s.)
+
+- **The puzzles are not part of the page's script.** The 25,000 puzzles were
+  2.6 MB of JavaScript parsed before the app could start. The website now
+  serves them as `puzzles.json`, fetched a moment after the first screen and
+  kept by the service worker for offline use; the page went from 4.6 MB to
+  2.0 MB. The standalone file and the Android app carry them as data
+  (`<script type="application/json">`) read after the first screen. Anything
+  that asks for a puzzle before they are there (the daily puzzle, a rush, a
+  puzzle from search) waits for them and then shows that puzzle, and the
+  puzzles you got wrong are never pruned before the set has arrived.
+  `build/puzzles.mjs` does it; `work/openingtrainer.html` keeps them as they
+  were.
+- **So is the built-in engine** in the standalone file and the Android app:
+  data, read the first time the engine is needed.
+- **Choosing an opponent's openings built every opening course.** It asked
+  each course for its first move, which built the whole course to answer —
+  every one of them, the first time a scouting card was drawn. The first
+  move is now read from the course's first line.
+- **A week run for you saves and draws once**, not once a day.
+- **The club leagues' rosters** are picked by searching outward from each
+  place's rating instead of reading all five thousand players for every
+  place — the same picks.
+
+`validate-speed.mjs` covers each of these, and that the puzzles and the
+engine arrive in every build.
+
 ## Your careers meet
 
 Your other careers are players in each other's worlds. A rated career you are
@@ -2001,7 +2042,7 @@ mid-drag, double-click, that a resize never moves a piece, and phones.
 
 ## Tests
 
-Sixty-seven suites, about 6,000 checks, plus twenty-one browser suites that drive the real app with the real engine.
+Sixty-eight suites, about 6,030 checks, plus twenty-one browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —

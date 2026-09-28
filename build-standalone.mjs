@@ -13,6 +13,7 @@
 // (Stockfish 10, on its CDN) cannot load, the games use this one instead.
 import { readFileSync, writeFileSync } from 'fs';
 import { embedEngine } from './build/embed-engine.mjs';
+import { puzzlesAsData } from './build/puzzles.mjs';
 
 const SRC = 'work/openingtrainer.html';
 const OUT = process.argv[2] || 'ChessCareer-standalone.html';
@@ -54,6 +55,10 @@ html = html
 
 // --- 4b. the analysis engine, inside the file -----------------------------
 html = embedEngine(html);
+
+// --- 4c. the puzzles as data, read after the first screen ------------------
+// (as script they were parsed before the app could start; see build/puzzles.mjs)
+html = puzzlesAsData(html);
 
 // --- 5. prove it: nothing left that the page loads on its own -------------
 // Resource loads are what matter: <script src>, <img src>, <iframe src> and

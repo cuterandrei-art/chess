@@ -52,6 +52,8 @@ jobs:
           rm -f "$WWW/openingtrainer.html"
           # a WebView worker cannot fetch file:// URLs, so the analysis engine goes inside the page
           node build/embed-engine.mjs "$WWW/index.html"
+          # and so do the puzzles, as data read after the first screen
+          node build/puzzles.mjs embed "$WWW/index.html" netlify/puzzles.json
           ls -la "$WWW"
 
       - uses: actions/setup-java@v4

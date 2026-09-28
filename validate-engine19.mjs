@@ -166,14 +166,14 @@ ok(/build\/engine|'build',\s*'engine'/.test(readFileSync('build-netlify.mjs','ut
 const { embedEngine } = await import('./build/embed-engine.mjs');
 const page='<!doctype html><html><head></head><body><script type="module">/* app */</script></body></html>';
 const emb=embedEngine(page);
-const at=emb.indexOf('window.__SF19='),end=emb.indexOf(';</script>',at);
-const data=JSON.parse(emb.slice(at+'window.__SF19='.length,end).replace(/<\\\//g,'</'));
-ok(at>0&&at<emb.indexOf('<script type="module">'),'embedding puts the engine in a script before the app’s own');
+const TAG='<script type="application/json" id="sf19data">',at=emb.indexOf(TAG)+TAG.length,end=emb.indexOf('</script>',at);
+const data=JSON.parse(emb.slice(at,end));
+ok(at>TAG.length&&at<emb.indexOf('<script type="module">'),'embedding puts the engine in the page, as data — not script the browser parses before the app can start');
 ok(data.js===js&&Buffer.from(data.wasm,'base64').equals(bin),'the loader and every byte of the .wasm');
-ok(!/<\/script/i.test(emb.slice(at,end)),'without anything inside it that could end the script early');
+ok(!/</.test(emb.slice(at,end)),'with every < written as \\u003c, so nothing inside can end it early or look like a comment');
 ok(embedEngine(emb)===emb,'and embedding twice changes nothing');
 ok(/embedEngine\(html\)/.test(readFileSync('build-standalone.mjs','utf8')),'the standalone build embeds it');
-if(existsSync('ChessCareer-standalone.html'))ok(/window\.__SF19=/.test(readFileSync('ChessCareer-standalone.html','utf8')),'and the built standalone file has it inside');
+if(existsSync('ChessCareer-standalone.html'))ok(/id="sf19data"/.test(readFileSync('ChessCareer-standalone.html','utf8')),'and the built standalone file has it inside');
 const sw=readFileSync('netlify/sw.js','utf8');
 ok(/const ENGINE = \[[^\]]*engine\/stockfish-19-lite-single\.js[^\]]*engine\/stockfish-19-lite-single\.wasm/.test(sw),'the installed web app keeps the engine for offline use');
 ok(/c\.addAll\(SHELL\)\.catch[^;]*c\.addAll\(ENGINE\)\.catch/.test(sw),'cached apart from the app shell, so a missing engine never stops the app from installing');
@@ -182,7 +182,8 @@ const andr=readFileSync('.github/workflows/android.yml','utf8');
 ok(/node build\/embed-engine\.mjs "\$WWW\/index\.html"/.test(andr)&&andr.indexOf('embed-engine')>andr.indexOf('cp netlify/index.html'),'the Android build puts the engine inside the app’s page (its WebView workers cannot read file://)');
 
 const www=readFileSync('app_project/android/app/src/main/assets/www/index.html','utf8');
-ok(www===embedEngine(readFileSync('netlify/index.html','utf8')),'and the app’s committed page is the web page with the engine inside, so a local ./gradlew build has it too');
+const { puzzlesEmbed } = await import('./build/puzzles.mjs');
+ok(www===puzzlesEmbed(embedEngine(readFileSync('netlify/index.html','utf8')),readFileSync('netlify/puzzles.json','utf8')),'and the app’s committed page is the web page with the engine (and the puzzles) inside, so a local ./gradlew build has them too');
 
 console.log('\n✅ engine19: '+pass+' checks passed');
 process.exit(0);

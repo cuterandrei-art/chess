@@ -27,7 +27,9 @@ ok(Object.values(pieces).every(v => Buffer.from(v.split(',')[1], 'base64').toStr
 ok(/pieces:'bundled'/.test(html), 'the bundled set is the default, so it works before you touch settings');
 ok(/bundled:\{label:'Classic \(bundled/.test(html), 'it is also offered by name in Settings');
 ok(/chess\.js/i.test(html) || /class Chess/.test(html), 'the rules engine is bundled (it always was)');
-ok(/window\.__PUZZLES=/.test(html), 'the puzzle set is bundled too');
+{ const pz = html.match(/<script type="application\/json" id="pzdata">([\s\S]*?)<\/script>/);
+  ok(pz && JSON.parse(pz[1]).length >= 25000, 'the puzzle set is bundled too — all ' + (pz ? JSON.parse(pz[1]).length.toLocaleString() : 0));
+  ok(!/window\.__PUZZLES=/.test(html), 'as data read after the first screen, not as script parsed before it'); }
 
 /* ---- live: boot from file:// with the network cut ----
    Needs a real browser. Where one isn't installed (CI runners), the static

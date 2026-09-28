@@ -8,11 +8,16 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 const here = dirname(fileURLToPath(import.meta.url));
 export function embedEngine(html) {
-  if (html.includes('window.__SF19=')) return html;               // already in
+  if (html.includes('id="sf19data"')) return html;               // already in
   const js = readFileSync(join(here, 'engine', 'stockfish-19-lite-single.js'), 'utf8');
   const wasm = readFileSync(join(here, 'engine', 'stockfish-19-lite-single.wasm')).toString('base64');
-  const data = JSON.stringify({ js, wasm }).replace(/<\//g, '<\\/');
-  const tag = '<script>/* Stockfish 19 lite (GPLv3, https://github.com/nmrugg/stockfish.js) — the analysis engine, embedded */window.__SF19=' + data + ';</script>\n';
+  // every < written as \u003c (the same string to JSON.parse), so nothing in the
+  // engine's code can look like the end of the script, or an HTML comment, to the parser
+  const data = JSON.stringify({ js, wasm }).replace(/</g, '\\u003c');
+  // as data, not script: the browser does not parse 2.4 MB of it before the app
+  // can start; the app reads it the first time the engine is needed
+  const tag = '<!-- Stockfish 19 lite (GPLv3, https://github.com/nmrugg/stockfish.js): the analysis engine, embedded -->' +
+    '<script type="application/json" id="sf19data">' + data + '</script>\n';
   const at = html.indexOf('<script type="module">');
   if (at < 0) throw new Error('module script not found');
   return html.slice(0, at) + tag + html.slice(at);

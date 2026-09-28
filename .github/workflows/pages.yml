@@ -61,6 +61,8 @@ jobs:
              netlify/apple-touch-icon.png netlify/favicon-32.png _site/
           # the analysis engine (Stockfish 19 lite) is served beside the page
           cp -r netlify/engine _site/engine
+          # the puzzles, fetched by the page after its first screen
+          cp netlify/puzzles.json _site/
           touch _site/.nojekyll
           ls -la _site
 

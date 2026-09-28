@@ -2,7 +2,7 @@
    App shell is precached; the chess engine, Stockfish and piece images
    (loaded from CDNs on first use) are cached at runtime, so after one
    online visit the whole app — including Play vs Stockfish — works offline. */
-const CACHE = 'opening-trainer-v94';
+const CACHE = 'opening-trainer-v95';
 // A backup shared to the installed app from another app's share sheet waits
 // here until the page picks it up. It is not a version cache, so activating a
 // new version must not clear it.
@@ -24,10 +24,13 @@ const SHELL = [
 // The analysis engine, kept apart from the shell so that a missing engine can
 // never stop the app itself from being cached.
 const ENGINE = ['./engine/stockfish-19-lite-single.js', './engine/stockfish-19-lite-single.wasm'];
+// The 25,000 puzzles, fetched by the page after its first screen; kept here so
+// they are there offline. Apart from the shell for the same reason as the engine.
+const DATA = ['./puzzles.json'];
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
-  e.waitUntil(caches.open(CACHE).then((c) => Promise.all([c.addAll(SHELL).catch(() => {}), c.addAll(ENGINE).catch(() => {})])));
+  e.waitUntil(caches.open(CACHE).then((c) => Promise.all([c.addAll(SHELL).catch(() => {}), c.addAll(ENGINE).catch(() => {}), c.addAll(DATA).catch(() => {})])));
 });
 
 self.addEventListener('activate', (e) => {
