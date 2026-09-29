@@ -16,7 +16,7 @@ dom.window.matchMedia=()=>({matches:false,addEventListener(){},removeEventListen
 dom.window.scrollTo=()=>{};
 dom.window.__PUZZLES=[];
 let pass=0; const ok=(c,m)=>{if(!c)throw new Error('FAIL: '+m);pass++;console.log('  ✓ '+m);};
-const X=new Function(script+'\nreturn {store,app,go,freshCareer,applyRatedGame,applyByFormat,ratingRef,publishRating,youRating,youStrength,eloExpect,paceDelta,kFactor,'+
+const X=new Function(script+'\nreturn {store,app,go,freshCareer,applyRatedGame,applyByFormat,ratingRef,publishRating,youRating,youStrength,eloExpect,fideExpect,paceDelta,kFactor,'+
   'joinTournament,simRestOfTour,finalizeTournament,careerWaitUntil,TOURNAMENTS,tourLocked,youthDef,weekOfSeason,EVENT_WEEK,_simRound};')();
 const near=(a,b,t)=>Math.abs(a-b)<=(t||0.001);
 const rated=(r,o)=>Object.assign(X.freshCareer(),{setup:true,provisional:false,rating:r,peak:Math.max(r,2400),ratedGames:200,age:30,pace:1},o||{});
@@ -37,14 +37,14 @@ c=rated(2500,{pace:2});X.applyRatedGame(c,2500,1);
 ok(c.rating===2510,'Accelerated still doubles a genuine result (+10 for beating an equal)');
 c=rated(2500,{pace:2});X.applyRatedGame(c,1400,1);
 ok(c.rating===2501,'but not the free points of the 400-point rule (+1, not +2)');
-ok(near(X.paceDelta(rated(2500,{pace:3}),10,2500,1400,1),10*(1-1/(1+Math.pow(10,-1)))+2*10*(1-X.eloExpect(2500,1400)),1e-9),'Prodigy works the same way');
+ok(near(X.paceDelta(rated(2500,{pace:3}),10,2500,1400,1),10*(1-0.92)+2*10*(1-X.eloExpect(2500,1400)),1e-9),'Prodigy works the same way (FIDE’s table gives .92 at the 400-point cap)');
 let sum2=0,sum1=0;for(let i=0;i<100;i++){sum2+=X.paceDelta(rated(2500,{pace:2}),10,2500,1350,1);sum1+=X.paceDelta(rated(2500,{pace:1}),10,2500,1350,1);}
 ok(sum2<sum1*1.05,'a hundred wins over 1350s are worth the same at any pace ('+sum1.toFixed(0)+' vs '+sum2.toFixed(0)+')');
 
 /* ================= a whole event is rated the same way ================= */
 c=rated(2500,{pace:2});let ref=X.ratingRef(c,'classical');
 for(let i=0;i<9;i++)X.applyRatedGame(c,1400,1,ref);
-ok(c.rating===2508,'nine wins over 1400s in one event: +8, as FIDE rates it (not +16)');
+ok(c.rating===2507,'nine wins over 1400s in one event: +7, as FIDE rates it — 9 × 10 × (1 − .92) = 7.2 (not +14)');
 ok(c.str.classical<2501,'and the strength hardly moves ('+c.str.classical+')');
 
 /* ================= the other lists ================= */

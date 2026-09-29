@@ -235,6 +235,11 @@
 .bio-box table{width:100%;border-collapse:collapse}.bio-box th{text-align:left;vertical-align:top;padding:4px 6px 4px 0;color:var(--muted);font-weight:600;width:42%}.bio-box td{padding:4px 0;vertical-align:top}
 .bio-av{display:flex;justify-content:center;margin:4px 0}.bio-cap{text-align:center;font-weight:700;margin-bottom:6px}
 @media (max-width:640px){.bio-box{float:none;width:auto;margin:0 0 12px}}
+.ppgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px;margin-top:12px}
+.ppstamp{border:2px dashed var(--col);border-radius:10px;padding:7px 5px;text-align:center;transform:rotate(var(--rot));color:var(--col);background:rgba(255,255,255,.02)}
+.ppstamp .pps-flag{font-size:22px;line-height:1.15}.ppstamp .pps-name{font-weight:800;font-size:10px;letter-spacing:.06em;margin-top:3px;overflow-wrap:anywhere}
+.ppstamp .pps-date{font-size:10px;opacity:.85}.ppstamp .pps-meta{font-size:10px;color:var(--muted);margin-top:2px}
+html[data-motion="reduced"] .ppstamp{transform:none}
 .hallcard{border-color:#f59e0b55;background:linear-gradient(160deg,rgba(245,158,11,.08),transparent 60%),var(--panel)}
   .hallcard p{margin:9px 0;line-height:1.6}
   .hallcard .hl-where{font-size:16px;margin-bottom:2px}
@@ -4453,6 +4458,15 @@ const TOURNAMENTS=[
   {id:'worldyouth', emoji:'🌍', name:'World Youth Championship', tier:4, rounds:11, avg:1800, spread:220, minRating:0, norm:false, youth:'world', champion:true, blurb:'The World Cadets (U8–U12) and World Youth (U14–U18) in the autumn half-term. Gold at U16 is an IM title; a U18 gold a GM norm.'},
   {id:'contjunior', emoji:'🎓', name:'Continental Junior Championship', tier:5, rounds:9, avg:2150, spread:190, minRating:0, norm:true, youth:'contjr', champion:true, blurb:'The under-20s of your continent. Gold is a GM norm; a share of first an IM title.'},
   {id:'worldjunior',emoji:'🏅', name:'World Junior Championship', tier:6, rounds:11, avg:2300, spread:180, minRating:0, norm:true, youth:'junior', champion:true, blurb:'The world’s best under-20s, eleven rounds in October. Gold is a grandmaster title; silver and bronze an IM title.'},
+  {id:'fsweiss',    emoji:'🎲', country:'Germany', name:'Freestyle Grand Slam Weissenhaus', tier:8, rounds:9, avg:2745, spread:45, minRating:0, norm:false, rr:1, var960:true, champion:true, honor:'Freestyle Grand Slam Winner', blurb:'Chess960 for ten of the world’s best at a resort on the Baltic coast — the first leg of the Freestyle Chess Grand Slam Tour. By invitation: the world top twelve, or a wildcard for a big name.'},
+  {id:'fsparis',    emoji:'🎲', country:'France', name:'Freestyle Grand Slam Paris', tier:8, rounds:9, avg:2745, spread:45, minRating:0, norm:false, rr:1, var960:true, champion:true, honor:'Freestyle Grand Slam Winner', blurb:'The Freestyle tour in Paris: ten players, Chess960, a round-robin, and points for the tour — whose top two go to the Esports World Cup.'},
+  {id:'fsvegas',    emoji:'🎲', country:'USA', name:'Freestyle Grand Slam Las Vegas', tier:8, rounds:9, avg:2750, spread:45, minRating:0, norm:false, rr:1, var960:true, champion:true, honor:'Freestyle Grand Slam Winner', blurb:'The richest leg of the Freestyle tour: Chess960 in a casino ballroom, and 💰200,000 to the winner.'},
+  {id:'fscapetown', emoji:'🎲', country:'South Africa', name:'Freestyle Grand Slam Cape Town', tier:8, rounds:9, avg:2740, spread:45, minRating:0, norm:false, rr:1, var960:true, champion:true, honor:'Freestyle Grand Slam Winner', blurb:'The last leg of the Freestyle tour, at the foot of Table Mountain — the tour’s title is decided on its last day.'},
+  {id:'cctspring',  emoji:'🖥️', country:'Online', name:'Champions Chess Tour: Spring', tier:7, rounds:9, avg:2660, spread:90, minRating:0, norm:false, format:'rapid', blurb:'Online rapid against the world’s best, from your own desk: a leg of the Champions Chess Tour. Points for the top ten — the tour’s best eight play the Finals, its best four go to the Esports World Cup. By invitation: rapid 2600, the rapid top 60, or a big name.'},
+  {id:'cctsummer',  emoji:'🖥️', country:'Online', name:'Champions Chess Tour: Summer', tier:7, rounds:9, avg:2660, spread:90, minRating:0, norm:false, format:'rapid', blurb:'The Champions Chess Tour’s summer leg: nine rounds of online rapid, points for the top ten.'},
+  {id:'cctautumn',  emoji:'🖥️', country:'Online', name:'Champions Chess Tour: Autumn', tier:7, rounds:9, avg:2660, spread:90, minRating:0, norm:false, format:'rapid', blurb:'The last leg of the Champions Chess Tour before the Finals: nine rounds of online rapid.'},
+  {id:'cctfinals',  emoji:'🏁', country:'Canada', name:'Champions Chess Tour Finals', tier:8, rounds:7, avg:2740, spread:40, minRating:0, norm:false, rr:1, format:'rapid', champion:true, honor:'Champions Chess Tour Champion', blurb:'The tour’s best eight, in person in Toronto: a rapid round-robin for the Champions Chess Tour title.'},
+  {id:'ewc',        emoji:'🎮', country:'Saudi Arabia', name:'Esports World Cup', tier:9, rounds:8, avg:2730, spread:60, minRating:0, norm:false, format:'rapid', kind:'knockout', champion:true, honor:'Esports World Cup Champion', blurb:'Sixteen players in soundproof booths in Riyadh, for the biggest purse in chess: a rapid knockout, two games a match, then blitz and armageddon. Invited: the Champions Chess Tour’s top four, the Freestyle tour’s top two, the best in rapid, and a wildcard for the biggest names.'},
   {id:'creatorcup',   emoji:'🎬', country:'Online', name:'Creator Cup (charity)',  tier:2, rounds:6, avg:1450, spread:360, minRating:0, norm:false, format:'rapid', creator:true, blurb:'A charity invitational against popular streamers & celebrities. Low stakes, huge audience — a boon for your channel.'},
 ];
 /* Each event format maps to a representative time control, so classical, rapid
@@ -5232,6 +5246,7 @@ function wxNewPlayer(c,X,kind,i,F){
 /* Once a season, at the turn of the year. */
 function worldSeason(c){
   const X=wxInit(c),S=c.season||1;wrInit(c);
+  if(S>1)rollClose(c,S-1);          // the year just ended goes on the roll
   const champ=(c.cycle&&c.cycle.reigning&&c.cycle.reigning.name)||null;
   const keep={};if(c.rival&&c.rival.id)keep[c.rival.id]=1;
   const notes=[];
@@ -5378,8 +5393,8 @@ function strengthMove(c,fmt,oppRating,score,k){
 /* A rating change: FIDE's own (with the 400 cap) at realistic speed, plus the
    pace's extra measured against the uncapped expectation. */
 function paceDelta(c,k,r,oppRating,score){
-  const D=Math.max(-400,Math.min(400,r-oppRating));
-  const We=1/(1+Math.pow(10,-D/400));
+  // FIDE's expected score comes from its table 8.1.2, and the 400-point rule is for players under 2650
+  const We=fideExpect(r,oppRating);
   return k*(score-We)+(paceMul(c)-1)*k*(score-eloExpect(r,oppRating));}
 function applyRatedGame(c,oppRating,score,ref){
   c.ratedGames=(c.ratedGames||0)+1;
@@ -5411,7 +5426,7 @@ function publishRating(c){
   if(!c.provisional||(c.ratedGames||0)<5||(c.provScore||0)<=0)return false;
   const n=c.ratedGames+INIT_HYP_GAMES;
   const Ra=(c.provOppSum+INIT_HYP_RATING*INIT_HYP_GAMES)/n;
-  const Rp=Math.round(Ra+dpFromPct((c.provScore+INIT_HYP_GAMES*0.5)/n));
+  const Rp=Math.min(2200,Math.round(Ra+dpFromPct((c.provScore+INIT_HYP_GAMES*0.5)/n)));   // a first rating is at most 2200 (8.2)
   if(Rp>=1400){c.rating=Rp;c.peak=Math.max(c.peak||0,Rp);c.provisional=false;c.str=c.str||{};c.str.classical=Rp;return true;}
   return false;
 }
@@ -6366,7 +6381,8 @@ function viewLearn(){
     ['import','📥','Import my games','Build a course from your real Chess.com or Lichess games'],
     ['tracker','📡','Chess.com tracker','Full breakdown of your profile, results, clock and habits'],
     ['studies','📚','Studies','Import &amp; browse Lichess studies'],
-    ['dashboard','📊','Dashboard','Your repertoire progress &amp; stats']
+    ['dashboard','📊','Dashboard','Your repertoire progress &amp; stats'],
+    ['calc','🧮','Rating &amp; norm calculator','For a real tournament: your FIDE rating change, a first rating, and norms']
   ];
   let h='<div style="max-width:900px;margin:0 auto"><h1>📚 Learn &amp; Train</h1><div class="muted small" style="margin:6px 0 14px">Everything to sharpen your chess — pick a tool.</div>';
   h+='<div class="learngrid">'+items.map(it=>'<button class="learncard" data-act="nav" data-val="'+it[0]+'"><div class="li">'+it[1]+'</div><div><div class="lt">'+it[2]+'</div><div class="ld">'+it[3]+'</div></div></button>').join('')+'</div>';
@@ -6378,12 +6394,12 @@ function render(){
   document.body.style.setProperty('--bw',((_grip&&_grip.w)||store.settings.boardSize||520)+'px');
   applyAppTheme();
   const repOps=BUILT.filter(o=>inRep(o.id));const agg=aggregate(repOps,store.srs);
-  const nav=['career','dashboard','play','puzzles','learn','courses','train','library','endgames','classics','guess','blindfold','daily','review','analysis','brilliancy','report','import','tracker','studies','masters','settings'];
-  const NAV_META={analysis:['🔬','Analysis board'],career:['🏆','Career'],dashboard:['📊','Dashboard'],play:['♟️','Play'],puzzles:['🧩','Puzzles'],learn:['📚','Learn'],courses:['📘','Courses'],train:['🎓','Train'],library:['📖','Openings'],endgames:['♟️','Endgames'],classics:['📜','Classics'],guess:['🎯','Guess the Move'],blindfold:['🙈','Blindfold'],review:['🔬','Game Review'],brilliancy:['💎','Brilliancies'],report:['📊','Opening report'],import:['📥','Import games'],tracker:['📡','Chess.com tracker'],daily:['☀️','Daily exercise'],studies:['📚','Studies'],masters:['♞','Master Games'],settings:['⚙️','Settings']};
+  const nav=['career','dashboard','play','puzzles','learn','courses','train','library','endgames','classics','guess','blindfold','daily','review','analysis','brilliancy','report','import','tracker','studies','masters','calc','settings'];
+  const NAV_META={calc:['🧮','Rating & norms'],analysis:['🔬','Analysis board'],career:['🏆','Career'],dashboard:['📊','Dashboard'],play:['♟️','Play'],puzzles:['🧩','Puzzles'],learn:['📚','Learn'],courses:['📘','Courses'],train:['🎓','Train'],library:['📖','Openings'],endgames:['♟️','Endgames'],classics:['📜','Classics'],guess:['🎯','Guess the Move'],blindfold:['🙈','Blindfold'],review:['🔬','Game Review'],brilliancy:['💎','Brilliancies'],report:['📊','Opening report'],import:['📥','Import games'],tracker:['📡','Chess.com tracker'],daily:['☀️','Daily exercise'],studies:['📚','Studies'],masters:['♞','Master Games'],settings:['⚙️','Settings']};
   const label=v=>(NAV_META[v]?NAV_META[v][1]:v[0].toUpperCase()+v.slice(1));
   const navIcon=v=>(NAV_META[v]?NAV_META[v][0]:'•');
   const cur=nav.indexOf(app.view)>=0?app.view:'dashboard';
-  const LEARN_VIEWS=['learn','courses','clearn','train','library','build','explore','course','endgames','eglesson','classics','guess','blindfold','daily','masters','studies','review','analysis','brilliancy','report','import','tracker','dashboard','reptree'];
+  const LEARN_VIEWS=['learn','courses','clearn','train','library','build','explore','course','endgames','eglesson','classics','guess','blindfold','daily','masters','studies','review','analysis','brilliancy','report','import','tracker','dashboard','reptree','calc'];
   const CAREER_VIEWS=['career','magazine','hall','player','livegame','spectate','round','card','bio'];
   const primaryOf=v=>(CAREER_VIEWS.indexOf(v)>=0?'career':v==='play'?'play':v==='puzzles'?'puzzles':LEARN_VIEWS.indexOf(v)>=0?'learn':'');
   const PRIMARY=[['career','🏆','Career'],['play','♟️','Play'],['puzzles','🧩','Puzzles'],['learn','📚','Learn']];
@@ -6435,6 +6451,7 @@ function render(){
   else if(app.view==='round')body=viewRound();
   else if(app.view==='card')body=viewCard();
   else if(app.view==='bio')body=viewBio();
+  else if(app.view==='calc')body=viewCalc();
   else if(app.view==='reptree')body=viewRepTree(app.repTreeId);
   else if(app.view==='blindfold')body=viewBlindfold();
   else if(app.view==='endgames')body=viewEndgames();
@@ -11654,6 +11671,13 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='dilemma')dilemmaChoose(val);
   else if(act==='careerretire')uiConfirm('Retire from competition? Your career ends and enters the Hall of Fame — you can start a new one afterwards.',retireCareer);
   else if(act==='careernew')newCareer();
+  else if(act==='nextgen')nextGenStart(val);
+  else if(act==='halllegend')startHallLegend(val);
+  else if(act==='ngall'){app.ngAll=!app.ngAll;render();}
+  else if(act==='rollall'){app.rollAll=!app.rollAll;render();}
+  else if(act==='pppin'){app.ppPin=app.ppPin===val?null:val;render();}
+  else if(act==='ppzoom'){app.ppZoom=val;render();}
+  else if(act==='calcres'||act==='calcdel'||act==='calcadd'||act==='calcclear')calcAct(act,idx!=null?+idx:null,val);
   else if(act==='careersopen'){app.careersOpen=!app.careersOpen;app.careerMsg=null;render();}
   else if(act==='careerswitch')careerSwitch(val);
   else if(act==='careeranother')careerStartAnother();
@@ -11684,7 +11708,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='pblind'){app.blindfold=!app.blindfold;app.peek=false;render();}
   else if(act==='ppeek'){app.peek=!app.peek;render();}
   else if(act==='blindstart'){const c=val==='r'?(Math.random()<0.5?'w':'b'):val;startPlay(new Chess().fen(),c,null,'Blindfold game',{blindfold:true});}
-  else if(act==='careersetup'){const c=store.career;const nm=((document.getElementById('cr-name')||{}).value||'').trim();const fedC=(document.getElementById('cr-fed')||{}).value||'FIDE';const g=((document.getElementById('cr-gender')||{}).value==='women')?'women':'open';const tf=((document.getElementById('cr-titlefmt')||{}).value==='any')?'any':'classical';const fed=FEDS.find(x=>x.c===fedC)||FEDS[0];const pace=Math.max(1,Math.min(3,parseInt((document.getElementById('cr-pace')||{}).value,10)||1));const start=((document.getElementById('cr-start')||{}).value)||'club';c.setup=true;careerCid(c);c.name=(nm||'You').slice(0,24);c.fed=fed.c;c.flag=fed.f;c.gender=g;c.titleFormat=tf;c.pace=pace;if(start==='talent'){c.rating=1900;c.peak=1900;c.provisional=false;c.ratedGames=30;c.age=18;}else if(start==='master'){c.rating=2300;c.peak=2300;c.provisional=false;c.ratedGames=30;c.age=20;}else if(start==='junior'){c.age=JUNIOR_START_AGE;c.junior=true;c.money=50;c.school={grade:75,exams:null};c.parents={fund:PARENT_FUND,left:PARENT_FUND,s:1};}app.careerTab='play';save();render();navScrollTo(0);}
+  else if(act==='careersetup'){const c=store.career;const nm=((document.getElementById('cr-name')||{}).value||'').trim();const fedC=(document.getElementById('cr-fed')||{}).value||'FIDE';const g=((document.getElementById('cr-gender')||{}).value==='women')?'women':'open';const tf=((document.getElementById('cr-titlefmt')||{}).value==='any')?'any':'classical';const fed=FEDS.find(x=>x.c===fedC)||FEDS[0];const pace=Math.max(1,Math.min(3,parseInt((document.getElementById('cr-pace')||{}).value,10)||1));const start=((document.getElementById('cr-start')||{}).value)||'club';c.setup=true;careerCid(c);c.name=(nm||'You').slice(0,24);c.fed=fed.c;c.flag=fed.f;c.gender=g;c.titleFormat=tf;c.pace=pace;if(start==='talent'){c.rating=1900;c.peak=1900;c.provisional=false;c.ratedGames=30;c.age=18;}else if(start==='master'){c.rating=2300;c.peak=2300;c.provisional=false;c.ratedGames=30;c.age=20;}else if(start==='junior'){c.age=JUNIOR_START_AGE;c.junior=true;c.money=50;c.school={grade:75,exams:null};c.parents={fund:PARENT_FUND,left:PARENT_FUND,s:1};}if(c.nextGen)ngAfterSetup(c);app.careerTab='play';save();render();navScrollTo(0);}
   else if(act==='careerpace'){const c=store.career;lifeInit(c);c.pace=(c.pace||1)>=3?1:(c.pace||1)+1;app.careerToast='⏩ Career pace: '+(PACE_NAMES[c.pace]||('×'+c.pace))+' — ratings now move '+(c.pace===1?'at true FIDE speed':(c.pace+'× faster'))+'.';save();render();}
   else if(act==='careerjoin'){joinTournament(val);if(store.career.tour){app.careerTab='play';app._jump='tourcard';render();}}
   else if(act==='careerplay')tourRoundEnter();
@@ -11891,6 +11915,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='studyflip'){app.studyFlip=!app.studyFlip;render();}
 });
 document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.dataset&&e.target.dataset.calc){calcInput(e.target,false);return;}   // only the numbers change: a redraw here would swallow the click that caused the blur
   if(e.target.dataset&&e.target.dataset.psetopening!==undefined){app.setupOpening=e.target.value;return;}
   if(e.target.dataset&&e.target.dataset.pzfilter){const k=e.target.dataset.pzfilter;
     if(k==='band')app.pzFilter={type:'band',band:+e.target.value};
@@ -11930,7 +11955,7 @@ document.getElementById('app').addEventListener('change',e=>{
     r.onload=()=>receiveBackup(String(r.result||''),'file');
     r.readAsText(f);e.target.value='';}
 });
-document.getElementById('app').addEventListener('input',e=>{if(e.target&&e.target.id==='ana-in'){app.anaText=e.target.value;return;}
+document.getElementById('app').addEventListener('input',e=>{if(e.target&&e.target.dataset&&e.target.dataset.calc){calcInput(e.target,false);return;}if(e.target&&e.target.id==='ana-in'){app.anaText=e.target.value;return;}
   if(e.target&&e.target.id==='srch-q'&&app.srch){app.srch.q=e.target.value;app.srch.sel=0;srchUpdate();return;}const ds=e.target.dataset&&e.target.dataset.setting;if(ds==='boardSize'){store.settings.boardSize=+e.target.value;document.body.style.setProperty('--bw',store.settings.boardSize+'px');}
   if(ds==='musicVol'){store.settings.musicVol=+e.target.value;Music.setVol();}});
 
@@ -13087,7 +13112,7 @@ function playSnapshot(){
     bookId:app.playBook?app.playBook.id:null,bookAltId:app.playBookAlt?app.playBookAlt.id:null,bookAltEdge:app.playBookAltEdge||0,
     career:{opp:app.careerOpp||null,elo:app.careerElo||null,tour:!!app.careerTour,
       roundOpp:app.careerRoundOpp||null,oneoff:app.careerOneoff||null,league:!!app.careerLeague,pro:!!app.careerPro,
-      prepUsed:app.careerPrepUsed||null,legend:app.careerLegend||null,oppPrep:app.careerOppPrep||null,
+      prepUsed:app.careerPrepUsed||null,legend:app.careerLegend||null,hallLegend:app.careerHallLegend||null,oppPrep:app.careerOppPrep||null,
       novelty:!!app.careerNovelty,studyEdge:app.careerStudyEdge||0,
       tourId:(store.career&&store.career.tour)?store.career.tour.id:null,
       round:(store.career&&store.career.tour)?store.career.tour.round:null},
@@ -13191,7 +13216,7 @@ function playResume(){
   const cr=g.career||{};
   app.careerOpp=cr.opp||null;app.careerElo=cr.elo||null;app.careerTour=!!cr.tour;
   app.careerRoundOpp=cr.roundOpp||null;app.careerOneoff=cr.oneoff||null;app.careerLeague=!!cr.league;app.careerPro=!!cr.pro;
-  app.careerHintsLeft=0;app.careerPrepUsed=cr.prepUsed||null;app.careerLegend=cr.legend||null;app.careerOppPrep=cr.oppPrep||null;
+  app.careerHintsLeft=0;app.careerPrepUsed=cr.prepUsed||null;app.careerLegend=cr.legend||null;app.careerHallLegend=cr.hallLegend||null;app.careerOppPrep=cr.oppPrep||null;
   app.careerNovelty=!!cr.novelty;app.careerStudyEdge=cr.studyEdge||0;
   app.parkBet=g.park?{id:g.park.id,stake:g.park.stake,double:!!g.park.double}:null;
   // the opening book is a tree, so it is walked back down rather than stored
@@ -13293,7 +13318,7 @@ function startPlay(fen,side,openingId,title,opts){opts=opts||{};
   if(app.pass){side=turnOf(fen);app.playBot=null;}
   app.view='play';app.playFen=fen;app._playStartFen=fen;app.playSide=side;app.playOpening=openingId||null;
   app.playTitle=title||'Free game';app.playFlip=false;app.playStack=[fen];app.playMoves=[];app.playView=0;app.playLast=null;app.playSel=null;app.careerBanter=null;app.careerReaction=null;
-  app.playHint=null;app.playEval=null;app.playResult=null;app.careerStory=null;app.pg=null;app._egCounted=false;app.cardCtx=null;app.engineErr=false;app.drawMsg=null;app.blunderNote=null;app.coachNote=null;app.whyNot=null;app.oppDraw=null;app.oppSaid=null;app._oppLost=0;app._drawCd=0;app.pgnCopied=false;app.playPremoves=[];app.blindfold=!!opts.blindfold;app.peek=false;app.careerOpp=opts.careerOpp||null;app.careerElo=opts.careerElo||null;app.careerScored=false;app.careerDelta=0;app.careerTour=!!opts.careerTour;app.careerRoundOpp=opts.roundOpp||null;app.careerOneoff=opts.oneoff||null;app.c960=opts.c960||null;app.endgame=opts.endgame||null;app.playBot=opts.bot||null;app.tiltEval=false;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=!!(opts.league);app.careerPro=!!(opts.pro);app.careerLegend=opts.legend||null;app.playBookAlt=null;app.playBookAltEdge=0;app.careerOppPrep=null;app.careerHintsLeft=0;app._fxKey=null;app._lastEvalCp=null;app._engOutOfBook=false;app._engRetry=0;app._evLow=null;app._evHigh=null;
+  app.playHint=null;app.playEval=null;app.playResult=null;app.careerStory=null;app.pg=null;app._egCounted=false;app.cardCtx=null;app.engineErr=false;app.drawMsg=null;app.blunderNote=null;app.coachNote=null;app.whyNot=null;app.oppDraw=null;app.oppSaid=null;app._oppLost=0;app._drawCd=0;app.pgnCopied=false;app.playPremoves=[];app.blindfold=!!opts.blindfold;app.peek=false;app.careerOpp=opts.careerOpp||null;app.careerElo=opts.careerElo||null;app.careerScored=false;app.careerDelta=0;app.careerTour=!!opts.careerTour;app.careerRoundOpp=opts.roundOpp||null;app.careerOneoff=opts.oneoff||null;app.c960=opts.c960||null;app.endgame=opts.endgame||null;app.playBot=opts.bot||null;app.tiltEval=false;app.careerPrepUsed=null;app.careerNovelty=false;app.careerStudyEdge=0;app.careerLeague=!!(opts.league);app.careerPro=!!(opts.pro);app.careerLegend=opts.legend||null;app.careerHallLegend=opts.hallLegend||null;app.playBookAlt=null;app.playBookAltEdge=0;app.careerOppPrep=null;app.careerHintsLeft=0;app._fxKey=null;app._lastEvalCp=null;app._engOutOfBook=false;app._engRetry=0;app._evLow=null;app._evHigh=null;
   app.playBook=opts.bookId?byId.get(opts.bookId):(opts.book||null);
   app.playBookNode=opts.bookNode||(app.playBook?app.playBook.root:null);
   app.playClk=[];
@@ -15492,7 +15517,9 @@ function hallEntry(c){
     allTime:f.allTime||null,verdict:f.verdict||null,persona:f.persona||null,
     style:f.style||null,score:Math.round(legacyScore(c)),
     games:c.played||0,won:c.won||0,drawn:c.drawn||0,lost:c.lost||0,
-    seasons:c.season||1,issues:(c.issues||[]).length,at:Date.now()};
+    seasons:c.season||1,issues:(c.issues||[]).length,at:Date.now(),
+    // for the next generation: where it played, and what, so it can be played again
+    cid:careerCid(c),world:c.wx?worldId(c):null,s0:c.s0||1,s1:c.season||1,reps:hallReps(c),parent:(c.family&&c.family.parent)?c.family.parent.name:null};
 }
 function hallAdd(c){
   const L=hallInit();
@@ -15527,7 +15554,7 @@ function hallRow(e,i,bestAt){
         '<div style="font-weight:800">'+(v.emoji||'♟')+' '+esc((e.best?e.best+' ':'')+e.name)+
           (i===bestAt?' <span class="chip amber" style="font-size:9px">BEST</span>':'')+'</div>'+
         '<div class="dim small">'+esc(e.fed)+' '+(e.flag||'')+' · '+e.years+' season'+(e.years===1?'':'s')+
-          ' · retired at '+e.age+'</div>'+
+          ' · retired at '+e.age+'</div>'+(e.parent?'<div class="dim small">👪 child of '+esc(e.parent)+'</div>':'')+
       '</div>'+
       '<div style="text-align:right"><div style="font-weight:800;color:var(--brand2)">'+(e.peak||'—')+'</div>'+
       '<div class="dim small">peak</div></div>'+
@@ -15673,7 +15700,7 @@ function careerUnpark(){
 }
 /* What is on the screen belongs to the career you were playing. */
 const CAREER_UI_KEYS=['careerToast','careerRoundOpp','careerOpp','careerElo','spec','careerFinish','careerOneoff','careerOppPrep','careerPrepUsed',
-  'parkBet','parkDouble','parkStake','careerTour','careerLeague','careerPro','careerLegend','careerNovelty','careerStudyEdge','careerStory','careerDelta',
+  'parkBet','parkDouble','parkStake','careerTour','careerLeague','careerPro','careerLegend','careerHallLegend','careerNovelty','careerStudyEdge','careerStory','careerDelta',
   'careerBanter','careerReaction','careerScored','careerOly','_olyPay','socialDraft','socialOpen','socialAll','oppDraw','oppSaid','coachNote','cardCtx',
   'newsOpen','newsRead','newsMore','newsSeenAt','newsCat','normHelp','normOpen','lobbyMore','lobbyAll','inboxAll','feedAll','momentsAll','decLater','decFirst',
   'xtFin','xtOpen','xtHist','careerTitlesOpen','magPly','magIdx','stream','streamShow','rush','rushResult','roundIntro','booth','tiltEval','careerHintsLeft',
@@ -15843,7 +15870,7 @@ function payOrOwe(c,amount){
 }
 /* Where an event is, as far as your wallet is concerned. */
 const TRIP_OF={club:'home',cityopen:'local',weekendopen:'local',regional:'local',rapidopen:'local',blitzopen:'local',
-  fischeropen:'local',cityamateur:'local',communityopen:'online',titledtues:'online',creatorcup:'online',
+  fischeropen:'local',cityamateur:'local',communityopen:'online',titledtues:'online',creatorcup:'online',cctspring:'online',cctsummer:'online',cctautumn:'online',
   national:'national',natch:'national',natwch:'national',natyouth:'national'};
 function eventTrip(tr){
   if(!tr)return 'home';
@@ -16707,9 +16734,9 @@ function careerTeamPanel(c){
   return h+'</div></div>';}
 function careerPressPanel(c){if(!c.pressPending)return '';var p=c.pressPending;
   return '<div class="card" id="presscard" style="margin-bottom:12px;border-color:#7c5cff66"><div style="font-weight:700;margin-bottom:3px">🎤 Press conference — '+esc(p.event)+'</div><div class="dim small" style="margin-bottom:8px">You finished '+ordinal(p.place)+'. Give the reporters a quote:</div><div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sec sm" data-act="press" data-val="humble">🙏 Stay humble</button><button class="btn sec sm" data-act="press" data-val="confident">😎 Back yourself</button><button class="btn sec sm" data-act="press" data-val="spicy">🔥 Call out a rival</button></div></div>';}
-function careerHoF(c){var f=c.hof||{};var v=f.verdict||legacyVerdict(c);var pc=f.persona||personaChip(c);return '<div style="max-width:720px;margin:0 auto"><h1>🏁 Career complete</h1><div class="card" style="margin-bottom:12px;border-color:var(--brand);text-align:center"><div style="font-size:34px;line-height:1">'+v.emoji+'</div><div style="font-weight:800;font-size:20px;margin:5px 0">'+esc(v.title)+'</div><div class="dim small" style="line-height:1.55">'+esc(v.blurb)+'</div>'+(pc?'<div class="small" style="margin-top:8px;color:var(--brand2)">'+pc+'</div>':'')+'</div><div class="muted small" style="margin-bottom:12px">'+esc(c.name)+' retired at age '+Math.floor(f.age||c.age)+' after '+(f.years||0)+' seasons on the circuit.</div><div class="card"><div class="row" style="flex-wrap:wrap">'+stat('Peak rating',f.peak||c.peak||'—','var(--brand2)')+stat('Top title',f.best||'—','var(--amber)')+stat('Earnings','💰'+((f.money||0).toLocaleString()),'var(--green)')+stat('Fans',(f.fans||0).toLocaleString(),'var(--text)')+'</div>'+((f.honors&&f.honors.length)?'<div style="margin-top:10px">Honours: '+f.honors.map(function(hn){return '<span class="chip green" style="margin:2px">'+esc(hn)+'</span>';}).join('')+'</div>':'')+(f.protege?'<div class="dim small" style="margin-top:10px">🧑‍🎓 Your protégé '+esc(f.protege.name)+' reached '+f.protege.peak+(f.protege.peak>=2500?' — a Grandmaster you made.':'.')+'</div>':'')+(f.allTime?'<div class="dim small" style="margin-top:10px">🐐 All-time rank: #'+(f.allTime||0).toLocaleString()+(f.gmsMade?' · '+f.gmsMade+' GM'+(f.gmsMade>1?'s':'')+' developed':'')+(f.broadcasts?' · '+f.broadcasts+' broadcasts':'')+'</div>':'')+'<div class="row" style="margin-top:14px;gap:8px;flex-wrap:wrap"><button class="btn primary" data-act="careernew">Begin a new career</button>'+
+function careerHoF(c){var f=c.hof||{};var v=f.verdict||legacyVerdict(c);var pc=f.persona||personaChip(c);return '<div style="max-width:720px;margin:0 auto"><h1>🏁 Career complete</h1><div class="card" style="margin-bottom:12px;border-color:var(--brand);text-align:center"><div style="font-size:34px;line-height:1">'+v.emoji+'</div><div style="font-weight:800;font-size:20px;margin:5px 0">'+esc(v.title)+'</div><div class="dim small" style="line-height:1.55">'+esc(v.blurb)+'</div>'+(pc?'<div class="small" style="margin-top:8px;color:var(--brand2)">'+pc+'</div>':'')+'</div><div class="muted small" style="margin-bottom:12px">'+esc(c.name)+' retired at age '+Math.floor(f.age||c.age)+' after '+(f.years||0)+' seasons on the circuit.</div><div class="card"><div class="row" style="flex-wrap:wrap">'+stat('Peak rating',f.peak||c.peak||'—','var(--brand2)')+stat('Top title',f.best||'—','var(--amber)')+stat('Earnings','💰'+((f.money||0).toLocaleString()),'var(--green)')+stat('Fans',(f.fans||0).toLocaleString(),'var(--text)')+'</div>'+((f.honors&&f.honors.length)?'<div style="margin-top:10px">Honours: '+f.honors.map(function(hn){return '<span class="chip green" style="margin:2px">'+esc(hn)+'</span>';}).join('')+'</div>':'')+(f.protege?'<div class="dim small" style="margin-top:10px">🧑‍🎓 Your protégé '+esc(f.protege.name)+' reached '+f.protege.peak+(f.protege.peak>=2500?' — a Grandmaster you made.':'.')+'</div>':'')+(f.allTime?'<div class="dim small" style="margin-top:10px">🐐 All-time rank: #'+(f.allTime||0).toLocaleString()+(f.gmsMade?' · '+f.gmsMade+' GM'+(f.gmsMade>1?'s':'')+' developed':'')+(f.broadcasts?' · '+f.broadcasts+' broadcasts':'')+'</div>':'')+'<div class="row" style="margin-top:14px;gap:8px;flex-wrap:wrap"><button class="btn '+(c.wx?'ghost':'primary')+'" data-act="careernew">Begin a new career, in a new world</button>'+
     (hallList().length?'<button class="btn sec" data-act="nav" data-val="hall">🏛️ The hall ('+hallList().length+')</button>':'')+
-    '</div></div></div>';}
+    '</div></div>'+careerNextGenCard(c)+'</div>';}
 /* ============ Career: achievements, rivalries, random life events, circuit news ============ */
 const ACHIEVEMENTS=[
   {k:'first',e:'♟',n:'First blood',d:'Play your first career game',test:function(c){return (c.played||0)>=1;}},
@@ -17387,9 +17414,9 @@ function rivalTitle(c,rr){var p=c.rival&&buildWorld().find(function(x){return x.
 function rivalRating(c){if(!c.rival)return null;var p=buildWorld().find(function(x){return x.id===c.rival.id;});return p?pubRating(p,'classical'):c.rival.rating;}
 function maybeAssignRival(c){if(c.rival||(c.played||0)<6)return;var yr=youRating(c,'classical');if(yr==null)return;
   var cand=buildWorld().filter(function(p){return Math.abs(wpRating(p,'classical')-yr)<=70&&(!c.nemesis||p.name!==c.nemesis.name);});
-  if(!cand.length)return;cand.sort(function(a,b){return ((b.gen?1:0)-(a.gen?1:0))||((b.real?1:0)-(a.real?1:0))||(Math.abs(wpRating(a,'classical')-yr)-Math.abs(wpRating(b,'classical')-yr));});
+  if(!cand.length)return;cand.sort(function(a,b){return ((genOf(c,b)?1:0)-(genOf(c,a)?1:0))||((b.real?1:0)-(a.real?1:0))||(Math.abs(wpRating(a,'classical')-yr)-Math.abs(wpRating(b,'classical')-yr));});
   var p=cand[0];c.rival={id:p.id,name:p.name,flag:p.flag,rating:wpRating(p,'classical'),since:Math.floor((c.weeks||0)/52)+1,intensity:1};
-  pushNews(c,'🤺','A rivalry is born: you and '+p.name+' ('+c.rival.rating+') are neck and neck'+(p.gen?' — you have known each other since you were children.':'.'));}
+  pushNews(c,'🤺','A rivalry is born: you and '+p.name+' ('+c.rival.rating+') are neck and neck'+(genOf(c,p)?' — you have known each other since you were children.':'.'));}
 function updateRivalry(c){if(!c.rival)return;rivalStoryTick(c);var rr=rivalRating(c),yr=youRating(c,'classical');if(yr==null)return;
   if(Math.abs(rr-yr)>170){pushNews(c,'🕊️','Your rivalry with '+c.rival.name+' has cooled — you have drifted apart in the rankings.');c.rival=null;}}
 const RIVAL_STAGES={1:{n:'Simmering',e:'🤺',b:'A rivalry is brewing — you keep crossing paths near the top of the crosstables.'},2:{n:'Heated',e:'😤',b:'The press has noticed. Every game between you two is must-watch.'},3:{n:'Bitter',e:'🔥',b:'This has turned personal — neither of you can stand to lose to the other.'},4:{n:'Legendary',e:'⚔️',b:'One of the great rivalries of the era — careers defined by these clashes.'}};
@@ -17512,6 +17539,8 @@ function oppOpenings(name,rating){
   var id=repIdOf(name),K=(id&&KNOWN_REPS[id])||{};
   // your other career plays what it plays in its own games
   try{var gp=worldIndex().name[name];if(gp&&gp.ghost&&gp.reps)K=gp.reps;}catch(e){}
+  // a career you finished plays what it played
+  try{var hr=id?null:hallRepsByName(name);if(hr)K=hr;}catch(e){}
   if(rating==null){try{var wp=worldIndex().name[name];if(wp)rating=wpRating(wp,'classical');}catch(e){}}
   var elite=!!id||(rating||0)>=2500;
   var pool=function(k){
@@ -17535,7 +17564,9 @@ function scoutCard(c,opp,label){
     who='<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap"><span class="dim small">'+(opp.flag||'')+' '+esc(wp.fed)+' · age '+Math.floor(wpAge(wp))+(rk?' · world #'+rk.toLocaleString():'')+
       (h2&&(h2.w+h2.l+h2.d)?' · you are <b>'+h2.w+'–'+h2.d+'–'+h2.l+'</b> against them':' · you have not met before')+'</span>'+
       '<button class="btn ghost sm" data-act="profile" data-val="'+wp.id+'">👤 Profile</button></div>';}
-  if(wp&&wp.gen){var gr=(c.h2h&&c.h2h[wp.name])||{w:0,d:0,l:0},gn=gr.w+gr.d+gr.l;
+  if(wp&&!genOf(c,wp)&&ngOldGenOf(c,wp)){var og=(c.lineage.prev.gen.h2h||{})[wp.name],who2=c.lineage.kind==='child'?'your parent':c.lineage.prev.name;
+    who+='<div class="note small" style="margin-top:8px;border-color:#22c55e">🌱 <b>'+esc(wp.name)+' grew up with '+esc(who2)+'</b>'+(og?' — '+esc(who2)+' was '+og.w+'–'+og.d+'–'+og.l+' against them':'')+'.</div>';}
+  if(wp&&genOf(c,wp)){var gr=(c.h2h&&c.h2h[wp.name])||{w:0,d:0,l:0},gn=gr.w+gr.d+gr.l;
     who+='<div class="note small" style="margin-top:8px;border-color:#22c55e">🌱 <b>'+esc(wp.name)+' is one of your generation</b>, '+genAge(wp)+' years old'+(gn?' — you are '+gr.w+'–'+gr.d+'–'+gr.l+' against each other':' — you have not played each other yet')+'.</div>';}
   if(wp&&wp.ghost){var gh=c.cid?ghostH2H(c.cid,wp.ghost):{n:0};
     who+='<div class="note small" style="margin-top:8px;border-color:var(--brand)">👥 <b>This is '+esc(wp.name)+', your other career</b> (season '+(wp.season||1)+'). They play the openings they play in their own games, in their own style'+
@@ -17807,10 +17838,23 @@ function startLegend(id){var c=store.career;lifeInit(c);if(c.tour)return;var L=L
   app.careerBanter={who:(L.name||'').split(' ').pop(),line:pick(['An honour. Now show me what you’ve got.','Let’s see if you belong at this table.','Play well — history is watching.'])};
   applyCareerCondition();}
 function careerLegendsPanel(c){
-  var yr=youRating(c,'classical');if(yr==null||(c.peak||0)<1900)return '';
+  var yr=youRating(c,'classical'),greats=yr!=null&&(c.peak||0)>=1900,HL=hallLegendsFor(c);
+  if(!greats&&!HL.length)return '';
   var beaten=(c.legendsBeaten||[]).length;
-  var h='<div class="card" style="padding:0;margin-bottom:12px"><div style="padding:11px 13px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:700">🎭 Legends exhibitions</div><div class="dim small">'+beaten+'/'+LEGENDS.length+' beaten</div></div>'+
-    '<div class="dim small" style="padding:8px 13px 2px">Showcase games against the greatest players in history, at their peak strength. Win and your name climbs the all-time list — but these are the hardest games you will ever play.</div>';
+  var h='<div class="card" style="padding:0;margin-bottom:12px"><div style="padding:11px 13px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:700">🎭 Legends exhibitions</div><div class="dim small">'+(greats?beaten+'/'+LEGENDS.length+' beaten':'')+'</div></div>';
+  // the careers you have finished, at their peak — the one before this one first
+  if(HL.length){
+    h+='<div class="dim small" style="padding:8px 13px 2px">🏛️ Your past careers, at their peak</div>';
+    HL.slice().sort(function(a,b){return (hallRel(c,b)==='your parent'?1:0)-(hallRel(c,a)==='your parent'?1:0);}).slice(0,6).forEach(function(e){
+      var won=(c.hallBeaten||[]).indexOf(e.name)>=0,rel=hallRel(c,e);
+      h+='<div style="display:flex;align-items:center;gap:11px;padding:9px 13px;border-top:1px solid var(--border)">'+
+        '<div style="font-size:20px;width:26px;text-align:center">'+(won?'🏆':'🏛️')+'</div>'+
+        '<div style="flex:1;min-width:0"><div style="font-weight:700">'+(e.best?e.best+' ':'')+esc(e.name)+(won?' <span class="chip green" style="font-size:10px">beaten</span>':'')+'</div><div class="dim small">'+esc(rel)+'</div></div>'+
+        '<div style="font-weight:800;width:48px;text-align:right">'+e.peak+'</div>'+
+        '<button class="btn '+(c.tour?'ghost':'sec')+' sm" data-act="halllegend" data-val="'+esc(String(e.at))+'"'+(c.tour?' disabled':'')+'>Play</button></div>';});
+  }
+  if(!greats)return h+'<div class="dim small" style="padding:8px 13px 11px;border-top:1px solid var(--border)">The all-time greats will play you once you have been rated 1900.</div></div>';
+  h+='<div class="dim small" style="padding:8px 13px 2px">Showcase games against the greatest players in history, at their peak strength. Win and your name climbs the all-time list — but these are the hardest games you will ever play.</div>';
   LEGENDS.forEach(function(L){var won=(c.legendsBeaten||[]).indexOf(L.name)>=0;
     h+='<div style="display:flex;align-items:center;gap:11px;padding:9px 13px;border-top:1px solid var(--border)">'+
       '<div style="font-size:20px;width:26px;text-align:center">'+(won?'🏆':'🎭')+'</div>'+
@@ -17846,7 +17890,8 @@ const EVENT_WEEK={hastings:0,tatasteel:2,gibraltar:4,aeroflot:8,continental:11,c
   natch:18,norway:21,creatorcup:23,superbet:25,cityrapid:27,worldcup:29,dubai:33,grandswiss:35,olympiad:37,
   qatar:40,fischerwc:42,indiarapid:45,indiablitz:46,wcc:47,worldrapid:50,worldblitz:51,
   welite:7,wcandidates:13,wwcc:16,natwch:19,contwch:22,wworldcup:26,wgrandswiss:35,wolympiad:37,wworldrapid:50,wworldblitz:51,
-  natyouth:14,contjunior:30,contyouth:33,worldjunior:40,worldyouth:43};
+  natyouth:14,contjunior:30,contyouth:33,worldjunior:40,worldyouth:43,
+  fsweiss:6,fsparis:15,fsvegas:29,fscapetown:41,cctspring:9,cctsummer:22,cctautumn:38,cctfinals:48,ewc:31};
 const EVENT_YEARS={candidates:'even',olympiad:'even',wcc:'even',worldcup:'odd',grandswiss:'odd',
   wcandidates:'even',wolympiad:'even',wwcc:'odd',wworldcup:'odd',wgrandswiss:'odd'};
 const FIRST_YEAR=2026;            // season one
@@ -18415,7 +18460,7 @@ function playHeading(){
   // a team match: the two clubs and your board ("🛡️ Rooks vs Knights · board 1")
   if(app.careerPro||app.careerLeague){const t=app.playTitle||'',i=t.lastIndexOf(' vs ');
     return i>0&&/ · board /.test(t)?t.slice(0,i):(app.careerPro?'✍️ League match':'🛡️ Club league match');}
-  if(app.careerLegend)return '🎭 Exhibition vs '+app.careerLegend;
+  if(app.careerLegend)return (app.careerHallLegend?'🏛️':'🎭')+' Exhibition vs '+app.careerLegend;
   if(app.careerOneoff)return '🎯 '+fmtLabel(app.careerOneoff)+' challenge';
   return '🎯 Challenge';
 }
@@ -18598,6 +18643,7 @@ function careerTabContent(c,tab){
     h+=careerUnlockPanel(c);
     h+=careerAchievementsPanel(c);
     h+=careerTrophyPanel(c);
+    h+=careerPassportPanel(c);
   } else if(tab==='progress'){
     h+=careerHeader(c);           // your ratings in detail, and the titles card
     h+=careerRoadPanel(c);
@@ -18625,6 +18671,9 @@ function careerTabContent(c,tab){
   } else if(tab==='world'){
     h+=careerWorldPanel(c);
     h+=careerGenPanel(c);
+    h+=careerLineagePanel(c);
+    h+=careerRollPanel(c);
+    h+=careerToursPanel(c);
     h+=careerFeedPanel(c);
     h+=careerLeaderboard(c);
     h+=careerLegendsPanel(c);
@@ -18652,18 +18701,20 @@ function careerTabContent(c,tab){
   return h;
 }
 function careerSetupView(){
-  const feds=FEDS.map((f,i)=>'<option value="'+f.c+'"'+(i===0?' selected':'')+'>'+f.f+'  '+f.c+'</option>').join('');
+  const NG=store.career&&store.career.nextGen;
+  const feds=FEDS.map((f,i)=>'<option value="'+f.c+'"'+((NG?f.c===NG.fed:i===0)?' selected':'')+'>'+f.f+'  '+f.c+'</option>').join('');
   const inp='style="background:var(--card2,#16223b);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:7px 10px;min-width:150px"';
   return '<div class="center"><div class="card" style="max-width:540px;text-align:left">'+
-    '<h1 style="text-align:center">Your FIDE Career</h1>'+
+    '<h1 style="text-align:center">'+(NG?'The next generation':'Your FIDE Career')+'</h1>'+ngSetupBanner(store.career)+
     '<p class="muted" style="text-align:center;margin-top:6px">Register your profile and begin as an <b>unrated</b> player — exactly like real life. Score well in your first tournaments to earn a published rating, then chase <b>norms</b> and <b>FIDE titles</b> all the way from CM to Grandmaster and the World Championship.</p>'+
     '<div style="margin:14px 0">'+
-      rowSet('Player name','How you’ll appear on every crosstable.','<input id="cr-name" type="text" maxlength="24" placeholder="Your name" '+inp+'>')+
+      rowSet('Player name','How you’ll appear on every crosstable.','<input id="cr-name" type="text" maxlength="24" placeholder="'+(NG&&NG.kind==='child'?'A first name, then '+esc(NG.sur):'Your name')+'"'+(NG&&NG.kind==='child'?' value="'+esc(NG.sur)+'"':'')+' '+inp+'>')+
       rowSet('Federation','Your national chess federation.','<select id="cr-fed" '+inp+'>'+feds+'</select>')+
       rowSet('Title track','The women’s WCM–WGM titles sit 100–200 Elo lower (a FIDE rule). Open titles are available to everyone either way.','<select id="cr-gender" '+inp+'><option value="open">Open</option><option value="women">Women</option></select>')+
       rowSet('Titles count from','Real FIDE titles are classical-only. Choose “Any format” to also earn them with your Rapid or Blitz rating &amp; norms (a house rule for a faster route).','<select id="cr-titlefmt" '+inp+'><option value="classical">Classical only (realistic)</option><option value="any">Any format (classical / rapid / blitz)</option></select>')+
       rowSet('Career pace','How fast your rating moves. <b>Accelerated</b> and <b>Prodigy</b> make every result count for more, so reaching the elite — even the World Championship — is achievable in a realistic number of games. You still have to win; Realistic is true FIDE speed.','<select id="cr-pace" '+inp+'><option value="1">Realistic (true FIDE speed)</option><option value="2" selected>Accelerated (recommended)</option><option value="3">Prodigy (fastest climb)</option></select>')+
-      rowSet('Starting strength','Already play? Skip the beginner grind. <b>Talent</b> and <b>Master</b> start you with a published rating so you can head straight for norms and titles.','<select id="cr-start" '+inp+'><option value="club" selected>Club player — unrated, age 16</option><option value="talent">Talent — rated ~1900</option><option value="master">Master — rated ~2300</option><option value="junior">Junior — age 11, unrated, still at school</option></select>')+
+      rowSet('Starting strength','Already play? Skip the beginner grind. <b>Talent</b> and <b>Master</b> start you with a published rating so you can head straight for norms and titles.',(NG&&NG.kind==='child'?'<select id="cr-start" '+inp+'><option value="junior" selected>At eleven — at school, at home, unrated</option><option value="club">At sixteen — unrated</option></select>'
+        :'<select id="cr-start" '+inp+'><option value="club" selected>Club player — unrated, age 16</option><option value="talent">Talent — rated ~1900</option><option value="master">Master — rated ~2300</option><option value="junior">Junior — age 11, unrated, still at school</option></select>'))+
     '</div>'+
     '<div class="row" style="justify-content:center"><button class="btn primary" data-act="careersetup">Begin career ▸</button></div>'+
     '</div>'+careerOthersCard('Or carry on with one of your careers')+'</div>';
@@ -19046,14 +19097,17 @@ function nextTitleInfo(c){
 /* Elite closed events are invitation-only — you must be ranked inside the world
    top-N to get a seat, and the organiser pays you an appearance fee to show up
    (just like the real super-tournament circuit). */
-const INVITE_EVENTS={supergm:{rank:18,fee:1500},tatasteel:{rank:14,fee:2200},superbet:{rank:14,fee:1800},norway:{rank:10,fee:2600}};
+const INVITE_EVENTS={supergm:{rank:18,fee:1500},tatasteel:{rank:14,fee:2200},superbet:{rank:14,fee:1800},norway:{rank:10,fee:2600},
+  // the Freestyle tour invites the top of the list, and a big name or two besides
+  fsweiss:{rank:12,fee:5000,fame:70,wild:80},fsparis:{rank:12,fee:5000,fame:70,wild:80},fsvegas:{rank:12,fee:8000,fame:70,wild:80},fscapetown:{rank:12,fee:5000,fame:70,wild:80}};
 function appearanceFee(t,c){var inv=INVITE_EVENTS[t&&t.id];if(!inv)return 0;return Math.round(inv.fee*(1+(c.fame||0)/120));}
 /* A championship is held once a year, the local club's included: entered every
    week, a teenager on K 40 could win it 52 times a season and ride FIDE's
    400-point rule most of the way to 2600 against 1350s. The City Open and the
    rapid and blitz opens are still there every weekend. */
 const ANNUAL_EVENTS=new Set(['club','natwch','contwch','welite','wgrandswiss','wolympiad','wworldrapid','wworldblitz','natyouth','contyouth','worldyouth','contjunior','worldjunior','natch','continental','olympiad','hastings','reykjavik','dubai','gibraltar','aeroflot','qatar',
-  'grandswiss','tatasteel','superbet','norway','cityrapid','indiarapid','worldrapid','indiablitz','worldblitz','fischerwc','creatorcup']);
+  'grandswiss','tatasteel','superbet','norway','cityrapid','indiarapid','worldrapid','indiablitz','worldblitz','fischerwc','creatorcup',
+  'fsweiss','fsparis','fsvegas','fscapetown','cctspring','cctsummer','cctautumn','cctfinals','ewc']);
 function tourLocked(t,c,noCal){
   const why=tourLockedBy(t,c);
   if(why||noCal)return why;
@@ -19069,6 +19123,10 @@ function tourLockedBy(t,c){
   }
   if(t.id==='wolympiad'){const sel=wOlympiadSelected(c);if(!sel.ok)return sel.why;}
   if(t.id==='welite'){const wr=womenRank(c);if(wr==null||wr>10)return 'invite: top 10 women';}
+  // the tours: invitations by the rapid list, the standings and a name
+  if(TOUR_OF[t.id]==='cct'&&t.id!=='cctfinals'){const w=cctInvite(c);if(w)return w;}
+  if(t.id==='cctfinals'){const w=tourFinalLock(c,'cct');if(w)return w;}
+  if(t.id==='ewc'){const w=ewcInvite(c);if(w)return w;}
   {const sl=schoolLock(t,c);if(sl)return sl;}
   // the Candidates and the title match are reached through the cycle, not by rating
   if(t.id==='candidates'||t.id==='wcc'||t.id==='worldcup'){
@@ -19081,7 +19139,8 @@ function tourLockedBy(t,c){
   if(t.altUnlock&&(c.honors||[]).includes(t.altUnlock))return null;      // qualified by a result
   if(t.requires&&!((c.honors||[]).includes(t.requires)))return t.reqHint||'win the Candidates';
   if(t.id==='olympiad'){var sel=olympiadSelected(c);if(!sel.ok)return sel.why;}
-  var inv=INVITE_EVENTS[t.id];if(inv){if(c.provisional||c.rating==null)return 'needs a rating';var wr=worldRank(c,'classical');if(wr==null||wr>inv.rank)return 'invite: top '+inv.rank;}
+  var inv=INVITE_EVENTS[t.id];if(inv){if(c.provisional||c.rating==null)return 'needs a rating';var wr=worldRank(c,'classical');
+    if(wr==null||wr>inv.rank){if(!(inv.fame&&(c.fame||0)>=inv.fame&&wr!=null&&wr<=(inv.wild||999)))return 'invite: top '+inv.rank+(inv.fame?' or a wildcard':'');}}
   if(t.minRating>0){if(c.provisional||c.rating==null)return 'needs a rating';if(c.rating<t.minRating)return 'needs '+t.minRating;}
   // a junior's fees come from home first, and the federation's picks pay none
   var _ef=entryFee(t,c),_home=isJunior(c)&&c.parents?(c.parents.left||0):0;if(_ef>(c.money||0)+_home&&!(t.youth&&c.youthSel&&c.youthSel.s===(c.season||1)))return 'entry fee '+money(_ef);
@@ -21596,7 +21655,8 @@ function makeField(t){
   // An elite round-robin is the elite: the players on the world list around
   // the event's level, not seven invented names. The Candidates is the eight
   // best players in the world who are not the champion.
-  let players=(t.rr&&t.avg>=ELITE_AVG)?(eliteField(t,count)||gen()):gen();
+  // the Champions Chess Tour's Finals are its standings' top eight, not the top of the list
+  let players=(t.id==='cctfinals'&&tourFinalField(t,store.career,count,fmt))||((t.rr&&t.avg>=ELITE_AVG)?(eliteField(t,count)||gen()):gen());
   // A norm round-robin is invited, not drawn: the organiser picks the field so
   // the norm is on offer, the way real ones are. Left to chance, one IM-norm
   // event in five could not give an IM norm whatever you scored.
@@ -22111,11 +22171,11 @@ function koTiebreak(A,B,from){
   return {aWins:aScore===1,stage:'armageddon',score:aScore,games:games};
 }
 /* A whole match between two other players. */
-function koSimMatch(A,B){
-  const g1=koGame(A,B,'classical',true),g2=koGame(A,B,'classical',false);
+function koSimMatch(A,B,fmt){
+  const f=fmt||'classical',g1=koGame(A,B,f,true),g2=koGame(A,B,f,false);
   const cl=g1+g2;
-  if(cl!==1)return {winner:cl>1?A:B,loser:cl>1?B:A,classical:cl,stage:'classical'};
-  const tb=koTiebreak(A,B);
+  if(cl!==1)return {winner:cl>1?A:B,loser:cl>1?B:A,classical:cl,stage:f};
+  const tb=koTiebreak(A,B,f==='rapid'?'blitz':undefined);     // a rapid match goes straight to blitz
   return {winner:tb.aWins?A:B,loser:tb.aWins?B:A,classical:cl,stage:tb.stage};
 }
 const KO_FLOOR=2560;            // the rating list fills the bracket down to here
@@ -22172,8 +22232,8 @@ function koBracket(byes,winners,cfg){
   return koOrder(CF.size).map(function(sd){return sd<=CF.byes?byes[sd-1]:winners[sd];});
 }
 function koInit(c,tr,t){
-  const cfg=t&&t.women?'women':'open',CF=koC({cfg:cfg});
-  const players=koEntrants(c,{},true,CF),R1=koRoundOne(players,CF);
+  const cfg=t&&t.id==='ewc'?'ewc':t&&t.women?'women':'open',CF=koC({cfg:cfg});
+  const players=cfg==='ewc'?ewcEntrants(c,{},true):koEntrants(c,{},true,CF),R1=koRoundOne(players,CF);
   tr.ko={v:2,cfg:cfg,round:0,slots:R1.pairs,byes:R1.byes,mySeed:(players.find(function(p){return p.you;})||{}).seed,
     mine:[],notes:[],out:false,champion:null,topOut:[],entrants:players.length};
   tr.ko.bye=tr.ko.mySeed<=CF.byes;
@@ -22217,7 +22277,7 @@ function koAdvanceRound(tr,myWinner){
     const A=K.slots[i],B=K.slots[i+1];
     let w,l,m=null;
     if(A.you||B.you){w=myWinner;l=A===myWinner?B:A;}
-    else{m=koSimMatch(A,B);w=m.winner;l=m.loser;}
+    else{m=koSimMatch(A,B,koC(K).fmt);w=m.winner;l=m.loser;}
     next.push(w);
     if(r1)won1[Math.min(A.seed,B.seed)]=w;          // the winner takes the higher seed's place
     // the news: a top-ten seed going out to somebody seeded far below them
@@ -22247,7 +22307,7 @@ function koAfterGame(c,tr){
   else{
     // the tiebreak games are simulated, so they are decided by how strong you are, not by your rating
     const meS=Object.assign({},me,{rating:youStrength(c,'classical')||me.rating,rapid:youStrength(c,'rapid')||me.rapid,blitz:youStrength(c,'blitz')||me.blitz});
-    tb=koTiebreak(meS,opp);won=tb.aWins;
+    tb=koTiebreak(meS,opp,koC(K).fmt==='rapid'?'blitz':undefined);won=tb.aWins;
     // tiebreak games are rated, in rapid and blitz, as they are in life — for both of you
     tb.games.forEach(function(x){
       if(x.fmt==='rapid'){worldVsYou(c,opp,x.s,'rapid');applyByFormat(c,'rapid',opp.rapid||opp.rating,x.s);}
@@ -22316,7 +22376,8 @@ function koCard(tr){
   const lastNote=K.notes[K.notes.length-1];
   return '<div class="card" style="margin-bottom:12px;border-color:#f59e0b55;background:linear-gradient(150deg,rgba(245,158,11,.08),transparent 62%),var(--panel)">'+
     '<div style="font-weight:800">🗺️ Knockout · '+(K.entrants||CF.entrants)+' players · you are seed '+K.mySeed+'</div>'+
-    '<div class="dim small" style="margin:3px 0 6px;line-height:1.6">The top '+CF.byes+' seeds start in round 2; everybody else plays round 1. Two classical games a round; level after two goes to rapid, then blitz, then armageddon. Lose a match and you are out.</div>'+
+    '<div class="dim small" style="margin:3px 0 6px;line-height:1.6">'+(CF.byes?'The top '+CF.byes+' seeds start in round 2; everybody else plays round 1. Two classical games a round; level after two goes to rapid, then blitz, then armageddon.'
+      :'Seeded on the rapid list. Two rapid games a match; level after two goes to blitz, then armageddon.')+' Lose a match and you are out.</div>'+
     rows+
     (K.champion?'<div class="small" style="margin-top:7px;font-weight:700">🏆 '+(K.champion.you?'You won the '+CF.label+'.':'The '+CF.label+' went to '+esc(K.champion.name)+' (seed '+K.champion.seed+').')+'</div>':'')+
     (lastNote?'<div class="dim small" style="margin-top:6px;line-height:1.6">After '+CF.names[lastNote.round]+': '+lastNote.left+' left, '+
@@ -22701,6 +22762,7 @@ function wcycWorldTick(c){
     if(field.length>=2){
       const res=simCandidates(field),win=res[0].p,ch=wChampion(c);
       X.wcands={season:S,name:win.name,fed:win.fed,flag:win.flag,score:res[0].s};
+      rollSet(c,'wcandidates',S,{n:win.name,fed:win.fed,flag:win.flag});
       say('♛',win.name+' wins the Women’s Candidates on '+fmtScore(res[0].s)+'/14 and will play '+(ch?ch.name:'the champion')+' for the title.');
       if(wcycValid(C.cand,c)&&isWomen(c)){C.cand=null;pushNews(c,'♛','The Women’s Candidates went ahead without you — your place lapsed.');}
     }
@@ -22768,6 +22830,7 @@ const KO_WOMEN={entrants:107,byes:21,size:64,rounds:7,names:['Round 1','Round 2'
   label:'Women’s World Cup',floor:2380,qualMin:2000,spots:45,women:true};
 function koC(K){
   if(K&&K.cfg==='women')return KO_WOMEN;
+  if(K&&K.cfg==='ewc')return KO_EWC;
   return {entrants:KO_ENTRANTS,byes:KO_BYES,size:KO_SIZE,rounds:KO_ROUNDS,names:KO_NAMES,short:KO_SHORT,place:KO_PLACE,prize:KO_PRIZE,
     label:'World Cup',floor:KO_FLOOR,qualMin:KO_QUAL_MIN,spots:KO_RATING_SPOTS,women:false};
 }
@@ -23234,6 +23297,7 @@ function careerGenPanel(c){
   }
   const R=genRanking(c),all=!!app.genAll,shown=all?R:R.slice(0,8),me=R.findIndex(function(x){return x.you;});
   if(!all&&me>=8)shown.push(R[me]);
+  if(!all)R.forEach(function(x,i){if(x.ghost&&i>=8)shown.push(x);});      // your other careers, wherever they are
   const quit=genPlayers(c,true).filter(function(p){return wxInit(c).retired[p.id];});
   const row=function(x,i){
     const h=x.you?null:(c.h2h&&c.h2h[x.name]),rec=h&&(h.w+h.d+h.l)?' <span class="dim small">· you '+h.w+'–'+h.d+'–'+h.l+'</span>':'';
@@ -23497,6 +23561,804 @@ function wQualify(c,ids){
   if(!X.wqual||X.wqual.season!==S)X.wqual={season:S,ids:[]};
   ids.forEach(function(id){if(id&&X.wqual.ids.indexOf(id)<0)X.wqual.ids.push(id);});
 }
+/* =========================================================================
+   FIDE'S OWN NUMBERS, AND A CALCULATOR FOR REAL TOURNAMENTS
+
+   A rating change is worked out from FIDE's table 8.1.2, which turns a rating
+   difference into an expected score in steps of a hundredth, not from the
+   smooth Elo curve it approximates; and since 1 October 2025 the rule that a
+   gap of more than 400 counts as 400 is for players rated below 2650 only
+   (FIDE Rating Regulations in force from 1 March 2024, 8.3.1 as amended).
+   The career rates your games this way, and the calculator below does it for
+   a tournament you actually played: the rating change, a first rating if you
+   have none, your performance, and whether it is a norm — every requirement
+   of the Title Regulations checked, and, while rounds are still to play, the
+   score you need for one.
+   ========================================================================= */
+// table 8.1.2: the largest difference in each step, and the higher-rated player's expected score
+const FIDE_PD=[[3,.50],[10,.51],[17,.52],[25,.53],[32,.54],[39,.55],[46,.56],[53,.57],[61,.58],[68,.59],[76,.60],[83,.61],[91,.62],[98,.63],
+  [106,.64],[113,.65],[121,.66],[129,.67],[137,.68],[145,.69],[153,.70],[162,.71],[170,.72],[179,.73],[188,.74],[197,.75],[206,.76],[215,.77],
+  [225,.78],[235,.79],[245,.80],[256,.81],[267,.82],[278,.83],[290,.84],[302,.85],[315,.86],[328,.87],[344,.88],[357,.89],[374,.90],[391,.91],
+  [411,.92],[432,.93],[456,.94],[484,.95],[517,.96],[559,.97],[619,.98],[735,.99]];
+const FIDE_CAP_BELOW=2650;           // the 400-point rule is for players rated below this (from 1 October 2025)
+function fidePD(D){
+  const a=Math.abs(Math.round(D));let p=1;
+  for(let i=0;i<FIDE_PD.length;i++)if(a<=FIDE_PD[i][0]){p=FIDE_PD[i][1];break;}
+  return D>=0?p:Math.round((1-p)*100)/100;
+}
+function fideD(my,opp){const D=my-opp;return my<FIDE_CAP_BELOW?Math.max(-400,Math.min(400,D)):D;}
+function fideExpect(my,opp){return fidePD(fideD(my,opp));}
+// 8.3.4: rounded to the nearest whole number, 0.5 away from zero
+function fideRound(x){return x<0?-Math.round(-x):Math.round(x);}
+/* ---------------------------------------------------------------------------
+   The calculator. What you type is kept on this device only.
+   --------------------------------------------------------------------------- */
+const CALC_KEY='chess-career-calc-v1';
+const CALC_TITLES=['','GM','IM','FM','CM','WGM','WIM','WFM','WCM'];
+const CALC_RES=[['1','1'],['0.5','½'],['0','0'],['?','?'],['-','–']];
+function calcBlankRow(){return {r:'',t:'',f:'',res:'?'};}
+function calcState(){
+  if(app.calc)return app.calc;
+  let S=null;
+  try{S=JSON.parse(localStorage.getItem(CALC_KEY)||'null');}catch(e){S=null;}
+  if(!S||typeof S!=='object'||!Array.isArray(S.rows)){
+    const c=store.career;
+    S={rating:'',fed:(c&&c.setup&&c.fed&&c.fed!=='FIDE')?c.fed:'ROU',track:(c&&isWomen(c))?'women':'open',
+      k:'auto',new30:false,junior:false,hi2400:false,exempt:false,rows:[]};
+    for(let i=0;i<9;i++)S.rows.push(calcBlankRow());
+  }
+  app.calc=S;return S;
+}
+function calcSave(){try{localStorage.setItem(CALC_KEY,JSON.stringify(calcState()));}catch(e){}}
+function calcNum(v){if(v===''||v==null)return null;const n=+v;return isFinite(n)&&n>0?Math.round(n):null;}
+/* The development coefficient, from what you have ticked (8.3.3). */
+function calcK(S,myR){
+  if(S.k==='40'||S.k==='20'||S.k==='10')return {K:+S.k,why:'set by you'};
+  if(S.new30)return {K:40,why:'fewer than 30 rated games'};
+  if(S.junior&&myR!=null&&myR<2300)return {K:40,why:'under 18 this year and rated under 2300'};
+  if(S.hi2400||(myR!=null&&myR>=2400))return {K:10,why:'rated 2400 or more at some time'};
+  return {K:20,why:'rated under 2400'};
+}
+/* Everything the regulations say about one tournament. */
+function calcCompute(S){
+  const myR=calcNum(S.rating);
+  const rows=S.rows.map(function(x,i){return {i:i,r:calcNum(x.r),t:x.t||'',f:x.f||'',res:x.res||'?'};});
+  const played=rows.filter(function(x){return x.res==='1'||x.res==='0.5'||x.res==='0';});
+  const pending=rows.filter(function(x){return x.res==='?';});
+  const score=played.reduce(function(a,x){return a+(+x.res);},0);
+  const rated=played.filter(function(x){return x.r!=null;});
+  const out={myR:myR,rows:rows,played:played,pending:pending,score:score,rated:rated,unratedOpp:played.length-rated.length};
+  const scRated=rated.reduce(function(a,x){return a+(+x.res);},0);
+  if(rated.length){
+    out.Ra=Math.round(rated.reduce(function(a,x){return a+x.r;},0)/rated.length);
+    out.perf=Math.round(out.Ra+dpFromPct(scRated/rated.length));
+  }
+  if(myR!=null){
+    // a rated player: every game against a rated opponent, measured from the rating you started with
+    const per=rated.map(function(x){const pd=fideExpect(myR,x.r);return {i:x.i,r:x.r,res:+x.res,pd:pd,d:Math.round(((+x.res)-pd)*100)/100,capped:myR<FIDE_CAP_BELOW&&Math.abs(myR-x.r)>400};});
+    const sum=Math.round(per.reduce(function(a,x){return a+x.d;},0)*100)/100;
+    const k=calcK(S,myR);let K=k.K,kWhy=k.why;
+    if(per.length*K>700){K=Math.floor(700/per.length);kWhy+=' — lowered so games × K is not over 700';}
+    const change=fideRound(sum*K);
+    out.rating={per:per,sum:sum,K:K,kWhy:kWhy,change:change,to:myR+change,capped:per.filter(function(x){return x.capped;}).length};
+  } else {
+    // no rating yet: two hypothetical draws against 1800s, at least five games against rated players (8.2, 7.1.4)
+    const n=rated.length,first={n:n};
+    if(n<5)first.why='a first rating needs at least five games against rated opponents — '+n+' so far';
+    else if(scRated<=0)first.why='a zero score in a first event is disregarded';
+    else{
+      const Ra=(rated.reduce(function(a,x){return a+x.r;},0)+INIT_HYP_RATING*INIT_HYP_GAMES)/(n+INIT_HYP_GAMES);
+      const Ru=Math.min(2200,Math.round(Ra+dpFromPct((scRated+INIT_HYP_GAMES*0.5)/(n+INIT_HYP_GAMES))));
+      first.Ra=Math.round(Ra);first.Ru=Ru;first.capped=Ru===2200;
+      if(Ru<1400)first.why='it would be '+Ru+' — a rating is published from 1400';
+    }
+    out.first=first;
+  }
+  // norms: unrated opponents count as 1400, and unplayed games not at all
+  const opps=played.concat(pending).map(function(x){return {rating:x.r!=null?x.r:1400,title:x.t,fed:x.f||'?'};});
+  const bars=NORM_BARS.filter(function(b){return b.track==='open'||S.track==='women';});
+  out.norms=bars.map(function(b){
+    const k=normCheck({fed:S.fed},b,opps,pending.length?null:score,{fedExempt:!!S.exempt});
+    const n=opps.length;let need=null;
+    if(n){
+      // the least score that reaches the performance
+      for(let s=0;s<=n;s+=0.5){if(Math.round(k.Ra+dpFromPct(s/n))>=b.tpr){need=s;break;}}
+    }
+    return {bar:b,k:k,need:need,left:pending.length,fromNow:need==null?null:Math.max(0,need-score)};
+  });
+  return out;
+}
+/* ---- on screen ---- */
+function calcRowHtml(x,i){
+  const inp='style="width:74px;background:var(--card2,#16223b);border:1px solid var(--border);border-radius:7px;color:var(--text);padding:5px 7px"';
+  const sel='style="background:var(--card2,#16223b);border:1px solid var(--border);border-radius:7px;color:var(--text);padding:5px 4px"';
+  return '<div class="calcrow" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--border)">'+
+    '<span class="dim small" style="width:22px">'+(i+1)+'.</span>'+
+    '<input type="number" inputmode="numeric" min="0" max="3000" placeholder="unrated" data-calc="r" data-idx="'+i+'" value="'+esc(x.r)+'" aria-label="Round '+(i+1)+' opponent rating" '+inp+'>'+
+    '<select data-calc="t" data-idx="'+i+'" aria-label="Round '+(i+1)+' opponent title" '+sel+'>'+CALC_TITLES.map(function(t){return '<option value="'+t+'"'+(x.t===t?' selected':'')+'>'+(t||'no title')+'</option>';}).join('')+'</select>'+
+    '<select data-calc="f" data-idx="'+i+'" aria-label="Round '+(i+1)+' opponent federation" '+sel+'><option value="">fed?</option>'+
+      calcFeds().map(function(f){return '<option value="'+f.c+'"'+(x.f===f.c?' selected':'')+'>'+f.f+' '+f.c+'</option>';}).join('')+'</select>'+
+    '<span class="row" style="gap:3px">'+CALC_RES.map(function(r){return '<button class="btn '+(x.res===r[0]?'primary':'ghost')+' sm" data-act="calcres" data-idx="'+i+'" data-val="'+r[0]+'" title="'+
+      (r[0]==='?'?'not played yet':r[0]==='-'?'unplayed or forfeit — does not count':'result')+'" style="min-width:32px">'+r[1]+'</button>';}).join('')+'</span>'+
+    '<button class="btn ghost sm" data-act="calcdel" data-idx="'+i+'" title="Remove this round" aria-label="Remove round '+(i+1)+'">✕</button>'+
+  '</div>';
+}
+// every federation the app knows, and the ones a real opponent is often from
+function calcFeds(){
+  const seen={},out=[];
+  FEDS.forEach(function(f){if(f.c!=='FIDE'&&!seen[f.c]){seen[f.c]=1;out.push(f);}});
+  [{c:'UZB',f:'🇺🇿'},{c:'KAZ',f:'🇰🇿'},{c:'ISR',f:'🇮🇱'},{c:'GRE',f:'🇬🇷'},{c:'BUL',f:'🇧🇬'},{c:'AUT',f:'🇦🇹'},{c:'SUI',f:'🇨🇭'},{c:'BEL',f:'🇧🇪'},
+   {c:'DEN',f:'🇩🇰'},{c:'FIN',f:'🇫🇮'},{c:'SVK',f:'🇸🇰'},{c:'SLO',f:'🇸🇮'},{c:'MDA',f:'🇲🇩'},{c:'LTU',f:'🇱🇹'},{c:'LAT',f:'🇱🇻'},{c:'EST',f:'🇪🇪'},
+   {c:'POR',f:'🇵🇹'},{c:'IRL',f:'🇮🇪'},{c:'SCO',f:'🏴'},{c:'WLS',f:'🏴'},{c:'CAN',f:'🇨🇦'},{c:'MEX',f:'🇲🇽'},{c:'PER',f:'🇵🇪'},{c:'CUB',f:'🇨🇺'},
+   {c:'EGY',f:'🇪🇬'},{c:'RSA',f:'🇿🇦'},{c:'AUS',f:'🇦🇺'},{c:'NZL',f:'🇳🇿'},{c:'JPN',f:'🇯🇵'},{c:'KOR',f:'🇰🇷'},{c:'SGP',f:'🇸🇬'},{c:'INA',f:'🇮🇩'},
+   {c:'MAS',f:'🇲🇾'},{c:'BAN',f:'🇧🇩'},{c:'MGL',f:'🇲🇳'},{c:'UAE',f:'🇦🇪'}].forEach(function(f){if(!seen[f.c]){seen[f.c]=1;out.push(f);}});
+  return out.sort(function(a,b){return a.c<b.c?-1:1;});
+}
+function calcResultsHtml(){
+  const S=calcState(),R=calcCompute(S);
+  let h='';
+  const box=function(inner,col){return '<div style="padding:9px 11px;border:1px solid '+(col||'var(--border)')+';border-radius:10px;margin-top:8px">'+inner+'</div>';};
+  // the rating
+  if(R.rating){
+    const Rr=R.rating,sg=Rr.change>0?'+':'';
+    h+=box('<div style="font-weight:800;font-size:17px">'+sg+Rr.change+' <span class="dim small" style="font-weight:600">→ '+Rr.to+'</span></div>'+
+      '<div class="dim small" style="margin-top:3px;line-height:1.6">'+Rr.per.length+' rated game'+(Rr.per.length===1?'':'s')+
+      ' · Σ(score − expected) = '+(Rr.sum>0?'+':'')+Rr.sum.toFixed(2)+' · K '+Rr.K+' ('+esc(Rr.kWhy)+')'+
+      (Rr.capped?' · the 400-point rule counted '+Rr.capped+' game'+(Rr.capped===1?'':'s')+' as 400 apart':'')+
+      (R.unratedOpp?' · '+R.unratedOpp+' game'+(R.unratedOpp===1?'':'s')+' against unrated opponents do'+(R.unratedOpp===1?'es':'')+' not change your rating':'')+
+      (Rr.to<1400?' · under 1400 you drop off the published list':'')+'</div>'+
+      (Rr.per.length?'<div class="small" style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">'+Rr.per.map(function(x){
+        return '<span class="chip" style="font-size:11px" title="expected '+x.pd.toFixed(2)+'">R'+(x.i+1)+' '+x.r+': '+(x.d>0?'+':'')+x.d.toFixed(2)+'</span>';}).join('')+'</div>':''),'#3b82f666');
+  } else if(R.first){
+    const F=R.first;
+    h+=box(F.Ru!=null&&!F.why?'<div style="font-weight:800;font-size:17px">First rating: '+F.Ru+'</div><div class="dim small" style="margin-top:3px;line-height:1.6">'+F.n+' games against rated opponents, plus two draws against 1800s (FIDE 8.2): average '+F.Ra+'.'+(F.capped?' A first rating is at most 2200.':'')+' It is published once it is at least 1400.</div>'
+      :'<div style="font-weight:700">No rating yet</div><div class="dim small" style="margin-top:3px">'+esc(F.why||'')+'.</div>','#3b82f666');
+  }
+  if(R.perf!=null)h+='<div class="small" style="margin-top:8px">📊 Performance <b>'+R.perf+'</b> · opponents average <b>'+R.Ra+'</b> · '+fmtScore(R.score)+'/'+R.played.length+(R.pending.length?' · '+R.pending.length+' to play':'')+'</div>';
+  // the norms
+  R.norms.forEach(function(N){
+    const k=N.k,b=N.bar,opp=k.opposition;
+    let head;
+    if(!N.left)head=k.ok?'✅ <b>'+b.kind+' norm</b> — every requirement met':(opp?'❌ '+b.kind+' norm: the performance is '+k.Rp+', it needs '+b.tpr:'❌ '+b.kind+' norm: the field does not qualify');
+    else if(!opp)head='❌ '+b.kind+' norm: the field does not qualify';
+    else if(N.need==null)head='❌ '+b.kind+' norm: out of reach with this field';
+    else if(N.fromNow>N.left)head='❌ '+b.kind+' norm: you would need '+fmtScore(N.need)+'/'+k.n+' — more than the '+N.left+' left can give';
+    else head='🎯 '+b.kind+' norm: '+fmtScore(N.need)+'/'+k.n+' does it — <b>'+fmtScore(N.fromNow)+' from your last '+N.left+'</b>';
+    const reqs=k.reqs.filter(function(r){return r.key!=='tpr';}).map(function(r){
+      return '<span class="chip '+(r.ok?'green':'')+'" style="font-size:10px;margin:2px 3px 0 0" title="'+esc(r.why||'')+'">'+(r.ok?'✓':'✗')+' '+esc(r.label)+' '+(typeof r.have==='number'?r.have:esc(String(r.have)))+(r.key==='own'||r.key==='one'?' (max '+r.need+')':' / '+r.need)+'</span>';}).join('');
+    h+=box('<div class="small">'+head+'</div><div style="margin-top:4px">'+reqs+'</div>',k.ok?'#22c55e88':null);
+  });
+  if(!R.played.length&&!R.pending.length)h='<div class="dim small" style="margin-top:8px">Type in your opponents’ ratings and your results, round by round.</div>';
+  return h;
+}
+function viewCalc(){
+  const S=calcState();
+  const inp='style="background:var(--card2,#16223b);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:6px 9px"';
+  const chk=function(k,label){return '<label class="small" style="display:flex;gap:6px;align-items:center;margin:3px 0"><input type="checkbox" data-calc="'+k+'"'+(S[k]?' checked':'')+'> '+label+'</label>';};
+  let h='<div style="max-width:760px;margin:0 auto">'+
+    '<h1 style="margin-bottom:4px">🧮 Rating &amp; norm calculator</h1>'+
+    '<div class="muted small" style="margin-bottom:12px;line-height:1.55">For a tournament you actually play: what FIDE will make of it. The rating change by the Rating Regulations in force from 1 March 2024 (table 8.1.2, and the 400-point rule as amended from 1 October 2025 — for players under 2650), a first rating if you have none, and GM, IM, WGM and WIM norms by the Title Regulations. What you type stays on this device.</div>'+
+    '<div class="card" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:6px">You</div>'+
+      '<div class="row" style="gap:10px;flex-wrap:wrap;align-items:flex-end">'+
+        '<label class="small">Your rating<br><input type="number" inputmode="numeric" placeholder="unrated" data-calc="rating" value="'+esc(S.rating)+'" '+inp.replace('style="','style="width:110px;')+'></label>'+
+        '<label class="small">Your federation<br><select data-calc="fed" '+inp+'>'+calcFeds().map(function(f){return '<option value="'+f.c+'"'+(S.fed===f.c?' selected':'')+'>'+f.f+' '+f.c+'</option>';}).join('')+'</select></label>'+
+        '<label class="small">Norms for<br><select data-calc="track" '+inp+'><option value="open"'+(S.track!=='women'?' selected':'')+'>GM and IM</option><option value="women"'+(S.track==='women'?' selected':'')+'>GM, IM, WGM and WIM</option></select></label>'+
+        '<label class="small">K<br><select data-calc="k" '+inp+'>'+[['auto','work it out'],['40','40'],['20','20'],['10','10']].map(function(o){return '<option value="'+o[0]+'"'+(S.k===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></label>'+
+      '</div>'+
+      '<div style="margin-top:6px">'+chk('new30','Fewer than 30 rated games so far (K 40)')+chk('junior','Under 18 at the end of this year (K 40 while under 2300)')+chk('hi2400','Rated 2400 or more at some time (K 10)')+
+        chk('exempt','The federation rules do not apply (a national championship final, or an event exempt from them)')+'</div></div>'+
+    '<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">Rounds</div>'+
+      '<div class="dim small">rating · title · federation · result</div></div>'+
+      S.rows.map(calcRowHtml).join('')+
+      '<div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn sec sm" data-act="calcadd">+ A round</button>'+
+      '<button class="btn ghost sm" data-act="calcclear">Clear</button>'+
+      '<span class="dim small" style="align-self:center">? = still to play · – = unplayed or a forfeit (does not count)</span></div></div>'+
+    '<div class="card" style="margin-bottom:12px"><div style="font-weight:700">What FIDE makes of it</div><div id="calcout">'+calcResultsHtml()+'</div></div>'+
+    '<div class="dim small" style="margin-bottom:18px;line-height:1.55">A guide, not the arbiter: tournaments are rated as a whole at the end of the month, a norm also needs the event to be registered for it and played at a qualifying time control, and the Title Regulations have exemptions this does not know about.</div>'+
+  '</div>';
+  return h;
+}
+/* Typing: the numbers update as you go, without redrawing the form under your fingers. */
+function calcInput(el,commit){
+  const S=calcState(),k=el.dataset.calc,i=el.dataset.idx!=null?+el.dataset.idx:null;
+  if(i!=null&&S.rows[i]){S.rows[i][k]=el.value;}
+  else if(k==='new30'||k==='junior'||k==='hi2400'||k==='exempt')S[k]=!!el.checked;
+  else S[k]=el.value;
+  calcSave();
+  const o=document.getElementById('calcout');
+  if(o)o.innerHTML=calcResultsHtml();
+  if(commit)render();
+}
+function calcAct(act,idx,val){
+  const S=calcState();
+  if(act==='calcres'&&S.rows[idx])S.rows[idx].res=val;
+  else if(act==='calcdel'&&S.rows.length>1)S.rows.splice(idx,1);
+  else if(act==='calcadd'&&S.rows.length<25)S.rows.push(calcBlankRow());
+  else if(act==='calcclear'){S.rows=[];for(let i=0;i<9;i++)S.rows.push(calcBlankRow());}
+  calcSave();render();
+}
+/* =========================================================================
+   THE NEXT GENERATION, IN THE SAME WORLD
+
+   A new career began in a new world: the list you had climbed, the champions
+   of your years and the players you grew up with were gone with a click. Now
+   a career that has retired can hand its world on. The next one starts the
+   same week in the same world — as the retired player's child, eleven and in
+   a chess house, or as a newcomer with no connection at all. The career
+   before is in the hall and can be challenged at its peak like any legend;
+   the players it grew up with are veterans on the list, or have stopped and
+   coach — one of them, perhaps, the new player's first coach; and the roll of
+   champions carries on from where it was, with the old career's years on it.
+   ========================================================================= */
+function worldId(c){const X=wxInit(c);if(!X.id)X.id='w'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);return X.id;}
+// the parts of a career that are the world, not the player in it
+const NG_WORLD_KEYS=['wx','wr','wrv','pub'];
+function ngClone(o){return o==null?o:JSON.parse(JSON.stringify(o));}
+function genOf(c,p){return !!(c&&c.gen&&Array.isArray(c.gen.ids)&&p&&c.gen.ids.indexOf(p.id)>=0);}
+function nameSurOf(name,fed){const n=String(name||'').trim().split(/\s+/);return NAME_FAMILY_FIRST[fed]?n[0]:n[n.length-1];}
+/* What the next career keeps of the one before. */
+function ngPrev(old){
+  const G=old.gen||{},P=(G.ids&&G.ids.length)?genPlayers(old,true):[];
+  const h2h={};P.forEach(function(p){const r=old.h2h&&old.h2h[p.name];if(r&&(r.w+r.d+r.l))h2h[p.name]={w:r.w,d:r.d,l:r.l};});
+  return {cid:careerCid(old),name:old.name||'You',sur:bioSur(old),fed:old.fed||'FIDE',flag:old.flag||'',women:isWomen(old),
+    best:bestTitle(old)||'',titles:(old.titles||[]).slice(),honors:(old.honors||[]).slice(0,16),peak:old.peak||0,
+    age:Math.floor(old.age||40),born:bioBorn(old),s0:old.s0||1,s1:old.season||1,money:Math.round(old.money||0),fame:Math.round(old.fame||0),
+    champ:!!(old.cycle&&old.cycle.champ)||(old.honors||[]).indexOf('World Champion')>=0,
+    wchamp:!!(old.wcyc&&old.wcyc.champ)||(old.honors||[]).indexOf('Women’s World Champion')>=0,
+    gen:{ids:(G.ids||[]).slice(),born:(G.ids&&G.ids.length)?genBorn(old):null,first:ngClone(G.first||{}),hon:(G.hon||[]).slice(0,12),log:(G.log||[]).slice(0,20),h2h:h2h}};
+}
+/* From the retired screen: the next career, in this world. */
+async function nextGenStart(kind){
+  const old=store.career;
+  if(!old||!old.retired||!old.wx||app.careerBusy)return false;
+  kind=kind==='child'?'child':'new';
+  careerBusy('Opening the next chapter…');
+  try{
+    const prev=ngPrev(old),wid=worldId(old),open=!!(old.cycle&&old.cycle.champ),women=!!(old.wcyc&&old.wcyc.champ);
+    // the finished career stays among your careers, while there is room
+    const packed=careerCount()<MAX_CAREERS?await careerPack(old,null):null;
+    const nc=careerFreshWithLegacy();
+    NG_WORLD_KEYS.forEach(function(k){if(old[k]!==undefined)nc[k]=ngClone(old[k]);});
+    if(nc.pub)nc.pub.you=[null,null,null];
+    // who holds the titles now — and none of the old career's own places in the cycles
+    const oc=old.cycle||{},ow=old.wcyc||{};
+    nc.cycle={cand:null,chall:null,champ:false,defended:null,defences:0,reigning:oc.champ?null:ngClone(oc.reigning||null),lost:null,candPlayed:null,wc:null};
+    nc.wcyc={cand:null,chall:null,champ:false,defended:null,defences:0,reigning:ow.champ?null:ngClone(ow.reigning||null),lost:null,candPlayed:null,wc:null,wcHow:null};
+    nc.season=old.season||1;nc.weeks=old.weeks||0;nc.day=0;nc.s0=nc.season;
+    const chain=((old.lineage&&old.lineage.chain)||[]).concat([{cid:prev.cid,name:prev.name,best:prev.best,peak:prev.peak,s0:prev.s0,s1:prev.s1,rel:(old.lineage&&old.lineage.kind)||null}]);
+    nc.lineage={world:wid,kind:kind,prev:prev,chain:chain.slice(-8)};
+    nc.nextGen={kind:kind,fed:prev.fed,sur:prev.sur};
+    if(packed)careerSlots().unshift(packed);
+    store.career=nc;careerUiReset();app.careersOpen=false;app.view='career';
+    ngHandover(nc,prev,open,women);
+    save();
+  }catch(e){app.careerMsg='The next chapter could not be opened ('+String((e&&e.message)||e)+'). Nothing was changed.';}
+  app.careerBusy=null;render();navScrollTo(0);return true;
+}
+/* A champion who retires leaves the title to somebody. */
+function ngNextChampion(c,women){
+  const X=wxInit(c),S=c.season||1,C=women?X.wcands:X.cands;
+  const R=(women?womenRanking(c):worldRanking(c,'classical')).filter(function(p){return !p.you&&!(women&&W_CYCLE_OUT[p.id]);});
+  if(C&&(C.season===S||C.season===S-1)&&!C.you){const p=R.find(function(q){return q.name===C.name;});if(p)return Object.assign({how:'the Candidates winner'},p);}
+  return R[0]?Object.assign({how:women?'the highest-rated woman in the world':'the highest-rated player in the world'},R[0]):null;
+}
+function ngHandover(c,prev,open,women){
+  [[open,false],[women,true]].forEach(function(x){
+    if(!x[0])return;
+    const nx=ngNextChampion(c,x[1]);if(!nx)return;
+    const C=x[1]?wcycInit(c):cycleInit(c);
+    C.reigning={name:nx.name,rating:nx.rating,fed:nx.fed,flag:nx.flag};
+    const t='With '+prev.name+' retired, the '+(x[1]?'women’s ':'')+'world title passes to '+nx.name+', '+nx.how+'.';
+    pushNews(c,'👑',esc(t));pushFeed(c,'👑',esc(t),'world');
+  });
+}
+/* The setup screen has been filled in: the new career takes its place. */
+function ngAfterSetup(c){
+  const N=c.nextGen;if(!N)return;delete c.nextGen;
+  const L=c.lineage,P=L&&L.prev;if(!P)return;
+  lifeInit(c);
+  const yr=seasonYear(c),child=L.kind==='child';
+  if(child){
+    c.family={parent:{name:P.name,cid:P.cid,best:P.best,peak:P.peak,fed:P.fed,flag:P.flag,champ:P.champ,wchamp:P.wchamp}};
+    pplInit(c);const par=pplOf(c,'parent');if(par){par.name=P.name;par.bond=Math.max(par.bond||0,78);par.famous=true;}
+    c.fame=Math.max(c.fame||0,Math.min(25,Math.round((P.fame||0)/4)));
+    // a chess house has a little more to spend on chess
+    if(c.junior){youthInit(c);const extra=Math.min(3000,Math.round((P.money||0)/200));c.parents.fund+=extra;c.parents.left=c.parents.fund;c.parents.s=c.season||1;}
+  }
+  // the first coach grew up with the one before you
+  const co=ngCoachFor(c);
+  if(co){pplInit(c);const pc=pplOf(c,'coach');if(pc){pc.name='Coach '+nameSurOf(co.name,co.fed);pc.gen=co.id;}}
+  const ch=worldChampion(c);
+  pushNews(c,'🌱','It is '+yr+'. '+(ch&&!ch.you?esc(ch.name)+' is world champion, and ':'')+esc(P.name)+' is in the hall. '+(child?'You grew up watching every one of their games.':'Nobody here has heard of you yet.'));
+  if(co)pushNews(c,'🧑‍🏫','Your first coach, '+esc(co.name)+', grew up with '+(child?'your parent':esc(P.name))+(co.out?' and stopped playing years ago':' and still plays')+'.');
+  recordMoment(c,'nextgen','🌱',child?'Started out in the world '+P.name+' had played in, as their child.':'Started out in the world '+P.name+' had played in.',{once:true});
+}
+/* One of the old generation to coach you: from home, and retired if possible. */
+function ngCoachFor(c){
+  const L=c.lineage,P=L&&L.prev;if(!P||!P.gen||!(P.gen.ids||[]).length)return null;
+  const X=wxInit(c),by={};(X.extra||[]).forEach(function(p){by[p.id]=p;});
+  const G=P.gen.ids.map(function(id){return by[id];}).filter(Boolean);
+  const score=function(p){return (p.fed===c.fed?2:0)+(X.retired[p.id]?1:0)+wpRating(p,'classical')/10000;};
+  const best=G.sort(function(a,b){return score(b)-score(a);})[0];
+  return best?{id:best.id,name:best.name,fed:best.fed,out:!!X.retired[best.id]}:null;
+}
+/* The generation the career before grew up with, as they are now. */
+function ngOldGen(c){
+  const L=c.lineage,P=L&&L.prev;if(!P||!P.gen||!(P.gen.ids||[]).length)return [];
+  const X=wxInit(c),by={};(X.extra||[]).forEach(function(p){by[p.id]=p;});
+  const coachIds={};(c.people||[]).forEach(function(q){if(q.gen)coachIds[q.gen]=1;});
+  return P.gen.ids.map(function(id){
+    const p=by[id];if(!p)return null;
+    const out=!!X.retired[p.id],r=wpRating(p,'classical');
+    const coaching=out&&(!!coachIds[p.id]||r>=2000||wpHash(p.id+'coach')%3===0);
+    return {id:p.id,name:p.name,fed:p.fed,flag:p.flag,rating:r,age:Math.floor(wpAge(p)),title:wpTitle(p)||'',out:out,coaching:coaching,
+      yours:!!coachIds[p.id],h2h:(P.gen.h2h||{})[p.name]||null};
+  }).filter(Boolean).sort(function(a,b){return (a.out?1:0)-(b.out?1:0)||b.rating-a.rating;});
+}
+function ngOldGenOf(c,p){const L=c&&c.lineage,P=L&&L.prev;return !!(P&&P.gen&&p&&(P.gen.ids||[]).indexOf(p.id)>=0);}
+function ngRel(c){return c&&c.lineage&&c.lineage.kind==='child'?'your parent':(c&&c.lineage&&c.lineage.prev?c.lineage.prev.name:'');}
+/* The retired screen: hand the world on. */
+function careerNextGenCard(c){
+  if(!c.retired||!c.wx)return '';
+  const yr=seasonYear(c),ch=worldChampion(c),full=careerCount()>=MAX_CAREERS;
+  return '<div class="card" id="nextgencard" style="margin-bottom:12px;border-color:#22c55e88;text-align:left">'+
+    '<div style="font-weight:800">🌱 The next generation</div>'+
+    '<div class="dim small" style="margin:4px 0 9px;line-height:1.6">Start a new career in this same world, the same week: it is '+yr+
+      (ch&&!ch.you?', '+esc(ch.name)+' is world champion':'')+', and everybody '+esc(c.name||'you')+' played is still on the list. '+
+      esc(c.name||'This career')+' goes to the hall and can be challenged at their peak. <b>Your child</b> starts at eleven, in a chess house, with a coach who grew up with '+esc(c.name||'you')+
+      '; <b>a newcomer</b> starts with no connection to anybody.</div>'+
+    '<div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn primary" data-act="nextgen" data-val="child"'+(app.careerBusy?' disabled':'')+'>👪 Your child</button>'+
+      '<button class="btn sec" data-act="nextgen" data-val="new"'+(app.careerBusy?' disabled':'')+'>🆕 A newcomer</button></div>'+
+    '<div class="dim small" style="margin-top:7px">'+(full?'You have '+MAX_CAREERS+' careers already: this finished one stays in the hall, but leaves the list of careers.':'This finished career stays among your careers as well.')+'</div>'+
+    (app.careerBusy?'<div class="dim small" style="margin-top:6px">⏳ '+esc(app.careerBusy)+'</div>':'')+
+    (app.careerMsg?'<div class="small" role="alert" style="margin-top:6px;color:#f87171">'+esc(app.careerMsg)+'</div>':'')+
+  '</div>';
+}
+/* The setup screen, when the career is the next generation. */
+function ngSetupBanner(c){
+  const N=c&&c.nextGen,P=c&&c.lineage&&c.lineage.prev;if(!N||!P)return '';
+  return '<div class="note" style="margin:10px 0;border-color:#22c55e;line-height:1.55">🌱 <b>The next generation</b> — '+
+    (N.kind==='child'?'the child of '+(P.best?P.best+' ':'')+esc(P.name):'a newcomer')+', in the world '+esc(P.name)+' played in. It is '+seasonYear(c)+
+    '; the list, the champions and the players are where '+esc(P.name)+' left them.</div>';
+}
+/* The World tab: the career before this one, and the people it grew up with. */
+function careerLineagePanel(c){
+  const L=c.lineage,P=L&&L.prev;if(!P)return '';
+  const child=L.kind==='child',G=ngOldGen(c),e=hallList().find(function(x){return x.cid&&x.cid===P.cid;});
+  const years=(FIRST_YEAR-1+(P.s0||1))+'–'+(FIRST_YEAR-1+(P.s1||1));
+  let h='<div class="card" id="lineagecard" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+    '<div style="font-weight:700">🏛️ Before you</div>'+(e&&!c.tour?'<button class="btn sec sm" data-act="halllegend" data-val="'+esc(String(e.at))+'">🎭 Play '+esc(child?'your parent':P.name)+'</button>':'')+'</div>'+
+    '<div class="small" style="margin-top:5px;line-height:1.6">'+(child?'Your parent, ':'')+(P.best?'<b>'+esc(P.best)+'</b> ':'')+'<b>'+esc(P.name)+'</b> '+esc(P.flag||'')+(child?',':'')+' played in this world from '+years+
+      (P.peak?', peak '+P.peak:'')+(P.champ?', a World Champion':P.wchamp?', a Women’s World Champion':'')+'.'+
+      ((L.chain||[]).length>1?' Before them: '+L.chain.slice(0,-1).reverse().map(function(x){return esc(x.name)+' ('+(FIRST_YEAR-1+(x.s0||1))+'–'+(FIRST_YEAR-1+(x.s1||1))+')';}).join(', ')+'.':'')+'</div>';
+  if(G.length){
+    h+='<div class="dim small" style="margin:9px 0 2px">🌱 '+esc(child?'Your parent’s':P.name+'’s')+' generation, born around '+(P.gen.born||P.born)+', now</div>';
+    h+=G.slice(0,app.ngAll?40:8).map(function(x){
+      const st=x.out?(x.coaching?'<span style="color:#22c55e">'+(x.yours?'your coach':'coaches now')+'</span>':'<span class="dim">stopped playing</span>'):'<b>'+x.rating+'</b>';
+      return '<div class="row" style="gap:8px;align-items:center;padding:4px 0;border-top:1px solid var(--border)"><span style="width:20px">'+(x.flag||'')+'</span>'+
+        '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(x.title?'<span style="color:var(--brand2)">'+esc(x.title)+'</span> ':'')+
+          (x.out?esc(x.name):'<button data-act="profile" data-val="'+esc(x.id)+'" style="background:none;border:0;padding:0;color:inherit;font:inherit;cursor:pointer">'+esc(x.name)+'</button>')+
+          (x.h2h?' <span class="dim small">· '+esc(child?'your parent':P.name)+' '+x.h2h.w+'–'+x.h2h.d+'–'+x.h2h.l+'</span>':'')+'</span>'+
+        '<span class="dim small">'+x.age+'</span><span class="small" style="width:84px;text-align:right">'+st+'</span></div>';}).join('');
+    if(G.length>8)h+='<button class="btn ghost sm" data-act="ngall" style="margin-top:6px">'+(app.ngAll?'▴ Fewer':'▾ All '+G.length)+'</button>';
+  }
+  return h+'</div>';
+}
+/* ===== The roll of champions: this world's, year by year ===== */
+const ROLL_EVENTS={worldcup:['🗺️','World Cup'],candidates:['♛','Candidates'],olympiad:['🤝','Olympiad'],wworldcup:['🗺️','Women’s World Cup'],
+  wcandidates:['♛','Women’s Candidates'],wolympiad:['🤝','Women’s Olympiad'],ewc:['🎮','Esports World Cup'],fstour:['🎲','Freestyle tour'],cct:['🖥️','Champions Chess Tour']};
+function rollInit(c){const X=wxInit(c);if(!X.roll||typeof X.roll!=='object')X.roll={};return X.roll;}
+function rollSet(c,key,S,who){if(!who||!who.n)return;const R=rollInit(c),s=S||c.season||1;R[s]=R[s]||{};R[s][key]=who;}
+function rollYou(c){return {n:c.name||'You',fed:c.fed,flag:c.flag,you:true,cid:careerCid(c)};}
+/* The end of a season: who holds the two world titles. */
+function rollClose(c,S){
+  const ch=worldChampion(c),wch=wChampion(c);
+  if(ch)rollSet(c,'wch',S,ch.you?rollYou(c):{n:ch.name,fed:ch.fed,flag:ch.flag});
+  if(wch)rollSet(c,'wwch',S,wch.you?rollYou(c):{n:wch.name,fed:wch.fed,flag:wch.flag});
+}
+/* An event of the roll you played in: you won it, or somebody in it did. */
+function rollFromYourEvent(c,tr,def,won1st){
+  const id=def&&def.id;if(!id||!ROLL_EVENTS[id]||id==='olympiad'||id==='wolympiad')return;
+  if(won1st){rollSet(c,id,c.season,rollYou(c));return;}
+  let w=null;
+  if(tr.ko&&tr.ko.champion&&!tr.ko.champion.you)w={n:tr.ko.champion.name,flag:tr.ko.champion.flag||''};
+  else if(tr.standings){const S=standingsSorted(tr),top=S&&S[0];if(top&&!top.you)w={n:top.name,fed:top.fed||'',flag:top.flag||''};}
+  if(w)rollSet(c,id,c.season,w);
+}
+function rollName(c,x){
+  if(!x)return '<span class="dim">—</span>';
+  const mine=x.you&&x.cid===careerCid(c),before=x.you&&!mine;
+  return (x.flag?x.flag+' ':'')+(mine||before?'<b style="color:var(--brand2)">'+esc(x.n)+'</b>'+(mine?' <span class="chip brand" style="font-size:9px">YOU</span>':' 🏛️'):esc(x.n));
+}
+function careerRollPanel(c){
+  const R=rollInit(c),S=c.season||1,ch=worldChampion(c),wch=wChampion(c);
+  const years=Object.keys(R).map(Number).filter(function(s){return s<S;}).sort(function(a,b){return b-a;});
+  const cols=[['wch','👑'],['wwch','👸'],['worldcup','🗺️'],['candidates','♛'],['olympiad','🤝'],['ewc','🎮']];
+  const line=function(s,E,sub){
+    const bits=cols.filter(function(k){return E[k[0]];}).map(function(k){return '<span style="white-space:nowrap">'+k[1]+' '+rollName(c,E[k[0]])+'</span>';});
+    return '<div class="small" style="display:flex;gap:8px;padding:4px 0;border-top:1px solid var(--border);line-height:1.6"><span class="dim" style="width:38px;flex:0 0 auto">'+(FIRST_YEAR-1+s)+(sub?'<br><span style="font-size:10px">'+sub+'</span>':'')+'</span>'+
+      '<span style="flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:3px 12px">'+bits.join('')+'</span></div>';
+  };
+  const now=Object.assign({},R[S]||{});
+  if(ch)now.wch=ch.you?rollYou(c):{n:ch.name,flag:ch.flag};
+  if(wch)now.wwch=wch.you?rollYou(c):{n:wch.name,flag:wch.flag};
+  const shown=app.rollAll?years:years.slice(0,8);
+  return '<div class="card" id="rollcard" style="margin-bottom:12px"><div style="font-weight:700">👑 The roll of champions</div>'+
+    '<div class="dim small" style="margin:3px 0 4px">This world’s title holders and winners, year by year'+(c.lineage?' — it carries on from career to career':'')+'. 👑 World Champion · 👸 Women’s World Champion · 🗺️ World Cup · ♛ Candidates · 🤝 Olympiad · 🎮 Esports World Cup</div>'+
+    line(S,now,'so far')+
+    shown.map(function(s){return line(s,R[s]);}).join('')+
+    (years.length>8?'<button class="btn ghost sm" data-act="rollall" style="margin-top:6px">'+(app.rollAll?'▴ The last eight years':'▾ All '+years.length+' years')+'</button>':'')+
+  '</div>';
+}
+/* ===== Your past careers, as legends you can play ===== */
+function hallRel(c,e){
+  if(c.lineage&&c.lineage.prev&&e.cid&&e.cid===c.lineage.prev.cid)return c.lineage.kind==='child'?'your parent':'the career before yours in this world';
+  if(e.world&&c.wx&&e.world===c.wx.id)return 'an earlier career in this world';
+  return 'one of your past careers';
+}
+function hallLegendsFor(c){return hallList().filter(function(e){return (e.peak||0)>=1400&&e.cid!==c.cid;});}
+function hallRepsByName(name){const e=hallList().find(function(x){return x.name===name&&x.reps;});return e?e.reps:null;}
+function startHallLegend(at){
+  const c=store.career;if(!c||c.tour||c.retired)return;lifeInit(c);
+  const e=hallList().find(function(x){return String(x.at)===String(at);});if(!e)return;
+  const rt=e.peak||1500;
+  const opp={name:e.name,rating:rt,title:e.best||'',fed:e.fed,flag:e.flag||'🏛️',id:'hall_'+e.at,style:GHOST_STYLE[e.style]||pickStyle()};
+  app.careerFinish=null;
+  const side=Math.random()<0.5?'w':'b',oe=oppBookEdge(opp,side),rel=hallRel(c,e);
+  startPlay(new Chess().fen(),side,null,'🏛️ Exhibition vs '+e.name+' ('+rt+')',{tc:tcById(FORMAT_TC['classical']||'30+20'),careerOpp:'oneoff',careerElo:rt,roundOpp:opp,oneoff:'classical',
+    legend:e.name,hallLegend:String(e.at),book:oe?oe.book:null,bookNode:oe?oe.bookNode:null});
+  app.careerStudyEdge=oe?oe.studyEdge:0;oppBookAlt(oe);
+  app.careerBanter={who:nameSurOf(e.name,e.fed),line:rel==='your parent'?pick(['No mercy because we are family. Play.','I taught you this opening. Let us see what you have done with it.','At my best I was very hard to beat. Show me.'])
+    :pick(['At my best I was hard to beat. Show me.','So this is the next one. Good. Play.','An honour — for one of us.'])};
+  applyCareerCondition();
+}
+function hallLegendResult(c,score){
+  const e=hallList().find(function(x){return String(x.at)===String(app.careerHallLegend);}),nm=app.careerLegend||(e&&e.name)||'them',rel=e?hallRel(c,e):'';
+  c.hallBeaten=c.hallBeaten||[];
+  if(score===1){
+    if(c.hallBeaten.indexOf(nm)<0)c.hallBeaten.push(nm);
+    c.fame=Math.min(100,(c.fame||0)+4);addXp(c,40);
+    pushNews(c,'🏛️','You beat '+esc(nm)+' — '+esc(rel)+' — at their peak.');
+    recordMoment(c,'hall-'+nm,'🏛️','Beat '+nm+', '+rel+', at their peak.',{once:true,big:rel==='your parent'});
+  } else pushNews(c,'🏛️','You played '+esc(nm)+' — '+esc(rel)+' — '+(score===0.5?'and drew.':'and lost.'));
+}
+/* What a finished career played, for the hall: so it can be played again. */
+function hallReps(c){
+  try{const L=myLines(c),reps={};['w','b','b2'].forEach(function(k){if(L[k]&&L[k].id&&L[k].n>=2)reps[k]=L[k].id;});return Object.keys(reps).length?reps:null;}
+  catch(e){return null;}
+}
+/* =========================================================================
+   THE EVENTS THE TOP PLAYERS NOW LIVE ON
+
+   The calendar was a classical calendar with a World Rapid and Blitz at the
+   end of it. The best players' year now runs as much on events that did not
+   exist ten years ago: the Freestyle Chess Grand Slam — Chess960 for ten of
+   the world's best at a Baltic resort, in Paris, in Las Vegas and in Cape
+   Town; the Champions Chess Tour — online rapid from your own desk, whose
+   best eight play a final in person; and the Esports World Cup in Riyadh,
+   sixteen players in soundproof booths for the biggest purse in chess. They
+   are by invitation: a place near the top of the list, a result on the
+   tours, or a name big enough that the organisers want it. Each tour keeps
+   its own standings through the season, for you and for everybody else, and
+   the world plays all of it whether you are there or not.
+   ========================================================================= */
+const TOURS={
+  freestyle:{name:'Freestyle Chess Grand Slam Tour',emoji:'🎲',legs:['fsweiss','fsparis','fsvegas','fscapetown'],
+    pts:[25,18,15,12,10,8,6,4,2,1],bonus:[150000,75000,40000],honor:'Freestyle Tour Champion'},
+  cct:{name:'Champions Chess Tour',emoji:'🖥️',legs:['cctspring','cctsummer','cctautumn'],
+    pts:[25,18,15,12,10,8,6,4,2,1],final:'cctfinals',finalN:8,honor:'Champions Chess Tour Champion'}
+};
+const TOUR_OF={};
+Object.keys(TOURS).forEach(function(k){TOURS[k].legs.forEach(function(id){TOUR_OF[id]=k;});if(TOURS[k].final)TOUR_OF[TOURS[k].final]=k;});
+function tourState(c,k){
+  const X=wxInit(c),S=c.season||1;X.tours=X.tours||{};
+  let T=X.tours[k];
+  if(!T||T.s!==S)T=X.tours[k]={s:S,pts:{},names:{},you:0,legs:[],done:false};
+  return T;
+}
+function tourTable(c,k){
+  const T=tourState(c,k),I=worldIndex().id;
+  const L=Object.keys(T.pts).map(function(id){const p=I[id];return {id:id,name:T.names[id]||(p&&p.name)||id,flag:p?p.flag:'',pts:T.pts[id]};});
+  if(T.you)L.push({you:true,name:c.name||'You',flag:c.flag,pts:T.you});
+  return L.sort(function(a,b){return b.pts-a.pts||(a.you?-1:b.you?1:0);});
+}
+/* A leg is over: points for its top ten. rows: [{id,name}|{you:true}] in finishing order. */
+function tourAward(c,tid,rows){
+  const k=TOUR_OF[tid];if(!k||TOURS[k].final===tid)return;
+  const T=tourState(c,k),P=TOURS[k].pts;
+  if(T.legs.indexOf(tid)>=0)return;
+  T.legs.push(tid);
+  rows.slice(0,P.length).forEach(function(r,i){
+    if(r.you)T.you+=P[i];
+    else if(r.id){T.pts[r.id]=(T.pts[r.id]||0)+P[i];T.names[r.id]=r.name;}
+  });
+  if(TOURS[k].bonus&&T.legs.length>=TOURS[k].legs.length)tourCrown(c,k);
+}
+/* The Freestyle tour's end: the standings are its title. */
+function tourCrown(c,k){
+  const T=tourState(c,k),D=TOURS[k];if(T.done)return;T.done=true;
+  const L=tourTable(c,k);if(!L.length)return;
+  const w=L[0],me=L.findIndex(function(x){return x.you;});
+  rollSet(c,'fstour',c.season,w.you?rollYou(c):{n:w.name,flag:w.flag});
+  if(me>=0&&me<(D.bonus||[]).length){const b=D.bonus[me];c.money=(c.money||0)+b;pushNews(c,D.emoji,'You finish '+ordinal(me+1)+' in the '+D.name+' — a bonus of '+money(b)+'.');}
+  if(w.you){c.honors=c.honors||[];if(c.honors.indexOf(D.honor)<0)c.honors.push(D.honor);c.fame=Math.min(100,(c.fame||0)+6);recordMoment(c,'tour-'+k+'-'+(c.season||1),D.emoji,'Won the '+D.name+'.',{big:true});}
+  const t=(w.you?(c.name||'You'):w.name)+' wins the '+D.name+' on '+w.pts+' points.';
+  pushFeed(c,D.emoji,esc(t),'world',true);
+  wirePush(c,{cat:'results',e:D.emoji,src:'wire',h:t.replace(/\.$/,''),d:'The final standings: '+L.slice(0,3).map(function(x,i){return (i+1)+'. '+x.name+' '+x.pts;}).join(', ')+'.',pid:w.id||null,me:!!w.you});
+}
+/* Your own finish in a leg, for you and for everybody in it. */
+function tourAwardYou(c,tr,won1st){
+  const k=TOUR_OF[tr&&tr.id];if(!k)return;
+  if(TOURS[k].final===tr.id){
+    // the final crowns the tour's champion
+    const S=tr.standings?standingsSorted(tr):null,top=S&&S[0];
+    const w=won1st?rollYou(c):(top&&!top.you?{n:top.name,flag:top.flag||''}:null);
+    if(w)rollSet(c,k,c.season,w);
+    if(won1st){c.honors=c.honors||[];if(c.honors.indexOf(TOURS[k].honor)<0)c.honors.push(TOURS[k].honor);}
+    return;
+  }
+  if(!tr.standings)return;
+  const all=(tr.hall||[]).concat(tr.field||[]);
+  const rows=standingsSorted(tr).map(function(p){
+    if(p.you)return {you:true};
+    const src=all.find(function(o){return (o.pid&&o.pid===p.id)||o.name===p.name;})||{};
+    return {id:src.wid||null,name:p.name};
+  });
+  tourAward(c,tr.id,rows);
+}
+/* The Champions Chess Tour's legs: who is invited. */
+function cctInvite(c){
+  const rr=youRating(c,'rapid'),rk=worldRank(c,'rapid');
+  if(rr!=null&&rr>=2600)return null;
+  if(rk!=null&&rk<=60)return null;
+  if((c.fame||0)>=60&&rr!=null&&rr>=2350)return null;        // a following big enough to want
+  return 'invite: rapid 2600, the world top 60 in rapid, or a big name';
+}
+function tourFinalLock(c,k){
+  const D=TOURS[k],L=tourTable(c,k),me=L.findIndex(function(x){return x.you;});
+  if(me>=0&&me<D.finalN)return null;
+  return 'the tour’s top '+D.finalN+(me>=0?' — you are '+ordinal(me+1):'');
+}
+/* ---- the Esports World Cup: sixteen, invited ---- */
+const EWC_SIZE=16;
+const KO_EWC={entrants:16,byes:0,size:8,rounds:4,names:['Round of 16','Quarter-final','Semi-final','Final'],short:['R16','QF','SF','F'],
+  place:[9,5,3,2],prize:[25000,40000,70000,150000],label:'Esports World Cup',floor:0,qualMin:0,spots:16,women:false,fmt:'rapid'};
+function ewcInvite(c){
+  if(youRating(c,'rapid')==null)return 'needs a rapid rating';
+  const cct=tourTable(c,'cct').slice(0,4),fs=tourTable(c,'freestyle').slice(0,2);
+  if(cct.some(function(x){return x.you;})||fs.some(function(x){return x.you;}))return null;
+  const rk=worldRank(c,'rapid');if(rk!=null&&rk<=12)return null;
+  if((c.fame||0)>=85)return null;                            // the organisers want the biggest names
+  return 'invite: the Champions Chess Tour’s top 4, the Freestyle tour’s top 2, the rapid top 12 or a wildcard';
+}
+function ewcInvitees(c,busy){
+  const out=[],seen={},I=worldIndex().id;
+  const add=function(p){if(p&&!seen[p.id]&&!(busy&&busy[p.id])){seen[p.id]=1;out.push(p);}};
+  tourTable(c,'cct').filter(function(x){return !x.you;}).slice(0,4).forEach(function(x){add(I[x.id]);});
+  tourTable(c,'freestyle').filter(function(x){return !x.you;}).slice(0,2).forEach(function(x){add(I[x.id]);});
+  worldRanking(c,'rapid').forEach(function(q){if(!q.you&&out.length<EWC_SIZE)add(I[q.id]);});
+  return out.slice(0,EWC_SIZE);
+}
+function ewcEntrants(c,busy,withYou){
+  const players=ewcInvitees(c,busy).slice(0,EWC_SIZE-(withYou?1:0)).map(function(w){
+    return {id:w.id,name:w.name,fed:w.fed,flag:w.flag,real:!!w.real,rating:pubRating(w,'classical'),rapid:pubRating(w,'rapid'),blitz:pubRating(w,'blitz'),title:wpTitle(w)||'GM',style:pickStyle()};});
+  if(withYou){
+    const myR=youPub(c,'classical')||youRating(c,'classical')||c.rating||2500,mr=youPub(c,'rapid')||c.ratingRapid||myR;
+    players.push({id:'__you',name:c.name||'You',fed:c.fed,flag:c.flag,you:true,rating:myR,rapid:mr,blitz:youPub(c,'blitz')||c.ratingBlitz||mr,title:bestTitle(c)||''});
+  }
+  players.sort(function(a,b){return (b.rapid||0)-(a.rapid||0)||(a.you?-1:b.you?1:0);});
+  players.forEach(function(p,i){p.seed=i+1;});
+  return players;
+}
+/* The world plays it when you are not there. */
+function worldEwc(c,busy){
+  const CF=KO_EWC,I=worldIndex().id,players=ewcEntrants(c,busy,false);
+  if(players.length<CF.entrants)return null;
+  players.forEach(function(p){busy[p.id]=1;});
+  const R1=koRoundOne(players,CF),won1={};
+  for(let i=0;i<R1.pairs.length;i+=2){const A=R1.pairs[i],B=R1.pairs[i+1];won1[Math.min(A.seed,B.seed)]=koSimMatch(A,B,'rapid').winner;}
+  let slots=koBracket(R1.byes,won1,CF),final=null;
+  while(slots.length>1){
+    const next=[];
+    for(let i=0;i<slots.length;i+=2){const m=koSimMatch(slots[i],slots[i+1],'rapid');next.push(m.winner);if(slots.length===2)final=m;}
+    slots=next;
+  }
+  const w=final.winner,l=final.loser,t=TOURNAMENTS.find(function(x){return x.id==='ewc';});
+  return worldResult(c,t,[{p:I[w.id]||w,s:0},{p:I[l.id]||l,s:0}],0,'beating '+l.name+' in the final, for the biggest prize in chess');
+}
+/* The Champions Chess Tour's final, among the tour's best eight. */
+function worldTourFinal(c,t,busy){
+  const k=TOUR_OF[t.id],D=TOURS[k],I=worldIndex().id;
+  const players=tourTable(c,k).filter(function(x){return !x.you&&I[x.id]&&!busy[x.id];}).slice(0,D.finalN).map(function(x){busy[x.id]=1;return I[x.id];});
+  if(players.length<4)return null;
+  const rows=simRoundRobin(c,players,1,eventFormat(t));
+  rollSet(c,k,c.season,{n:rows[0].p.name,fed:rows[0].p.fed,flag:rows[0].p.flag});
+  return worldResult(c,t,rows,players.length-1,'and the '+D.name+' title with it');
+}
+/* The field for the tour's final is its standings, not the rating list. */
+function tourFinalField(t,c,count,fmt){
+  const k=TOUR_OF[t.id];if(!k)return null;
+  const I=worldIndex().id,L=tourTable(c,k).filter(function(x){return !x.you&&I[x.id];}).slice(0,count);
+  if(L.length<count)return null;
+  return L.map(function(x){const p=I[x.id];
+    return {name:p.name,rating:pubRating(p,fmt||'rapid'),title:wpTitle(p)||'GM',fed:p.fed,flag:p.flag,style:pickStyle(),wid:p.id,real:!!p.real};});
+}
+/* The World tab: both tours as they stand. */
+function careerToursPanel(c){
+  if((youRating(c,'classical')||0)<2200&&!tourState(c,'cct').you&&!tourState(c,'freestyle').you)return '';
+  const one=function(k){
+    const D=TOURS[k],T=tourState(c,k),L=tourTable(c,k),me=L.findIndex(function(x){return x.you;});
+    const legs=D.legs.map(function(id){
+      const t=TOURNAMENTS.find(function(x){return x.id===id;}),done=T.legs.indexOf(id)>=0;
+      return '<span class="chip" style="font-size:10px;margin:2px 3px 0 0;'+(done?'opacity:.6':'')+'">'+(done?'✓ ':'wk '+EVENT_WEEK[id]+' ')+
+        esc(t?t.name.replace(/^Freestyle Grand Slam |^Champions Chess Tour: /,''):id)+'</span>';}).join('');
+    const rows=L.slice(0,5).concat(me>=5?[L[me]]:[]).map(function(x){const i=L.indexOf(x);
+      return '<div class="row" style="gap:8px;padding:3px 0;border-top:1px solid var(--border)'+(x.you?';background:linear-gradient(90deg,var(--brand)18,transparent)':'')+'">'+
+        '<span class="dim small" style="width:20px;text-align:right">'+(i+1)+'</span><span style="width:20px">'+(x.flag||'')+'</span>'+
+        '<span class="small" style="flex:1;min-width:0;font-weight:'+(x.you?'800':'600')+'">'+esc(x.name)+(x.you?' <span class="chip brand" style="font-size:9px">YOU</span>':'')+'</span><b class="small">'+x.pts+'</b></div>';}).join('');
+    return '<div style="margin-top:9px"><div class="small" style="font-weight:700">'+D.emoji+' '+esc(D.name)+'</div><div>'+legs+'</div>'+
+      (rows||'<div class="dim small" style="padding:3px 0">No leg played yet this season.</div>')+
+      '<div class="dim small" style="margin-top:3px">'+(D.final?'Points for the top ten of each leg. The top '+D.finalN+' play the Finals in week '+EVENT_WEEK[D.final]+'; the top four at week '+EVENT_WEEK.ewc+' go to the Esports World Cup.'
+        :'Points for the top ten of each leg; after the last one the standings are the tour, with bonuses for the top three, and the top two go to the Esports World Cup.')+'</div></div>';
+  };
+  return '<div class="card" id="tourscard" style="margin-bottom:12px"><div style="font-weight:700">🎮 The tours</div>'+
+    '<div class="dim small" style="margin-top:3px">Where much of the money at the top is now: Chess960 at the Freestyle Grand Slams, online rapid on the Champions Chess Tour, and in week '+EVENT_WEEK.ewc+' the Esports World Cup in Riyadh for the best of both.</div>'+
+    one('freestyle')+one('cct')+'</div>';
+}
+/* =========================================================================
+   A PASSPORT AND A MAP
+
+   Every event already knew its city — the hall walk-in says so, and the trip
+   costs what it costs — but nothing kept them. The passport does: a stamp
+   for every country you have played in, with the year you first played there
+   and your best result; a map with a pin for every city, gold where you won,
+   silver where you made the podium, and the flights home to each of them; and
+   what it all added up to — countries, cities, flights and kilometres, nights
+   in hotels, events played from your desk. Tap a pin for what happened there.
+   The land is Natural Earth's (public domain), at 1:110m, drawn at half a
+   degree in an equirectangular projection.
+   ========================================================================= */
+const PP_LAND='M112 138l1.5.5 1.5 0-.5.5-1 0-.5 0-.5.5-.5 0-1 0-1-.5-1 0-1.5-.5-1-.5-1-1 .5 0 1.5.5 1.5.5.5-.5 0-.5 1-.5 1 0 0 .5zM121.5 135l1 .5-.5.5-1.5 0-.5 0-.5.5-.5-.5 1-.5 1 0zM250.5 133.5l-2 .5 0-1 .5 0 0-.5.5.5 1 0zM325.5 125l1 0 .5 0 .5 0 1 0 0 1-.5.5 0 .5-.5 0-.5.5-.5 0-.5 0-.5-1 0-.5-1-1 0-.5zM353 125l0 .5 1-.5 0 .5 0 .5-1 1-.5.5.5.5-.5 0-1 0-.5 1-.5 1-.5.5-.5 0-1 0-.5 0-1.5-.5.5-1 1.5-1 .5 0 .5-.5 1-.5.5-.5.5-.5.5-.5 0-.5 1-.5zM354.5 120l1 1 0-.5.5.5 0 .5 1 .5.5 0 .5-.5.5 0 0 1-.5.5-1 0 0 .5 0 .5-.5.5-.5 1-1 0-.5 0 .5-1 0-.5-1-.5 0-.5.5 0 0-1 0-.5 0-1-.5-.5-1-1-.5-.5.5 0 .5.5 1 .5zM347 106l-.5.5-.5-.5-.5-.5-.5-.5-1-.5 0-.5.5 0 .5.5.5.5.5 0 .5.5zM358.5 101.5l0 .5-.5.5-.5-.5 0-.5.5 0zM0 100.5l-.5.5-1 0 0-.5.5 0 .5 0 .5-.5zM230 97.5l0 1.5.5 0 0 .5-.5.5 0-.5-.5 0 .5 1 0 .5-.5 0 0 1-.5 1-.5 1.5-.5 2-.5 1.5-.5 1-.5 0-1 .5-.5 0-1-.5 0-.5-.5-1 0-.5 0-1 0-.5.5-.5.5-1 0-.5-.5-.5 0-.5 0-1 .5-.5 0-1 .5 0 .5 0 .5 0 .5 0 .5-1 .5-.5.5-.5 0-.5.5.5.5-1 0-.5 0-.5.5.5.5.5zM323.5 98l.5.5.5-.5.5.5.5.5 0 .5 0 1 0 .5.5 0 0 1 0 .5.5.5 1 .5.5.5 1 .5-.5 0 1 1 0 1 .5-.5.5.5.5 1 .5.5.5.5 1 1 0 .5 0 .5 0 1 .5.5 0 1 0 .5-.5 1 0 .5 0 .5-.5 1-1 .5 0 1-.5.5-.5.5 0 .5-.5 1 0 .5 0 .5-.5.5-1 0-1 0-.5.5-.5.5-1-.5-.5 0 0-.5-.5 0-1 1-1-.5-.5 0-.5 0-1-.5-.5-.5 0-1-.5-.5-.5-.5-1 0 .5-.5-.5-.5-.5.5-.5.5.5-1 0-.5.5-.5 0-.5-1 1-.5 0-.5 1-1-.5 0-.5-.5-1-.5 0 .5-.5-1.5-.5-.5 0-1-.5-2 0-1.5.5-1 .5-1-.5-1 .5-1 .5 0 .5-.5.5-.5 0-1 0-.5 0-1 0-.5 0-.5.5-.5 0-.5 0-.5.5-.5 0-1 0-1-.5-.5-.5 0-.5.5 0 0-.5.5-1-.5-.5-.5-1 0-.5 0-.5-.5-.5 0-.5-.5-.5 0-.5-.5-1 0-.5.5.5-.5-1 .5.5 0 .5 0-.5-.5-1 0-.5 0-.5 0-.5.5-.5-.5-.5.5-.5 0 .5.5-.5 1-.5.5-.5.5-.5.5 0 .5 0 .5 0 1 0 0-.5.5 0 .5 0 1-.5.5-.5 0-.5.5-.5.5 0 0-.5.5-1 .5 1 .5-.5-.5-.5.5-.5.5.5 0-1 .5-.5 0-.5.5 0 0-.5.5.5 0-.5.5 0 .5 0 1 .5.5.5.5 0 .5 0 0-.5.5-1 .5 0-.5-.5.5-.5.5-.5.5.5 1-.5 0-.5-.5 0 .5-.5.5.5.5.5 1 0 1 0 .5 0 .5 0 .5.5-.5.5 0 .5-.5 0 0 .5-.5.5 0 .5 1 .5.5.5.5 0 1 1 .5 0 .5.5.5 0 1 0 0-.5.5-.5 0-.5 0-1 0-.5 0-1 0-.5.5-.5-.5 0 .5-.5 0-.5 0-.5.5-.5.5.5 0 1 0 .5.5.5 0 .5zM300.5 94l0 .5-1.5-1 1 0 .5 0 .5.5zM304.5 94l-1 .5 0-.5.5-.5 1-.5 0-.5 1 0 .5 0 .5 0 .5 0-.5 0-1 .5-1 .5zM298 92l.5.5.5 0-1 .5-.5 0-1 0 .5-.5.5 0zM303 92l0 .5-1.5.5-1.5 0 0-.5.5-.5 1 .5.5 0zM288.5 91l2 0 .5-.5 1.5.5.5.5 1.5.5 1 .5-1 .5-1-.5-1 0-1 0-1-.5-1-.5-1 0 0 .5-2-.5 0-.5-1 0 .5-1 1.5 0 .5.5.5 0zM336 91l-.5 0-.5-.5-.5-.5 0-1 .5.5.5.5.5.5zM332 89.5l-.5 0 0 .5-.5 0-1 .5-.5 0-.5-.5-.5-.5 1 0 .5 0 0-.5 0 .5 1 0 0-.5.5 0 0-1 .5 0 .5.5 0 .5zM310.5 87l.5 1-1-.5-1 0-.5 0-.5 0 0-.5 1.5 0zM333 88.5l0 .5-.5-1-.5-.5-.5-.5-1-.5.5 0 .5.5.5 0 .5.5.5.5zM314 85l.5 2 1 .5 1-1 1-1 1 0 .5.5 1 .5 1 0 1.5 1 2 .5 1 .5.5.5 0 .5 1.5.5.5.5-1 0 0 1 1 .5.5 1 1 0 0 .5.5 0-.5.5 1.5.5-.5 0-.5 0-1 0-1-.5-1-.5-.5-.5-.5-1-1.5-.5-.5.5-.5 0 0 1-1 .5-.5-.5-1 0-1-.5-1-.5 0 .5-1.5 0 .5-1 .5 0 0-1.5-.5-.5-2-1-1 0-1.5-1 0 .5-.5 0 0-.5-1-.5 1-.5 1 0-.5-.5-1.5 0 0-.5-1 0-.5-.5 1.5-.5.5 0zM305 82.5l-.5 1-1 .5-1-.5-1.5 0-1 .5 0 .5 1 1 .5-.5 2-.5 0 .5-.5 0-.5.5-1 .5 1 1 0 .5.5 1 0 1-.5 0-.5 0 .5-1-1 .5 0-.5 0-.5-.5-.5 0-1-.5.5 0 1 0 1.5-.5 0-.5 0 0-1 0-1-.5 0 0-.5 0-1 .5-.5.5-1.5 0-.5 1-1 .5.5 1.5 0 1 0zM308.5 83l0 .5-.5 0 0 1 .5.5-.5 0-.5-.5 0-1.5 0-1 .5 0 0 .5.5 0zM286 90l-1.5 0-.5-1-1.5-1-.5-.5-.5-.5-.5-1-1-1.5-.5-.5-.5-1-.5-1-1-.5-.5-1-.5-.5-1-1 0-.5.5 0 1.5.5 1 .5.5 1 .5.5 1 1 1 0 1 .5.5 1 1 .5-.5.5.5.5.5 0 0 1 .5.5.5 0 .5.5 0 1.5zM298 82l1 1-1 0-.5 1 0 1-1 .5 0 1-.5 1.5 0-.5-1 .5-.5-.5-.5 0-.5-.5-1.5.5-.5-.5-.5 0-1 0 0-1.5-.5 0-.5-1 0-1 0-1 .5-.5 1 .5.5-.5.5-.5.5-.5 1 0 .5-1 .5-.5.5-.5 1-.5.5-.5.5-1 .5 0 .5.5 0 .5 1 .5.5 0 0 .5-.5 0 0 .5-.5.5-.5 1 .5.5zM306.5 75.5l0 .5 0 1-.5.5 0-1-.5.5 0 1 0 .5-1.5-.5 0-1 0-.5-.5-.5 0 .5-.5 0-1 .5.5-1 .5-.5.5 0 .5.5.5-.5.5-.5.5 0 0-1 .5.5.5.5zM261 78l-.5 0-.5-1-.5-1 .5-2 1 .5.5 1 .5 1-.5 1zM119 74l-1 0 .5-.5 0-.5.5 0zM304 73.5l-.5.5 0 .5-.5.5-.5-.5 0-.5.5-.5 0-.5.5 0 0 .5.5-.5zM298.5 74.5l-1.5 1 .5-.5 1-.5.5-1 .5-1 0 1-.5.5zM302 72l.5.5.5 0 0 .5-.5.5-.5 0 0-.5 0-.5zM305.5 72l.5 1-1-.5 0 .5.5.5-.5.5 0-1-.5 0 0-.5.5 0 0-.5-.5-.5.5 0zM301.5 71l0 1-.5-.5-.5-1 .5 0zM301.5 65.5l.5.5 0-.5.5.5-.5 0 .5 1 0 .5-1 .5 0 1 0 .5 1 .5 0-.5 1.5.5 0 1 0 .5-.5-.5-.5-.5-.5.5-.5-1-1 .5-.5-.5 0-.5.5 0-.5-.5 0 .5-.5-.5 0-.5 0-1 .5.5 0-1.5 0-1zM114.5 66l-.5 0-.5 0-.5 0 0-.5.5 0 .5 0zM103 66l0 .5-1-.5-.5 0 .5-.5.5 0 .5 0 .5.5.5 0zM107.5 64l1 .5 0-.5.5 0 1 .5 1 0-.5.5.5 0 .5.5 0 .5-.5-.5-.5 0-.5 0 0 .5-.5 0 0-.5-.5 0-.5 1 0-.5-1 0-.5 0-.5 0-.5 0-.5-.5 1 0 1 0-.5-.5 0-.5-.5 0 .5-.5zM290.5 65.5l-1 .5-1-.5 0-1 .5-.5 1 0 1 0 0 .5-.5 0zM24.5 65l-.5 0 0-.5 0-.5 0-.5 0 .5.5 0 .5 0 0 .5 0 .5zM100.5 61l0 .5 1 0 .5 0 1 1 .5.5.5 0 .5 0 0 .5.5 0 1 0-.5.5-.5 0-.5 0-1 0-1.5 0 1-.5-.5 0-.5 0-.5-.5 0-.5-1 0-.5-.5-.5 0-1.5 0 0-.5-1 0-.5.5-.5 0-.5 0-.5 0 .5 0 .5-.5 0-.5.5 0 1 0 1 0 1 0zM102.5 60l-.5.5 0-1-.5 0 .5-.5.5.5zM301 61l-.5 1-.5-1 0-.5.5-1 1-1 .5.5 0 .5zM314.5 50l.5 0-1 1 0-.5-.5 0-.5 1-.5-.5 0-.5.5-.5.5 0 .5-.5zM214.5 48.5l-.5.5-1 .5-.5 0 0-.5.5 0 0-.5.5 0zM203.5 48.5l.5 0 1 0 1 0-.5.5 1-.5-.5.5-1.5 0zM195.5 46l-.5.5.5.5-.5.5-.5-.5-.5 0-1.5-.5 0-.5 1 0 1.5 0zM189 43l1 .5-.5 1.5-.5 0-.5 0 0-1.5-.5-.5.5 0zM321 47l-.5.5.5.5-.5 1-1.5.5-2 0-1 1-1-.5 0-.5-1.5 0-1.5.5-1 0 1 1-.5 1.5-1 .5-.5-.5.5-1-.5 0-.5-1 1 0 .5-.5 1-1 .5-.5 2 0 1 0 1-2 1 .5 1.5-1 .5 0 .5-1.5 0-1 .5-.5 1-.5.5 1.5 0 1-1 1zM189.5 42l-.5.5-.5-1 1-.5zM324 40l.5 0 1-.5 0 1-1.5.5-1 1-1.5-.5-.5 1-1 0 0-1 .5-1 1 0 0-1.5.5-.5 1 1zM116.5 37.5l.5 0 1 0-.5.5-.5 0-1-.5-.5 0 .5-.5zM118 35l-.5 0-1-.5-1-.5.5 0 1 .5 1 0zM56.5 35.5l-.5 0-1.5-.5-.5 0-1-.5 0-.5-1 0-.5-.5 0-.5 1 .5 1 0 .5 0 .5.5.5.5 1 .5zM124 33.5l-1 .5 1 0 .5 0-.5.5 1 0 .5 0 1 .5-.5.5 1 0 0 .5.5.5-.5 1-.5 0-.5-.5 0-.5 0-.5-1.5 1-.5 0 .5-.5-1 0-1 0-2 0 0-.5.5-.5.5-.5 1-1.5 1-1 .5 0 .5 0zM47.5 30l1 0-.5 1 1 1-.5 0-.5-.5-.5-.5-.5-.5 0-.5zM323.5 33.5l1 1.5-1.5-.5-.5 1.5 1 1 0 1-1-.5-.5.5 0-1 0-1 0-1 0-.5 0-1.5-.5-1 0-1.5 1-.5-.5 0 .5-.5.5 1 .5 1-.5.5zM173 31.5l-1.5 1-1.5-.5 1-1-.5-1 1-.5 1-.5 1 0 1 .5-.5.5 0 1zM192.5 28.5l-.5.5-1-.5 0-.5 1.5 0zM27 27l-1 .5-.5-.5 0-.5.5-.5 1 0 .5 0 .5.5zM177 25.5l-1 1 1 0 1 0 0 .5-1 1 1 0 1 1.5.5 0 .5 1 .5.5 1 .5 0 .5-.5 0 .5.5-1 .5-1.5 0-1.5.5-.5 0-.5.5-1-.5-.5.5-1 0 1.5-1 1-.5-1.5 0-.5-.5 1.5-.5-1-.5.5-.5 1.5 0 0-.5-.5-.5-1.5-.5.5-.5-.5-.5-.5.5 0-1-.5-.5 0-1 1-.5 1 0zM14.5 24l-.5 0-1 0-.5 0 1-.5 1 0zM98 21.5l-1 .5-1 0 0-.5 1-.5 1 0zM8.5 20l.5.5.5 0 1 0 1 0-.5.5-.5 0-1 0 0-.5-1 0-.5 0zM95 18.5l0 .5.5-.5.5.5 1 0 1.5.5 0 .5.5 0 1 .5-1 0-1.5 0-.5-.5-1 .5-1.5.5-.5-.5-1 0 .5-.5.5-1 0-.5zM165.5 17.5l0 .5 1 1-1.5.5-3 1-.5 0-1.5 0-3-.5 1-.5-2-.5 2 0 0-.5-2.5 0 1-1 1.5 0 1.5 1 1.5-1 1 .5 2-.5zM104 17l-1 0 0-.5 0-.5 1-.5 1 .5 0 .5zM360 15l2.5 1 2.5 1 0 .5.5 0 0-.5 2.5 0 2 1-1 .5-1.5 0 0 1-.5 0-1 0-.5 0-1.5-.5 0-.5-1 0-1.5 0-.5 0 .5-.5-1.5 0 .5.5-.5.5-1.5.5-1 0 1 .5.5.5.5.5 0 .5-.5 0-1.5 0-3 .5-1 .5-1.5.5-1.5.5 0 .5-1.5-.5-2.5.5-.5 0-1 .5-1.5-.5-.5 1-1 1 1 .5 0 1.5-1 0-.5.5.5.5-1.5.5-.5 1.5-1.5 0-.5 1-1 1-.5-.5-.5-1.5-.5-2.5.5-1.5 1-.5 0-.5 1.5 0 1.5-1.5 2-1 1.5-.5 1-1.5-1 0-1 1-2.5 1-.5-1.5-3 .5-2.5 1.5 1 1-2 0-1.5 0 0-.5-1.5 0-1.5.5-3-.5-3.5.5-3 2-4 2.5 1.5 0 .5.5 1 0 1-.5 1 .5 1.5 1 0 1-1 1 0 1-.5 1.5-1.5 1.5-.5.5-1 1.5-1.5 1-.5.5-1.5.5-.5 0-.5-.5-1.5 1 0 .5-.5-.5-.5.5-.5.5 0 .5-.5.5-.5.5-.5 0-.5 0 0 .5 0 .5.5 0 .5.5.5 1 .5.5 0 1.5-.5.5-1 0-.5.5-1 0 0-.5 0-.5-.5-1 1-.5-1-.5-.5-.5 0 .5-.5-.5-.5 0 .5-.5 0-.5.5-.5-1 0 0-.5-1.5.5-1 .5-1 0 .5-.5 0-.5.5-.5-.5-.5-.5.5-1.5.5-.5.5-1 .5-.5.5.5.5 1 0 0 .5.5.5 1.5-1 .5.5 1 0 0 .5-1.5.5-.5.5-1 .5-.5.5 1 .5.5 1 .5 1 1 1 0 .5-.5.5 0 .5.5 0 0 1-.5 1-.5 0-.5 1-1 1.5-1 1-1 1-1.5.5-1 .5-1 .5 0-.5-1 .5-1 .5-1 0-.5 1-.5 0-.5-.5.5-.5-1.5 0-.5 0-1.5 1-.5.5-.5 1 1 1 1 1.5 1 .5.5.5.5 2-.5 2-.5.5-1.5.5-.5 1-1.5 1 0-.5 0-1-.5-.5-1 0-.5-.5-.5-1-1-.5-.5 0 0-1-1 0 0 1-.5 1.5-.5 1 0 1 1 0 .5.5 0 1 .5.5.5.5.5.5.5 0 .5.5.5.5 0 1 0 .5 0 .5.5.5 0 1-.5.5-1-1-1-1 0-.5-1-.5 0-1-.5-.5.5-.5-.5-.5-.5-.5 0-.5-.5-.5-.5-.5 0 .5-.5-.5.5-.5 0-1 0-.5.5-1-.5-.5 0-1-.5-.5 0-1.5-.5-1-.5-1-.5.5-1 1-.5-.5-1 0 .5-1.5 0-.5-1-1.5-.5-.5-.5-.5-.5-.5 0-.5 0-.5-.5-1-1 0 0 .5 0 .5-.5 0-.5 0-.5 0 0 .5-1 0-1 0 0 1-.5.5-1.5.5-1 1-1 1-1 .5 0 .5-.5 0-.5.5-.5 0-.5 1 0 1 .5 1-.5 1 0 1.5-.5 0-.5 1 0 .5-.5 0-.5.5-.5.5-1-1-.5-1.5-.5-1 0-.5-.5-.5-.5-1.5 0-.5-1-1.5-.5-2 0-1 0-1.5-.5-1-1.5.5-.5 0-1.5-1 .5-.5 0-.5-1.5-.5-.5-.5-.5-.5-.5-1-2 .5-1.5 0-1.5 0-2-.5-1 0-1 0-.5-1.5-.5 0-1 0-1 .5-1-.5-1-.5-1-.5-.5-1-1-1-.5 0-.5-.5-.5.5-.5 0 0 .5.5 1 .5 1 .5 0 0 .5.5.5 0 .5 0 .5.5 0 0 .5.5 0-.5-.5.5-.5.5 0 0 1 0 .5 0 .5.5-.5 0 .5.5 0 1 0 .5 0 .5-1 1-.5.5-.5.5-.5 0 .5 0 .5 0 .5.5 1 .5 0 .5.5.5 0 .5.5.5.5.5 0-.5 1-.5.5-.5.5-.5 0 0 .5-.5.5.5.5-.5 0-.5 0-.5.5 0 .5-1 0 0 .5 0 .5-.5 0-1 0-.5.5-.5 0-.5 0-.5.5 0 .5-1 .5-1.5.5-1 .5-.5 0-.5.5-1 0-.5 0-.5 0 0 .5-.5 0 0 .5-.5 0-.5 0-.5 0-.5-.5.5-1-.5 0 0-1-.5 0 .5-.5-.5 0 .5-.5 0-.5-.5-.5 0-.5-.5-.5-1-.5 0-1-1-.5 0-.5-1-1 0-.5 0-.5-.5-1-.5-.5-.5-.5-.5-.5 0-.5-.5-.5 0-.5-1-1-.5-.5-.5 0 .5-.5 0-.5 0-.5-.5.5 0 .5-.5.5 0 .5-.5-.5-.5-.5-.5-1.5 0 1.5 1 1 .5 1.5.5.5.5.5.5 1 0 1 1 1 .5 0 0 1 0 1 .5 1.5.5 0 .5.5.5 1 .5 1 .5.5 1 1 .5.5 1 .5 0 .5.5.5.5 0 0 .5-1 .5.5 0 .5 0 0 .5.5.5.5 0 1 0 1-.5 1 0 .5 0 .5-.5.5 0 .5 0 1 0 0-.5.5 0 0 .5 0 .5 0 .5-.5 1.5-.5 1-.5 1-1 1.5-1 1.5-1 1-1 1-1.5 1-1 .5-1 1.5 0 .5-.5 0-.5.5-.5.5-.5 1-.5 1-.5 0-.5 1.5.5.5.5.5-.5.5.5.5-.5.5.5.5.5 1 .5.5 0 .5 0 1 0 .5 0 1.5.5.5-.5 1-.5.5-.5.5-1 .5-1 .5-1 1-.5.5-1 .5 0 .5-.5.5.5 1 .5.5 0 1 0 .5 0 .5-.5.5-1 .5-1 .5-.5 0 0 .5.5 0 0 .5-.5 1 0 1-.5.5-.5.5-.5.5-.5.5-.5.5-1 1-1 1-.5 0-1 .5-.5 0 0 .5-1 0-.5 0-1 0-.5 0-.5 0-1 .5-1 0-.5.5-.5 0-.5-.5-.5-.5-.5 0 .5-.5-.5-1 0-1-.5-1-.5-.5-.5-1.5-1-.5-.5-1 0-1-.5-.5 0-1.5 0-1.5 0-.5-.5-.5-.5-.5-.5-1.5-.5-.5-.5-1-.5-.5 0-1 .5-.5 0-1 0-.5.5-1 0-.5 1-.5 0-.5 0-.5 0-1-.5-.5 0-1 0-.5 0-1-.5-.5-.5-.5.5-.5-.5 0 0-1-1-1-1-1-.5-1-.5-1 0-.5.5-1 0-.5 0-1.5.5-.5-.5-.5-.5-.5-.5-.5 0-.5-1 .5-.5 0-.5.5-.5-.5-.5-.5-.5-.5-.5-1-1 0-1 0-.5.5-1 0-1.5.5-.5.5-1 .5-1-.5-.5 0-.5 0-.5 0-1.5 0-.5.5-1 0-.5 0-1-.5-1-.5-1-.5-.5-1-1-.5-.5-.5 0-1-.5-.5-.5-.5-.5 0 0-.5-.5-.5-.5-.5-.5 0-.5-.5 0-.5-.5-.5.5-.5-.5-1-.5 0 .5-.5.5-.5 0-.5 0-.5 0-.5.5-1-.5-1 0-.5 0-.5 0-.5-.5-.5 0-.5 0-.5.5 0 0-.5 0-.5.5-.5.5-1 .5 0 0-.5 0-.5.5-1 .5 0 1-1 .5-.5 1 0 .5-1 .5 0 1-1-.5-1 .5-1 0-.5 1-.5 1-.5.5-.5 1-1 0-1 1 0 .5.5 1 0 1 .5.5 0 1-.5 1-.5.5-.5 1 0 1.5-.5 2 0 .5.5 1-.5 1 0 1 0 1-.5.5.5 0 .5 1-.5-.5.5 0 .5.5.5 0 .5-1 .5.5.5.5 0 0 .5.5.5 1 0 .5 0 1 .5 1 0 .5 1 1 .5 1.5 0 1 .5.5 0 .5-.5 0-1 1-.5.5-.5 1.5.5 0 .5.5 0 .5 0 1 0 0 .5 1.5 0 1 0 1 .5.5 0 .5 0 .5-.5 1 0 .5 0 .5.5 0-.5 1 .5 1 0 .5 0 0-.5.5-.5 0-1 .5-1 .5-.5 0-1 0-.5 0-.5-.5 0-1-.5-.5 1-1.5 0-1-.5-1 0-1 .5-1-.5-1 0-.5-1-.5-.5.5-1-1-.5 1.5-1 1.5 0 0-.5 2 0 1.5-.5 1-.5 1.5 0 2 .5 1.5.5 1 0 1 0 1-.5 0-.5 0-.5-.5-.5-.5 0-.5-.5-1.5-1-1 0-1-.5 1-.5.5-.5-.5-.5 1.5-.5 0-.5-1 .5-.5 0-.5.5-1 0-1 0 0 1 .5 0 1 0 0 .5-1.5 0-1 .5-.5 0 0-.5-1-.5 1-.5-2-.5-1 0 0 .5-1 .5 0 .5-.5 0-.5 1.5-.5 0-.5 1 .5.5 0 .5 1 0 0 .5-1.5 0-.5.5-.5.5-.5-.5 0-.5-.5 0-.5 0-1.5.5 1 .5-.5 0-.5 0-.5-.5-.5 0 .5 1 .5.5-.5 0 .5.5.5.5 0 .5-1-.5.5.5-.5 0 0 1-.5 0-1-.5 0-.5-.5-1-.5-.5-.5-.5 0-.5-.5-.5 0-1 0-.5-.5 0 0-.5-.5 0-1-.5-.5 0-1-.5-1-.5.5-.5-.5 0 0-.5-.5 0-.5 0-.5 0 0-.5.5 0-1 0-.5 0 0 .5 0 .5 0 .5 1 .5.5.5 1 1 1 0 0 .5 1 .5.5 0 1 .5 0 .5-1-.5-.5 0-.5.5.5.5 0 .5-.5 0-.5 1-.5 0 .5-1-.5-.5 0-.5-.5 0-.5-.5-.5-.5-.5 0-.5-.5-1 0-1-1-.5-.5-.5-1-.5 0-.5-.5-.5.5-.5 0-.5.5-1 .5-2-.5-1.5.5 0 .5 0 .5-1 1-1 0-.5.5-.5.5-.5.5.5 1-.5 0 0 1-1 0-.5 1-1.5 0-1 0-.5 0-.5.5-.5 0 0-.5-.5-.5-1 0-.5 0-.5 0-.5 0 .5-.5-.5-1-.5 0 0-1 .5-.5 0-1 0-.5 0-.5 0-.5-.5-.5 1.5-.5 1 0 1.5 0 1 0 1 0 1.5 0 .5-.5.5-2-1-1-1-.5-1.5-.5 0-.5 1-.5 2 .5-.5-1.5 1 .5 2.5-.5 0-1 1 0 1-.5.5 0 .5-1.5 1.5-.5 1 0 1 0 1-.5-.5-.5 0-.5-.5-.5 0-1 .5-.5 1 0 .5-.5.5 0 0 .5 0 .5.5 0-.5.5-1 .5.5.5 0 .5 1 0 0 .5 1 0 .5-.5 1 .5.5 0 1 0 1.5-.5 1-.5 1 .5 1 0 .5-.5 1.5 0-.5-1 0-1 .5-.5 1-.5 1 1 .5 0 .5-1 0-.5-.5 0-.5 0 0-.5 1-.5 1.5 0 1 0 1 0 1-.5-1-.5-1.5 0-2 .5-1.5 0-.5-.5-1 0 0-1-.5-1 .5-.5 1-1 2-1 1 0 0-.5-1.5-.5-2 .5-1 .5.5.5-1.5 1-2 1-1 1 1 1 1 .5-1 1-1 .5-.5 1.5-.5 1-1.5 0-.5.5-1 0-.5-1-.5-1-1-1.5-.5-.5-2 1-1.5.5-1.5-.5 0-1-.5-2.5 1-.5 2.5-1 2-1 2-1.5 2.5-2 1.5-.5 2.5-1.5 2.5-.5 1.5.5 1.5-1 2 0 1.5 0 3.5.5-1.5.5 1 .5 1-.5 2 .5 2.5.5 4 1 .5.5 0 .5-1 .5-1.5.5-4.5-1-1 .5 2 .5 0 1.5 1 .5 1 0 0-.5-.5-.5.5 0 2.5.5 1-.5-.5-.5 2-1 1 0 1 .5.5-1-1-.5.5-.5-.5-.5 3 .5.5.5-1.5 0 0 .5 1 .5 1.5-.5 0-.5 2-.5 3.5-1 1 0-1 1 1 0 1-.5 2 0 1.5-.5 1 .5 1-.5-1-.5.5-.5 3 .5 1.5.5 3.5 1 .5-.5-1-.5 0-.5-1 0 .5-.5-1-.5 0-.5 2-1 .5-1 1 0 2.5 0 .5 1-1 .5.5.5.5.5-.5 1.5 1 .5-.5 1-1.5 1 1 .5.5-.5 1-.5 0-.5 1-.5-.5-.5.5-.5-1 0-.5-.5 1-1-1.5-1 2-.5-.5-1 .5 0 .5.5 0 1 1 .5-.5-1 1.5-.5 2 0 2 1-1-1 0-1 2-.5 2 0 2.5 0-1-.5 1-.5 1.5 0 2-.5 2.5-.5 3 0 .5 0 2.5-.5 2 0 0-.5 1-.5 2.5 0 1.5 0-1.5.5 2.5 0 0 .5 1 0 3 0 2.5.5.5 0 0 .5-1 .5-3 .5-.5.5 1 0 1.5 0 1 0 .5.5.5 0 1.5-.5 3.5.5 0 .5 4 0 .5-.5 2 0 1.5 0 1.5.5.5.5-.5.5 1 1 2 0 1-1 1.5.5 1.5 0 2 0 .5 0 2 0-1-1 1.5-.5 9 1 1 .5 2.5.5 4 0 2 0 1 .5-.5 1 1.5 0 1.5 0 1.5 0 2 0 2 0 1.5 1 1.5-.5-1-.5.5-.5 3 0 2 0 3 .5zM229 42.5l.5 1 .5 0 .5 0-1 .5 0 .5-.5.5 0 .5 0 1 1 0 1 .5 1.5.5 1.5-.5-.5-1 .5-1-1-.5.5-.5-1 0 .5-1 1 .5.5-.5-.5-.5-.5-.5-.5 0 0 1-.5-1 0-.5 0-.5-1 0-.5-1-.5-.5 1 0 0-.5.5-.5 1 0 0-.5 0-1-1 0-1 0-1 .5-1 0-.5.5-1 .5-1 1 1 1 0 .5 1 1zM84.5 15l-1 0-1 0-1 0-1.5-.5 1 0 1-.5 1 0 .5.5zM0 12.5l0 .5-1 0-.5 0zM0 12.5l1 0 1.5 0 0 .5-1 0-1.5 0zM89.5 14.5l0 1 1.5-1 1 1-.5.5 1 1 1-1 1-1 0-1 1.5 0 1.5.5 1 .5.5.5-1 .5.5.5 0 .5-2 .5-1 0-1.5 0 0 .5-1 1-.5 0-1 1-1.5 0-.5.5-.5.5-1 0-1 1-1 1-.5 1 0 1 1.5 0 0 1 .5 1 1.5-.5 2 .5 1 .5.5.5 1.5.5 1 0 1.5.5 1 0 0 .5.5 1 .5 1.5 1.5 1 1-.5.5-1-.5-1.5-1-.5 2-.5 1-1 .5-.5 0-.5-1-1-1-1 1-1-.5-1 0-1.5.5 0 2 0 1 .5.5-.5 1 .5 1.5.5 0 .5 2 0 0 1 0 1 1 0 1 1 1.5-1 1-1 .5-.5.5 1 1.5 1.5 1 1-.5.5 1.5.5 1 1 1.5 0 .5.5.5.5 1 .5.5 1.5-1 0-.5.5-2 .5-1 1-1.5 0-2.5-.5-1.5 0-1 .5-.5.5-1.5.5-1.5 1.5-1 .5.5 0 2-1.5 2-.5 1.5 0 1 .5-1 .5 0 1 .5 1 1.5.5 1.5-.5 1-1 0 .5.5.5-1 .5-2.5 1-.5 0-1.5 1-.5 0 0-1 1.5-1-1.5 0-1 .5-1 .5-1 .5-1 .5-.5.5-.5 0 0 .5.5.5.5 0 0 .5-.5 0-.5 0-1 0-.5 0-.5.5-.5 0 1.5 0-1.5.5-.5 0 0-.5-.5.5.5 0 0 1-1 .5-.5-.5 0 .5.5 0 0 .5-.5.5-.5 1 0-.5.5-.5-.5-.5-.5-.5 0 .5 0 .5-.5 0 .5 0 0 1 .5 0 0 .5.5 1-1 .5-1 .5-.5.5-.5 0-.5.5 0 .5-1.5.5-.5.5-.5.5 0 1 0 .5.5 1 .5.5 0 .5.5 1 0 1-.5 1-.5 0-.5-.5 0-.5-.5-.5-.5-1-.5-.5.5-.5-.5-.5-.5-1-.5 0-1 .5-.5 0-.5-.5-.5-.5-1 0-1 0-.5 0-.5.5 0 .5.5 0-.5.5-.5-.5 0 .5-1 0-.5-.5-1 0-.5-.5-1 .5-.5 0-1 1-1 0-.5.5-.5.5 0 1 0 .5.5 0-.5 1 0 .5-.5 1.5 0 .5.5.5 0 .5.5 1 .5.5 0 .5.5.5 1 .5.5.5 1-.5.5 0 1 0 .5-.5.5-.5.5-.5 0-.5 0-.5 1-.5 1 0 1 0 .5 0 0 .5-.5.5 0 1 0 .5-.5.5-.5 0 .5 0 0 .5-.5.5.5 0-.5.5.5 0-.5.5 0 .5-.5 0 .5.5 0-.5.5.5 0-.5.5 0 .5 0 .5 0 .5 0 .5 0 .5 0 .5 0 .5.5.5 0 .5.5-.5.5.5 0-.5.5 0 .5 0 .5 0 .5 0 .5 0 .5-.5 0 0 .5.5 0 0 .5.5.5.5.5.5.5.5 0 .5 0 .5 0 .5-.5.5 0 .5 0 .5 0 .5.5.5 0 0 .5.5 0 1-1 .5 0 0-.5 0-.5.5-.5.5 0 .5-.5.5.5 1-.5.5-.5 0-.5.5 0 .5.5-.5 0 0 .5-.5 0 .5.5 0 .5-.5.5.5 1 .5-1-.5 0 0-1 1.5-.5-.5-.5.5 0 .5.5.5 0 1 .5 0 .5.5 0 1.5 0 .5.5.5 0 .5-.5 1.5 0 1 0-.5 0 0 .5 1 0 .5.5.5 1 .5 0 1 .5.5.5 0 .5.5 0 .5.5.5.5 1 0 1 0 1 0 .5.5.5 0 1 1 .5.5.5.5.5 1.5.5.5 0 .5-.5 1 2 0 0 1 .5-.5 1.5.5 1.5.5.5.5 0 .5 1 0 2 .5 1.5 0 1.5.5 1.5 1.5.5 0 1 0 .5.5 0 1 .5 1-.5 1.5-.5.5-1.5 1.5-.5 1-1 1-.5 1 0 1.5 0 1.5-.5 1 0 .5-.5 1-1 1.5 0 1-1 .5 0 .5-1 0-1.5.5-1 .5-1 0-1 1-1 1 0 .5 0 .5 0 1-.5.5-.5.5-1 2-1 1-1 0 0 1-1 1-.5.5-1 .5-.5 0-.5 0-1-.5-1 0-.5-.5 0 .5 1.5 1-.5.5 1 .5-.5.5-.5 1-1.5.5-2 .5-1.5 0 .5.5-.5.5.5.5-.5.5-1.5 0-.5 0-.5 0 0 1 .5.5.5-.5.5.5-1 .5-.5.5-.5 1 0 .5-1 0-1 .5 0 1 1 .5 1 0-.5 1-1 .5-1 1.5-.5.5-.5 0 0 1.5 1 .5-.5 0-1 0-.5 0-1 .5 0 1-.5 0-1-.5-1-.5-1.5-.5-.5-1 .5-.5-.5-.5 0-2 .5-1 1-.5-1.5-.5 1-.5 0-2 1.5.5.5-2-1-.5 0 1.5-1-.5.5-1 .5-2 .5-.5-.5-1 0-1.5.5 0 .5-1.5.5-1.5.5-1.5 0-1.5 0-1 0-1 .5-1.5.5-2 0-2 .5-2 0-1.5-.5-1.5-1-.5 0-.5-2-1-1.5-1-1-1-.5-.5 0-.5-.5-1.5-1-1.5-1-2-.5-.5-.5-1-.5-.5-1-.5.5-.5-.5-1 .5-.5.5-.5.5-1 0-.5-.5.5-.5-.5 0-1 .5 0 0-.5.5-1 0-.5.5 0 .5-.5.5-.5 0-.5.5 0 .5-1 .5-.5-.5 0 0-.5 0-1 0-.5 0-.5-.5-.5 0-.5-.5-.5.5-.5-.5 0-.5-.5-.5 0-.5.5-.5 0 0 .5.5.5-.5 0-.5.5 0-1 0 .5-.5 0 0-.5-.5 0-.5-.5-.5 0 0 .5-.5-.5 0-.5-.5-.5-.5 0 0-.5-.5 0 0 .5-.5-.5-.5 0 0-.5.5-.5-.5 0 .5 0-.5-.5-.5-.5-.5-.5-.5-.5 0-.5-.5 0 0 .5-.5 0-.5-.5-.5 0-.5 0-.5-.5-.5 0-.5 0-.5-.5-1.5-1-.5-.5-.5 0-1 0-.5 0-.5.5-1-.5-.5 0-1-.5-.5 0-1.5-.5-.5-.5-.5-.5-.5 0-1-.5-.5 0-1-1-.5-.5 0-.5 0-.5 0-.5 0-.5 0-.5-.5-.5-1-1-1-.5-.5-.5-1-.5 0-.5 0-.5-.5 0-.5-.5 0-1-.5 0-1-.5 0-.5-.5-.5-.5-.5 0-1-1-.5-1-.5 0 .5 0 .5.5 1 1 1 .5.5 0 .5.5.5.5.5.5.5 0 1 .5 0 .5.5 0 .5.5 0 0 .5.5.5 0 .5-.5 0-.5-.5-.5-.5-.5-.5-.5 0 0-1-.5-.5-.5-.5-.5-.5 0 .5-.5-.5-.5 0-.5-.5 0-.5.5.5.5-.5 0-.5-1-1-.5 0-.5-.5-.5-1 0-.5-.5-1-.5-.5-.5-.5-.5 0 0-.5-.5 0-.5-.5-1 0 0-.5-1-1-1-1.5 0-.5-.5 0-.5-1-.5-1-.5-.5.5-.5 0-1-.5-1 .5-.5 0-2 0-1.5-.5-.5 0-.5 0-.5 1.5.5.5 1 0-.5 0-.5-.5-1-2-1-.5-.5-2-.5-.5-.5 0-1-1-.5-.5-.5-1-1 0-.5-.5 0-1-.5 0-1-1.5-.5-.5-1-1 0-1.5 0-1.5-.5-2-1-1 0-1.5-.5-1.5 0-2-.5-1-.5-1 .5 0 .5-.5 0-1 .5-1 0-1 .5-.5-.5.5-1 1-.5 0-.5-1.5 1-.5.5-1.5.5.5.5-.5 1-1.5.5-1 0 0 .5-1.5.5-.5.5-1 .5-1 0-.5 0-1 .5-1 .5-2 0 1-.5 1-.5 1-.5 1.5 0 .5-.5 1.5-.5 1-.5 0-1 .5-.5-1 .5-.5-.5-.5.5-.5-.5-.5.5-.5-.5-1 .5-.5 0 0-1-.5-.5-1.5 0-.5-.5-1 0 0-.5-.5-.5.5-.5.5-.5.5-.5.5 0 1 0 .5-.5 1 0 .5-.5-.5-.5.5-.5-.5 0-1 .5-.5 0-.5 0-1.5 0-1.5 0-.5-.5-1-.5 1.5-.5 2-.5 1 0-.5.5 2.5 0-1-.5-1-.5-1-.5-1-.5-1.5-.5 1-.5 1.5 0 1.5-.5 0-.5 1-.5 1 0 2-.5 1 0 1.5-.5 1.5.5.5.5.5-.5 2 0-.5.5 2 0 1 0 2 .5 2 0 .5 0 1.5 0 1.5 0 1 .5 2 0 1.5.5 1 0 1-.5 1 0 1.5 0 1.5-.5 1.5 0 1 0 .5 0 .5-.5.5 0 1.5 1 1.5-.5 0 .5 1.5 0 .5-.5 1 0 1.5.5 2.5.5 1.5 0 1 0 1 .5-1.5.5 2 .5 2.5-.5 1 0 1 .5 1-.5-1-.5 1 0 1 0 1-.5.5.5 1 .5 1.5 0 1.5.5 1.5-.5 1.5 0 0-.5 1 0 1.5.5 0 .5.5-.5 1 0 .5-1-1.5-.5-1-.5 0-1 1.5-1 1 0 1 .5 1.5 1.5-1 .5zM66 11l-.5.5 2-.5 1.5.5 1-.5 1 .5 1 1 .5-.5-1-1 1 0 1 0 1 .5.5 1 .5.5 1.5.5 2 .5 0 .5-1.5 0 .5.5-.5 0-1.5 0-2 0-1 0-2 0-3 .5-1.5 0-.5-.5-1-.5-1 .5-1.5-1 1 0 1.5 0 1.5 0 1-.5-2 0-2 0-1.5 0-.5-.5 2.5-.5-1.5 0-2 0 1-1 .5 0 3-1zM75.5 10.5l-1 .5-1.5-.5.5 0 1 0zM103.5 11l-1 0-1 0-1 .5-.5-.5-1-.5.5-.5 2.5.5zM93.5 11l.5.5 1-1 2.5-.5 2 1.5-.5.5 2-.5 1-.5 2.5 1 1.5 0 0 .5 2 0 1 .5 2 .5 1 .5 1 1-2 .5 2.5.5 1.5 0 1.5 1 1.5 0 0 1-2 1-1-.5-1.5-1-1.5 0 0 1 1 .5 1.5.5 1 1-.5 1-1.5-.5-2.5-.5 1.5.5 1 .5.5.5-3-.5-2-.5-1-.5-1.5-.5-1.5-.5-2.5.5-1-.5.5-1 2 0 2 0-.5-.5.5-.5 1.5-1-.5 0-.5-.5-1.5-.5-2-.5 1 0-1.5-1-.5 0-1 0-.5 0-2 .5-3.5-.5-2-.5-1.5 0-1-.5 1 0-1.5 0 0-1 .5-1 1-.5 2.5-.5zM79.5 10l1.5.5 1.5-.5.5.5-1 .5 1.5.5 0 1-2 0-1 0-.5 0-2.5-1 0-.5 2 .5-1-1zM323.5 11l-1.5 0-2-.5 1-.5 1 0 1.5.5zM87 11l-1.5 1-1 0-.5-1 0-.5.5-.5 1 0 2 0 2 0-1.5 1zM59.5 12.5l-2.5.5-.5-.5-2.5-.5.5 0 .5-1 1-.5-1-1 3.5 0 1.5.5 2.5 0 1 0 1 .5-1.5.5-2 .5-1.5.5zM330.5 9l-1 .5-1.5-.5-2 0 .5-.5 1.5 0zM86.5 9l-.5.5-1.5 0-1.5-.5.5-.5 1.5 0 1 0zM325 8.5l-.5.5-4 0-1.5.5-2-1 .5-.5 1.5 0 2.5 0zM81.5 7.5l1 0 0 1-.5.5-2 0-1 0 0-.5-1.5 0 0-1 1 0 1.5 0zM72 8l1 0 1 0 .5.5-1 .5-3 0-2.5.5-1.5 0-.5 0 2-.5-4.5 0-1 0 1-1 1-.5 3 .5 1.5.5 2 0-1.5-1 1-.5 1 .5zM237.5 13.5l-.5 0-3.5-.5-2-.5 0-.5 1 0 0-1 2-.5-1-.5 2.5-.5-.5-.5 2.5-.5 3-1 3.5 0 1.5-.5 2 0 1 .5-1 .5-3.5.5-3 0-3 1-1.5 1-1.5 1 0 1zM85.5 7l1 0 2 0 1 .5-.5.5 1 0 1 .5 1 0 1.5 0 1.5 0 2-.5 2 .5 1 0 0 .5-.5.5-1.5 0-1 0-3 0-2 0-2 0-2.5-.5-.5-.5 0-.5-1-.5-2 0-1-.5.5 0zM64 6.5l-.5.5-.5.5-1 0-2 .5-1.5 0-1.5 0 2-1 2-.5 1.5 0zM86 6.5l-.5 0-1.5 0-.5-.5 2 0 1 .5zM70 6.5l-2 0-1.5 0 1-.5 1 0 1.5 0zM204.5 6l-2 .5-2 0 1-.5-.5-.5 2 0 .5.5zM70.5 5.5l-1.5 0-1.5 0 1-.5.5 0zM84 6l-1.5 0-.5 0-.5-.5 0-.5 1 0 .5 0 1.5.5zM80 5.5l.5.5-2 0-1.5-.5-2 0 1 0-1.5-.5 0-.5 2 .5 2.5 0zM285 5.5l-5.5.5 2-1 .5-.5 1 0 2.5 1zM198.5 4.5l3 .5-2.5.5-.5.5-1 .5-.5.5-1 0-2-.5.5 0-1.5-.5-2-1-.5-.5 2.5-.5.5.5 1.5 0 .5-.5 1.5 0zM205.5 3.5l2 .5-1.5.5-3 0-3 0 0-.5-1.5 0-1-.5 3 0 1.5 0 1 0zM231 3.5l-1 0-1 0 0 .5-1.5 0-1 0 .5-.5-2 0 2-.5 1.5 0 0 .5.5-.5 1 0 1.5.5zM280 5l-2 0-3 0-1.5-.5-1-.5-1.5-.5 3-.5 2-.5 2 1 2 .5zM93 4.5l1 0-1 .5-2 .5-2 .5-2-.5-1-.5 1-.5-2 0-1 0-.5-.5.5-.5.5-.5 1 0 2-.5 1.5 1 1.5 0 1.5 0zM111.5 1l2.5 0 2.5 0 1.5.5-2.5.5-2.5.5-.5 0 2 0-2.5.5-1.5.5-1.5.5-2 .5-1 0-3 0 1.5.5-.5 0 .5.5-1 .5-1.5 0-.5.5-1.5.5.5 0 1.5 0-2.5 1-2.5-.5-3 0-1.5 0-2 0 0-.5 1.5 0-.5-1 1 0 2.5.5-1.5-.5-1.5-.5 1-.5 1.5 0 .5-.5-1.5 0-.5-1 3 .5.5 0 1.5-.5-2 0-3.5 0-2-.5-.5-.5-1.5 0 0-.5 1.5 0 1 0 2-.5 1.5 0 1 0 1.5 0 .5-.5 1.5 0 1.5 0 3 0 1 0 2.5 0 2.5 0zM153 .5l6 1-1.5 0-4 0-5.5.5.5 0 3.5 0 3 0 2 0 1 .5-1 .5 2.5-.5 4.5-.5 3 .5 1 0-4.5 1-.5 0-3 .5 2.5 0-1.5.5-.5.5 0 1.5 1 .5-1.5 0-1.5.5 1.5.5.5 1-1 0 1 .5-2 .5 1 0-.5.5-1 0-1.5 0 1 1 0 .5-2-.5-.5 0 1.5.5 1.5.5 0 1-1.5 0-1-.5-1-.5.5.5-1.5 1 3 0 1 0-2.5.5-2.5 1-3 .5-1.5 0-1 .5-1 1-2.5.5-.5 0-1.5.5-1.5 0-.5.5 0 1-.5.5-2 1 .5.5-.5 1-.5 1-1.5 0-1.5-1-2 0-.5-.5-1-1-1.5-1-.5-1-.5-.5-1-1 0-1-.5 0 1-1.5 1.5 0 .5-.5 0-1-1 .5-.5 0-1 0-1 0-.5-1 .5-.5 1 0 2 .5-1.5-.5-1-.5-1 0-1 0 1.5-1-1-.5-.5-.5-1.5-1-1-.5 0-.5-3-.5-2 0-2.5 0-2.5 0-1-.5-2-.5 2.5-.5 2 0-4 0-2.5-.5.5-.5 3.5-.5 4-.5 0-.5-2.5 0 1-.5 3.5-.5 1.5-.5-.5-.5 2 0 3.5 0 3 0 1 0 2.5-.5 2.5.5 1.5 0 2 .5-2.5-.5 0-.5 3.5-.5 3.5 0 1.5-.5 3.5 0z';
+// where each place is: latitude, longitude, country, its name and its flag
+const CITY_GEO={
+  'Bucharest':[44.43,26.10,'ROU','Romania','🇷🇴'],'Saint Louis':[38.63,-90.20,'USA','the United States','🇺🇸'],'London':[51.51,-0.13,'ENG','England','🏴'],
+  'Berlin':[52.52,13.40,'GER','Germany','🇩🇪'],'Paris':[48.86,2.35,'FRA','France','🇫🇷'],'Madrid':[40.42,-3.70,'ESP','Spain','🇪🇸'],'Rome':[41.90,12.50,'ITA','Italy','🇮🇹'],
+  'Amsterdam':[52.37,4.90,'NED','the Netherlands','🇳🇱'],'Moscow':[55.76,37.62,'RUS','Russia','🇷🇺'],'Kyiv':[50.45,30.52,'UKR','Ukraine','🇺🇦'],
+  'Chennai':[13.08,80.27,'IND','India','🇮🇳'],'Beijing':[39.90,116.40,'CHN','China','🇨🇳'],'Yerevan':[40.18,44.51,'ARM','Armenia','🇦🇲'],
+  'Baku':[40.41,49.87,'AZE','Azerbaijan','🇦🇿'],'Warsaw':[52.23,21.01,'POL','Poland','🇵🇱'],'Budapest':[47.50,19.04,'HUN','Hungary','🇭🇺'],
+  'Oslo':[59.91,10.75,'NOR','Norway','🇳🇴'],'Prague':[50.08,14.44,'CZE','Czechia','🇨🇿'],'Stockholm':[59.33,18.07,'SWE','Sweden','🇸🇪'],
+  'Tbilisi':[41.72,44.79,'GEO','Georgia','🇬🇪'],'Manila':[14.60,120.98,'PHI','the Philippines','🇵🇭'],'Hanoi':[21.03,105.85,'VIE','Vietnam','🇻🇳'],
+  'São Paulo':[-23.55,-46.63,'BRA','Brazil','🇧🇷'],'Buenos Aires':[-34.60,-58.38,'ARG','Argentina','🇦🇷'],'Tehran':[35.69,51.39,'IRI','Iran','🇮🇷'],
+  'Istanbul':[41.01,28.98,'TUR','Türkiye','🇹🇷'],'Belgrade':[44.79,20.45,'SRB','Serbia','🇷🇸'],'Zagreb':[45.81,15.98,'CRO','Croatia','🇭🇷'],
+  'Hastings':[50.85,0.57,'ENG','England','🏴'],'Reykjavik':[64.15,-21.94,'ISL','Iceland','🇮🇸'],'Dubai':[25.20,55.27,'UAE','the United Arab Emirates','🇦🇪'],
+  'Gibraltar':[36.14,-5.35,'GIB','Gibraltar','🇬🇮'],'Doha':[25.29,51.53,'QAT','Qatar','🇶🇦'],'Douglas, Isle of Man':[54.15,-4.48,'IOM','the Isle of Man','🇮🇲'],
+  'Douglas':[54.15,-4.48,'IOM','the Isle of Man','🇮🇲'],'Wijk aan Zee':[52.49,4.60,'NED','the Netherlands','🇳🇱'],'Stavanger':[58.97,5.73,'NOR','Norway','🇳🇴'],
+  'Kolkata':[22.57,88.36,'IND','India','🇮🇳'],'Toronto':[43.65,-79.38,'CAN','Canada','🇨🇦'],'Singapore':[1.35,103.82,'SGP','Singapore','🇸🇬'],
+  'Batumi':[41.64,41.64,'GEO','Georgia','🇬🇪'],'Goa':[15.49,73.83,'IND','India','🇮🇳'],'Sochi':[43.60,39.73,'RUS','Russia','🇷🇺'],
+  'Samarkand':[39.65,66.96,'UZB','Uzbekistan','🇺🇿'],'New York':[40.71,-74.01,'USA','the United States','🇺🇸'],'Weissenhaus':[54.30,10.79,'GER','Germany','🇩🇪'],
+  'Las Vegas':[36.17,-115.14,'USA','the United States','🇺🇸'],'Pegeia':[34.88,32.38,'CYP','Cyprus','🇨🇾'],'Chongqing':[29.56,106.55,'CHN','China','🇨🇳'],
+  'Shanghai':[31.23,121.47,'CHN','China','🇨🇳'],'Zurich':[47.37,8.54,'SUI','Switzerland','🇨🇭'],'Riga':[56.95,24.11,'LAT','Latvia','🇱🇻'],
+  'Durrës':[41.32,19.45,'ALB','Albania','🇦🇱'],'Montesilvano':[42.51,14.15,'ITA','Italy','🇮🇹'],'Petrovac':[42.21,18.94,'MNE','Montenegro','🇲🇪'],
+  'Gandhinagar':[23.22,72.65,'IND','India','🇮🇳'],'Mamaia':[44.25,28.62,'ROU','Romania','🇷🇴'],'Sitges':[41.24,1.81,'ESP','Spain','🇪🇸'],
+  'Porto':[41.15,-8.61,'POR','Portugal','🇵🇹'],'Novi Sad':[45.27,19.83,'SRB','Serbia','🇷🇸'],'Charlotte':[35.23,-80.84,'USA','the United States','🇺🇸'],
+  'Tashkent':[41.30,69.24,'UZB','Uzbekistan','🇺🇿'],'Cape Town':[-33.92,18.42,'RSA','South Africa','🇿🇦'],'Riyadh':[24.71,46.68,'KSA','Saudi Arabia','🇸🇦']
+};
+const PP_VIEWS={world:[0,0,360,142],europe:[153,10,78,42],asia:[205,18,130,78],americas:[40,18,125,112]};
+const PP_COLS=['#f87171','#60a5fa','#34d399','#fbbf24','#a78bfa','#f472b6','#22d3ee','#fb923c'];
+function ppXY(g){return [Math.round((g[1]+180)*10)/10,Math.round((84-g[0])*10)/10];}
+function ppKm(a,b){
+  const R=6371,r=Math.PI/180,dl=(b[0]-a[0])*r,dn=(b[1]-a[1])*r;
+  const x=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dn/2)*Math.sin(dn/2);
+  return 2*R*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+/* Where an event was, for its line in your history. */
+function ppLoc(tr,games){
+  const P=tr&&tr.place;if(!P||!P.city)return null;
+  const away=P.trip==='abroad'||P.trip==='national';
+  let n=0;if(away){try{n=eventDays(tr,games);}catch(e){n=(games||9)+1;}}
+  return {city:P.city,trip:P.trip,far:!!P.far,fh:P.flightH||0,n:n};
+}
+/* Every event you have played, and where. Events from before the passport
+   are placed where the calendar put them that season. */
+function ppTrips(c){
+  const out=[];
+  (c.history||[]).forEach(function(h){
+    if(h.oneoff||!h.id)return;
+    let L=h.loc;
+    if(!L){
+      const t=TOURNAMENTS.find(function(x){return x.id===h.id;});if(!t)return;
+      const P=eventPlace(t,{fed:c.fed,season:h.s||1});
+      const away=P.trip==='abroad'||P.trip==='national';
+      L={city:P.city,trip:P.trip,far:P.far,fh:P.flightH||0,n:away?Math.max(2,Math.round((h.rounds||9)*(h.format==='classical'?1.15:0.4))+2):0,guess:true};
+    }
+    out.push({h:h,loc:L});
+  });
+  return out;
+}
+function ppStats(c){
+  const T=ppTrips(c),home=FED_CITY[c.fed]||null,hg=home?CITY_GEO[home]:null;
+  const byCC={},byCity={};let flights=0,km=0,nights=0,online=0,trains=0;
+  T.forEach(function(x){
+    const L=x.loc,h=x.h;
+    if(L.trip==='online'){online++;return;}
+    const g=CITY_GEO[L.city];if(!g)return;
+    const cc=g[2],place=h.place||null,s=h.s||1,w=h.w||0;
+    const C=byCity[L.city]=byCity[L.city]||{city:L.city,g:g,events:[],best:null,nights:0};
+    C.events.push(h);if(place&&(C.best==null||place<C.best))C.best=place;
+    const K=byCC[cc]=byCC[cc]||{cc:cc,name:g[3],flag:g[4],first:{s:s,w:w},last:{s:s,w:w},events:0,best:null,cities:{}};
+    K.events++;K.cities[L.city]=1;if(place&&(K.best==null||place<K.best))K.best=place;
+    if(s<K.first.s||(s===K.first.s&&w<K.first.w))K.first={s:s,w:w};
+    if(s>K.last.s||(s===K.last.s&&w>K.last.w))K.last={s:s,w:w};
+    const away=L.trip==='abroad'||L.trip==='national';
+    if(away){nights+=L.n||0;C.nights+=L.n||0;}
+    if(L.trip==='abroad'&&hg&&cc!==hg[2]){flights++;km+=2*ppKm(hg,g);}
+    else if(away&&L.city!==home)trains++;
+  });
+  return {home:home,hg:hg,byCC:byCC,byCity:byCity,flights:flights,km:Math.round(km),nights:nights,online:online,trains:trains,trips:T.length};
+}
+function ppMapSvg(st,zoom){
+  const V=PP_VIEWS[zoom]||PP_VIEWS.world,sc=V[2]/360,r=Math.max(0.85,3.1*sc),sw=Math.round(0.3*sc*1000)/1000;
+  let h='<svg class="ppmap" viewBox="'+V.join(' ')+'" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A map of the places you have played" '+
+    'style="width:100%;height:auto;display:block;border-radius:10px;background:rgba(56,189,248,.10)">'+
+    '<path d="'+PP_LAND+'" fill="rgba(148,163,184,.34)" stroke="rgba(148,163,184,.6)" stroke-width="'+sw+'"/>';
+  // the flights: an arc from home to every city you have been to
+  if(st.hg){
+    const H=ppXY(st.hg);
+    Object.keys(st.byCity).forEach(function(k){
+      if(k===st.home)return;
+      const P=ppXY(st.byCity[k].g),mx=(H[0]+P[0])/2,my=(H[1]+P[1])/2,dx=P[0]-H[0],dy=P[1]-H[1],d=Math.sqrt(dx*dx+dy*dy);
+      h+='<path d="M'+H[0]+' '+H[1]+'Q'+Math.round(mx*10)/10+' '+Math.round((my-d*0.22)*10)/10+' '+P[0]+' '+P[1]+'" fill="none" stroke="var(--brand2,#60a5fa)" stroke-width="'+Math.round(sw*1.5*1000)/1000+'" opacity=".45"/>';
+    });
+  }
+  Object.keys(st.byCity).forEach(function(k){
+    const C=st.byCity[k],P=ppXY(C.g),home=k===st.home;
+    const col=home?'#22c55e':C.best===1?'#fbbf24':(C.best&&C.best<=3)?'#cbd5e1':'var(--brand,#3b82f6)';
+    h+='<g data-act="pppin" data-val="'+esc(k)+'" style="cursor:pointer"><title>'+esc(k)+'</title>'+
+      '<circle cx="'+P[0]+'" cy="'+P[1]+'" r="'+Math.round(r*3.2*100)/100+'" fill="transparent"/>'+
+      '<circle cx="'+P[0]+'" cy="'+P[1]+'" r="'+Math.round(r*(home?1.3:1)*100)/100+'" fill="'+col+'" stroke="#0b1220" stroke-width="'+Math.round(sw*1.6*1000)/1000+'"/>'+
+      (app.ppPin===k?'<circle cx="'+P[0]+'" cy="'+P[1]+'" r="'+Math.round(r*2.1*100)/100+'" fill="none" stroke="#fff" stroke-width="'+Math.round(sw*1.8*1000)/1000+'"/>':'')+'</g>';
+  });
+  return h+'</svg>';
+}
+function ppPlace(p){return p===1?'🥇 won':p===2?'🥈 2nd':p===3?'🥉 3rd':p?ordinal(p):'';}
+function careerPassportPanel(c){
+  const st=ppStats(c),K=Object.keys(st.byCC).map(function(k){return st.byCC[k];}).sort(function(a,b){return a.first.s-b.first.s||a.first.w-b.first.w;});
+  let h='<div class="card" id="passportcard" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+    '<div style="font-weight:700">🛂 Passport</div><div class="dim small">'+(st.home?'home: '+esc(st.home):'')+'</div></div>';
+  if(!K.length&&!st.online)return h+'<div class="dim small" style="margin-top:4px">Empty so far. Every event you play adds its city to your map, and every country a stamp.</div></div>';
+  const cities=Object.keys(st.byCity).length;
+  h+='<div class="small" style="margin:6px 0 8px;display:flex;flex-wrap:wrap;gap:4px 14px">'+
+    '<span>🌍 <b>'+K.length+'</b> countr'+(K.length===1?'y':'ies')+'</span><span>🏙️ <b>'+cities+'</b> cit'+(cities===1?'y':'ies')+'</span>'+
+    '<span>✈️ <b>'+st.flights+'</b> flight'+(st.flights===1?'':'s')+(st.km?' · '+st.km.toLocaleString()+' km':'')+'</span>'+
+    (st.trains?'<span>🚆 <b>'+st.trains+'</b> by train</span>':'')+'<span>🛏️ <b>'+st.nights+'</b> nights away</span>'+
+    (st.online?'<span>💻 <b>'+st.online+'</b> online</span>':'')+'</div>';
+  const z=app.ppZoom||'world';
+  h+='<div class="row" style="gap:5px;flex-wrap:wrap;margin-bottom:6px">'+[['world','🌍 World'],['europe','Europe'],['asia','Asia'],['americas','Americas']].map(function(x){
+    return '<button class="btn '+(z===x[0]?'primary':'ghost')+' sm" data-act="ppzoom" data-val="'+x[0]+'">'+x[1]+'</button>';}).join('')+'</div>';
+  h+=ppMapSvg(st,z);
+  h+='<div class="dim small" style="margin-top:4px">🟢 home · 🟡 won there · ⚪ on the podium · 🔵 played · tap a pin</div>';
+  const pin=app.ppPin&&st.byCity[app.ppPin];
+  if(pin){
+    h+='<div style="margin-top:8px;padding:8px 10px;border:1px solid var(--border);border-radius:10px"><div style="font-weight:700">'+pin.g[4]+' '+esc(pin.city)+
+      ' <span class="dim small" style="font-weight:400">'+esc(pin.g[3])+(pin.nights?' · '+pin.nights+' night'+(pin.nights===1?'':'s'):'')+'</span></div>'+
+      pin.events.slice(0,8).map(function(e){return '<div class="small" style="padding:2px 0">'+(e.emoji||'♟')+' '+esc(e.name)+' <span class="dim">'+(FIRST_YEAR-1+(e.s||1))+' · '+
+        (e.place?ppPlace(e.place)+' · ':'')+fmtScore(e.score||0)+'/'+(e.rounds||0)+'</span></div>';}).join('')+
+      (pin.events.length>8?'<div class="dim small">and '+(pin.events.length-8)+' more</div>':'')+'</div>';
+  }
+  if(K.length)h+='<div class="ppgrid">'+K.map(function(x){
+    return '<div class="ppstamp" style="--rot:'+((wpHash(x.cc)%9)-4)+'deg;--col:'+PP_COLS[wpHash(x.cc+'c')%PP_COLS.length]+'">'+
+      '<div class="pps-flag">'+x.flag+'</div><div class="pps-name">'+esc(x.name.replace(/^the /,'').toUpperCase())+'</div>'+
+      '<div class="pps-date">'+(FIRST_YEAR-1+x.first.s)+'</div>'+
+      '<div class="pps-meta">'+x.events+' event'+(x.events===1?'':'s')+(x.best?' · '+ppPlace(x.best):'')+'</div></div>';}).join('')+'</div>';
+  return h+'</div>';
+}
+/* For the biography: how far the game has taken you. */
+function ppBioLine(c,sur){
+  const st=ppStats(c),K=Object.keys(st.byCC).map(function(k){return st.byCC[k];}).sort(function(a,b){return a.first.s-b.first.s||a.first.w-b.first.w;});
+  if(K.length<2)return '';
+  const far=K.slice().sort(function(a,b){return (st.hg?ppKm(st.hg,CITY_GEO[Object.keys(b.cities)[0]]):0)-(st.hg?ppKm(st.hg,CITY_GEO[Object.keys(a.cities)[0]]):0);})[0];
+  return sur+' has played in '+K.length+' countries'+(st.flights?', flown '+(st.flights===1?'once':st.flights===2?'twice':st.flights+' times')+' to do it':'')+(far&&st.hg&&far.cc!==st.hg[2]?', as far as '+esc(Object.keys(far.cities)[0])+' in '+esc(far.name):'')+'.';
+}
 /* ---------------------------------------------------------------------------
    THE WORLD PLAYS ITS SEASON
 
@@ -23586,6 +24448,7 @@ function worldQualify(c,ids){
 }
 function worldResult(c,t,rows,of,extra){
   const X=wxInit(c),w=rows[0]&&rows[0].p;if(!w)return null;
+  if(ROLL_EVENTS[t.id])rollSet(c,t.id,c.season,{n:w.name,fed:w.fed,flag:w.flag});
   X.results=X.results||[];
   const R={s:c.season||1,w:weekOfSeason(c),id:t.id,name:t.name,emoji:t.emoji,winner:{id:w.id,name:w.name,fed:w.fed,flag:w.flag},score:rows[0].s,of:of,
     second:rows[1]?{name:rows[1].p.name,fed:rows[1].p.fed}:null,note:extra||''};
@@ -23601,7 +24464,9 @@ function worldSwissEvent(c,t,busy){
   let extra='';
   if(t.id==='grandswiss'){worldQualify(c,[rows[0].p.id,rows[1].p.id]);extra=rows[1].p.name+' also qualifies for the Candidates';}
   if(t.id==='wgrandswiss'){wQualify(c,[rows[0].p.id,rows[1].p.id]);extra=rows[1].p.name+' also qualifies for the Women’s Candidates';}
-  return worldResult(c,t,rows,t.rounds,extra);
+  const R=worldResult(c,t,rows,t.rounds,extra);
+  if(TOUR_OF[t.id])tourAward(c,t.id,rows.map(function(x){return {id:x.p.id,name:x.p.name};}));
+  return R;
 }
 function worldRoundRobinEvent(c,t,busy){
   const n=Math.round(t.rounds/(t.rr||1))+1;
@@ -23609,8 +24474,10 @@ function worldRoundRobinEvent(c,t,busy){
     .map(function(p){return {p:p,k:Math.abs(p.rating-t.avg)+Math.abs(gauss())*t.spread};}).sort(function(a,b){return a.k-b.k;}).slice(0,n);
   const I=worldIndex().id,players=pool.map(function(x){busy[x.p.id]=1;return I[x.p.id];}).filter(Boolean);
   if(players.length<4)return null;
-  const rows=simRoundRobin(c,players,t.rr||1,eventFormat(t));
-  return worldResult(c,t,rows,(players.length-1)*(t.rr||1));
+  const rows=simRoundRobin(c,players,t.rr||1,eventFormat(t),!!t.var960);    // Chess960 is not rated
+  const R=worldResult(c,t,rows,(players.length-1)*(t.rr||1));
+  if(TOUR_OF[t.id])tourAward(c,t.id,rows.map(function(x){return {id:x.p.id,name:x.p.name};}));
+  return R;
 }
 /* Every federation's championship, in the same week of May. */
 function worldNationals(c,t,busy){
@@ -23664,6 +24531,7 @@ function worldOlympiad(c,busy,women){
   X.results.unshift({s:c.season||1,w:weekOfSeason(c),id:tid,name:t.name,emoji:t.emoji,winner:{name:nations[0].c,fed:nations[0].c,flag:nations[0].f},
     score:nations[0].mp,of:18,note:medal});
   if(X.results.length>60)X.results.length=60;
+  rollSet(c,tid,c.season,{n:nations[0].c,flag:nations[0].f,nation:true});
   pushFeed(c,'🤝',oly+': '+medal+'.','world',true);
   const mine=nations.findIndex(function(n){return n.c===c.fed;});
   // the women's team at home is news to a player on the women's track; to anybody else it is on the wire
@@ -23740,6 +24608,8 @@ function worldWeek(c){
     else if(t.id==='wolympiad')worldOlympiad(c,busy,true);
     else if(t.id==='worldcup')worldKnockout(c,busy);
     else if(t.id==='wworldcup')worldWomenKnockout(c,busy);
+    else if(t.id==='ewc')worldEwc(c,busy);
+    else if(t.id==='cctfinals')worldTourFinal(c,t,busy);
     else if(t.rr)worldRoundRobinEvent(c,t,busy);
     else worldSwissEvent(c,t,busy);
     wireShock(c);
@@ -23769,6 +24639,7 @@ function worldEventsTick(c){
     if(field.length>=2){
       const res=simCandidates(field),win=res[0].p;
       X.cands={season:S,name:win.name,fed:win.fed,flag:win.flag,score:res[0].s};
+      rollSet(c,'candidates',S,{n:win.name,fed:win.fed,flag:win.flag});
       const t=win.name+' wins the Candidates on '+fmtScore(res[0].s)+'/14 and will play '+(ch?ch.name:'the champion')+' for the title.';
       pushNews(c,'♛',esc(t));pushFeed(c,'♛',esc(t),'world');
       if(cycleValid(C.cand,c)){C.cand=null;pushNews(c,'♛','The Candidates went ahead without you — your place lapsed.');}
@@ -24314,7 +25185,13 @@ const EVENT_PLACE={
   norway:{city:'Stavanger',reg:'europe',hall:'a small studio of a hall, cameras everywhere',sight:'the fjord, and the climb to Pulpit Rock'},
   cityrapid:{city:'Paris',reg:'europe',hall:'a city-centre hall with a café at the back',sight:'the river at night'},
   indiarapid:{city:'Kolkata',reg:'asia',hall:'a hall full of fans who know every player by name',sight:'a boat on the Hooghly at dusk'},
-  indiablitz:{city:'Kolkata',reg:'asia',hall:'a hall full of fans who know every player by name',sight:'a boat on the Hooghly at dusk'}
+  indiablitz:{city:'Kolkata',reg:'asia',hall:'a hall full of fans who know every player by name',sight:'a boat on the Hooghly at dusk'},
+  fsweiss:{city:'Weissenhaus',reg:'europe',hall:'a private hall in a resort on the Baltic coast, ten boards and a great many cameras',sight:'the beach, and the forest behind it'},
+  fsparis:{city:'Paris',reg:'europe',hall:'a grand old hall, the pieces set up differently on every board',sight:'the river at night'},
+  fsvegas:{city:'Las Vegas',reg:'americas',hall:'a casino ballroom made into a television studio',sight:'the Strip at three in the morning'},
+  fscapetown:{city:'Cape Town',reg:'africa',hall:'a studio at the foot of Table Mountain',sight:'Table Mountain by cable car'},
+  cctfinals:{city:'Toronto',reg:'americas',hall:'a studio by the lake, eight players and a live audience',sight:'the lake shore, and the view from the tower'},
+  ewc:{city:'Riyadh',reg:'asia',hall:'an arena built for esports, the players in soundproof glass booths above a crowd',sight:'the old town of Diriyah at dusk'}
 };
 /* Events that move: a host by the year, from the places they have been played. */
 const EVENT_HOSTS={
@@ -24550,7 +25427,7 @@ const Hall={on:false,nodes:[],timers:[],
    of in bed; and the first night home. */
 const HOTELS={budget:{e:'🛏️',n:'Budget hostel',mul:0.55,rec:0,mood:-1},hotel:{e:'🏨',n:'Hotel',mul:1,rec:3,mood:0},players:{e:'⭐',n:'Players’ hotel',mul:1.7,rec:6,mood:1}};
 const JET_ELO=20,JET_ROUNDS=2;
-function tripCovered(tr){return !!(tr&&(tr.sched||tr.ko||tr.oly||tr.kind==='match'||tr.sel||INVITE_EVENTS[tr.id]||tr.id==='candidates'||tr.id==='grandswiss'||tr.id==='natch'||tr.id==='natwch'||tr.id==='wgrandswiss'));}
+function tripCovered(tr){return !!(tr&&(tr.sched||tr.ko||tr.oly||tr.kind==='match'||tr.sel||INVITE_EVENTS[tr.id]||tr.id==='candidates'||tr.id==='grandswiss'||tr.id==='natch'||tr.id==='natwch'||tr.id==='wgrandswiss'||tr.id==='cctfinals'));}
 function travelAway(tr){const P=tr&&tr.place;return !!(P&&(P.trip==='abroad'||P.trip==='national'));}
 function travelArrive(c,tr,t){
   const P=tr.place;if(!P)return;
@@ -24971,6 +25848,7 @@ function bioLead(c){
   const td=t?TITLE_DEFS.find(function(d){return d.t===t;}):null;
   const what=t==='GM'?'chess grandmaster':'chess player'+(td?' who holds the title of '+td.name+' ('+t+')':'');
   let s=esc(c.name||'You')+' (born '+bioBorn(c)+') is '+(adj?art+adj+' ':'a ')+what+champ+(c.fed==='FIDE'?' (playing under the FIDE flag)':'')+'.';
+  if(c.family&&c.family.parent){const FP=c.family.parent;s+=' '+esc(sur)+' is the child of '+(FP.best?FP.best+' ':'')+esc(FP.name)+(FP.champ?', a former World Champion':FP.wchamp?', a former Women’s World Champion':'')+'.';}
   if(c.peak&&!c.provisional){const P=c.peakAt;s+=' '+esc(sur)+' reached a peak classical rating of '+c.peak+(P?' in '+gameDate(c,P.s,P.w):'')+'.';
     const rk=worldRank(c,'classical');if(rk)s+=' On the current list '+esc(sur)+' is rated '+Math.round(c.rating)+', number '+rk+' in the world.';}
   else s+=' '+esc(sur)+' does not have a published classical rating yet.';
@@ -25054,6 +25932,7 @@ function viewBio(){
   if(pa)life+='<p>'+sur+'’s partner is '+esc(pa.name)+'.</p>';
   const pub=[c.subs?sur+' streams to '+Math.round(c.subs).toLocaleString()+' subscribers':'',(c.books||[]).length?'has written '+bioList(c.books.map(function(b){return '<i>'+esc(b.title)+'</i>';})):'',c.sponsor?'is sponsored by '+esc(c.sponsor.name):''].filter(Boolean);
   if(pub.length)life+='<p>'+bioList(pub).replace(/^has/,sur+' has')+'.</p>';
+  {const pl=ppBioLine(c,sur);if(pl)life+='<p>'+pl+'</p>';}
   h+=bioSection('Personal life',life);
   if((c.honors||[]).length)h+=bioSection('Honours','<ul>'+c.honors.map(function(x){return '<li>'+honorEmoji(x)+' '+esc(x)+'</li>';}).join('')+'</ul>');
   const g={p:c.played||0,w:c.won||0,d:c.drawn||0,l:c.lost||0};
@@ -25411,7 +26290,8 @@ const PRIZE_FIRST={club:150,cityopen:500,regional:600,national:2000,intl:3000,im
   blitzopen:300,titledtues:1000,indiablitz:10000,worldblitz:60000,
   fischeropen:400,fischerwc:50000,weekendopen:300,cityamateur:250,communityopen:100,creatorcup:0,
   natwch:2500,contwch:8000,welite:30000,wgrandswiss:40000,wworldcup:50000,wcandidates:45000,wwcc:300000,wolympiad:0,wworldrapid:40000,wworldblitz:40000,
-  natyouth:0,contyouth:0,worldyouth:0,contjunior:1500,worldjunior:3000};
+  natyouth:0,contyouth:0,worldyouth:0,contjunior:1500,worldjunior:3000,
+  fsweiss:60000,fsparis:60000,fsvegas:200000,fscapetown:60000,cctspring:30000,cctsummer:30000,cctautumn:30000,cctfinals:100000,ewc:250000};
 const ENTRY_FEE={club:15,cityopen:30,regional:35,national:60,intl:90,continental:100,
   hastings:80,reykjavik:120,dubai:100,gibraltar:150,aeroflot:150,qatar:120,
   imrr:400,gmrr:600,rapidopen:25,cityrapid:60,blitzopen:20,fischeropen:30,weekendopen:30,cityamateur:25,
@@ -25640,7 +26520,8 @@ function careerResult(score){
     momentsFromFinish(c,app.careerFinish);
     if(app.careerLeague){leagueResult(score);app.careerLeague=false;}
     if(app.careerPro){proResult(score);app.careerPro=false;}
-    if(app.careerLegend){var ln=app.careerLegend;if(score===1){c.legendsBeaten=c.legendsBeaten||[];if(c.legendsBeaten.indexOf(ln)<0)c.legendsBeaten.push(ln);c.fame=Math.min(100,c.fame+8);addXp(c,60);unlockAch(c,'legendslayer');pushNews(c,'🎭','You BEAT '+ln+' in an exhibition — a result for the history books!');toastAdd('🎭 You beat '+ln+'!');}else{c.fame=Math.min(100,c.fame+2);pushNews(c,'🎭','You played an exhibition game against '+ln+'.');}app.careerLegend=null;}
+    if(app.careerLegend&&app.careerHallLegend){hallLegendResult(c,score);app.careerLegend=null;app.careerHallLegend=null;}
+    else if(app.careerLegend){var ln=app.careerLegend;if(score===1){c.legendsBeaten=c.legendsBeaten||[];if(c.legendsBeaten.indexOf(ln)<0)c.legendsBeaten.push(ln);c.fame=Math.min(100,c.fame+8);addXp(c,60);unlockAch(c,'legendslayer');pushNews(c,'🎭','You BEAT '+ln+' in an exhibition — a result for the history books!');toastAdd('🎭 You beat '+ln+'!');}else{c.fame=Math.min(100,c.fame+2);pushNews(c,'🎭','You played an exhibition game against '+ln+'.');}app.careerLegend=null;}
     checkAchievements(c);markActiveDay();save();return;
   }
   if(!(app.careerTour&&c.tour)){checkAchievements(c);markActiveDay();save();return;}
@@ -25738,6 +26619,7 @@ function finalizeTournament(c){
   if(def.id==='olympiad'||def.id==='wolympiad'){
     const M=olyM,OP=def.id==='wolympiad'?'Women’s Olympiad ':'Olympiad ';
     const place=M&&M.place?M.place:simOlympiadTeam(scoreTot/Math.max(1,games)).place;
+    {const T0=olyTable(tr.oly)[0];if(T0)rollSet(c,def.id,c.season,T0.you?{n:c.fed,flag:c.flag,nation:true,you:true,cid:careerCid(c)}:{n:T0.c,flag:T0.f||'',nation:true});}
     // the news list holds eight items and a finishing tournament fills it, so
     // a result people remember for twenty years also goes to the feed
     const say=function(text){pushNews(c,'🤝',text);pushFeed(c,'🤝',text,'you');};
@@ -25802,10 +26684,11 @@ function finalizeTournament(c){
   if(tr.champion&&!won1st){const L=tr.results.filter(r=>r.score===0).sort((a,b)=>b.rating-a.rating);if(L.length)c.nemesis={name:L[0].name,rating:L[0].rating,flag:L[0].flag,since:tr.name};}
   c.history=c.history||[];
   c.history.unshift({name:tr.name,emoji:tr.emoji,score:scoreTot,rounds:games,avg:avgOpp,tpr:tpr,norms:gainedNorms,honors:gainedHonors,place:place,date:Date.now(),format:fmt,
-    id:tr.id,s:c.season||1,w:weekOfSeason(c),
+    id:tr.id,s:c.season||1,w:weekOfSeason(c),loc:ppLoc(tr,games),
     // the grid outlives the tournament object, for the recent events at least
     xt:xtSnapshot(tr)});
   xtPrune(c);
+  tourAwardYou(c,tr,won1st);rollFromYourEvent(c,tr,def,won1st);     // the tours' points, and the roll
   if(!tr.oly)pushFeed(c,won1st?'🏆':'📋',esc(c.name||'You')+(won1st?' WINS ':' finishes '+ordinal(place)+' at ')+esc(tr.name)+' with '+fmtScore(scoreTot)+'/'+games+' (TPR '+tpr+').','you',true);
   gainedNorms.forEach(function(k){pushFeed(c,'📜',esc(c.name||'You')+' scores a '+k+' norm at '+esc(tr.name)+'.','you',true);});
   if(!tr.oly&&!tr.simul)wireYourEvent(c,tr,{place:won1st?1:place,games:games,score:scoreTot,avg:avgOpp,tpr:tpr,norms:gainedNorms,titles:newTitles,
@@ -27075,6 +27958,7 @@ const SRCH_SCREENS=[
   ['masters','👑','Master games','A database of master games','database'],
   ['magazine','📰','Sixty-Four, the magazine','Your season, written up','news'],
   ['hall','🏛️','The hall','Finished careers',''],
+  ['calc','🧮','Rating & norm calculator','Your FIDE rating change and norms, for a real tournament','elo fide calculator norm gm im wgm wim performance tpr rating change k factor first rating'],
   ['settings','⚙️','Settings','Board, pieces, sounds, engine','options preferences'],
   ['settings#remindcard','🔔','Reminders','A notification when reviews are due','notifications notify alert'],
   ['settings','🎵','Music','A soundtrack for your career, and its volume','soundtrack sound audio volume songs'],

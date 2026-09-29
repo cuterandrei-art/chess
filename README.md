@@ -1109,6 +1109,79 @@ champion beside the open ones. Hou Yifan, who does not play the women's
 cycle, is no longer drawn into the Women's World Cup; and every federation's
 championship is played in May even in a year you play your own.
 
+**29. The next generation, a passport, the tours, and a calculator for real
+tournaments.**
+
+*The next generation, in the same world.* A new career began in a new world:
+the list you had climbed, the champions of your years and the players you
+grew up with were gone with a click. A retired career can now hand its world
+on. **🌱 The next generation** on the retired screen starts a new career in
+the same world, the same week — as **your child**, eleven and in a chess
+house (a parent everybody has heard of, a little more to spend on chess, a
+few fans already), or as **a newcomer** with no connection to anybody. The
+setup screen fills in the surname and the federation. The list, the ratings
+and the champions are where the old career left them; a champion who retires
+leaves the title to the Candidates winner, or to the highest-rated player
+left. The finished career stays among your careers and in the hall, which
+now keeps where each career played and what it played, and it can be
+challenged at its peak in the Legends exhibitions — in its own openings —
+with a word from it before the game, before you have a rating of your own.
+The World tab's **🏛️ Before you** has the career before yours, and the
+generation it grew up with as it is now: veterans on the list, or stopped
+playing, and some of those coaching — one of them your first coach. The
+scouting card says when an opponent grew up with your parent, and what your
+parent's score against them was; the biography says whose child you are.
+And **👑 The roll of champions** keeps this world's World Champions, women's
+World Champions, World Cup, Candidates, Olympiad and Esports World Cup
+winners year by year, the years of your earlier careers marked, carrying on
+from career to career.
+
+*A passport and a map.* Every event now keeps where it was played, and the
+You tab has a **🛂 Passport**: a map (Natural Earth's land, public domain,
+drawn at half a degree) with a pin for every city — gold where you won,
+silver where you made the podium — and the flights home to each; tap a pin
+for what happened there, and zoom to Europe, Asia or the Americas. A stamp
+for every country, with the year you first played there and your best result;
+and what it adds up to — countries, cities, flights and kilometres, trains,
+nights away and events played from your desk. Events played before the
+passport are placed where the calendar put them that season. The biography
+says how far the game has taken you.
+
+*The events the top players now live on.* The **Freestyle Chess Grand Slam**
+(Chess960 for ten of the world's best at Weissenhaus, in Paris, Las Vegas and
+Cape Town; not rated, as Chess960 is not), the **Champions Chess Tour**
+(online rapid from your desk, three legs, and a Finals in Toronto for its top
+eight) and the **Esports World Cup** in Riyadh (sixteen players, a rapid
+knockout — two games a match, then blitz and armageddon — and 💰250,000 to the
+winner). They are by invitation: the world top twelve for the Freestyle tour,
+or a wildcard for a big name in the top eighty; rapid 2600, the rapid top 60
+or a large following for the Champions Chess Tour; the Champions Chess Tour's
+top four, the Freestyle tour's top two, the rapid top twelve or a wildcard for
+the biggest names at the Esports World Cup. Each tour keeps standings through
+the season for you and everybody else (points for the top ten of each leg),
+the Freestyle tour's winner takes a bonus at its last leg, and the world plays
+all of it whether you are there or not. The World tab has **🎮 The tours**.
+
+*A rating and norm calculator.* **Learn → 🧮 Rating & norm calculator** is
+for a tournament you actually play: type in your opponents' ratings, titles
+and federations and your results, and it works out what FIDE will — the
+rating change (K 40 / 20 / 10 by the rules, lowered so that games × K is not
+over 700; games against unrated opponents do not count for you), a first
+rating if you have none (two hypothetical draws against 1800s, at least five
+games against rated opponents, at most 2200, published from 1400, a zero score
+disregarded), your performance, and GM, IM, WGM and WIM norms, every
+requirement of the Title Regulations checked (nine games, the average and its
+floor, title holders, GMs or IMs, the federation rules, which a national
+championship final is exempt from). While rounds are still to play, it says
+the score a norm needs from them. What you type stays on the device.
+
+*FIDE's own numbers.* The career's rating changes now come from FIDE's table
+8.1.2, which turns a rating difference into an expected score in steps of a
+hundredth, rather than the smooth curve it approximates; and since 1 October
+2025 the rule that a gap of more than 400 counts as 400 is for players rated
+below 2650 only (FIDE Rating Regulations in force from 1 March 2024, 8.3.1 as
+amended). A first rating is at most 2200, as 8.2 says.
+
 ## The Olympiad is a team event
 
 Nine individual games with a sentence bolted on the end. Your "team" was three
@@ -2121,7 +2194,7 @@ mid-drag, double-click, that a resize never moves a piece, and phones.
 
 ## Tests
 
-Seventy suites, about 6,140 checks, plus twenty-two browser suites that drive the real app with the real engine.
+Seventy-four suites, about 6,260 checks, plus twenty-three browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
@@ -2202,6 +2275,27 @@ whole season of them), a rival from your generation, and two junior careers
 side by side growing up together. `visual-generation.mjs` opens the World tab
 of a new junior career, the generation and a profile, the nationals, two
 seasons later, and the biography's contemporaries.
+
+`validate-nextgen.mjs` covers the next generation (the hall's record of the
+world, the retired screen, the same world and week, a champion's title passed
+on, the setup screen, the child and the newcomer, the first coach, the old
+generation, the scouting note, your parent as a legend in their openings, the
+biography, the roll of champions across careers). `validate-passport.mjs`
+checks that every city an event can be played in is on the map, the great
+circles, a season on the road (stamps, flights, kilometres, nights, online
+events), events placed from before the passport, the You tab, the pins, the
+zoom, the biography's line, and careers under the FIDE flag.
+`validate-tours.mjs` covers the nine new events, every invitation rule, a
+season of the tours played without you (points, the Freestyle title, the
+Finals among the tour's top eight, the Esports World Cup), Chess960 unrated,
+you on a Freestyle leg and in the Finals, and the Esports World Cup won and
+lost in its first round. `validate-calc.mjs` checks FIDE's table 8.1.2 and
+the 400-point rule under 2650, the career rating by it, the K rules and the
+700 cap, unrated and unplayed games, first ratings (the 1800 draws, five
+games, the 2200 cap, a zero score, the 1400 floor), every norm requirement,
+the score a norm needs with rounds to play, and the screen. `visual-worlds.mjs`
+drives all four in a browser — the calculator's typing, the map and a pin, the
+tours, a champion retiring into the next generation.
 
 Career mode's newer systems have their own: `validate-booth.mjs` (what the
 commentators can and cannot know, the grammar guard that fills every line with

@@ -16,7 +16,7 @@ if(!dom.window.matchMedia)dom.window.matchMedia=()=>({matches:false,addEventList
 dom.window.__PUZZLES=[];dom.window.scrollTo=()=>{};
 let pass=0; const ok=(c,m)=>{if(!c)throw new Error('FAIL: '+m);pass++;console.log('  ✓ '+m);};
 const X=new Function(script+'\nreturn {store,app,freshCareer,lifeInit,joinTournament,_simRound,TOURNAMENTS,EVENT_WEEK,heldThisSeason,weekOfSeason,youthDef,'+
-  'genEnsure,genPlayers,genRanking,genTypical,genWeek,genSeason,genFamous,genForEvent,careerGenPanel,bioGen,viewBio,GEN_SIZE,wpAge,wpRating,wpTitle,wpTalent,fedRegion,'+
+  'genEnsure,genPlayers,genRanking,genTypical,genWeek,genSeason,genFamous,genForEvent,careerGenPanel,bioGen,viewBio,GEN_SIZE,wpAge,wpRating,wpTitle,wpTalent,wpStrength,fedRegion,'+
   'buildWorld,worldRanking,worldById,worldWeek,worldSeason,wxInit,endOfWeek,womenRanking,wCandidatesField,wChampion,worldWomenKnockout,worldYouthEvent,'+
   'worldWomenNationals,worldOlympiad,tourLocked,careerStartAnother,careerSwitch,careerSlots,worldJuniorSection,worldYouthAgeGroup,simYouthSwiss,worldDirectTitle,maybeAssignRival,careerWorldPanel,careerTabContent,scoutCard,render,viewCareer};')();
 const T=id=>X.TOURNAMENTS.find(t=>t.id===id);
@@ -72,7 +72,7 @@ ok(X.careerTabContent(c,'world').indexOf('id="gencard"')>=0,'on the World tab');
 
 console.log('\n— L1 · they grow up —');
 c=kid();X.genEnsure(c);
-const star=X.genPlayers(c).slice().sort((a,b)=>X.wpTalent(b)-X.wpTalent(a))[0],sr0=X.wpRating(star,'classical');
+const star=X.genPlayers(c).slice().sort((a,b)=>X.wpTalent(b)-X.wpTalent(a))[0],sr0=X.wpRating(star,'classical'),st0=X.wpStrength(star,'classical');
 const med0=median(X.genPlayers(c).map(p=>X.wpRating(p,'classical')));
 const t0=Date.now();
 for(let wk=0;wk<52*8;wk++)X.endOfWeek(c);
@@ -80,7 +80,7 @@ const secs=Math.round((Date.now()-t0)/1000);
 const Pn=X.genPlayers(c),Pall=X.genPlayers(c,true),Xw=X.wxInit(c);
 ok(c.season===9&&Math.floor(c.age)===19,'eight seasons on, you are nineteen ('+secs+'s to play them)');
 const sr=X.wpRating(star,'classical');
-ok(sr>=sr0+600,'the most gifted of them has grown up: '+star.name+' '+sr0+' → '+sr+(X.wpTitle(star)?' ('+X.wpTitle(star)+')':''));
+ok(X.wpStrength(star,'classical')>=st0+600,'the most gifted of them has grown up: '+star.name+' plays '+Math.round(X.wpStrength(star,'classical')-st0)+' points better, rated '+sr0+' → '+sr+(X.wpTitle(star)?' ('+X.wpTitle(star)+')':''));
 const medN=median(Pn.map(p=>X.wpRating(p,'classical')));
 ok(medN>=med0+250,'and the rest with them (median '+med0+' → '+medN+')');
 const quit=Pall.filter(p=>Xw.retired[p.id]);
