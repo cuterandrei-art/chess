@@ -1056,6 +1056,59 @@ your style and your openings, your rivals, the people in your life, your
 honours and your record — about you, by your surname, without guessing at
 pronouns.
 
+**28. Your generation, and the women's and junior events without you.**
+
+*Your generation.* The children at a junior career's nationals were made up
+for each event and forgotten after it: nobody you beat at eleven was there at
+thirteen, and nobody you grew up with became anybody. A career that begins
+before twenty now has a generation — twenty players born within a year of
+you, seven of them from your own federation (in your school year, so in your
+age group every year), six from the rest of your continent and seven from
+anywhere; all girls on the women's track, a few girls among them on the open
+one. They are on the world list from the start, at the ratings children who
+play the age-group events have, each with a talent of their own: most become
+good club players, a few very good, and usually one of them one of the best
+in the world. They grow a season at a time as the rest of the list does,
+faster while they are young and more for the gifted ones, and some of them
+stop — for school, for university, for football — mostly the ones who fell
+behind.
+
+They are in your age group's events: at the national championship nearly all
+of those from home, at the continental and the world the stronger of them
+most years, so the same names come back every spring. The scouting card says
+when your opponent is one of them and what the score between you is. The
+World tab has **🌱 Your generation**: where each of them is now, their age,
+their rating and title, your score against each; who got first to each
+rating from 1600 to 2700 and to IM and GM (you, or one of them — the news
+says so the week it happens); the medals they won; and who stopped playing.
+A turn of the year says where you all stand. Your first rival is one of them
+when one is near you. The biography gains a paragraph on your
+contemporaries, and a career that starts at twenty or later has no
+generation made for it, only the famous names born the same year ("Born in
+2006 — the same year as D. Gukesh"). Your other careers your age are part of
+it too: two junior careers of the same age grow up together, and meet at
+every national championship.
+
+*The women's and junior events, without you.* The world played its season
+around you, but only the open half: the age-group championships, the World
+Junior, the women's national championships, the Women's World Cup and the
+women's Olympiad happened only if you were in them. Now they are played in
+their weeks whether or not you go. Your generation plays your age group's
+national, continental and world championships with the rest of the list's
+children of that age and children not on it yet; the under-20s of the whole
+list play the World Junior and your continent's junior championship, girls
+and open (while you play one section, the other is played beside it); every
+federation crowns a women's champion in May; the Women's World Cup is a
+bracket of 107 whose top three go to the Women's Candidates with the Women's
+Grand Swiss's top two, and whose winner is a grandmaster by FIDE's rule; and
+the women's Olympiad is every nation's best four women. Every game is rated,
+the medals at the continental and world championships carry FIDE's direct
+titles for whoever wins them, and it is all on the news board and the World
+tab, which now names the Women's World Champion and your federation's women's
+champion beside the open ones. Hou Yifan, who does not play the women's
+cycle, is no longer drawn into the Women's World Cup; and every federation's
+championship is played in May even in a year you play your own.
+
 ## The Olympiad is a team event
 
 Nine individual games with a sentence bolted on the end. Your "team" was three
@@ -2068,7 +2121,7 @@ mid-drag, double-click, that a resize never moves a piece, and phones.
 
 ## Tests
 
-Sixty-nine suites, about 6,080 checks, plus twenty-one browser suites that drive the real app with the real engine.
+Seventy suites, about 6,140 checks, plus twenty-two browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
@@ -2135,6 +2188,20 @@ biography. `visual-cards.mjs` draws the cards in a real browser and saves one,
 brings a mistake back and plays it, and opens the biography;
 `visual-junior.mjs` starts a junior career and a women's-track career from
 the setup screen.
+
+`validate-generation.mjs` covers your generation (who is in it, where from,
+how they are rated, a generation of girls on the women's track, none at
+twenty but the famous names born that year), meeting them at the nationals
+year after year, eight seasons of them growing up — the most gifted far
+ahead, some stopping, the firsts, their medals, the biography — the junior
+and women's events the world plays without you (the age groups, both sections
+of the World Junior, a Swiss half of whose players are not on the list, FIDE's
+titles for the world's juniors, the women's national championships, the
+women's Olympiad, the Women's World Cup and its places in the Candidates, a
+whole season of them), a rival from your generation, and two junior careers
+side by side growing up together. `visual-generation.mjs` opens the World tab
+of a new junior career, the generation and a profile, the nationals, two
+seasons later, and the biography's contemporaries.
 
 Career mode's newer systems have their own: `validate-booth.mjs` (what the
 commentators can and cannot know, the grammar guard that fills every line with

@@ -4739,6 +4739,12 @@ function natNameW(fed,rnd,taken){
     else{const a=F[Math.floor(r()*F.length)],b=femSurname(fed,B[1][Math.floor(r()*B[1].length)]);n=a[0]+'. '+b;}
     if(!taken[n]){taken[n]=1;return n;}
   }
+  // two initials, as lists print people who would otherwise share a name (Spain and Argentina share a bank)
+  for(let i=0;i<200;i++){
+    const a=F[Math.floor(r()*F.length)],a2=F[Math.floor(r()*F.length)];
+    const n=CN?a+' '+GIV[fed][Math.floor(r()*GIV[fed].length)]+' '+a2[0]+'.':a[0]+'.'+a2[0]+'. '+femSurname(fed,B[1][Math.floor(r()*B[1].length)]);
+    if(!taken[n]){taken[n]=1;return n;}
+  }
   const n=pick(F)+' '+pick(GEN_LNAMES)+' '+Math.floor(r()*1e4);taken[n]=1;return n;
 }
 /* The women's titles, for a woman who has not earned an open one. */
@@ -5238,7 +5244,7 @@ function worldSeason(c){
       return;
     }
     // a year older: the strength moves; the rating follows only as results do
-    const r=p.r,nr=Math.max(1000,Math.min(2880,Math.round(r+seasonDev(p,r)*0.8)));
+    const r=p.r,nr=Math.max(1000,Math.min(2880,Math.round(r+(seasonDev(p,r)+(p.gen?genBoost(p):0))*0.8)));
     const dr=nr-r;
     if(p.born!=null){p.r=nr;p.rr=Math.round(p.rr+dr*0.9);p.rb=Math.round(p.rb+dr*0.85);}
     else X.base[p.id]=[nr,Math.round(p.rr+dr*0.9),Math.round(p.rb+dr*0.85)];   // kept short: there are a thousand of them
@@ -5277,6 +5283,7 @@ function worldSeason(c){
     wirePush(c,{cat:'people',e:n.e,src:'review',h:n.h||n.t,d:n.d||'',pid:n.pid||null});});
   X.log.unshift({season:S,notes:notes.map(function(n){return n.e+' '+n.t;})});
   if(X.log.length>10)X.log.length=10;
+  genSeason(c);                     // your generation, a year older
   return notes;
 }
 /* ---- realistic evolution of the rest of the world ----
@@ -11653,6 +11660,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='careerdel')careerDelete(val);
   else if(act==='toastdismiss'){app.careerToast=null;render();}
   else if(act==='careertab'){app.careerTab=val;render();careerTabTop();}
+  else if(act==='genall'){app.genAll=!app.genAll;render();}
   else if(act==='declater'){app.decLater=(app.decLater||[]).filter(function(k){return k!==val;});app.decLater.push(val);if(app.decFirst===val)app.decFirst=null;render();}
   else if(act==='calmtoggle'){store.settings.careerCalm=!careerCalm();save();render();careerTabTop();}
   else if(act==='inboxall'){app.inboxAll=true;render();}
@@ -17379,9 +17387,9 @@ function rivalTitle(c,rr){var p=c.rival&&buildWorld().find(function(x){return x.
 function rivalRating(c){if(!c.rival)return null;var p=buildWorld().find(function(x){return x.id===c.rival.id;});return p?pubRating(p,'classical'):c.rival.rating;}
 function maybeAssignRival(c){if(c.rival||(c.played||0)<6)return;var yr=youRating(c,'classical');if(yr==null)return;
   var cand=buildWorld().filter(function(p){return Math.abs(wpRating(p,'classical')-yr)<=70&&(!c.nemesis||p.name!==c.nemesis.name);});
-  if(!cand.length)return;cand.sort(function(a,b){return ((b.real?1:0)-(a.real?1:0))||(Math.abs(wpRating(a,'classical')-yr)-Math.abs(wpRating(b,'classical')-yr));});
+  if(!cand.length)return;cand.sort(function(a,b){return ((b.gen?1:0)-(a.gen?1:0))||((b.real?1:0)-(a.real?1:0))||(Math.abs(wpRating(a,'classical')-yr)-Math.abs(wpRating(b,'classical')-yr));});
   var p=cand[0];c.rival={id:p.id,name:p.name,flag:p.flag,rating:wpRating(p,'classical'),since:Math.floor((c.weeks||0)/52)+1,intensity:1};
-  pushNews(c,'🤺','A rivalry is born: you and '+p.name+' ('+c.rival.rating+') are neck and neck.');}
+  pushNews(c,'🤺','A rivalry is born: you and '+p.name+' ('+c.rival.rating+') are neck and neck'+(p.gen?' — you have known each other since you were children.':'.'));}
 function updateRivalry(c){if(!c.rival)return;rivalStoryTick(c);var rr=rivalRating(c),yr=youRating(c,'classical');if(yr==null)return;
   if(Math.abs(rr-yr)>170){pushNews(c,'🕊️','Your rivalry with '+c.rival.name+' has cooled — you have drifted apart in the rankings.');c.rival=null;}}
 const RIVAL_STAGES={1:{n:'Simmering',e:'🤺',b:'A rivalry is brewing — you keep crossing paths near the top of the crosstables.'},2:{n:'Heated',e:'😤',b:'The press has noticed. Every game between you two is must-watch.'},3:{n:'Bitter',e:'🔥',b:'This has turned personal — neither of you can stand to lose to the other.'},4:{n:'Legendary',e:'⚔️',b:'One of the great rivalries of the era — careers defined by these clashes.'}};
@@ -17527,6 +17535,8 @@ function scoutCard(c,opp,label){
     who='<div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap"><span class="dim small">'+(opp.flag||'')+' '+esc(wp.fed)+' · age '+Math.floor(wpAge(wp))+(rk?' · world #'+rk.toLocaleString():'')+
       (h2&&(h2.w+h2.l+h2.d)?' · you are <b>'+h2.w+'–'+h2.d+'–'+h2.l+'</b> against them':' · you have not met before')+'</span>'+
       '<button class="btn ghost sm" data-act="profile" data-val="'+wp.id+'">👤 Profile</button></div>';}
+  if(wp&&wp.gen){var gr=(c.h2h&&c.h2h[wp.name])||{w:0,d:0,l:0},gn=gr.w+gr.d+gr.l;
+    who+='<div class="note small" style="margin-top:8px;border-color:#22c55e">🌱 <b>'+esc(wp.name)+' is one of your generation</b>, '+genAge(wp)+' years old'+(gn?' — you are '+gr.w+'–'+gr.d+'–'+gr.l+' against each other':' — you have not played each other yet')+'.</div>';}
   if(wp&&wp.ghost){var gh=c.cid?ghostH2H(c.cid,wp.ghost):{n:0};
     who+='<div class="note small" style="margin-top:8px;border-color:var(--brand)">👥 <b>This is '+esc(wp.name)+', your other career</b> (season '+(wp.season||1)+'). They play the openings they play in their own games, in their own style'+
       (gh.n?', and you are '+gh.w+'–'+gh.d+'–'+gh.l+' against each other':'')+'. Whatever happens here is news in their world too.</div>';}
@@ -18614,6 +18624,7 @@ function careerTabContent(c,tab){
     h+=careerClubPanel(c);
   } else if(tab==='world'){
     h+=careerWorldPanel(c);
+    h+=careerGenPanel(c);
     h+=careerFeedPanel(c);
     h+=careerLeaderboard(c);
     h+=careerLegendsPanel(c);
@@ -19491,6 +19502,9 @@ function careerWorldPanel(c){
   h+='<div class="small" style="padding:4px 0">👑 World Champion: <b>'+esc(ch?(ch.you?(c.name||'You'):ch.name):'—')+'</b>'+
     (X.cands&&X.cands.season===S&&!X.cands.you?' · challenger '+esc(X.cands.name):'')+'</div>';
   if(nc&&nc.season===S)h+='<div class="small" style="padding:4px 0">🎖️ '+esc(c.fed)+' champion: <b>'+esc(nc.name)+'</b> ('+fmtScore(nc.score)+'/'+nc.of+')</div>';
+  {const wch=wChampion(c),wn=(X.wnatChamps||{})[c.fed];
+   h+='<div class="small" style="padding:4px 0">👸 Women’s World Champion: <b>'+esc(wch?(wch.you?(c.name||'You'):wch.name):'—')+'</b>'+(X.wcands&&X.wcands.season===S&&!X.wcands.you?' · challenger '+esc(X.wcands.name):'')+'</div>';
+   if(wn&&wn.season===S)h+='<div class="small" style="padding:4px 0">👸 '+esc(c.fed)+' women’s champion: <b>'+esc(wn.name)+'</b> ('+fmtScore(wn.score)+'/'+wn.of+')</div>';}
   if(R.length)h+='<div style="margin-top:6px;border-top:1px solid var(--border);padding-top:5px">'+R.map(function(r){
       return '<div class="small" style="display:flex;gap:8px;padding:3px 0"><span class="dim" style="width:34px">wk'+r.w+'</span><span style="flex:1;min-width:0">'+
         (r.emoji||'🏆')+' '+esc(r.name)+': '+(r.winner?'<b>'+(r.winner.flag||'')+' '+esc(r.winner.name)+'</b>'+(r.of?' '+fmtScore(r.score)+'/'+r.of:''):'')+
@@ -22114,7 +22128,8 @@ const KO_RATING_SPOTS=110;      // places on rating; the rest are federations' q
 function koEntrants(c,busy,withYou,cfg){
   busy=busy||{};const CF=cfg||koC(null);
   const need=CF.entrants-(withYou?1:0),world=buildWorld(),byId={};world.forEach(function(p){byId[p.id]=p;});
-  const rank=worldRanking(c,'classical').filter(function(p){return !p.you&&!busy[p.id]&&(!CF.women||p.w);});
+  // the women's knockout is the women's cycle, which some of the best women do not play
+  const rank=worldRanking(c,'classical').filter(function(p){return !p.you&&!busy[p.id]&&(!CF.women||(p.w&&!W_CYCLE_OUT[p.id]));});
   const mk=function(p,q){const w=byId[p.id];
     return {id:p.id,name:p.name,fed:p.fed,flag:p.flag,real:!!p.real,qualifier:!!q,rating:p.rating,
       rapid:w?pubRating(w,'rapid'):p.rating,blitz:w?pubRating(w,'blitz'):p.rating,
@@ -22669,8 +22684,11 @@ function wwccOpponent(c){
 }
 /* The Candidates: the best women on the list who are not the champion. */
 function wCandidatesField(c,n){
-  const ch=wChampion(c);
-  return womenRanking(c).filter(function(p){return !p.you&&!W_CYCLE_OUT[p.id]&&!(ch&&p.name===ch.name);}).slice(0,n);
+  const ch=wChampion(c),X=wxInit(c),S=c.season||1;
+  const R=womenRanking(c).filter(function(p){return !p.you&&!W_CYCLE_OUT[p.id]&&!(ch&&p.name===ch.name);});
+  // the Women's World Cup's top three and the Women's Grand Swiss's top two, then the list
+  const q=(X.wqual&&X.wqual.season>=S-1)?X.wqual.ids:[],first=R.filter(function(p){return q.indexOf(p.id)>=0;});
+  return first.concat(R.filter(function(p){return first.indexOf(p)<0;})).slice(0,n);
 }
 /* The world plays the women's cycle when you are not in it. */
 function wcycWorldTick(c){
@@ -22917,10 +22935,19 @@ function youthDef(t,c){
    children of your age from everywhere else — named the way their country
    names them, with the ratings their age group has. */
 function youthField(t,c,size){
-  const D=youthDef(t,c),girls=D.girls,out=[],taken={};
-  const pool=worldRanking(c,'classical').filter(function(p){return !p.you&&p.age!=null&&p.age<D.age&&p.age>=D.age-4&&(!girls||p.w)&&(t.youth!=='nat'||p.fed===c.fed);});
-  const used={};
-  for(let i=0;i<size;i++){
+  const D=youthDef(t,c),girls=D.girls,out=[],taken={},used={};
+  // the players you grow up with: most of them are there, year after year
+  const lvl=t.youth,G=(lvl==='nat'||lvl==='cont'||lvl==='world')?genForEvent(c,D,lvl==='cont',lvl==='nat'):[];
+  const cap=Math.round(size*(lvl==='nat'?0.45:0.35));
+  // (your other careers your age first: they never miss the championships you play)
+  G.slice().sort(function(){return Math.random()-0.5;}).sort(function(a,b){return (b.ghost?1:0)-(a.ghost?1:0);}).forEach(function(p){
+    if(out.length>=cap)return;
+    const r=pubRating(p,'classical');if(!p.ghost&&Math.random()>(lvl==='nat'?0.95:r>=D.avg-60?0.85:0.5))return;
+    used[p.id]=1;taken[p.name]=1;
+    out.push({name:p.name,rating:r,title:wpTitle(p)||'',fed:p.fed,flag:p.flag,style:pickStyle(),wid:p.id,real:false,age:genAge(p),gen:1});
+  });
+  const pool=worldRanking(c,'classical').filter(function(p){return !p.you&&!used[p.id]&&p.age!=null&&p.age<D.age&&p.age>=D.age-4&&(!girls||p.w)&&(t.youth!=='nat'||p.fed===c.fed);});
+  for(let i=out.length;i<size;i++){
     const r=fieldRating(D);let best=null,bc=Infinity;
     pool.forEach(function(p){if(used[p.id])return;const k=Math.abs(p.rating-r);if(k<bc){bc=k;best=p;}});
     if(best&&bc<120){used[best.id]=1;taken[best.name]=1;out.push({name:best.name,rating:best.rating,title:best.title||'',fed:best.fed,flag:best.flag,style:pickStyle(),wid:best.id,real:!!best.real,age:best.age});continue;}
@@ -22928,6 +22955,7 @@ function youthField(t,c,size){
     const nm=girls?natNameW(F.c,Math.random,taken):natName(F.c,Math.random,taken);
     out.push({name:nm,rating:r,title:r>=2300?(girls?'WGM':'FM'):r>=2150?(girls?'WIM':'CM'):'',fed:F.c,flag:F.f,style:pickStyle(),age:D.age-1-Math.floor(Math.random()*2)});
   }
+  for(let i=out.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const x=out[i];out[i]=out[j];out[j]=x;}
   return out;
 }
 /* Whether a junior event, a women's event, is on your calendar at all. */
@@ -23035,6 +23063,440 @@ function juniorStudy(){
   app.careerToast='📖 A day of homework — grades '+Math.round(c.school.grade)+'.';
   save();render();
 }
+/* =========================================================================
+   YOUR GENERATION
+
+   The children in a junior career's hall were invented for each event and
+   forgotten after it: nobody you beat at eleven was there at thirteen, and
+   nobody you grew up with became anybody. Now a career that begins young has
+   a generation — twenty players born within a year of you, a third of them
+   from your own federation, a third from your continent, the rest from
+   anywhere. They are on the world list from the start, at the ratings
+   children of that age have, each with a talent of their own: most will be
+   good club players, a few very good, and usually one of them will be one
+   of the best in the world. They grow a year at a time the way the rest of
+   the list does, faster while they are young, and some of them stop — for
+   school, for university, for something else — as most juniors do.
+
+   They are in your age group's events, the ones you play and the ones you
+   do not, so you meet the same names at the nationals every spring. The
+   World tab keeps them: where each is now, your score against each of them,
+   and who got to each rating and each title first. The news says when one of
+   them wins something, becomes a master, overtakes you or gives up.
+   ========================================================================= */
+const GEN_SIZE=20;
+const GEN_MAX_AGE=20;                // a career that starts at twenty or older is among grown-ups already
+const GEN_MILESTONES=[1600,1800,2000,2200,2300,2400,2500,2600,2700];
+const GEN_TALENT=[0.9,0.75,0.62,0.5,0.42,0.35,0.28,0.22,0.15,0.1,0.05,0,-0.05,-0.12,-0.2,-0.28,-0.35,-0.42,-0.5,0.3];
+const GEN_QUIT=['to concentrate on school','for university','for a place at medical school','for football','to work in the family business',
+  'after a year of losing more rating than they gained','to study engineering','for music'];
+/* The rating a child who plays in the age-group events has at that age. */
+function genTypical(age,girls){
+  // a little under the average of the age group's national championship, which has the older children in it too
+  const a=Math.floor(age);let g=null;for(const n of [8,10,12,14,16,18,20])if(a<n){g=n;break;}
+  const r=a<7?1050:g?YOUTH_BASE[g]-40:2150;
+  return r-(girls?120:0);
+}
+function genIs(p){return !!(p&&p.gen);}
+/* Your generation's players, as the world has them now (those who stopped included). */
+function genPlayers(c,withQuit){
+  const G=c&&c.gen;if(!G||!G.ids||!G.ids.length)return [];
+  const X=wxInit(c),by={};(X.extra||[]).forEach(function(p){by[p.id]=p;});
+  return G.ids.map(function(id){return by[id];}).filter(function(p){return p&&(withQuit||!X.retired[p.id]);});
+}
+/* Once, while you are young: twenty people your age. */
+function genEnsure(c){
+  if(!c||!c.setup||c.gen)return c&&c.gen;
+  const age=ageAtJan(c);            // the age groups go by your age on the first of January
+  if(age>=GEN_MAX_AGE){c.gen={s:c.season||1,ids:[],first:{},none:true};return c.gen;}
+  const X=wxInit(c),S=c.season||1,girls=isWomen(c),so=X.soff||[0,0,0];wrInit(c);
+  const reg=fedRegion(c.fed),feds=worldFeds(),mine=feds.find(function(f){return f.c===c.fed;})||(c.fed==='FIDE'?null:{c:c.fed,f:c.flag});
+  const near=feds.filter(function(f){return f.c!==c.fed&&fedRegion(f.c)===reg;}),far=feds.filter(function(f){return f.c!==c.fed&&fedRegion(f.c)!==reg;});
+  const taken={};buildWorld().forEach(function(p){taken[p.name]=1;});taken[c.name||'You']=1;
+  const T=GEN_TALENT.slice(0,GEN_SIZE);
+  // the best of them is from your own federation about half the time
+  const star=T.shift(),order=[];for(let i=0;i<GEN_SIZE-1;i++)order.push(T[i]);
+  for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const x=order[i];order[i]=order[j];order[j]=x;}
+  const slots=[];
+  for(let i=0;i<GEN_SIZE;i++){
+    const F=i<7?(mine||pick(feds)):i<13?(near.length?pick(near):pick(feds)):(far.length?pick(far):pick(feds));
+    slots.push(F);
+  }
+  const starAt=(mine&&Math.random()<0.5)?Math.floor(Math.random()*7):7+Math.floor(Math.random()*(GEN_SIZE-7));
+  order.splice(starAt,0,star);
+  c.gen={s:S,age:age,girls:girls,ids:[],first:{},met:{},seen:{},log:[]};
+  slots.forEach(function(F,i){
+    // the ones from home are in your school year, and your age group, every year; the others within a year of you
+    const tal=order[i],girl=girls||(i%7===3),a=Math.max(7,age+(i<7&&mine?0:[0,0,0,-1,1][Math.floor(Math.random()*5)]));
+    const r=Math.max(1000,Math.round(genTypical(a,girl)+gauss()*140+tal*140));
+    const p={id:'gn'+S+'_'+i+'_'+Math.floor(Math.random()*1e6).toString(36),name:girl?natNameW(F.c,Math.random,taken):natName(F.c,Math.random,taken),
+      fed:F.c,flag:F.f,real:false,gen:1,w:girl?1:0,title:'',
+      r:Math.round(r-so[0]),r0:r,rr:Math.round(r+gauss()*40-so[1]),rb:Math.round(r+gauss()*50-so[2]),age0:a,born:S,talent:tal};
+    X.extra.push(p);
+    c.wr[p.id]=[r,Math.round(p.rr+so[1]),Math.round(p.rb+so[2]),0,0,r];
+    c.gen.ids.push(p.id);
+  });
+  // the marks already passed when you all start out are nobody's to claim
+  const top=Math.max.apply(null,genPlayers(c).map(function(p){return wpRating(p,'classical');}).concat([youRating(c,'classical')||0]));
+  GEN_MILESTONES.forEach(function(M){if(M<=top)c.gen.first[M]={pre:true};});
+  X.v++;_rankCache={};
+  return c.gen;
+}
+/* A season's growth on top of the list's own: the young of a generation that plays the youth events. */
+function genBoost(p){const a=wpAge(p),t=wpTalent(p);return a<GEN_MAX_AGE?20+(t>0?t*t*70:t*40):0;}
+function genAge(p){return Math.floor(wpAge(p));}
+function genBorn(c){return c.gen&&c.gen.age!=null?FIRST_YEAR-1+(c.gen.s||1)-c.gen.age:bioBorn(c);}
+/* Who got there first: a rating, a title. Checked every week. */
+function genWeek(c){
+  const G=genEnsure(c);if(!G||G.none)return;
+  const P=genPlayers(c),yr=youRating(c,'classical'),peak=Math.max(c.peak||0,yr||0);
+  const claim=function(key,who,label){
+    if(G.first[key])return;
+    G.first[key]=who?{n:who.name,id:who.id,fed:who.fed,s:c.season||1,a:genAge(who)}:{you:true,s:c.season||1,a:Math.floor(c.age||16)};
+    if(who){const t=who.name+' ('+who.fed+') is the first of your generation '+label+', at '+genAge(who)+'.';pushNews(c,'🌱',esc(t));pushFeed(c,'🌱',esc(t),'world');}
+    else{pushNews(c,'🌱','You are the first of your generation '+label+'.');recordMoment(c,'gen-'+key,'🌱','First of their generation '+label+', at '+Math.floor(c.age||16)+'.',{big:key==='GM'||key==='2500'});}
+  };
+  GEN_MILESTONES.forEach(function(M){
+    if(G.first[M])return;
+    if(!c.provisional&&peak>=M){claim(M,null,'to reach '+M);return;}
+    const b=P.filter(function(p){return wpRating(p,'classical')>=M;}).sort(function(a,b){return wpRating(b,'classical')-wpRating(a,'classical');})[0];
+    if(b)claim(M,b,'to reach '+M);
+  });
+  // a title for one of them is news, first or not
+  G.seen=G.seen||{};
+  P.forEach(function(p){
+    const t=wpTitle(p)||'',was=G.seen[p.id];G.seen[p.id]=t;
+    // (the first of them to a title is announced as that, below)
+    if(was!==undefined&&t!==was&&(t==='IM'||t==='GM'||t==='WGM')&&(t==='WGM'||G.first[t])){
+      const s=esc(p.name)+' ('+p.fed+'), of your generation, is '+(t==='IM'?'an international master':t==='GM'?'a grandmaster':'a woman grandmaster')+' at '+genAge(p)+'.';
+      pushNews(c,'🎖️',s);pushFeed(c,'🎖️',s,'world');
+    }
+  });
+  ['IM','GM'].forEach(function(T){
+    if(G.first[T])return;
+    if((c.titles||[]).indexOf(T)>=0||(T==='IM'&&(c.titles||[]).indexOf('GM')>=0)){claim(T,null,'to become '+(T==='GM'?'a grandmaster':'an international master'));return;}
+    const b=P.filter(function(p){const t=wpTitle(p);return t===T||(T==='IM'&&t==='GM');})[0];
+    if(b)claim(T,b,'to become '+(T==='GM'?'a grandmaster':'an international master'));
+  });
+}
+/* The turn of the year: some of them stop, and where you all stand. */
+function genSeason(c){
+  const G=c.gen;if(!G||G.none||!G.ids.length)return;
+  const X=wxInit(c),S=c.season||1;
+  let active=genPlayers(c);
+  active.slice().sort(function(){return Math.random()-0.5;}).forEach(function(p){
+    const a=wpAge(p),r=wpRating(p,'classical');
+    if(a<15||a>24||active.length<=12)return;
+    const behind=r<genTypical(a,p.w)-80,ch=behind?0.08:wpTalent(p)<0?0.03:0.01;
+    if(Math.random()<ch){
+      X.retired[p.id]=S;active=active.filter(function(q){return q!==p;});
+      const why=GEN_QUIT[wpHash(p.id+'q')%GEN_QUIT.length];
+      pushNews(c,'🌱',esc(p.name)+', of your generation, has stopped playing competitive chess '+why+'.');
+      G.log.unshift({s:S,t:p.name+' stopped playing '+why+', at '+Math.floor(a)+', rated '+r+'.'});
+    }
+  });
+  if(G.log.length>30)G.log.length=30;
+  X.v++;
+  const R=genRanking(c);
+  if(R.length>1){
+    const me=R.findIndex(function(x){return x.you;}),best=R[0];
+    const t='Your generation, a year on: '+(best.you?'you lead it':esc(best.name)+' leads it on '+best.rating)+(me>=0&&!best.you?' — you are '+ordinal(me+1)+' of '+R.length:'')+'.';
+    pushNews(c,'🌱',t);
+  }
+}
+/* Your other careers your age are of your generation too: you grow up together. */
+function genGhosts(c){
+  const G=c&&c.gen;if(!G||G.none)return [];
+  const a=ageAtJan(c);
+  return buildWorld().filter(function(p){return p.ghost&&Math.abs(genAge(p)-a)<=1&&(!isWomen(c)||p.w);});
+}
+/* You and them, strongest first. */
+function genRanking(c){
+  const P=genPlayers(c).concat(genGhosts(c)),out=P.map(function(p){return {id:p.id,name:p.name,fed:p.fed,flag:p.flag,w:p.w,ghost:p.ghost||null,rating:pubRating(p,'classical'),age:genAge(p),title:wpTitle(p)||'',p:p};});
+  const yr=youPub(c,'classical')||youRating(c,'classical');
+  if(yr!=null&&!c.provisional)out.push({you:true,name:c.name||'You',fed:c.fed,flag:c.flag,rating:yr,age:Math.floor(c.age||16),title:bestTitle(c)||''});
+  return out.sort(function(a,b){return b.rating-a.rating||(a.you?-1:1);});
+}
+/* The famous players born in your year. */
+function genFamous(c){
+  const born=bioBorn(c);
+  return buildWorld().filter(function(p){return p.real&&!p.gen&&!p.ghost&&(seasonYear(c)-Math.floor(wpAge(p)))===born;})
+    .sort(function(a,b){return wpRating(b,'classical')-wpRating(a,'classical');}).slice(0,3);
+}
+/* The World tab's card. */
+function careerGenPanel(c){
+  const G=genEnsure(c);if(!G)return '';
+  const fam=genFamous(c);
+  if(G.none){
+    if(!fam.length)return '';
+    return '<div class="card" id="gencard" style="margin-bottom:12px"><div style="font-weight:700">🌱 Born in '+bioBorn(c)+'</div><div class="dim small" style="margin-top:3px">The same year as '+
+      bioList(fam.map(function(p){return '<b>'+esc(p.name)+'</b> ('+wpRating(p,'classical')+')';}))+'.</div></div>';
+  }
+  const R=genRanking(c),all=!!app.genAll,shown=all?R:R.slice(0,8),me=R.findIndex(function(x){return x.you;});
+  if(!all&&me>=8)shown.push(R[me]);
+  const quit=genPlayers(c,true).filter(function(p){return wxInit(c).retired[p.id];});
+  const row=function(x,i){
+    const h=x.you?null:(c.h2h&&c.h2h[x.name]),rec=h&&(h.w+h.d+h.l)?' <span class="dim small">· you '+h.w+'–'+h.d+'–'+h.l+'</span>':'';
+    return '<div class="row" style="gap:8px;align-items:center;padding:5px 0;border-top:1px solid var(--border)'+(x.you?';background:linear-gradient(90deg,var(--brand)18,transparent)':'')+'">'+
+      '<span class="dim small" style="width:20px;text-align:right">'+(R.indexOf(x)+1)+'</span><span style="width:20px">'+(x.flag||'')+'</span>'+
+      '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:'+(x.you?'800':'600')+'">'+
+        (x.title?'<span style="color:var(--brand2)">'+esc(x.title)+'</span> ':'')+(x.you?esc(x.name)+' <span class="chip brand" style="font-size:9px">YOU</span>':(x.ghost?'👥 ':'')+'<button data-act="profile" data-val="'+esc(x.id)+'" style="background:none;border:0;padding:0;color:inherit;font:inherit;cursor:pointer">'+esc(x.name)+'</button>')+rec+'</span>'+
+      '<span class="dim small">'+x.age+'</span><b style="width:44px;text-align:right">'+x.rating+'</b></div>';
+  };
+  const firsts=GEN_MILESTONES.concat(['IM','GM']).filter(function(k){const f=G.first[k];return f&&!f.pre;}).map(function(k){
+    const f=G.first[k];return '<span class="chip" style="font-size:11px;margin:2px 3px 0 0">'+(typeof k==='number'?k:k)+' — '+(f.you?'<b>you</b>':esc(f.n))+' ('+f.a+')</span>';});
+  let h='<div class="card" id="gencard" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center"><div style="font-weight:700">🌱 Your generation</div><div class="dim small">born '+genBorn(c)+'±1</div></div>'+
+    '<div class="dim small" style="margin:3px 0 6px">The players your age you grow up with — at the nationals every spring, and on the list for the rest of your career.'+
+      (fam.length?' The same year as '+bioList(fam.map(function(p){return esc(p.name);}))+'.':'')+'</div>'+
+    shown.map(row).join('');
+  // not rated yet: you are still one of them
+  if(me<0)h+='<div class="row" style="gap:8px;align-items:center;padding:5px 0;border-top:1px solid var(--border);background:linear-gradient(90deg,var(--brand)18,transparent)">'+
+    '<span class="dim small" style="width:20px;text-align:right">–</span><span style="width:20px">'+(c.flag||'')+'</span><span style="flex:1;min-width:0;font-weight:800">'+esc(c.name||'You')+
+    ' <span class="chip brand" style="font-size:9px">YOU</span></span><span class="dim small">'+Math.floor(c.age||16)+'</span><span class="dim small" style="width:44px;text-align:right">unrated</span></div>';
+  if(R.length>8)h+='<button class="btn ghost sm" data-act="genall" style="margin-top:6px">'+(all?'▴ The top eight':'▾ All '+R.length)+'</button>';
+  if(firsts.length)h+='<div class="dim small" style="margin-top:8px">🏁 First to get there</div><div>'+firsts.join('')+'</div>';
+  const hon=(G.hon||[]).slice(0,4);
+  if(hon.length)h+='<div class="dim small" style="margin-top:8px">🏅 Their medals</div>'+hon.map(function(x){return '<div class="small" style="padding:2px 0">'+['🥇','🥈','🥉'][(x.pl||1)-1]+' '+esc(x.n)+' — '+esc(x.t)+' <span class="dim">'+(FIRST_YEAR-1+x.s)+'</span></div>';}).join('');
+  if(quit.length)h+='<div class="dim small" style="margin-top:8px">🚪 Stopped playing: '+quit.map(function(p){return esc(p.name);}).join(', ')+'</div>';
+  return h+'</div>';
+}
+/* The players of your generation in an event of your age group. */
+function genForEvent(c,D,region,fedOnly){
+  const G=genEnsure(c);if(!G||G.none)return [];
+  return genPlayers(c).concat(genGhosts(c)).filter(function(p){
+    const a=genAge(p);
+    if(D.age&&(a>=D.age||a<D.age-2))return false;
+    if(D.girls&&!p.w)return false;
+    if(fedOnly&&p.fed!==c.fed)return false;
+    if(region&&fedRegion(p.fed)!==fedRegion(c.fed))return false;
+    return true;
+  });
+}
+/* The biography's paragraph on the people you grew up with. */
+function bioGen(c,sur){
+  const G=c.gen,fam=genFamous(c),out=[];
+  if(G&&!G.none&&(G.ids||[]).length){
+    const R=genRanking(c),top=R.filter(function(x){return !x.you;}).slice(0,2),me=R.findIndex(function(x){return x.you;});
+    let t=sur+' grew up with a generation of players born around '+genBorn(c)+(top.length?', among them '+bioList(top.map(function(x){return (x.title?x.title+' ':'')+esc(x.name)+' ('+x.rating+')';})):'')+'.';
+    if(me>=0&&R.length>1)t+=' Of the '+R.length+' still playing, '+sur+' is '+(me===0?'the highest rated':'rated '+ordinal(me+1))+'.';
+    const f=GEN_MILESTONES.concat(['IM','GM']).filter(function(k){const x=G.first[k];return x&&x.you;});
+    if(f.length)t+=' '+sur+' was the first of them to '+bioList(f.slice(-3).map(function(k){return typeof k==='number'?'reach '+k:(k==='GM'?'become a grandmaster':'become an international master');}))+'.';
+    const hon=(G.hon||[]).filter(function(x){return (x.pl||1)===1;}).slice(0,2);if(hon.length)t+=' '+bioList(hon.map(function(x){return esc(x.n)+' won the '+esc(x.t)+' in '+(FIRST_YEAR-1+x.s);}))+'.';
+    out.push('<p>'+t+'</p>');
+  }
+  if(fam.length)out.push('<p>'+sur+' was born the same year as '+bioList(fam.map(function(p){return esc(p.name);}))+'.</p>');
+  return out.join('');
+}
+/* =========================================================================
+   THE WOMEN'S AND JUNIOR EVENTS, WITHOUT YOU
+
+   The world played its season around you, but only the open half of it: the
+   age-group championships, the World Junior, the women's national
+   championships, the Women's World Cup and the women's Olympiad happened
+   only if you were in them. Now they are played in their weeks whether or
+   not you go. Your generation plays your age group's nationals, continental
+   and world championships, with the rest of the list's children of that age
+   and children who are not on it yet; the under-20s of the whole list play
+   the World Junior and your continent's junior championship, girls and open;
+   every federation crowns a women's champion in May; the Women's World Cup
+   is a bracket of 107, its top three going to the Women's Candidates with
+   the Women's Grand Swiss's top two; and the women's Olympiad is every
+   nation's best four women. Every game is rated, the medals carry FIDE's
+   titles, and the news says who won — and where the players you grew up
+   with finished.
+   ========================================================================= */
+const YOUTH_SIM_SIZE={nat:20,cont:36,world:50};
+function youthAnon(D,F,girls,taken){
+  // the rest of the hall: children nobody has heard of yet, most of them a little below the ones who will be
+  const r=Math.max(1000,Math.round(fieldRating({avg:D.avg-80,spread:(D.spread||200)*0.75})));
+  return {p:null,name:girls?natNameW(F.c,Math.random,taken):natName(F.c,Math.random,taken),fed:F.c,flag:F.f,r:r,s:r};
+}
+function youthEntrant(p){return {p:p,name:p.name,fed:p.fed,flag:p.flag,r:pubRating(p,'classical'),s:wpStrength(p,'classical')};}
+/* A Swiss among children, some on the list and some not yet: paired on score,
+   decided by strength (children's form swings more than grown-ups'), and
+   rated for everybody who is on the list. */
+function simYouthSwiss(c,E,rounds){
+  const n=E.length,sc=E.map(function(){return 0;}),wh=E.map(function(){return 0;}),met={},opp=E.map(function(){return [];});
+  const form=E.map(function(){return Math.round(gauss()*WORLD_FORM*1.4);});
+  for(let r=0;r<rounds;r++){
+    const order=E.map(function(_,i){return i;}).sort(function(a,b){return sc[b]-sc[a]||E[b].r-E[a].r;}),used={};
+    for(let k=0;k<n;k++){
+      const i=order[k];if(used[i])continue;used[i]=1;
+      let j=-1;
+      for(let q=k+1;q<n;q++){const x=order[q];if(!used[x]&&!met[i+'|'+x]){j=x;break;}}
+      if(j<0)for(let q=k+1;q<n;q++){const x=order[q];if(!used[x]){j=x;break;}}
+      if(j<0){sc[i]+=1;continue;}
+      used[j]=1;met[i+'|'+j]=met[j+'|'+i]=1;
+      const iWhite=wh[i]<=wh[j];if(iWhite)wh[i]++;else wh[j]++;
+      const sA=E[i].s+form[i],sB=E[j].s+form[j];
+      const ex=1/(1+Math.pow(10,-(sA-sB+(iWhite?WHITE_EDGE:-WHITE_EDGE))/400)),d=bulDrawRate(ex,worldDrawBase((sA+sB)/2));
+      const pw=Math.max(0,Math.min(1-d,ex-d/2)),x=Math.random(),s=x<pw?1:(x<pw+d?0.5:0);
+      if(E[i].p&&E[j].p)worldGame(c,E[i].p,E[j].p,'classical',{s:s});
+      else{if(E[i].p)worldApply(c,E[i].p,'classical',s,E[j].r);if(E[j].p)worldApply(c,E[j].p,'classical',1-s,E[i].r);}
+      sc[i]+=s;sc[j]+=1-s;opp[i].push(j);opp[j].push(i);
+    }
+  }
+  return E.map(function(e,i){return {e:e,s:sc[i],bh:opp[i].reduce(function(a,j){return a+sc[j];},0)};})
+    .sort(function(a,b){return b.s-a.s||b.bh-a.bh||b.e.r-a.e.r;});
+}
+/* A title FIDE hands a player on the list for a result, if it is better than theirs. */
+function worldDirectTitle(c,p,T){
+  if(!p||!p.id||!T)return false;
+  const cur=wpTitle(p),cf=TITLE_FAMILY[cur],nf=TITLE_FAMILY[T];if(!nf)return false;
+  if(cf&&(cf[1]>nf[1]||(cf[1]===nf[1]&&!(cf[0]==='women'&&nf[0]==='open'))))return false;
+  if(wpRating(p,'classical')<(DT_MIN[T]||0))return false;         // the rating is not there yet
+  wxInit(c).titles[p.id]=T;return true;
+}
+/* Medals at an age-group championship, straight from FIDE's table. */
+function youthDirectTitles(c,rows,level,age,girls){
+  const row=(DT_AGE[level]||{})[age];if(!row)return [];
+  const top=rows[0]?rows[0].s:null,got=[];
+  rows.slice(0,3).forEach(function(x,i){
+    if(!x.e.p)return;
+    const eq=Math.abs(x.s-top)<1e-9,list=[].concat(i===0?(row.gold||[]):[],eq?(row.eq||[]):[],i>0?(row.sb||[]):[]);
+    list.forEach(function(k){if(k[0]!=='t')return;const T=girls?DT_W[k[1]]:k[1];if(worldDirectTitle(c,x.e.p,T))got.push({p:x.e.p,t:T});});
+  });
+  return got;
+}
+/* The record of an event nobody on your side played, and who heard about it. */
+function youthRecord(c,t,name,rows,of,opts){
+  opts=opts||{};
+  const X=wxInit(c),S=c.season||1,w=rows[0]&&rows[0].e;if(!w)return null;
+  X.results=X.results||[];
+  const R={s:S,w:weekOfSeason(c),id:t.id,name:name,emoji:t.emoji,winner:{id:w.p?w.p.id:null,name:w.name,fed:w.fed,flag:w.flag},score:rows[0].s,of:of,
+    second:rows[1]?{name:rows[1].e.name,fed:rows[1].e.fed}:null,note:opts.note||''};
+  X.results.unshift(R);if(X.results.length>60)X.results.length=60;
+  const line=w.name+' ('+w.fed+') wins the '+name+' on '+fmtScore(rows[0].s)+'/'+of+(opts.note?' — '+opts.note:'')+'.';
+  if(opts.feed!==false)pushFeed(c,t.emoji||'🏆',esc(line),'world',true);
+  // every event the world plays is a story on the board; the big ones are hot
+  if(w.p)wirePush(c,{cat:'results',e:t.emoji||'🏆',src:'wire',hot:!!opts.wire,h:w.name+' wins the '+name,
+    d:w.name+' ('+w.fed+', '+w.r+') finished on '+fmtScore(rows[0].s)+'/'+of+(rows[1]?', ahead of '+rows[1].e.name:'')+'.'+(opts.note?' '+wireCap(opts.note)+'.':''),
+    pid:w.p.id,me:w.fed===c.fed});
+  return R;
+}
+/* Where your generation finished, in one line of news. */
+function genEventNews(c,name,rows,youIn){
+  const G=c.gen;if(!G||G.none)return;
+  const ids={};(G.ids||[]).forEach(function(id){ids[id]=1;});
+  const mine=rows.map(function(x,i){return {x:x,i:i};}).filter(function(o){return o.x.e.p&&ids[o.x.e.p.id];});
+  if(!mine.length)return;
+  const w=mine[0].i===0?mine[0].x.e:null,S=c.season||1;
+  // their medals are remembered
+  G.hon=G.hon||[];
+  mine.filter(function(o){return o.i<3;}).slice().reverse().forEach(function(o){G.hon.unshift({s:S,id:o.x.e.p.id,n:o.x.e.name,t:name,pl:o.i+1});});
+  if(G.hon.length>40)G.hon.length=40;
+  const bits=mine.slice(0,4).map(function(o){return esc(o.x.e.name)+' '+ordinal(o.i+1);});
+  pushNews(c,'🌱',(youIn?'At the ':'Without you, at the ')+esc(name)+': '+(w?esc(w.name)+' of your generation won it on '+fmtScore(rows[0].s)+'. ':'')+
+    'Your generation: '+bits.join(', ')+(mine.length>4?' and '+(mine.length-4)+' more':'')+'.');
+}
+/* An age-group championship: your generation's, in your section. */
+function worldYouthAgeGroup(c,t,busy){
+  const D=youthDef(t,c);if(!D||!D.age)return null;
+  const G=genEnsure(c);if(!G||G.none)return null;
+  const lvl=t.youth,girls=!!D.girls,region=lvl==='cont',fedOnly=lvl==='nat';
+  const N=YOUTH_SIM_SIZE[lvl]||30,E=[],inE={},taken={};
+  buildWorld().forEach(function(p){taken[p.name]=1;});
+  // your generation first: the stronger of them are always there, the rest most years
+  genForEvent(c,D,region,fedOnly).forEach(function(p){
+    if(busy[p.id])return;
+    const r=wpRating(p,'classical'),go=fedOnly?0.92:r>=D.avg-60?0.9:lvl==='world'?0.45:0.65;
+    if(Math.random()<go&&E.length<N){E.push(youthEntrant(p));inE[p.id]=1;busy[p.id]=1;}
+  });
+  // then the list's other children of that age
+  worldRanking(c,'classical').filter(function(q){return !q.you&&!inE[q.id]&&!busy[q.id]&&q.age!=null&&q.age<D.age&&q.age>=D.age-3&&(!girls||q.w)&&(!fedOnly||q.fed===c.fed)&&(!region||fedRegion(q.fed)===fedRegion(c.fed));})
+    .slice(0,Math.max(0,N-E.length)).forEach(function(q){const p=worldById(q.id);if(p){E.push(youthEntrant(p));inE[p.id]=1;busy[p.id]=1;}});
+  // and children the list has not met yet
+  const feds=lvl==='nat'?[{c:c.fed,f:c.flag}]:worldFeds().filter(function(f){return !region||fedRegion(f.c)===fedRegion(c.fed);});
+  while(E.length<N)E.push(youthAnon(D,pick(feds.length?feds:worldFeds()),girls,taken));
+  const rows=simYouthSwiss(c,E,t.rounds);
+  const titles=lvl==='nat'?[]:youthDirectTitles(c,rows,lvl,D.age,girls);
+  const note=titles.length?titles.map(function(x){return x.p.name+' '+x.t;}).join(', '):'';
+  youthRecord(c,t,D.name,rows,t.rounds,{note:note,wire:lvl==='world'});
+  genEventNews(c,D.name,rows,false);
+  return rows;
+}
+/* The under-20s: the World Junior or your continent's, open and girls. */
+function worldJuniorSection(c,t,busy,girls){
+  const lvl=t.youth==='junior'?'world':'cont',reg=fedRegion(c.fed),cont=CONT_NAME[reg]||'Continental';
+  const name=(lvl==='world'?'World Junior Championship':cont+' Junior Championship')+(girls?' Girls':'')+' U20';
+  const D={avg:YOUTH_BASE[20]+(YOUTH_LVL[lvl]||0)-(girls?140:0)-60,spread:200,age:20};
+  const N=lvl==='world'?(girls?40:60):(girls?28:40),E=[],taken={};
+  buildWorld().forEach(function(p){taken[p.name]=1;});
+  worldRanking(c,'classical').filter(function(q){return !q.you&&!q.ghost&&!busy[q.id]&&q.age!=null&&q.age<20&&(girls?q.w:!q.w)&&(lvl==='world'||fedRegion(q.fed)===reg);})
+    .forEach(function(q){if(E.length>=N)return;const p=worldById(q.id);if(!p)return;
+      // the best juniors are busy with the opens some years; everybody else comes
+      if(Math.random()<(q.rating>=2550?0.55:0.85)){E.push(youthEntrant(p));busy[p.id]=1;}});
+  const feds=worldFeds().filter(function(f){return lvl==='world'||fedRegion(f.c)===reg;});
+  while(E.length<N)E.push(youthAnon(D,pick(feds.length?feds:worldFeds()),girls,taken));
+  const rows=simYouthSwiss(c,E,t.rounds);
+  const titles=youthDirectTitles(c,rows,lvl,20,girls);
+  const w=rows[0].e,gm=titles.filter(function(x){return x.p===w.p;})[0];
+  const note=gm?'and the '+gm.t+' title with it':'';
+  youthRecord(c,t,name,rows,t.rounds,{note:note,wire:lvl==='world'&&!girls||w.fed===c.fed});
+  genEventNews(c,name,rows,false);
+  if(w.fed===c.fed&&w.p)pushNews(c,t.emoji||'🏅',esc(w.name)+' of '+esc(c.fed)+' wins the '+esc(name)+'.');
+  return rows;
+}
+/* A junior event's week: whichever sections you are not playing. */
+function worldYouthEvent(c,t,busy,youIn){
+  if(t.youth==='junior'||t.youth==='contjr'){
+    const mine=youIn?isWomen(c):null;
+    [false,true].forEach(function(g){if(g!==mine)worldJuniorSection(c,t,busy,g);});
+    return;
+  }
+  if(!youIn)worldYouthAgeGroup(c,t,busy);
+}
+/* Every federation's women's championship, in the same week of May. */
+function worldWomenNationals(c,t,busy,youIn){
+  const X=wxInit(c),S=c.season||1,mine=c.fed,I=worldIndex().id;
+  X.wnatChamps=X.wnatChamps||{};
+  let n=0;
+  worldFeds().forEach(function(F){
+    if(F.c===mine&&youIn)return;
+    const L=worldRanking(c,'classical').filter(function(p){return !p.you&&p.w&&p.fed===F.c&&!busy[p.id];}),field=[];
+    for(let i=0;i<L.length&&field.length<10;i++){const p=I[L[i].id];if(!p)continue;if(Math.random()<(L[i].rating>=2500?0.5:0.85)){field.push(p);busy[p.id]=1;}}
+    if(field.length<6)return;
+    const rows=simRoundRobin(c,field,1,'classical'),w=rows[0].p;n++;
+    X.wnatChamps[F.c]={season:S,id:w.id,name:w.name,score:rows[0].s,of:field.length-1};
+    if(F.c===mine){const s=esc(w.name)+' is the '+esc(F.c)+' women’s champion, on '+fmtScore(rows[0].s)+'/'+(field.length-1)+'.';
+      if(isWomen(c))pushNews(c,'👸',s);else pushFeed(c,'👸',s,'world');}
+  });
+  if(!n)return null;
+  const R={s:S,w:weekOfSeason(c),id:'natwch',name:'National women’s championships',emoji:'👸',winner:null,note:n+' federations crowned their women’s champions'};
+  X.results=X.results||[];X.results.unshift(R);if(X.results.length>60)X.results.length=60;
+  return R;
+}
+/* The Women's World Cup: 107 players, the top 21 seeds from round two. */
+function worldWomenKnockout(c,busy){
+  const CF=KO_WOMEN,I=worldIndex().id,players=koEntrants(c,busy,false,CF);
+  if(players.filter(function(p){return I[p.id];}).length<CF.size)return null;
+  players.forEach(function(p){if(I[p.id])busy[p.id]=1;});
+  const R1=koRoundOne(players,CF),won1={};
+  for(let i=0;i<R1.pairs.length;i+=2){const A=R1.pairs[i],B=R1.pairs[i+1];won1[Math.min(A.seed,B.seed)]=koSimMatch(A,B).winner;}
+  let slots=koBracket(R1.byes,won1,CF),final=null,semis=[],eight=[];
+  while(slots.length>1){
+    const next=[];
+    if(slots.length===8)eight=slots.slice();
+    for(let i=0;i<slots.length;i+=2){const m=koSimMatch(slots[i],slots[i+1]);next.push(m.winner);if(slots.length===2)final=m;if(slots.length===4)semis.push(m.loser);}
+    slots=next;
+  }
+  const w=final.winner,l=final.loser,third=semis.length===2?koSimMatch(semis[0],semis[1]).winner:semis[0];
+  const t=TOURNAMENTS.filter(function(x){return x.id==='wworldcup';})[0];
+  wQualify(c,[w.id,l.id,third&&third.id].filter(Boolean));
+  // FIDE's titles for the result: the winner a GM, the finalist an IM, the last eight a WGM
+  if(I[w.id])worldDirectTitle(c,I[w.id],'GM');
+  if(I[l.id])worldDirectTitle(c,I[l.id],'IM');
+  eight.forEach(function(p){if(I[p.id])worldDirectTitle(c,I[p.id],'WGM');});
+  const R=worldResult(c,t,[{p:I[w.id]||w,s:0},{p:I[l.id]||l,s:0}],0,'beating '+l.name+' in the final'+(third?', with '+third.name+' third':'')+'; all three go to the Women’s Candidates');
+  if(isWomen(c))pushNews(c,'🗺️',esc(w.name)+' wins the Women’s World Cup, beating '+esc(l.name)+' in the final.');
+  return R;
+}
+/* The places in the next Women's Candidates the world has earned. */
+function wQualify(c,ids){
+  const X=wxInit(c),S=c.season||1;
+  if(!X.wqual||X.wqual.season!==S)X.wqual={season:S,ids:[]};
+  ids.forEach(function(id){if(id&&X.wqual.ids.indexOf(id)<0)X.wqual.ids.push(id);});
+}
 /* ---------------------------------------------------------------------------
    THE WORLD PLAYS ITS SEASON
 
@@ -23138,6 +23600,7 @@ function worldSwissEvent(c,t,busy){
   const rows=simSwiss(c,players,t.rounds,fmt,!!t.var960);    // Chess960 is not rated
   let extra='';
   if(t.id==='grandswiss'){worldQualify(c,[rows[0].p.id,rows[1].p.id]);extra=rows[1].p.name+' also qualifies for the Candidates';}
+  if(t.id==='wgrandswiss'){wQualify(c,[rows[0].p.id,rows[1].p.id]);extra=rows[1].p.name+' also qualifies for the Women’s Candidates';}
   return worldResult(c,t,rows,t.rounds,extra);
 }
 function worldRoundRobinEvent(c,t,busy){
@@ -23173,9 +23636,9 @@ function worldNationals(c,t,busy){
   wireNationals(c,prevMine);
 }
 /* The Olympiad, when you are not in it: every nation's best four. */
-function worldOlympiad(c,busy){
+function worldOlympiad(c,busy,women){
   const I=worldIndex().id,nations=OLY_NATIONS.map(function(n){
-    const sq=worldRanking(c,'classical').filter(function(p){return !p.you&&p.fed===n.c&&!busy[p.id];}).slice(0,OLY_BOARDS)
+    const sq=worldRanking(c,'classical').filter(function(p){return !p.you&&p.fed===n.c&&!busy[p.id]&&(!women||p.w);}).slice(0,OLY_BOARDS)
       .map(function(p){busy[p.id]=1;return I[p.id];}).filter(Boolean);
     return {c:n.c,f:n.f,squad:sq,mp:0,gp:0,met:{}};
   }).filter(function(n){return n.squad.length===OLY_BOARDS;});
@@ -23194,18 +23657,20 @@ function worldOlympiad(c,busy){
     }
   }
   nations.sort(function(a,b){return b.mp-a.mp||b.gp-a.gp;});
-  const X=wxInit(c),t=TOURNAMENTS.filter(function(x){return x.id==='olympiad';})[0]||{name:'Chess Olympiad',emoji:'🤝'};
+  const tid=women?'wolympiad':'olympiad',X=wxInit(c),t=TOURNAMENTS.filter(function(x){return x.id===tid;})[0]||{name:'Chess Olympiad',emoji:'🤝'};
   const medal=nations.slice(0,3).map(function(n,i){return ['🥇','🥈','🥉'][i]+' '+n.f+' '+n.c;}).join(' · ');
+  const oly=women?'Women’s Olympiad':'Olympiad';
   X.results=X.results||[];
-  X.results.unshift({s:c.season||1,w:weekOfSeason(c),id:'olympiad',name:t.name,emoji:t.emoji,winner:{name:nations[0].c,fed:nations[0].c,flag:nations[0].f},
+  X.results.unshift({s:c.season||1,w:weekOfSeason(c),id:tid,name:t.name,emoji:t.emoji,winner:{name:nations[0].c,fed:nations[0].c,flag:nations[0].f},
     score:nations[0].mp,of:18,note:medal});
   if(X.results.length>60)X.results.length=60;
-  pushFeed(c,'🤝','Olympiad: '+medal+'.','world',true);
+  pushFeed(c,'🤝',oly+': '+medal+'.','world',true);
   const mine=nations.findIndex(function(n){return n.c===c.fed;});
-  if(mine>=0)pushNews(c,'🤝',esc(c.fed)+' finished '+ordinal(mine+1)+' at the Olympiad — without you.');
+  // the women's team at home is news to a player on the women's track; to anybody else it is on the wire
+  if(mine>=0&&(!women||isWomen(c)))pushNews(c,'🤝',esc(c.fed)+' finished '+ordinal(mine+1)+' at the '+oly+' — without you.');
   const top4=nations[0].squad.map(function(p){return p.name;}).join(', ');
   wirePush(c,{cat:'results',e:'🤝',src:'gazette',hot:1,me:mine>=0?1:0,
-    h:nations[0].c+' win the Olympiad',
+    h:nations[0].c+' win the '+oly,
     d:'The final table: '+medal+'. The winning team: '+top4+', on '+nations[0].mp+' match points of 18.'+
       (mine>=0?' '+c.fed+' finished '+ordinal(mine+1)+' of '+nations.length+'.':'')});
   return nations;
@@ -23261,13 +23726,20 @@ function worldWeek(c){
   const w=weekOfSeason(c),busy=worldBusy(c),done=c.calDone||[];
   calendarEvents(c).forEach(function(t){
     if(EVENT_WEEK[t.id]!==w)return;
-    if((c.tour&&c.tour.id===t.id)||done.indexOf(t.id)>=0)return;      // you are in it: it is your event
+    const youIn=(c.tour&&c.tour.id===t.id)||done.indexOf(t.id)>=0;
+    // the junior events: your generation's age group, and the under-20s' sections you are not in
+    if(t.youth){worldYouthEvent(c,t,busy,youIn);return;}
+    // every federation's championship is played in its week, yours too if you are not in it
+    if(t.natWomen){worldWomenNationals(c,t,busy,youIn);return;}
+    if(t.natChamp){wireWatch(t);worldNationals(c,t,busy);wireShock(c);return;}
+    if(youIn)return;                                                   // you are in it: it is your event
     if(t.id==='candidates'||t.id==='wcc'||t.creator)return;            // the cycle has its own; the charity event is not rated
-    if(t.youth||t.natWomen||t.id==='wcandidates'||t.id==='wwcc'||t.id==='wolympiad'||t.id==='wworldcup')return;   // the junior events, and the women's cycle, which has its own
+    if(t.id==='wcandidates'||t.id==='wwcc')return;                     // and so does the women's (wcycWorldTick)
     wireWatch(t);
     if(t.id==='olympiad')worldOlympiad(c,busy);
+    else if(t.id==='wolympiad')worldOlympiad(c,busy,true);
     else if(t.id==='worldcup')worldKnockout(c,busy);
-    else if(t.natChamp)worldNationals(c,t,busy);
+    else if(t.id==='wworldcup')worldWomenKnockout(c,busy);
     else if(t.rr)worldRoundRobinEvent(c,t,busy);
     else worldSwissEvent(c,t,busy);
     wireShock(c);
@@ -23276,6 +23748,7 @@ function worldWeek(c){
   worldEventsTick(c);
   wcycWorldTick(c);
   worldCircuit(c,busy);
+  genWeek(c);                       // who of your generation got where first
   proWeek(c);
   wireLeagues(c);
   // the top of the list, when it changes hands
@@ -24571,6 +25044,7 @@ function viewBio(){
   if(c.rival){const r=c.h2h&&c.h2h[c.rival.name]||{w:0,l:0,d:0};riv+='<p>'+sur+'’s great rival is '+esc(c.rival.name)+(r.w+r.l+r.d?': '+r.w+' win'+(r.w===1?'':'s')+', '+r.l+' loss'+(r.l===1?'':'es')+' and '+r.d+' draw'+(r.d===1?'':'s')+' for '+sur+' between them.':', though they have yet to meet over the board.')+'</p>';}
   if(c.nemesis)riv+='<p>'+esc(c.nemesis.name)+', who beat '+sur+' at '+esc(bioThe(c.nemesis.since||'an event'))+', is still unbeaten against '+sur+'.</p>';
   h+=bioSection('Rivalries',riv);
+  h+=bioSection('Contemporaries',bioGen(c,sur));
   const big=(c.moments||[]).filter(function(m){return m.big;}).slice(0,6);
   // the shelf speaks to you; an article speaks about you
   const third=function(t){return String(t||'').replace(/^Your /,bioSur(c)+'’s ').replace(/^You /,bioSur(c)+' ').replace(/\byour\b/g,bioSur(c)+'’s').replace(/\byou\b/g,bioSur(c));};
