@@ -46,6 +46,19 @@
             </intent-filter>
         </receiver>
 
+        <!-- the home-screen widget; see CareerWidget.java -->
+        <receiver
+            android:name=".CareerWidget"
+            android:exported="true"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/career_widget_info" />
+        </receiver>
+
         <!-- hands the backup file to the share sheet; see BackupProvider.java -->
         <provider
             android:name=".BackupProvider"

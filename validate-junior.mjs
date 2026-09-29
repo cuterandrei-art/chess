@@ -18,7 +18,7 @@ dom.window.__PUZZLES=[];dom.window.scrollTo=()=>{};
 let pass=0; const ok=(c,m)=>{if(!c)throw new Error('FAIL: '+m);pass++;console.log('  ✓ '+m);};
 const X=new Function(script+'\nreturn {store,app,freshCareer,lifeInit,joinTournament,_simRound,TOURNAMENTS,EVENT_WEEK,heldThisSeason,weekOfSeason,tourLocked,tourVisible,'+
   'youthDef,youthGroup,ageAtJan,schoolTerm,schoolWeek,endOfWeek,lifeCosts,homeOf,careerJuniorPanel,juniorStudy,parkLocked,parkById,streamShowBlock,streamShowBy,pplWeek,pplOf,pplInit,'+
-  'directTitle,directTitlesFor,titleCondCheck,checkTitles,DT_AGE,DT_MIN,buildWorld,worldRanking,womenRanking,womenRank,wChampion,wcycInit,wcycLock,wCandidatesField,wcycWorldTick,wxInit,'+
+  'directTitle,directTitlesFor,titleCondCheck,checkTitles,DT_AGE,DT_MIN,DT_TABLE,buildWorld,worldRanking,womenRanking,womenRank,wChampion,wcycInit,wcycLock,wCandidatesField,wcycWorldTick,wxInit,'+
   'femSurname,natNameW,koC,KO_WOMEN,careerLeaderboard,careerWomenRoad,careerLobby,wOlympiadSelected,render,viewCareer};')();
 function atEvent(c,id){const wk=X.EVENT_WEEK[id];let S=c.season||1;while(!X.heldThisSeason(id,{season:S}))S++;c.season=S;c.weeks=(S-1)*52+wk;c.day=0;return c;}
 const T=id=>X.TOURNAMENTS.find(t=>t.id===id);
@@ -91,6 +91,8 @@ ok(!X.parkLocked(adult,X.parkById('sal')),'a career begun at sixteen is not a ju
 
 console.log('\n— K1 · FIDE’s direct titles —');
 ok(X.DT_AGE.world[20].gold[0][1]==='GM'&&X.DT_AGE.world[16].gold[0][1]==='IM'&&X.DT_AGE.world[10].sb[0][1]==='CM','the table: World U20 gold is GM, U16 gold IM, a U10 medal CM');
+ok(X.DT_TABLE==='1 January 2026'&&X.DT_AGE.world[18].gold[0].join()==='t,GM'&&X.DT_AGE.world[14].gold[0].join()==='t,IM'&&X.DT_AGE.cont[14].eq[0].join()==='t,FM'&&!X.DT_AGE.cont[14].gold,
+  'FIDE’s 2026 table: a World U18 gold is a GM title, a World U14 gold an IM title, a share of first at a continental U14 an FM title');
 c=kid({provisional:false,rating:1650,peak:1650});
 let r=X.directTitle(c,'CM','bronze at the World Cadets U10');
 ok(r&&r.cond&&c.titleCond.length===1&&c.titles.indexOf('CM')<0,'a CM title at 1650 waits for the rating — FIDE’s minimum is '+X.DT_MIN.CM);
@@ -103,15 +105,19 @@ tr.standings.forEach(p=>{p.score=p.you?9:Math.min(p.score,5);});
 tr.results=[];for(let i=0;i<11;i++)tr.results.push({name:'x',rating:2100,score:i<9?1:0,delta:0});
 const t1=X.directTitlesFor(c,tr,T('worldyouth'),1,true,9,11);
 ok(t1.indexOf('IM')>=0&&c.titles.indexOf('IM')>=0,'World U16 gold: an IM title, straight from FIDE');
+ok(!c.norms.some(n=>n.type==='IM'&&n.direct),'and no IM norm on top for being first equal as well');
 c=woman({age:17,peak:2150,rating:2150});atEvent(c,'worldyouth');c.tour=null;X.joinTournament('worldyouth');tr=c.tour;
 ok(tr.girls&&/Girls U18/.test(tr.name),'a girl on the women’s track plays the girls’ section ('+tr.name+')');
 tr.results=[];for(let i=0;i<11;i++)tr.results.push({name:'x',rating:2000,score:1,delta:0});
 tr.standings.forEach(p=>{p.score=p.you?7.5:p.score;});tr.standings.filter(p=>!p.you)[0].score=8.5;
 X.directTitlesFor(c,tr,T('worldyouth'),2,false,7.5,11);
-ok(c.titles.indexOf('WFM')>=0&&c.norms.some(n=>n.type==='WIM'&&n.direct),'Girls U18 silver, half a point behind: a WFM title and a WIM norm');
+ok(c.titles.indexOf('WIM')>=0&&!c.norms.some(n=>n.direct),'Girls U18 silver, half a point behind: the WIM title');
 c.titles=[];c.norms=[];tr.standings.forEach(p=>{p.score=p.you?8.5:Math.min(p.score,8.5);});
 X.directTitlesFor(c,tr,T('worldyouth'),2,false,8.5,11);
-ok(c.titles.indexOf('WIM')>=0&&c.titles.indexOf('WFM')<0,'silver on the winning score is a share of first: the WIM title, which makes the WFM moot');
+ok(c.titles.indexOf('WIM')>=0&&c.norms.some(n=>n.type==='WGM'&&n.direct),'silver on the winning score is a share of first as well: the WIM title and a WGM norm');
+c.titles=[];c.norms=[];tr.standings.forEach(p=>{p.score=p.you?9:Math.min(p.score,8);});
+X.directTitlesFor(c,tr,T('worldyouth'),1,true,9,11);
+ok(c.titles.indexOf('WGM')>=0,'and Girls U18 gold is a WGM title now');
 
 console.log('\n— K2 · women on the list —');
 c=woman();

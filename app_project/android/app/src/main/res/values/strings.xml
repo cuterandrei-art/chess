@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Chess Career</string>
+    <string name="widget_desc">Your next event, what is due, and your streak</string>
 </resources>

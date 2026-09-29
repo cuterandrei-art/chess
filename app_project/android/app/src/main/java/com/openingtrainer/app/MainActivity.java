@@ -39,6 +39,8 @@ import java.nio.charset.StandardCharsets;
  * Reminders: the page hands over a snapshot of what falls due when
  * (setReminder), asks for the notification permission (requestNotify), and a
  * tapped reminder opens the app on what is due (takeLaunch / window.__openDue).
+ * The home-screen widget gets the career the same way (setWidget), and its
+ * "What's due" opens the app like a reminder does.
  */
 public class MainActivity extends Activity {
 
@@ -267,6 +269,14 @@ public class MainActivity extends Activity {
             if (!trusted() || json == null) return;
             ReminderReceiver.prefs(MainActivity.this).edit().putString("snap", json).apply();
             ReminderReceiver.schedule(MainActivity.this);
+        }
+
+        /** The career as the home-screen widget shows it; see CareerWidget.java. */
+        @JavascriptInterface
+        public void setWidget(String json) {
+            if (!trusted() || json == null || json.length() > 64 * 1024) return;
+            CareerWidget.prefs(MainActivity.this).edit().putString("snap", json).apply();
+            CareerWidget.refresh(MainActivity.this);
         }
 
         @JavascriptInterface

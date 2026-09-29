@@ -230,6 +230,12 @@
 .ppstamp .pps-flag{font-size:22px;line-height:1.15}.ppstamp .pps-name{font-weight:800;font-size:10px;letter-spacing:.06em;margin-top:3px;overflow-wrap:anywhere}
 .ppstamp .pps-date{font-size:10px;opacity:.85}.ppstamp .pps-meta{font-size:10px;color:var(--muted);margin-top:2px}
 html[data-motion="reduced"] .ppstamp{transform:none}
+.wgprev{max-width:380px;background:#0b1120ee;border:1px solid #47556933;border-radius:20px;padding:14px;color:#f1f5f9}
+.wgbtn{background:#1c84f5;color:#fff;border-radius:14px;padding:5px 12px;font-weight:700;font-size:13px}.wgbtn2{background:#47556933;color:#e2e8f0;border-radius:14px;padding:5px 12px;font-size:13px}
+.edpal{display:flex;gap:4px;justify-content:center;margin:6px 0}
+.edpc{flex:1;max-width:56px;aspect-ratio:1;padding:3px;border:1px solid var(--border);border-radius:8px;background:#d8c3a0;display:flex;align-items:center;justify-content:center;touch-action:none;cursor:grab}
+.edpc.on{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand);background:#efe0bf}
+.edpc .pc{width:100%;height:100%;pointer-events:none}.edpc .piece{font-size:30px;line-height:1;pointer-events:none}
 .hallcard{border-color:#f59e0b55;background:linear-gradient(160deg,rgba(245,158,11,.08),transparent 60%),var(--panel)}
   .hallcard p{margin:9px 0;line-height:1.6}
   .hallcard .hl-where{font-size:16px;margin-bottom:2px}
@@ -4185,7 +4191,8 @@ function c960UpdateRights(color,from){ // call after a move by `color` from squa
   if(r===rank&&f===st.kFile){st.rights[color].k=false;st.rights[color].q=false;}
   else if(r===rank&&f===st.kR)st.rights[color].k=false;
   else if(r===rank&&f===st.qR)st.rights[color].q=false;}
-function pmap(fen){const c=new Chess(fen);const o={};for(const row of c.board())for(const p of row)if(p)o[p.square]={type:p.type,color:p.color};return o;}
+function pmap(fen){let c;try{c=new Chess(fen);}catch(e){return pmapRaw(fen);}const o={};for(const row of c.board())for(const p of row)if(p)o[p.square]={type:p.type,color:p.color};return o;}
+function pmapRaw(fen){const o={};String(fen||'').split(' ')[0].split('/').forEach(function(row,ri){let fi=0;for(const ch of row){if(/\d/.test(ch)){fi+=+ch;continue;}if(fi<8&&ri<8)o['abcdefgh'[fi]+(8-ri)]={type:ch.toLowerCase(),color:ch===ch.toUpperCase()?'w':'b'};fi++;}});return o;}
 /* --- premoves: a speculative "virtual" board so several premoves can be queued & chained --- */
 function mapToFen(pm,turn){var rows=[];for(var r=8;r>=1;r--){var row='',e=0;for(var fi=0;fi<8;fi++){var sq='abcdefgh'[fi]+r,p=pm[sq];if(p){if(e){row+=e;e=0;}row+=(p.color==='w'?p.type.toUpperCase():p.type);}else e++;}if(e)row+=e;rows.push(row);}return rows.join('/')+' '+turn+' - - 0 1';}
 function applyPremoveToFen(fen,from,to,promo){try{var pm=pmap(fen),pc=pm[from];if(!pc)return fen;var side=pc.color;delete pm[from];
@@ -4630,6 +4637,225 @@ function fmtScore(s){const w=Math.floor(s+1e-9);const half=(s-w)>=0.5;return hal
    plausible ratings; a deterministic fictional field fills the rest so there
    are always rivals just above and below you, from the very top to club level.
    AI ratings drift slightly after each of your events to feel alive. */
+/* =========================================================================
+   ANOTHER ERA
+
+   A career began in 2026, among today's players. It can begin in 1972, 1985
+   or 2000 instead, and the world is that year's: its best players by name,
+   with ratings about where the lists of the time had them and the rest of the
+   list below them pulled down to the lower ratings of the day; its champion,
+   and the title match history played that year (Spassky and Fischer, Karpov
+   and Kasparov, Kasparov and Kramnik). The calendar is the calendar of the
+   time and changes as the years pass: no online arenas before there was an
+   internet to play on, no rapid events before rapid chess, no Freestyle tour,
+   an Interzonal and Zonals where the Grand Swiss and the continental
+   championships are now, the Hoogovens before it was Corus and Corus before
+   it was Tata Steel. So do the rules: the FIDE Master title from 1978, the
+   Candidate Master from 2002, a first rating only at the floor of the day
+   (2200 until 1993). Prizes are smaller, streaming does not exist yet, and
+   nobody has a computer to prepare with — so opponents prepare less against
+   you too. And until the mid-nineties a classical game that reaches move 40
+   is adjourned: one player seals the next move in an envelope, the game goes
+   on the next day, and the night in between is for analysing it — on your
+   own, the way everybody did. A career carries on through the years, so a
+   player who starts in 1972 sees the rapid events arrive, the knockout World
+   Championships, the internet. Players are listed under today's federations.
+   ========================================================================= */
+const ERAS={
+  now:{y:2026,l:'Today (2026)',d:'Today’s players, today’s calendar and today’s rules.'},
+  '2000':{y:2000,l:'2000',d:'Kasparov on top and Kramnik coming for him in London. FIDE’s knockout championships, Corus in Wijk aan Zee, engines on every laptop.',
+    champ:'kasparov',chal:'kramnik',wchamp:'xiejun',deflate:0.9},
+  '1985':{y:1985,l:'1985',d:'Karpov against Kasparov. Interzonals and Zonals, the Hoogovens, games adjourned at move 40 and computers that can barely play.',
+    champ:'karpov',chal:'kasparov',wchamp:'chiburdanidze',deflate:0.8,flip:true},
+  '1972':{y:1972,l:'1972',d:'Fischer and Spassky in Reykjavik. No computers at all, no rapid chess, no FIDE Master title yet — and a first rating only at 2200.',
+    champ:'spassky',chal:'fischer',wchamp:'gaprindashvili',deflate:0.7}
+};
+const ERA_KEYS=['now','2000','1985','1972'];
+// [id, name, federation, rating, born, title, talent, flag] — ratings about where the lists of the time had them
+const ERA_REAL_ROWS={
+  '1972':[['fischer','R. Fischer','USA',2785,1943,'GM',-0.9],['spassky','B. Spassky','RUS',2660,1937,'GM',0],['petrosian','T. Petrosian','ARM',2645,1929,'GM',-0.2],
+    ['korchnoi','V. Korchnoi','RUS',2640,1931,'GM',0.4],['portisch','L. Portisch','HUN',2635,1937,'GM',0.2],['tal','M. Tal','LAT',2630,1936,'GM',0,'🇱🇻'],
+    ['karpov','A. Karpov','RUS',2630,1951,'GM',0.9],['larsen','B. Larsen','DEN',2625,1935,'GM',0,'🇩🇰'],['polugaevsky','L. Polugaevsky','RUS',2625,1934,'GM',0],
+    ['geller','E. Geller','UKR',2620,1925,'GM',0],['smyslov','V. Smyslov','RUS',2620,1921,'GM',-0.2],['stein','L. Stein','UKR',2615,1934,'GM',0],
+    ['hort','V. Hort','CZE',2600,1944,'GM',0.1],['keres','P. Keres','EST',2600,1916,'GM',-0.3,'🇪🇪'],['hubner','R. Hübner','GER',2590,1948,'GM',0.3],
+    ['taimanov','M. Taimanov','RUS',2590,1926,'GM',-0.2],['bronstein','D. Bronstein','UKR',2585,1924,'GM',-0.2],['mecking','H. Mecking','BRA',2580,1952,'GM',0.6],
+    ['gligoric','S. Gligorić','SRB',2575,1923,'GM',-0.2],['ljubo','L. Ljubojević','SRB',2570,1950,'GM',0.5],['uhlmann','W. Uhlmann','GER',2570,1935,'GM',0],
+    ['savon','V. Savon','UKR',2570,1940,'GM',0],['gheorghiu','F. Gheorghiu','ROU',2560,1944,'GM',0.1],['olafsson','F. Ólafsson','ISL',2560,1935,'GM',0,'🇮🇸'],
+    ['reshevsky','S. Reshevsky','USA',2560,1911,'GM',-0.4],['ivkov','B. Ivkov','SRB',2560,1933,'GM',0],['byrne','R. Byrne','USA',2560,1928,'GM',0],
+    ['kavalek','L. Kavalek','USA',2560,1943,'GM',0.1],['balashov','Y. Balashov','RUS',2560,1949,'GM',0.4],['tukmakov','V. Tukmakov','UKR',2560,1946,'GM',0.3],
+    ['najdorf','M. Najdorf','ARG',2555,1910,'GM',-0.4],['szabo','L. Szabó','HUN',2550,1917,'GM',-0.3],['andersson','U. Andersson','SWE',2540,1951,'GM',0.6],
+    ['browne','W. Browne','USA',2540,1949,'GM',0.4],['unzicker','W. Unzicker','GER',2540,1925,'GM',-0.2],['panno','O. Panno','ARG',2530,1935,'GM',0],
+    ['quinteros','M. Quinteros','ARG',2530,1947,'GM',0.2],['vaganian','R. Vaganian','ARM',2530,1951,'IM',0.7],['timman','J. Timman','NED',2520,1951,'IM',0.7]],
+  '1985':[['kasparov','G. Kasparov','AZE',2715,1963,'GM',0.4],['karpov','A. Karpov','RUS',2705,1951,'GM',0],['timman','J. Timman','NED',2650,1951,'GM',0],
+    ['beliavsky','A. Beliavsky','UKR',2640,1953,'GM',0.1],['korchnoi','V. Korchnoi','SUI',2635,1931,'GM',-0.1,'🇨🇭'],['portisch','L. Portisch','HUN',2625,1937,'GM',-0.1],
+    ['andersson','U. Andersson','SWE',2620,1951,'GM',0],['hubner','R. Hübner','GER',2620,1948,'GM',0],['vaganian','R. Vaganian','ARM',2620,1951,'GM',0],
+    ['ribli','Z. Ribli','HUN',2615,1951,'GM',0],['yusupov','A. Yusupov','RUS',2615,1960,'GM',0.4],['ljubo','L. Ljubojević','SRB',2610,1950,'GM',0],
+    ['polugaevsky','L. Polugaevsky','RUS',2610,1934,'GM',-0.2],['tal','M. Tal','LAT',2605,1936,'GM',-0.1,'🇱🇻'],['sokolov','A. Sokolov','RUS',2600,1963,'GM',0.4],
+    ['balashov','Y. Balashov','RUS',2600,1949,'GM',0],['tukmakov','V. Tukmakov','UKR',2600,1946,'GM',0],['nunn','J. Nunn','ENG',2600,1955,'GM',0.2],
+    ['seirawan','Y. Seirawan','USA',2595,1960,'GM',0.2],['smyslov','V. Smyslov','RUS',2590,1921,'GM',-0.3],['spassky','B. Spassky','FRA',2590,1937,'GM',-0.2],
+    ['psakhis','L. Psakhis','RUS',2590,1958,'GM',0.1],['romanishin','O. Romanishin','UKR',2590,1952,'GM',0],['miles','A. Miles','ENG',2590,1955,'GM',0],
+    ['chernin','A. Chernin','UKR',2585,1960,'GM',0.2],['dolmatov','S. Dolmatov','RUS',2580,1959,'GM',0.1],['speelman','J. Speelman','ENG',2580,1956,'GM',0.2],
+    ['torre','E. Torre','PHI',2580,1951,'GM',0],['georgadze','T. Georgadze','GEO',2580,1947,'GM',0],['hort','V. Hort','GER',2575,1944,'GM',-0.1],
+    ['browne','W. Browne','USA',2575,1949,'GM',0],['sax','G. Sax','HUN',2565,1951,'GM',0],['short','N. Short','ENG',2565,1965,'GM',0.6],
+    ['christiansen','L. Christiansen','USA',2565,1956,'GM',0.1],['larsen','B. Larsen','DEN',2560,1935,'GM',-0.2,'🇩🇰'],['gheorghiu','F. Gheorghiu','ROU',2560,1944,'GM',-0.1],
+    ['suba','M. Suba','ROU',2560,1947,'GM',0],['chandler','M. Chandler','ENG',2560,1960,'GM',0.1],['ehlvest','J. Ehlvest','EST',2550,1962,'IM',0.5,'🇪🇪'],
+    ['salov','V. Salov','RUS',2520,1964,'IM',0.6],['ivanchuk','V. Ivanchuk','UKR',2450,1969,'',1],['gelfand','B. Gelfand','BLR',2450,1968,'',0.9,'🇧🇾'],
+    ['anand','V. Anand','IND',2445,1969,'IM',1]],
+  '2000':[['kasparov','G. Kasparov','RUS',2849,1963,'GM',-0.1],['kramnik','V. Kramnik','RUS',2770,1975,'GM',0.1],['anand','V. Anand','IND',2762,1969,'GM',0],
+    ['morozevich','A. Morozevich','RUS',2756,1977,'GM',0],['shirov','A. Shirov','ESP',2746,1972,'GM',0],['adams','M. Adams','ENG',2730,1971,'GM',0],
+    ['leko','P. Leko','HUN',2725,1979,'GM',0.2],['ivanchuk','V. Ivanchuk','UKR',2719,1969,'GM',0],['svidler','P. Svidler','RUS',2713,1976,'GM',0.1],
+    ['topalov','V. Topalov','BUL',2707,1975,'GM',0.3,'🇧🇬'],['bareev','E. Bareev','RUS',2702,1966,'GM',-0.1],['karpov','A. Karpov','RUS',2699,1951,'GM',-0.4],
+    ['gelfand','B. Gelfand','ISR',2697,1968,'GM',0,'🇮🇱'],['jpolgar','J. Polgár','HUN',2677,1976,'GM',0.1],['dreev','A. Dreev','RUS',2676,1969,'GM',0],
+    ['short','N. Short','ENG',2675,1965,'GM',-0.2],['yejiangchuan','Ye Jiangchuan','CHN',2670,1960,'GM',-0.1],['khalifman','A. Khalifman','RUS',2667,1966,'GM',-0.1],
+    ['azmai','Z. Azmaiparashvili','GEO',2665,1960,'GM',-0.1],['akopian','V. Akopian','ARM',2660,1971,'GM',0],['ponomariov','R. Ponomariov','UKR',2660,1983,'GM',0.7],
+    ['timman','J. Timman','NED',2659,1951,'GM',-0.3],['lautier','J. Lautier','FRA',2656,1973,'GM',0],['isokolov','I. Sokolov','NED',2656,1968,'GM',0],
+    ['tkachiev','V. Tkachiev','FRA',2650,1973,'GM',0],['rublevsky','S. Rublevsky','RUS',2650,1974,'GM',0],['piket','J. Piket','NED',2649,1969,'GM',-0.1],
+    ['vanwely','L. van Wely','NED',2641,1972,'GM',0],['beliavsky','A. Beliavsky','SLO',2640,1953,'GM',-0.2,'🇸🇮'],['grischuk','A. Grischuk','RUS',2640,1983,'GM',0.7],
+    ['kasim','R. Kasimdzhanov','UZB',2640,1979,'GM',0.3,'🇺🇿'],['nisipeanu','L-D. Nisipeanu','ROU',2640,1976,'GM',0.2],['malakhov','V. Malakhov','RUS',2640,1980,'GM',0.3],
+    ['bacrot','E. Bacrot','FRA',2600,1983,'GM',0.6],['radjabov','T. Radjabov','AZE',2560,1987,'IM',0.9],['aronian','L. Aronian','ARM',2550,1982,'GM',0.9],
+    ['harikrishna','P. Harikrishna','IND',2500,1986,'IM',0.8],['nakamura','H. Nakamura','USA',2400,1987,'',1]]
+};
+const ERA_WOMEN_ROWS={
+  '1972':[['gaprindashvili','N. Gaprindashvili','GEO',2400,1941,'WIM',0],['kushnir','A. Kushnir','RUS',2330,1942,'WIM',0],['alexandria','N. Alexandria','GEO',2300,1949,'WIM',0.3],
+    ['kozlovskaya','V. Kozlovskaya','RUS',2280,1938,'WIM',-0.1],['lazarevic','M. Lazarević','SRB',2280,1942,'WIM',0],['nicolau','A. Nicolau','ROU',2250,1946,'WIM',0.1],
+    ['levitina','I. Levitina','RUS',2250,1954,'',0.5],['polihroniade','E. Polihroniade','ROU',2200,1938,'WIM',0],['chiburdanidze','M. Chiburdanidze','GEO',2000,1961,'',1]],
+  '1985':[['chiburdanidze','M. Chiburdanidze','GEO',2470,1961,'GM',0.1],['ioseliani','N. Ioseliani','GEO',2440,1962,'WGM',0.1],['spolgar','Zs. Polgár','HUN',2425,1969,'WIM',0.7],
+    ['alexandria','N. Alexandria','GEO',2420,1949,'WGM',0],['levitina','I. Levitina','RUS',2420,1954,'WGM',0],['gaprindashvili','N. Gaprindashvili','GEO',2415,1941,'GM',-0.2],
+    ['cramling','P. Cramling','SWE',2410,1963,'WGM',0.3],['akhmilovskaya','E. Akhmilovskaya','RUS',2400,1957,'WGM',0],['litinskaya','M. Litinskaya','UKR',2390,1956,'WGM',0],
+    ['brustman','A. Brustman','POL',2380,1962,'WGM',0],['nicolau','A. Nicolau','ROU',2330,1946,'WGM',-0.2],['xiejun','Xie Jun','CHN',2250,1970,'',0.9],
+    ['jpolgar','J. Polgár','HUN',2150,1976,'',1]],
+  '2000':[['xiejun','Xie Jun','CHN',2574,1970,'GM',0],['chiburdanidze','M. Chiburdanidze','GEO',2517,1961,'GM',-0.1],['zhuchen','Zhu Chen','CHN',2500,1976,'WGM',0.2],
+    ['galliamova','A. Galliamova','RUS',2500,1972,'WGM',0],['ioseliani','N. Ioseliani','GEO',2480,1962,'WGM',-0.1],['cramling','P. Cramling','SWE',2460,1963,'GM',0],
+    ['stefanova','A. Stefanova','BUL',2460,1979,'WGM',0.3,'🇧🇬'],['xuyuhua','Xu Yuhua','CHN',2460,1976,'WGM',0.1],['zhukova','N. Zhukova','UKR',2430,1979,'WGM',0.2],
+    ['pengzq','Peng Zhaoqin','NED',2420,1968,'WGM',0],['kosteniuk','A. Kosteniuk','RUS',2400,1984,'WGM',0.6],['humpy','Koneru Humpy','IND',2400,1987,'WIM',0.9]]
+};
+function eraRow(r,w){return {id:r[0],name:r[1],fed:r[2],r:r[3],b:r[4],t:r[5],tal:r[6],flag:r[7]||null,w:w?1:0};}
+const ERA_REAL={},ERA_WOMEN={};
+Object.keys(ERA_REAL_ROWS).forEach(function(k){ERA_REAL[k]=ERA_REAL_ROWS[k].map(function(r){return eraRow(r,r[0]==='jpolgar');});ERA_WOMEN[k]=(ERA_WOMEN_ROWS[k]||[]).map(function(r){return eraRow(r,true);});});
+/* The career's era, and the year its first season is. */
+function eraKey(c){
+  if(c===undefined)c=(typeof store!=='undefined'&&store)?store.career:null;
+  if(c&&c.era&&ERAS[c.era])return c.era;
+  if(c&&(c.wx||c.setup))return 'now';
+  const s=(typeof store!=='undefined'&&store)?store.career:null;
+  return (s&&s.era&&ERAS[s.era])?s.era:'now';
+}
+function careerY0(c){return ERAS[eraKey(c)].y;}
+function eraReal(e){return e&&e!=='now'?ERA_REAL[e]:null;}
+/* The rest of the list, pulled down to the ratings of the day. */
+function eraDeflate(r,e){const k=(ERAS[e]&&ERAS[e].deflate)||1;return (k<1&&r>2200)?Math.round(2200+(r-2200)*k):r;}
+/* ---- the calendar of the time ---- */
+const EVENT_FROM={titledtues:2014,creatorcup:2020,communityopen:2005,fischeropen:2001,fischerwc:2019,rapidopen:1987,cityrapid:2016,indiarapid:2018,indiablitz:2018,
+  worldrapid:1988,worldblitz:2006,gibraltar:2003,dubai:1999,aeroflot:2002,qatar:2014,norway:2013,superbet:2019,worldcup:1997,welite:2020,wgrandswiss:2019,
+  wworldcup:2021,contwch:2000,wworldrapid:2012,wworldblitz:2012,worldyouth:1974,contyouth:1990,
+  fsweiss:2024,fsparis:2025,fsvegas:2025,fscapetown:2025,cctspring:2021,cctsummer:2021,cctautumn:2021,cctfinals:2021,ewc:2024};
+const EVENT_GAP={grandswiss:[1994,2018]};        // the last Interzonal was in 1993; the Grand Swiss began in 2019
+// what an event was called before it was called what it is now: [until year, name, blurb]
+const EVENT_ERA_NAME={
+  grandswiss:[[1993,'Interzonal Tournament','The Interzonal: the players who came through their Zonals, and the top places go on to the Candidates.']],
+  continental:[[1999,'Zonal Tournament','Your zone’s championship — the first step of the world championship cycle, with norms on every board.']],
+  worldcup:[[2004,'FIDE World Championship (knockout)','FIDE’s knockout world championship: two-game matches, out if you lose. The final is for FIDE’s title — and a place in the Candidates.']],
+  tatasteel:[[1998,'Hoogovens Tournament','Wijk aan Zee’s steelworks tournament, played by the North Sea every January since 1938.'],[2010,'Corus Chess','Wijk aan Zee, under its new sponsor’s name — the “Wimbledon of chess”.']]
+};
+// the cycle's events fall in the other years in an era that starts in an odd one
+const ERA_FLIP={candidates:1,wcc:1,worldcup:1,grandswiss:1,wcandidates:1,wwcc:1,wworldcup:1,wgrandswiss:1};
+function eventExistsIn(id,y){
+  const f=EVENT_FROM[id];if(f!=null&&y<f)return false;
+  const g=EVENT_GAP[id];if(g&&y>=g[0]&&y<=g[1])return false;
+  return true;
+}
+function eraFlips(c){return !!(ERAS[eraKey(c)]&&ERAS[eraKey(c)].flip);}
+const _eraOrig={};let _eraNamesAt=null;
+/* The events' names in the year the career is in. */
+function eraSyncNames(){
+  const c=(typeof store!=='undefined'&&store)?store.career:null,y=(c&&c.setup)?seasonYear(c):ERAS.now.y;
+  if(_eraNamesAt===y)return;_eraNamesAt=y;
+  Object.keys(EVENT_ERA_NAME).forEach(function(id){
+    const t=TOURNAMENTS.find(function(x){return x.id===id;});if(!t)return;
+    if(!_eraOrig[id])_eraOrig[id]={name:t.name,blurb:t.blurb};
+    const alt=EVENT_ERA_NAME[id].find(function(a){return y<=a[0];});
+    t.name=alt?alt[1]:_eraOrig[id].name;t.blurb=alt?alt[2]:_eraOrig[id].blurb;
+  });
+}
+/* ---- the rules of the time ---- */
+const TITLE_FROM={WGM:1976,FM:1978,WFM:1978,CM:2002,WCM:2002};
+function titleExists(t,c){const f=TITLE_FROM[t];return !f||seasonYear(c)>=f;}
+/* A title the world gave out before it existed is the one below it that did. */
+function eraTitleOf(t,c){if(!t||titleExists(t,c))return t;return t==='WGM'?'WIM':'';}
+function ratingFloor(c){const y=seasonYear(c);return y<1993?2200:y<2001?2000:y<2005?1800:y<2009?1600:y<2012?1200:y<2024?1000:1400;}
+function eraPrize(c){const y=seasonYear(c);return y<1980?0.35:y<1995?0.5:y<2010?0.75:1;}
+function eraPrepK(c){const y=seasonYear(c);return y<1987?0.5:y<2000?0.75:1;}
+function eraStreams(c){return seasonYear(c)>=2008;}
+function eraEngines(c){return seasonYear(c)>=1990;}
+/* A new career in an era: its world, and the title match history had that year. */
+function eraAfterSetup(c,key){
+  key=ERAS[key]?key:'now';
+  if(key==='now'){delete c.era;return;}
+  c.era=key;
+  // a world already drawn up for the career is today's: start it again in its own year
+  delete c.wr;delete c.wrv;delete c.pub;c.wx=null;_worldCache=null;_wIndex=null;
+  const E=ERAS[key],X=wxInit(c),R=ERA_REAL[key]||[];
+  if(c.rating!=null&&!c.provisional&&c.rating<ratingFloor(c)){c.rating=ratingFloor(c);c.peak=Math.max(c.peak||0,c.rating);}
+  const ch=R.find(function(p){return p.id===E.champ;}),chal=R.find(function(p){return p.id===E.chal;});
+  if(chal&&heldThisSeason('wcc',c))X.cands={season:1,name:chal.name,fed:chal.fed,flag:chal.flag||olyFlagOf(chal.fed),score:null};
+  pushNews(c,'📅','It is '+E.y+'. '+(ch?ch.name+' is World Champion'+(chal&&X.cands?' and '+chal.name+' is the challenger — the match is in week '+EVENT_WEEK.wcc+'.':'.'):'')+
+    ' No computer can help you prepare'+(E.y>=1990?' much':'')+'; '+(E.y<1996?'games are adjourned at move 40.':'the internet is new.'));
+}
+/* ---- adjournments ----
+   Until the mid-nineties a classical game was not played to the end in one
+   sitting: at move 40 the session was over, the player to move wrote the next
+   move down and sealed it in an envelope, and the game went on the next day. */
+const ADJ_PLY=80;
+function eraAdjourns(c){return !!c&&!!c.setup&&seasonYear(c)<1996;}
+function adjournDue(){
+  const c=store.career;
+  return !!(app.careerOpp&&!app.pass&&c&&eraAdjourns(c)&&tcCategory(app.tc)==='classical'&&!app.adjourn&&(app.playMoves||[]).length>=ADJ_PLY);
+}
+/* After your move. True when the game stops for the night. */
+function adjournAfterYourMove(){
+  const A=app.adjourn;
+  if(A&&A.stage==='seal'){A.stage='night';A.sealed=(app.playMoves[app.playMoves.length-1]||{}).san||'';app.playStatus='adjourned';playSave(true);render();return true;}
+  if(adjournDue()){app.adjourn={stage:'night',by:'opp',ply:app.playMoves.length};app.playStatus='adjourned';playSave(true);render();return true;}
+  return false;
+}
+/* After theirs: if move 40 is done and it is your move, you seal it. */
+function adjournAfterEngine(){if(adjournDue())app.adjourn={stage:'seal',by:'you',ply:app.playMoves.length};}
+function adjournResume(){
+  const A=app.adjourn;if(!A||A.stage!=='night')return;
+  A.stage='done';
+  const mine=turnOf(app.playFen)===app.playSide;
+  app.view='play';app.playStatus=mine?'play':'engine';
+  if(app.clock)app.clock.lastTs=performance.now();
+  render();startClockTick();
+  if(!mine)setTimeout(engineMove,260);
+}
+function adjournAnalyse(){
+  if(!app.adjourn||app.adjourn.stage!=='night')return;
+  app.adjourn.studied=true;
+  anaOpen(app.playFen,[],0,'Adjourned — your analysis');
+  // from about 1990 a computer could help, and players used one — one reason adjournments went
+  if(app.ana){app.ana.noEngine=!eraEngines(store.career);app.ana.adj=true;app.ana.flip=app.playSide==='b';}
+  render();
+}
+/* The night's work, in the rest of the game: yours if you did it, theirs (and their seconds') if you did not. */
+function adjournEdge(){const A=app.adjourn;if(!A||A.stage!=='done')return 0;return A.studied?(eraEngines(store.career)?-60:-40):(hasCoach(store.career,'Opening theoretician')?0:25);}
+function adjournRail(){
+  const A=app.adjourn,c=store.career;if(!A||app.playStatus==='over'||!c)return '';
+  const y=seasonYear(c);
+  if(A.stage==='seal')return '<div class="note" id="adjnote" style="border-color:#f59e0b66;background:rgba(245,158,11,.10)">⏸ <b>Move 40 — the session is over.</b> It is your move, so you seal it: play your next move on the board. It goes into an envelope, and the game is adjourned until tomorrow.</div>';
+  if(A.stage==='night')return '<div class="note" id="adjnote" style="border-color:#60a5fa66;background:rgba(96,165,250,.10)">✉️ <b>Adjourned.</b> '+
+    (A.by==='you'?'Your sealed move'+(A.sealed?' ('+esc(A.sealed)+')':'')+' is in the envelope.':'Your opponent has sealed their move.')+
+    ' The game goes on tomorrow. Tonight you can go over the position — on your own'+(eraEngines(c)?'':': in '+y+' no computer can help')+'.'+
+    '<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap"><button class="btn sec sm" data-act="adjana">🔬 Analyse it overnight</button><button class="btn primary sm" data-act="adjresume">▶ Resume the game</button></div></div>';
+  return '';
+}
+/* ---- the setup screen ---- */
+function eraSetupRow(inp){
+  const NG=store.career&&store.career.nextGen;if(NG)return '';
+  return rowSet('When','Today, or an earlier era: its players, its events, its money and its rules — and the years go on from there.',
+    '<select id="cr-era" '+inp+'>'+ERA_KEYS.map(function(k){return '<option value="'+k+'"'+(k==='now'?' selected':'')+'>'+esc(ERAS[k].l)+'</option>';}).join('')+'</select>')+
+    '<div class="dim small" style="margin:-4px 0 10px;line-height:1.5">'+ERA_KEYS.filter(function(k){return k!=='now';}).map(function(k){return '<b>'+k+'</b> — '+esc(ERAS[k].d);}).join('<br>')+'</div>';
+}
 const WORLD_REAL=[
   {id:'carlsen',  name:'M. Carlsen',         fed:'NOR',flag:'🇳🇴',r:2832,rr:2820,rb:2888},
   {id:'nakamura', name:'H. Nakamura',        fed:'USA',flag:'🇺🇸',r:2802,rr:2837,rb:2903},
@@ -4763,15 +4989,17 @@ function womanTitleFor(r,u){
   return '';
 }
 /* The women, added to the list after everybody else so nobody already on it moves. */
-function worldWomen(out,taken){
-  WORLD_WOMEN.forEach(function(p){
+function worldWomen(out,taken,E){
+  E=E||'now';
+  const WW=E==='now'?WORLD_WOMEN:(ERA_WOMEN[E]||[]),Y0=ERAS[E].y,REAL=eraReal(E)||WORLD_REAL;
+  WW.forEach(function(p){
     taken[p.name]=1;
-    out.push({id:p.id,name:p.name,fed:p.fed,flag:p.flag||olyFlagOf(p.fed),real:true,w:1,title:p.t,
-      r:p.r,r0:p.r,rr:p.rr||p.r-25,rb:p.rb||p.r-35,age0:FIRST_YEAR-p.b});
+    out.push({id:p.id,name:p.name,fed:p.fed,flag:p.flag||olyFlagOf(p.fed),real:true,w:1,title:E==='now'?p.t:(p.t||''),
+      r:p.r,r0:p.r,rr:p.rr||p.r-25,rb:p.rb||p.r-35,age0:Y0-p.b,talent:p.tal!=null?p.tal:undefined});
   });
   worldFeds().forEach(function(F){
     const rg=mulberry32(wpHash('wpool|'+F.c)),str=WOMEN_STR[F.c]||2150;
-    const known=WORLD_WOMEN.filter(function(p){return p.fed===F.c;}).length+WORLD_REAL.filter(function(p){return p.fed===F.c&&WOMEN_REAL[p.id];}).length;
+    const known=WW.filter(function(p){return p.fed===F.c;}).length+REAL.filter(function(p){return p.fed===F.c&&(WOMEN_REAL[p.id]||p.w);}).length;
     for(let k=1;k<=POOL_WOMEN;k++){
       const r1=Math.max(1700,Math.round(str-90*Math.log(k+known)+(rg()-0.5)*50));
       out.push({id:'w'+F.c+k,name:natNameW(F.c,rg,taken),fed:F.c,flag:F.f,real:false,w:1,r:r1,r0:r1,
@@ -4785,10 +5013,13 @@ function worldWomen(out,taken){
   });
 }
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
-let _world=null;
+const _worldE={};
 function baseWorld(){
-  if(_world)return _world;
-  const out=WORLD_REAL.map(p=>({id:p.id,name:p.name,fed:p.fed,flag:p.flag,real:true,w:WOMEN_REAL[p.id]?1:0,r:p.r,r0:p.r,rr:p.rr!=null?p.rr:p.r-30,rb:p.rb!=null?p.rb:p.r-45}));
+  const E=eraKey();
+  if(_worldE[E])return _worldE[E];
+  const REAL=eraReal(E)||WORLD_REAL,Y0=ERAS[E].y;
+  const out=REAL.map(p=>E==='now'?({id:p.id,name:p.name,fed:p.fed,flag:p.flag,real:true,w:WOMEN_REAL[p.id]?1:0,r:p.r,r0:p.r,rr:p.rr!=null?p.rr:p.r-30,rb:p.rb!=null?p.rb:p.r-45})
+    :({id:p.id,name:p.name,fed:p.fed,flag:p.flag||olyFlagOf(p.fed),real:true,w:p.w?1:0,r:p.r,r0:p.r,rr:p.r-30,rb:p.r-45,title:p.t,age0:Y0-p.b,talent:p.tal}));
   // deterministic fictional field from 2700 down to ~1100 so there are always rivals
   // named the way their federation names people, like everybody below them
   const rnd=mulberry32(0x5eed1234),rname=mulberry32(0x6e616d65),taken={};
@@ -4805,7 +5036,7 @@ function baseWorld(){
   // stepping down the way a national list does, then its club players
   worldFeds().forEach(function(F){
     const rg=mulberry32(wpHash('pool|'+F.c)),str=olyFedStrength(F.c);
-    const known=WORLD_REAL.filter(function(p){return p.fed===F.c;}).length;
+    const known=REAL.filter(function(p){return p.fed===F.c;}).length;
     for(let k=1;k<=POOL_TOP;k++){
       const rr0=Math.round(str-105*Math.log(k+known)+(rg()-0.5)*50);
       const r1=Math.max(1750,rr0);
@@ -4818,15 +5049,18 @@ function baseWorld(){
         rr:Math.round(r1-20+rg()*40),rb:Math.round(r1-30+rg()*60)});
     }
   });
-  worldWomen(out,taken);                               // the women, after everybody else so nobody moves
+  worldWomen(out,taken,E);                             // the women, after everybody else so nobody moves
+  // an earlier era: everybody below the names is pulled down to the ratings of the day
+  if(E!=='now')out.forEach(function(p){if(p.real)return;p.r=eraDeflate(p.r,E);p.r0=eraDeflate(p.r0,E);p.rr=eraDeflate(p.rr,E);p.rb=eraDeflate(p.rb,E);});
   out.forEach(function(p){p.rr0=p.rr;p.rb0=p.rb;});   // the first published rapid and blitz ratings
-  _world=out;return out;
+  _worldE[E]=out;return out;
 }
 /* The world as this career has it: the list it started from, less those who
    have retired, with each player's rating base moved by the seasons since,
    plus everybody who has come up since. Rebuilt only when a season changes it. */
 let _worldCache=null;
 function buildWorld(){
+  eraSyncNames();                                  // the events' names in the career's year
   const c=(typeof store!=='undefined'&&store)?store.career:null,X=c&&c.wx;
   if(!X)return baseWorld();
   const gk=ghostKey()+'|'+(c.name||'');          // the names of the others depend on yours, when they are the same
@@ -4858,6 +5092,7 @@ function ghostPlayers(c){
   names[String((c&&c.name)||'You')]=1;
   sl.forEach(function(x,i){
     const m=x&&x.meta;if(!m||m.retired||m.rating==null)return;
+    if((m.era||'now')!==eraKey(c))return;             // a career in another era is not in this one's world
     let nm=m.name||'You';if(names[nm])nm=nm+' (career '+(i+2)+')';names[nm]=1;
     const r=Math.round(m.rating),st=m.str!=null?Math.round(m.str):r,rr=m.rr!=null?Math.round(m.rr):r-30,rb=m.rb!=null?Math.round(m.rb):r-45;
     out.push({id:'y'+x.id,name:nm,fed:m.fed||'FIDE',flag:m.flag||'',real:false,ghost:x.id,w:m.women?1:0,
@@ -4995,7 +5230,7 @@ function youPub(c,fmt){
   const i=WR_IDX[fmt]||0;return P.you[i]!=null?P.you[i]:null;
 }
 /* The month the list is from, for saying so. */
-function pubMonth(c){const k=(c&&c.pub)?c.pub.k:pubKey(c);return WIRE_MONTHS[k%12]+' '+(FIRST_YEAR+Math.floor(k/12));}
+function pubMonth(c){const k=(c&&c.pub)?c.pub.k:pubKey(c);return WIRE_MONTHS[k%12]+' '+(careerY0(c)+Math.floor(k/12));}
 /* How well they actually play, on the rating scale. A whole list a year older
    is not a list a year weaker against itself: ratings are relative, so the
    strengths are kept on the same scale by one offset a format (see worldSeason). */
@@ -5146,7 +5381,8 @@ function titleFor(r,u){
   return '';
 }
 function wpHash(id){let h=2166136261;const s=String(id);for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
-function wpTitle(p){
+function wpTitle(p){const t=wpTitle0(p),c=(typeof store!=='undefined'&&store)?store.career:null;return (c&&c.era)?eraTitleOf(t,c):t;}
+function wpTitle0(p){
   const c=(typeof store!=='undefined'&&store)?store.career:null,X=c&&c.wx;
   if(X&&X.titles&&X.titles[p.id]!=null)return X.titles[p.id];
   if(p.title!=null)return p.title;
@@ -5261,7 +5497,7 @@ function worldSeason(c){
         h:p.name+' becomes a grandmaster at '+Math.floor(wpAge(p)),d:p.name+' ('+p.fed+') is rated '+now+'; the title is confirmed with the new season.',pid:p.id});
     }
     // and one day, the last game
-    if(!keep[p.id]&&p.name!==champ&&p.id!==DEFAULT_CHAMPION&&Math.random()<retireChance(wpAge(p),now)){
+    if(!keep[p.id]&&p.name!==champ&&p.id!==(ERAS[eraKey(c)].champ||DEFAULT_CHAMPION)&&Math.random()<retireChance(wpAge(p),now)){
       X.retired[p.id]=S;
       if(p.real||now>=2650)notes.push({e:'🎗️',t:p.name+' retires from classical chess at '+Math.floor(wpAge(p))+'.',
         h:p.name+' retires from classical chess',d:p.name+' ('+p.fed+') leaves the list at '+Math.floor(wpAge(p))+', rated '+now+'.'});
@@ -5416,8 +5652,9 @@ function publishRating(c){
   if(!c.provisional||(c.ratedGames||0)<5||(c.provScore||0)<=0)return false;
   const n=c.ratedGames+INIT_HYP_GAMES;
   const Ra=(c.provOppSum+INIT_HYP_RATING*INIT_HYP_GAMES)/n;
-  const Rp=Math.min(2200,Math.round(Ra+dpFromPct((c.provScore+INIT_HYP_GAMES*0.5)/n)));   // a first rating is at most 2200 (8.2)
-  if(Rp>=1400){c.rating=Rp;c.peak=Math.max(c.peak||0,Rp);c.provisional=false;c.str=c.str||{};c.str.classical=Rp;return true;}
+  // a first rating is at most 2200 (8.2, from 2024), and only at the list's floor in that year
+  const Rp=Math.min(seasonYear(c)>=2024?2200:3000,Math.round(Ra+dpFromPct((c.provScore+INIT_HYP_GAMES*0.5)/n)));
+  if(Rp>=ratingFloor(c)){c.rating=Rp;c.peak=Math.max(c.peak||0,Rp);c.provisional=false;c.str=c.str||{};c.str.classical=Rp;return true;}
   return false;
 }
 /* Apply one game in any format. Classical feeds the title/norm progression
@@ -5539,6 +5776,7 @@ function titlePeak(c){return c.titleFormat==='any'?Math.max(c.peak||0,c.peakRapi
 function checkTitles(c){const got=titleCondCheck(c);const peak=titlePeak(c);
   for(const d of TITLE_DEFS){
     if((c.titles||[]).includes(d.t))continue;
+    if(!titleExists(d.t,c))continue;                  // not a title yet in that year
     if(d.track==='women'&&c.gender!=='women')continue;
     if(peak<d.rating)continue;
     if(d.normKind&&normsCount(c,d.normKind)<3)continue;
@@ -5878,7 +6116,77 @@ async function remindSync(now){
   try{if(typeof navigator!=='undefined'&&navigator.setAppBadge){if(due)await navigator.setAppBadge(due);else if(navigator.clearAppBadge)await navigator.clearAppBadge();}}catch(e){}
   try{if(typeof caches!=='undefined')await (await caches.open(REMIND_CACHE)).put('./__remind__',new Response(JSON.stringify(snap),{headers:{'content-type':'application/json'}}));}catch(e){}
   try{var b=window.AndroidBridge;if(b&&typeof b.setReminder==='function')b.setReminder(JSON.stringify(snap));}catch(e){}
+  widgetSync(now);                  // the home-screen widget, with the same due times
   return snap;}
+/* ---------------------------------------------------------------------------
+   The home-screen widget (the Android app). Four lines: the year and week of
+   your career, who you are on the list, the event you are in or the next one
+   you can enter, and what is due with your streak. The page hands the career
+   over every time it saves (AndroidBridge.setWidget); the due counts come
+   from the reminders' snapshot of due times, so the widget counts them when it
+   is drawn. The lines are written twice — here and in WidgetLogic.java — and
+   validate-widget.mjs checks the two agree.
+   --------------------------------------------------------------------------- */
+function widgetHead(year,week){return year>0?year+' · week '+week:'Chess Career';}
+function widgetCareer(flag,name,title,rating,rank){
+  if(!name)return 'No career yet — start one in the app';
+  return (flag?flag+' ':'')+name+' · '+(title?title+' ':'')+(rating>0?String(rating):'unrated')+(rank>0?' · world #'+rank:'');
+}
+function widgetEvent(tour,tourEmoji,round,rounds,sc,next,nextEmoji,inWeeks){
+  if(tour){let s=(tourEmoji?tourEmoji+' ':'')+tour+' · round '+Math.min(round+1,rounds)+' of '+rounds;if(round>0)s+=' · '+fmtScore(sc)+'/'+round;return s;}
+  if(next)return (nextEmoji?nextEmoji+' ':'')+next+' · '+(inWeeks<=0?'this week':inWeeks===1?'next week':'in '+inWeeks+' weeks');
+  return 'No event coming up — the opens run every week';
+}
+function widgetDue(rd,pd,streak){
+  let s=rd>0&&pd>0?rd+' review'+(rd===1?'':'s')+' and '+pd+' puzzle'+(pd===1?'':'s')+' due'
+    :rd>0?rd+' opening review'+(rd===1?'':'s')+' due':pd>0?pd+' puzzle'+(pd===1?'':'s')+' to try again':'Nothing due';
+  if(streak>0)s+=' · 🔥 '+streak+' day'+(streak===1?'':'s');
+  return s;
+}
+/* The career, as the widget shows it. */
+function widgetSnapshot(now){
+  const W={v:1,made:now||Date.now(),career:null},c=store.career;
+  if(!c||!c.setup||c.retired)return W;
+  try{
+    const r=youRating(c,'classical');
+    const C={name:String(c.name||'You').slice(0,40),flag:c.flag||'',title:bestTitle(c)||'',rating:(!c.provisional&&r)?r:0,
+      rank:0,year:seasonYear(c),week:weekOfSeason(c)};
+    if(!c.provisional&&r){const k=worldRank(c,'classical');if(k)C.rank=k;}
+    const tr=c.tour;
+    if(tr)C.tour={name:String(tr.name||'').slice(0,60),emoji:tr.emoji||'',round:tr.round||0,rounds:tr.rounds||0,
+      score:(tr.results||[]).reduce(function(a,x){return a+(x.score||0);},0)};
+    else{
+      const w=weekOfSeason(c),done=c.calDone||[];
+      const t=calendarEvents(c).filter(function(t){return EVENT_WEEK[t.id]>=w&&done.indexOf(t.id)<0&&tourVisible(t,c)&&!tourLockedBy(t,c);})[0];
+      if(t)C.next={name:String(t.youth?youthDef(t,c).name:t.name).slice(0,60),emoji:t.emoji||'',inWeeks:EVENT_WEEK[t.id]-w};
+    }
+    W.career=C;
+  }catch(e){}
+  return W;
+}
+function widgetLines(now){
+  now=now||Date.now();
+  const W=widgetSnapshot(now),C=W.career,d=dueTimes(),T=C&&C.tour,N=C&&C.next;
+  const a=(store.stats&&store.stats.activeDays)||{},streak=(a[dayKey(now)]||a[dayKey(now-DAY)])?dayStreak():0;
+  return [widgetHead(C?C.year:0,C?C.week:0),
+    C?widgetCareer(C.flag,C.name,C.title,C.rating,C.rank):widgetCareer('','','',0,0),
+    widgetEvent(T?T.name:'',T?T.emoji:'',T?T.round:0,T?T.rounds:0,T?T.score:0,N?N.name:'',N?N.emoji:'',N?N.inWeeks:0),
+    widgetDue(remindCountDue(d.reviews,now),remindCountDue(d.puzzles,now),streak)];
+}
+function widgetSync(now){
+  try{const b=window.AndroidBridge;if(b&&typeof b.setWidget==='function'){b.setWidget(JSON.stringify(widgetSnapshot(now)));return true;}}catch(e){}
+  return false;
+}
+function widgetCard(){
+  const L=widgetLines(),android=remindSupport()==='android';
+  return '<div class="card" id="widgetcard" style="margin-top:12px"><div style="font-weight:700;margin-bottom:4px">📱 Home-screen widget</div>'+
+    '<div class="muted small" style="margin-bottom:8px;line-height:1.5">'+(android?'Long-press your home screen, choose Widgets and find Chess Career. It shows this, and keeps the due count current with the app closed.':
+      'In the Android app you can put this on your home screen: long-press the home screen, choose Widgets, and find Chess Career.')+'</div>'+
+    '<div class="wgprev" aria-label="Widget preview"><div class="row" style="justify-content:space-between;gap:8px"><b style="color:#93c5fd">♞ Chess Career</b><span class="small" style="color:#94a3b8">'+esc(L[0])+'</span></div>'+
+      '<div style="font-weight:800;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(L[1])+'</div>'+
+      '<div class="small" style="margin-top:3px">'+esc(L[2])+'</div><div class="small" style="margin-top:3px;color:#fcd34d">'+esc(L[3])+'</div>'+
+      '<div class="row" style="gap:8px;margin-top:8px"><span class="wgbtn">Open</span><span class="wgbtn2">What’s due</span></div></div></div>';
+}
 /* While the app is open but not being looked at. With it in front of you, the dashboard already says it. */
 async function remindTick(now){
   now=now||Date.now();
@@ -6366,6 +6674,7 @@ function viewLearn(){
     ['masters','♞','Master Games','Step through games from the legends'],
     ['blindfold','🙈','Blindfold','Train board vision &amp; visualization'],
     ['review','🔬','Game Review','Analyse any game with the engine'],
+    ['editor','✏️','Board editor','Set up any position, then analyse it or play it out against the engine'],
     ['brilliancy','💎','Brilliancies','Your gallery of sacrifices that worked'],
     ['report','📊','Opening report','Which of your openings actually score in your games'],
     ['import','📥','Import my games','Build a course from your real Chess.com or Lichess games'],
@@ -6384,12 +6693,12 @@ function render(){
   document.body.style.setProperty('--bw',((_grip&&_grip.w)||store.settings.boardSize||520)+'px');
   applyAppTheme();
   const repOps=BUILT.filter(o=>inRep(o.id));const agg=aggregate(repOps,store.srs);
-  const nav=['career','dashboard','play','puzzles','learn','courses','train','library','endgames','classics','guess','blindfold','daily','review','analysis','brilliancy','report','import','tracker','studies','masters','calc','settings'];
-  const NAV_META={calc:['🧮','Rating & norms'],analysis:['🔬','Analysis board'],career:['🏆','Career'],dashboard:['📊','Dashboard'],play:['♟️','Play'],puzzles:['🧩','Puzzles'],learn:['📚','Learn'],courses:['📘','Courses'],train:['🎓','Train'],library:['📖','Openings'],endgames:['♟️','Endgames'],classics:['📜','Classics'],guess:['🎯','Guess the Move'],blindfold:['🙈','Blindfold'],review:['🔬','Game Review'],brilliancy:['💎','Brilliancies'],report:['📊','Opening report'],import:['📥','Import games'],tracker:['📡','Chess.com tracker'],daily:['☀️','Daily exercise'],studies:['📚','Studies'],masters:['♞','Master Games'],settings:['⚙️','Settings']};
+  const nav=['career','dashboard','play','puzzles','learn','courses','train','library','endgames','classics','guess','blindfold','daily','review','analysis','editor','brilliancy','report','import','tracker','studies','masters','calc','settings'];
+  const NAV_META={calc:['🧮','Rating & norms'],analysis:['🔬','Analysis board'],editor:['✏️','Board editor'],career:['🏆','Career'],dashboard:['📊','Dashboard'],play:['♟️','Play'],puzzles:['🧩','Puzzles'],learn:['📚','Learn'],courses:['📘','Courses'],train:['🎓','Train'],library:['📖','Openings'],endgames:['♟️','Endgames'],classics:['📜','Classics'],guess:['🎯','Guess the Move'],blindfold:['🙈','Blindfold'],review:['🔬','Game Review'],brilliancy:['💎','Brilliancies'],report:['📊','Opening report'],import:['📥','Import games'],tracker:['📡','Chess.com tracker'],daily:['☀️','Daily exercise'],studies:['📚','Studies'],masters:['♞','Master Games'],settings:['⚙️','Settings']};
   const label=v=>(NAV_META[v]?NAV_META[v][1]:v[0].toUpperCase()+v.slice(1));
   const navIcon=v=>(NAV_META[v]?NAV_META[v][0]:'•');
   const cur=nav.indexOf(app.view)>=0?app.view:'dashboard';
-  const LEARN_VIEWS=['learn','courses','clearn','train','library','build','explore','course','endgames','eglesson','classics','guess','blindfold','daily','masters','studies','review','analysis','brilliancy','report','import','tracker','dashboard','reptree','calc'];
+  const LEARN_VIEWS=['learn','courses','clearn','train','library','build','explore','course','endgames','eglesson','classics','guess','blindfold','daily','masters','studies','review','analysis','editor','brilliancy','report','import','tracker','dashboard','reptree','calc'];
   const CAREER_VIEWS=['career','magazine','hall','player','livegame','spectate','round','card','bio'];
   const primaryOf=v=>(CAREER_VIEWS.indexOf(v)>=0?'career':v==='play'?'play':v==='puzzles'?'puzzles':LEARN_VIEWS.indexOf(v)>=0?'learn':'');
   const PRIMARY=[['career','🏆','Career'],['play','♟️','Play'],['puzzles','🧩','Puzzles'],['learn','📚','Learn']];
@@ -6454,6 +6763,7 @@ function render(){
   else if(app.view==='hall')body=viewHall();
   else if(app.view==='settings')body=viewSettings();
   else if(app.view==='analysis')body=viewAnalysis();
+  else if(app.view==='editor')body=viewEditor();
   // The welcome gets the screen to itself: a navigation bar highlighting a
   // section you have not chosen yet is exactly the noise it exists to spare you.
   const chrome=app.view==='onboard'?'<header class="top"><div class="topin"><div class="brand"><span class="mark">♞</span><b>Chess</b> <span style="color:var(--brand2)">Career</span></div></div></header>':head;
@@ -10969,7 +11279,7 @@ function viewSettings(){
     rowSet('Skip moves you know','In review, start each line just before the first move that is actually due instead of replaying it from move one.',(store.settings.srsSkip!==false?'<input type="checkbox" data-setting="srsSkip" checked>':'<input type="checkbox" data-setting="srsSkip">'))+
     rowSet('Opponent strength','Approximate Elo of the Stockfish opponent in “Play vs engine”.',lvl)+'</div>'+
     '<div class="card" style="margin-top:12px"><div style="font-weight:700;margin-bottom:6px">Setup</div><div class="muted small" style="margin-bottom:10px">'+BUILT.length+' openings available.</div>'+
-    '<div class="row"><button class="btn sec sm" data-act="onbredo">↺ Run the setup questions again</button></div></div>'+remindCard()+xferCard()+
+    '<div class="row"><button class="btn sec sm" data-act="onbredo">↺ Run the setup questions again</button></div></div>'+remindCard()+widgetCard()+xferCard()+
     '<div class="card" style="margin-top:12px;border-color:#7f1d1d66"><div style="font-weight:600;color:#fda4af;margin-bottom:6px">Danger zone</div><div class="muted small" style="margin-bottom:10px">Clears all training progress and statistics. Your repertoire selection is kept.</div>'+
     '<button class="btn danger sm" data-act="reset">Reset all progress</button></div></div>';
 }
@@ -11113,6 +11423,7 @@ try{window.appBack=appBack;}catch(e){}
 function goBack(){var h=app.navHist||[];var from=app.view;app.view=h.length?h.pop():'dashboard';app.sel=null;stopClockTick();if(app.view!=='puzzles')stopRushTick();render();if(from!==app.view)navScrollTo((app._scrollOf||{})[app.view]||0);}
 function boardClick(sq){
   app.annot={};
+  if(app.view==='editor'){edClick(sq);return;}
   if(app.view==='analysis'){const fen=anaFen();if(!fen)return;
     if(app.sel&&app.sel!==sq&&dests(fen,app.sel).includes(sq)){if(isPromotion(fen,app.sel,sq)){app.promo={view:'analysis',from:app.sel,to:sq};render();return;}anaMove(app.sel,sq);return;}
     app.sel=dests(fen,sq).length?sq:null;render();return;}
@@ -11328,7 +11639,11 @@ function annSvg(files,ranks,arrows,id){
   if(!body)return '';
   return '<svg id="'+id+'" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6"><defs>'+defs+'</defs>'+body+'</svg>';
 }
-function onPDown(e){_suppress=false;const el=e.target.closest&&e.target.closest('[data-sq]');if(!el)return;const sq=el.dataset.sq;
+function onPDown(e){_suppress=false;
+  // the board editor: a piece from the tray, or a piece on the board, can be dragged anywhere
+  if(app.view==='editor'){const pal=e.target.closest&&e.target.closest('[data-edpc]');if(pal){_dragC={from:'@'+pal.dataset.edpc,x:e.clientX,y:e.clientY,pal:pal};return;}}
+  const el=e.target.closest&&e.target.closest('[data-sq]');if(!el)return;const sq=el.dataset.sq;
+  if(app.view==='editor'){if(app.ed&&app.ed.pm[sq]&&e.button!==2)_dragC={from:sq,x:e.clientX,y:e.clientY};return;}
   const bd=el.closest('.board');const bfen=bd?bd.getAttribute('data-fen'):null;_downXY={x:e.clientX,y:e.clientY};
   if(e.button===2){_ann={from:sq,fen:bfen,c:annColorOf(e),bd:bd};return;} // right-click: annotate
   if(_lpTimer)clearTimeout(_lpTimer);_lpActive=false;_lpTimer=setTimeout(function(){if(!_dragA){_ann={from:sq,fen:bfen,c:annColorOf(e),bd:bd};_lpActive=true;_dragC=null;}},480); // long-press: annotate
@@ -11369,6 +11684,7 @@ function onPMove(e){
   }
   if(_dragA){if(e.cancelable)e.preventDefault();_dragA.el.style.transform='translate('+(e.clientX-_dragA.size/2)+'px,'+(e.clientY-_dragA.size/2)+'px)';return;}
   if(!_dragC)return;if(Math.abs(e.clientX-_dragC.x)+Math.abs(e.clientY-_dragC.y)<6)return;
+  if(app.view==='editor'){if(e.cancelable)e.preventDefault();edDragStart(e);return;}
   boardClick(_dragC.from);
   const b=document.querySelector('.board');if(!b){_dragC=null;return;}
   const pe=b.querySelector('[data-sq="'+_dragC.from+'"] .pc, [data-sq="'+_dragC.from+'"] .piece');if(!pe){_dragC=null;return;}
@@ -11383,6 +11699,7 @@ function onPMove(e){
    back to null. We re-assert the source, then let boardClick run its normal
    move/premove logic. */
 function dropPiece(from,to){
+  if(app.view==='editor'){edDrop(from,to);return;}
   if(app.view==='play')app.playSel=from;
   else if(app.view==='explore')app.sel=from;
   else if(app.view==='analysis')app.sel=from;
@@ -11648,6 +11965,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='transferfed'){const s=document.getElementById('fed-sel');if(s)transferFed(s.value);}
   else if(act==='careercommentate')careerCommentate();
   else if(act==='foundacademy')foundAcademy();
+  else if(act==='ownplan'||act==='owncancel'||act==='owninv'||act==='ownuninv'||act==='ownmore'||act==='ownrollall'||act==='owntake'||act==='ownsave')ownAct(act,val);
   else if(act==='enrollstudent')enrollStudent();
   else if(act==='shareprofile')shareProfile();
   else if(act==='startlegend')startLegend(val);
@@ -11698,7 +12016,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='pblind'){app.blindfold=!app.blindfold;app.peek=false;render();}
   else if(act==='ppeek'){app.peek=!app.peek;render();}
   else if(act==='blindstart'){const c=val==='r'?(Math.random()<0.5?'w':'b'):val;startPlay(new Chess().fen(),c,null,'Blindfold game',{blindfold:true});}
-  else if(act==='careersetup'){const c=store.career;const nm=((document.getElementById('cr-name')||{}).value||'').trim();const fedC=(document.getElementById('cr-fed')||{}).value||'FIDE';const g=((document.getElementById('cr-gender')||{}).value==='women')?'women':'open';const tf=((document.getElementById('cr-titlefmt')||{}).value==='any')?'any':'classical';const fed=FEDS.find(x=>x.c===fedC)||FEDS[0];const pace=Math.max(1,Math.min(3,parseInt((document.getElementById('cr-pace')||{}).value,10)||1));const start=((document.getElementById('cr-start')||{}).value)||'club';c.setup=true;careerCid(c);c.name=(nm||'You').slice(0,24);c.fed=fed.c;c.flag=fed.f;c.gender=g;c.titleFormat=tf;c.pace=pace;if(start==='talent'){c.rating=1900;c.peak=1900;c.provisional=false;c.ratedGames=30;c.age=18;}else if(start==='master'){c.rating=2300;c.peak=2300;c.provisional=false;c.ratedGames=30;c.age=20;}else if(start==='junior'){c.age=JUNIOR_START_AGE;c.junior=true;c.money=50;c.school={grade:75,exams:null};c.parents={fund:PARENT_FUND,left:PARENT_FUND,s:1};}if(c.nextGen)ngAfterSetup(c);app.careerTab='play';save();render();navScrollTo(0);}
+  else if(act==='careersetup'){const c=store.career;const nm=((document.getElementById('cr-name')||{}).value||'').trim();const fedC=(document.getElementById('cr-fed')||{}).value||'FIDE';const g=((document.getElementById('cr-gender')||{}).value==='women')?'women':'open';const tf=((document.getElementById('cr-titlefmt')||{}).value==='any')?'any':'classical';const fed=FEDS.find(x=>x.c===fedC)||FEDS[0];const pace=Math.max(1,Math.min(3,parseInt((document.getElementById('cr-pace')||{}).value,10)||1));const start=((document.getElementById('cr-start')||{}).value)||'club';c.setup=true;careerCid(c);c.name=(nm||'You').slice(0,24);c.fed=fed.c;c.flag=fed.f;c.gender=g;c.titleFormat=tf;c.pace=pace;if(start==='talent'){c.rating=1900;c.peak=1900;c.provisional=false;c.ratedGames=30;c.age=18;}else if(start==='master'){c.rating=2300;c.peak=2300;c.provisional=false;c.ratedGames=30;c.age=20;}else if(start==='junior'){c.age=JUNIOR_START_AGE;c.junior=true;c.money=50;c.school={grade:75,exams:null};c.parents={fund:PARENT_FUND,left:PARENT_FUND,s:1};}if(!c.nextGen)eraAfterSetup(c,((document.getElementById('cr-era')||{}).value)||'now');if(c.nextGen)ngAfterSetup(c);app.careerTab='play';save();render();navScrollTo(0);}
   else if(act==='careerpace'){const c=store.career;lifeInit(c);c.pace=(c.pace||1)>=3?1:(c.pace||1)+1;app.careerToast='⏩ Career pace: '+(PACE_NAMES[c.pace]||('×'+c.pace))+' — ratings now move '+(c.pace===1?'at true FIDE speed':(c.pace+'× faster'))+'.';save();render();}
   else if(act==='careerjoin'){joinTournament(val);if(store.career.tour){app.careerTab='play';app._jump='tourcard';render();}}
   else if(act==='careerplay')tourRoundEnter();
@@ -11844,6 +12162,11 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='srchclose')srchClose();
   else if(act==='srchgo')srchRun(val);
   else if(act==='anaload'){const ta=document.getElementById('ana-in');anaLoadText(ta?ta.value:(app.anaText||''));}
+  else if(act==='edopen')edOpen();
+  else if(act==='adjana')adjournAnalyse();
+  else if(act==='adjresume')adjournResume();
+  else if(act==='adjback'){app.view='play';render();}
+  else if(act==='edtool'||act==='edhand'||act==='ederase'||act==='edturn'||act==='edstart'||act==='edclear'||act==='edflip'||act==='edload'||act==='edcopy'||act==='edana'||act==='edplay')edAct(act,val);
   else if(act==='anastart'){app.anaErr=null;anaOpen(ANA_START,[],0,'Analysis board');}
   else if(act==='anainput'){if(app.ana){app.ana.input=true;app.anaErr=null;render();const ta=document.getElementById('ana-in');if(ta)ta.focus();}}
   else if(act==='anainputclose'){if(app.ana)app.ana.input=false;app.anaErr=null;render();}
@@ -11905,6 +12228,8 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='studyflip'){app.studyFlip=!app.studyFlip;render();}
 });
 document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.dataset&&e.target.dataset.own){if(ownInput(e.target))render();return;}
+  if(e.target.dataset&&(e.target.dataset.edc||e.target.dataset.edep!==undefined)){if(edInput(e.target))render();return;}
   if(e.target.dataset&&e.target.dataset.calc){calcInput(e.target,false);return;}   // only the numbers change: a redraw here would swallow the click that caused the blur
   if(e.target.dataset&&e.target.dataset.psetopening!==undefined){app.setupOpening=e.target.value;return;}
   if(e.target.dataset&&e.target.dataset.pzfilter){const k=e.target.dataset.pzfilter;
@@ -11945,7 +12270,7 @@ document.getElementById('app').addEventListener('change',e=>{
     r.onload=()=>receiveBackup(String(r.result||''),'file');
     r.readAsText(f);e.target.value='';}
 });
-document.getElementById('app').addEventListener('input',e=>{if(e.target&&e.target.dataset&&e.target.dataset.calc){calcInput(e.target,false);return;}if(e.target&&e.target.id==='ana-in'){app.anaText=e.target.value;return;}
+document.getElementById('app').addEventListener('input',e=>{if(e.target&&e.target.dataset&&e.target.dataset.calc){calcInput(e.target,false);return;}if(e.target&&e.target.dataset&&e.target.dataset.own==='name'){ownInput(e.target);return;}if(e.target&&e.target.id==='ed-fen'){edInput(e.target);return;}if(e.target&&e.target.id==='ana-in'){app.anaText=e.target.value;return;}
   if(e.target&&e.target.id==='srch-q'&&app.srch){app.srch.q=e.target.value;app.srch.sel=0;srchUpdate();return;}const ds=e.target.dataset&&e.target.dataset.setting;if(ds==='boardSize'){store.settings.boardSize=+e.target.value;document.body.style.setProperty('--bw',store.settings.boardSize+'px');}
   if(ds==='musicVol'){store.settings.musicVol=+e.target.value;Music.setVol();}});
 
@@ -13084,7 +13409,7 @@ function boothPanel(){
 const RESUME_KEY='chess-career-resume-v1';
 let _resumeSig=null;
 /* A game is only worth keeping while it is still being played. */
-function playLive(){return app.playStatus==='play'||app.playStatus==='engine';}
+function playLive(){return app.playStatus==='play'||app.playStatus==='engine'||app.playStatus==='adjourned';}
 function playSnapshot(){
   if(!app.playFen||!app.playStack||!app.playMoves||!playLive())return null;
   const last=app.playMoves[app.playMoves.length-1];
@@ -13107,7 +13432,7 @@ function playSnapshot(){
       tourId:(store.career&&store.career.tour)?store.career.tour.id:null,
       round:(store.career&&store.career.tour)?store.career.tour.round:null},
     park:app.parkBet?{id:app.parkBet.id,stake:app.parkBet.stake,double:!!app.parkBet.double}:null,
-    pass:app.pass||null};
+    pass:app.pass||null,adjourn:app.adjourn||null};
 }
 /* Written at move boundaries, and again when the app is about to go away —
    that second one is the whole point on a phone. */
@@ -13220,7 +13545,8 @@ function playResume(){
     botSide:null,botRate:0,botBudget:0,botUsed:0,botFrom:null}:null;
   if(app.clock)BotEngine.load();
   // trust the board over the stored flag: whoever is to move, moves
-  app.playStatus=(turnOf(app.playFen)===app.playSide)?'play':'engine';
+  app.adjourn=g.adjourn||null;                      // an adjourned game is still adjourned
+  app.playStatus=(app.adjourn&&app.adjourn.stage==='night')?'adjourned':(turnOf(app.playFen)===app.playSide)?'play':'engine';
   stopClockTick();
   _resumeSig=null;
   render();
@@ -13303,7 +13629,7 @@ function copyPGN(){const pgn=buildPGN();const done=()=>{app.pgnCopied=true;rende
   else fallbackCopy(pgn,done);}
 function fallbackCopy(text,done){try{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();document.execCommand('copy');ta.remove();done();}catch(e){alert(text);}}
 
-function startPlay(fen,side,openingId,title,opts){opts=opts||{};
+function startPlay(fen,side,openingId,title,opts){opts=opts||{};app.adjourn=null;
   app.pass=opts.pass?Object.assign({},opts.pass):null;app.passWinner=null;
   if(app.pass){side=turnOf(fen);app.playBot=null;}
   app.view='play';app.playFen=fen;app._playStartFen=fen;app.playSide=side;app.playOpening=openingId||null;
@@ -13389,7 +13715,7 @@ async function engineMove(){app.playStatus='engine';render();
     const sharp=tacticalEdge(ply); // tactical sharpness: puzzles, Killer instinct, the Tactician class
     const studyE=app.careerStudyEdge?Math.round(app.careerStudyEdge*(ply<16?70:25)):0; // you studied the very line they're playing
     const prepE=(app.careerPrepUsed?((ply<16?80:30)+(perkLevel(store.career,'prepmaster')?((ply<16?40:20)+(perkLevel(store.career,'prepmaster')-1)*(ply<16?20:10)):0)+(app.careerNovelty?(ply<20?70:30):0))*(styleClass(store.career).cls==='Gambiteer'?1.25:1):0)+studyE; // home prep edge (Deep-prep perk per level + Gambiteer class + a sprung novelty)
-    lvl={elo:Math.max(600,Math.round(app.careerElo-120-sharp-prepE+prepEloNow())),mt:700};   // + their preparation against you
+    lvl={elo:Math.max(600,Math.round(app.careerElo-120-sharp-prepE+prepEloNow()+adjournEdge())),mt:700};   // + their preparation against you
     if(app.careerRoundOpp&&app.careerRoundOpp.style)lvl.style=app.careerRoundOpp.style;
     // short of time, a human plays worse — the steadier their nerve, the less so
     var _lt=oppLowOnTime();
@@ -13445,7 +13771,7 @@ function playEngineBest(best,eng,plan,thinkFen){
     settleBotClock(eng,plan);
     if(best&&best!=='(none)'){const m=tryFromTo(app.playFen,best.slice(0,2),best.slice(2,4),best[4]||'q');
       if(m){if(app.c960)c960UpdateRights(eng,best.slice(0,2));app.playStack.push(m.fen);app.playMoves.push({from:best.slice(0,2),to:best.slice(2,4),san:m.san});app.playFen=m.fen;app.playLast={from:best.slice(0,2),to:best.slice(2,4)};app.playSel=null;app.playView=app.playStack.length-1;app.playBookNode=null;addIncrement(eng);playNoteClock();boothMove();sfxSan(m.san);}}
-    if(!checkOver()){app.playStatus='play';oppAfterMove();}
+    if(!checkOver()){app.playStatus='play';adjournAfterEngine();oppAfterMove();}
     render();tryPremove();
 }
 function pieceColorAt(fen,sq){try{const c=new Chess(fen);const p=c.get(sq);return p?p.color:null;}catch(e){return null;}}
@@ -13468,6 +13794,7 @@ function playMove(from,to){
   } else app.blunderNote=null;
   if(checkOver()){render();return true;}
   if(app.pass){passHandOver();return true;}
+  if(adjournAfterYourMove())return true;            // move 40: the session is over
   app.playStatus='engine';render();setTimeout(engineMove,260);return true;}
 function playUndo(){const st=app.playStack;if(!st||st.length<=1)return;
   if(app.pass){st.pop();app.playMoves.pop();app.playSide=turnOf(st[st.length-1]);if(app.playClk&&app.playClk.length>app.playMoves.length)app.playClk.length=app.playMoves.length;}
@@ -13803,6 +14130,7 @@ function streamChat(S,line,v,k){
 /* Going live. `auto` when the career goes live for every game on its own. */
 function streamStart(auto){
   const c=store.career;if(!c||!c.setup||!app.careerOpp)return null;
+  if(!eraStreams(c))return null;                    // nobody streamed chess before there was streaming
   if(app.stream&&app.stream.on)return app.stream;
   const base=streamBase(c),late=(app.playMoves||[]).length;
   c.stream=c.stream||{sessions:0,peak:0,regulars:[],best:null};
@@ -14076,6 +14404,7 @@ function streamSummary(S){
 function streamPanel(){
   const c=store.career;
   if(!c||!c.setup||!app.careerOpp||!app.playFen)return '';
+  if(!eraStreams(c))return '';
   const S=app.stream;
   if(!S||!S.on){
     if(app.playStatus==='over')return '';
@@ -14986,13 +15315,13 @@ function leagueSeasonEnd(c){
    plays your board and you are not paid.
    --------------------------------------------------------------------------- */
 const PRO_LEAGUES=[
-  {id:'4ncl',name:'Four Nations Chess League',short:'4NCL',flag:'🏴',str:2380,mult:0.55,min:2300,
+  {id:'4ncl',name:'Four Nations Chess League',short:'4NCL',flag:'🏴',str:2380,mult:0.55,min:2300,from:1993,
    clubs:['Guildford','Wood Green','Manx Liberty','Cheddleton','White Rose','Barbican','Oxford','Blackthorne']},
-  {id:'top12',name:'French Top 12',short:'Top 12',flag:'🇫🇷',str:2470,mult:0.8,min:2400,
+  {id:'top12',name:'French Top 12',short:'Top 12',flag:'🇫🇷',str:2470,mult:0.8,min:2400,from:1981,
    clubs:['Asnières','Clichy','Bischwiller','Mulhouse','Nice Alekhine','Vandœuvre','Bois-Colombes','Châlons']},
-  {id:'bundesliga',name:'Schachbundesliga',short:'Bundesliga',flag:'🇩🇪',str:2540,mult:1,min:2450,
+  {id:'bundesliga',name:'Schachbundesliga',short:'Bundesliga',flag:'🇩🇪',str:2540,mult:1,min:2450,from:1980,
    clubs:['Baden-Baden','Werder Bremen','Deizisau','Hockenheim','Viernheim','Solingen','Dresden','Hamburger SK']},
-  {id:'ccl',name:'China Chess League',short:'CCL',flag:'🇨🇳',str:2600,mult:1.3,min:2550,
+  {id:'ccl',name:'China Chess League',short:'CCL',flag:'🇨🇳',str:2600,mult:1.3,min:2550,from:2005,
    clubs:['Shanghai','Beijing','Shandong','Hangzhou','Chengdu','Shenzhen','Tianjin','Wuhan']}
 ];
 const PRO_BOARDS=8;
@@ -15007,6 +15336,7 @@ function proLeagues(c){
   const X=wxInit(c),S=c.season||1;
   X.leagues=X.leagues||{};
   PRO_LEAGUES.forEach(function(L){
+    if(L.from&&seasonYear(c)<L.from){delete X.leagues[L.id];return;}      // not founded yet in that year
     const G=X.leagues[L.id];
     if(!G||G.season!==S)X.leagues[L.id]=proLeagueBuild(c,L,S);
   });
@@ -15052,7 +15382,7 @@ function proOffers(c){
   if((c.age==null?16:c.age)<14)return [];
   const r=youRating(c,'classical');
   if(r==null||c.provisional||c.pro)return [];
-  return PRO_LEAGUES.filter(function(L){return r>=L.min;}).map(function(L){
+  return PRO_LEAGUES.filter(function(L){return r>=L.min&&!(L.from&&seasonYear(c)<L.from);}).map(function(L){
     const h=wpHash((c.name||'')+L.id+(c.season||1));
     return {league:L.id,club:L.clubs[h%L.clubs.length],fee:proFee(r,L)};
   });
@@ -15468,7 +15798,7 @@ function startRivalMatch(){var c=store.career;lifeInit(c);if(!c.rival||c.tour)re
   c.money-=stake;var rr=rivalRating(c)||c.rival.rating,games=4,field=[];for(var i=0;i<games;i++)field.push({name:c.rival.name,rating:rr,title:rivalTitle(c,rr),flag:c.rival.flag,style:pickStyle()});
   c.tour={id:'rivalmatch',name:'Grudge Match vs '+c.rival.name,emoji:'⚔️',rounds:games,round:0,field:field,results:[],normEligible:false,avg:rr,tier:5,format:'classical',champion:false,honor:null,kind:'match',var960:false,stake:stake,started:Date.now()};
   pushNews(c,'⚔️','You staked 💰'+stake+' on a grudge match against '+c.rival.name+'!');app.careerToast='⚔️ Grudge match on — 💰'+stake+' on the line! It is on the Play tab.';app.careerTab='play';save();render();}
-function hireCoach2(spec){var c=store.career;lifeInit(c);var t=COACH_TYPES.find(function(x){return x.spec===spec;});if(!t||hasCoach(c,spec))return;var fee=t.salary*8;if((c.money||0)<fee)return;c.money-=fee;c.coaches.push({name:randName(),spec:t.spec,salary:t.salary,emoji:t.emoji});if(spec==='Engine analyst'){store.settings.showEval=true;c.coach=true;}if(spec==='Opening theoretician')c.prep=(c.prep||0)+3;save();render();}
+function hireCoach2(spec){var c=store.career;lifeInit(c);var t=COACH_TYPES.find(function(x){return x.spec===spec;});if(!t||hasCoach(c,spec))return;if(spec==='Engine analyst'&&!eraEngines(c))return;var fee=t.salary*8;if((c.money||0)<fee)return;c.money-=fee;c.coaches.push({name:randName(),spec:t.spec,salary:t.salary,emoji:t.emoji});if(spec==='Engine analyst'){store.settings.showEval=true;c.coach=true;}if(spec==='Opening theoretician')c.prep=(c.prep||0)+3;save();render();}
 function fireCoach(i){var c=store.career;if(c.coaches&&c.coaches[+i]){var rm=c.coaches.splice(+i,1)[0];if(rm&&rm.spec==='Engine analyst')c.coach=false;}save();render();}
 function signSponsor(i,silent){var c=store.career;lifeInit(c);var offs=sponsorOffers(c);var off=offs[(+i)||0];if(!off)return;c.sponsor={name:off.name,perWeek:off.perWeek,weeksLeft:off.weeks,weeksTotal:off.weeks,paid:0,posts:0};c.sponsorRenew=null;
   wirePush(c,{cat:'media',e:'🤝',src:'home',me:1,h:(c.name||'You')+' signs with '+off.name,d:money(off.perWeek)+' a week for '+off.weeks+' weeks'+(off.bonus?', and '+money(off.bonus)+' on signing':'')+'.'});if(off.bonus)c.money=(c.money||0)+off.bonus;app.careerToast='🤝 Signed with '+off.name+(off.bonus?' (+💰'+off.bonus+' signing bonus)':'')+'!';if(silent)return;save();render();}
@@ -15645,7 +15975,7 @@ function careerMeta(c){
   const m={name:String(c.name||'You').slice(0,24),flag:c.flag||'',fed:c.fed||'FIDE',title:bestTitle(c)||'',
     rating:c.provisional?null:(c.rating||null),games:c.ratedGames||0,peak:c.peak||null,
     season:c.season||1,age:Math.floor(c.age||16),weeks:c.weeks||0,
-    retired:!!c.retired,junior:!!c.junior,women:c.gender==='women',inEvent:!!c.tour};
+    retired:!!c.retired,junior:!!c.junior,women:c.gender==='women',inEvent:!!c.tour,era:c.era||'now'};
   // what the other careers' worlds need to put this one on their list
   try{
     m.rr=c.ratingRapid!=null?Math.round(c.ratingRapid):null;m.rb=c.ratingBlitz!=null?Math.round(c.ratingBlitz):null;
@@ -15692,7 +16022,7 @@ function careerUnpark(){
 const CAREER_UI_KEYS=['careerToast','careerRoundOpp','careerOpp','careerElo','spec','careerFinish','careerOneoff','careerOppPrep','careerPrepUsed',
   'parkBet','parkDouble','parkStake','careerTour','careerLeague','careerPro','careerLegend','careerHallLegend','careerNovelty','careerStudyEdge','careerStory','careerDelta',
   'careerBanter','careerReaction','careerScored','careerOly','_olyPay','socialDraft','socialOpen','socialAll','oppDraw','oppSaid','coachNote','cardCtx',
-  'newsOpen','newsRead','newsMore','newsSeenAt','newsCat','normHelp','normOpen','lobbyMore','lobbyAll','inboxAll','feedAll','momentsAll','decLater','decFirst',
+  'ownDraft','ownRollAll','newsOpen','newsRead','newsMore','newsSeenAt','newsCat','normHelp','normOpen','lobbyMore','lobbyAll','inboxAll','feedAll','momentsAll','decLater','decFirst',
   'xtFin','xtOpen','xtHist','careerTitlesOpen','magPly','magIdx','stream','streamShow','rush','rushResult','roundIntro','booth','tiltEval','careerHintsLeft',
   '_fxCareer','playerId','snackMsg','_snackKey','careerMsg'];
 function careerUiReset(){
@@ -15897,7 +16227,7 @@ const TRIP_COST={home:{fare:0,night:0},online:{fare:0,night:0},local:{fare:12,ni
 function tripCost(tr,c,days){
   const trip=eventTrip(tr),k=TRIP_COST[trip]||TRIP_COST.abroad;
   if(!k.fare&&!k.night)return {total:0,note:''};
-  const covered=!!(tr.sched||tr.ko||tr.oly||tr.kind==='match'||tr.sel||INVITE_EVENTS[tr.id]||
+  const covered=!!(tr.id==='own'||tr.sched||tr.ko||tr.oly||tr.kind==='match'||tr.sel||INVITE_EVENTS[tr.id]||
     tr.id==='candidates'||tr.id==='grandswiss'||tr.id==='natch'||tr.id==='natwch'||tr.id==='wgrandswiss');
   if(covered)return {total:0,note:trip==='local'?'':tr.sel?'the federation paid for the trip':'the organisers covered your travel and hotel'};
   const T=(c&&c.titles)||[];
@@ -16715,7 +17045,7 @@ function careerTeamPanel(c){
   var h='<div class="card" id="teamcard" style="margin-bottom:12px"><div class="foldrow" style="margin-bottom:6px"><div style="font-weight:700">🧑‍🏫 Team &amp; sponsors</div>'+foldBtn('team',hire,hire?'Less':'Hire')+'</div>';
   if((c.coaches||[]).length)h+=c.coaches.map(function(co,i){return '<div class="row" style="justify-content:space-between;align-items:center;padding:4px 0"><span class="small">'+co.emoji+' <b>'+esc(co.name)+'</b> — '+esc(co.spec)+' <span class="dim">(💰'+co.salary+'/wk)</span></span><button class="btn ghost sm" data-act="firecoach" data-val="'+i+'">Release</button></div>';}).join('');
   else h+='<div class="dim small">No seconds yet — a coach costs a weekly salary but is worth it as you climb.</div>';
-  var avail=COACH_TYPES.filter(function(t){return !hasCoach(c,t.spec);});
+  var avail=COACH_TYPES.filter(function(t){return !hasCoach(c,t.spec)&&!(t.spec==='Engine analyst'&&!eraEngines(c));});   // no engines to analyse with, before 1990
   if(avail.length&&!hire)h+='<div class="dim small" style="margin-top:6px">'+avail.length+' kind'+(avail.length===1?'':'s')+' of second you could hire — ▾ Hire shows them and what they cost.</div>';
   if(avail.length&&hire)h+='<div class="dim small" style="margin:8px 0 3px">Hire a second (one-off fee = 8 weeks’ salary, then their weekly wage at each event):</div>'+avail.map(function(t){var fee=t.salary*8;return '<div class="row" style="justify-content:space-between;align-items:center;padding:3px 0;gap:8px"><span class="small">'+t.emoji+' '+esc(t.spec)+' <span class="dim">— '+esc(t.desc)+'</span></span><button class="btn '+((c.money||0)>=fee?'sec':'ghost')+' sm" data-act="hirecoach2" data-val="'+esc(t.spec)+'" '+((c.money||0)>=fee?'':'disabled')+'>💰'+fee+'</button></div>';}).join('');
   h+='<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border)">';
@@ -17024,7 +17354,7 @@ function wireListTick(c){
   const L=worldRanking(c,'classical'),snap=X.listSnap||{},now={};
   L.forEach(function(p){if(p.rank<=150)now[p.id]=[p.rating,p.rank];});
   X.listSnap=now;
-  const month=WIRE_MONTHS[m],year=FIRST_YEAR+y;
+  const month=WIRE_MONTHS[m],year=careerY0()+y;
   const tbl=L.slice(0,10).map(function(p){const o=snap[p.id];
     return {n:p.name,f:p.flag||'',t:p.title||'',r:p.rating,d:(o&&!first)?p.rating-o[0]:null,k:(o&&!first)?o[1]-p.rank:null,you:p.you?1:0};});
   let up=null,dn=null,climb=null,entered=null;
@@ -17505,7 +17835,12 @@ const KNOWN_REPS={
   spassky:{w:'kings-gambit'},
   smyslov:{w:'ruy-lopez',b2:'grunfeld'},
   keres:{w:'ruy-lopez'},
-  korchnoi:{w:'english',b:'french'}
+  korchnoi:{w:'english',b:'french'},
+  // and the players of the earlier eras
+  portisch:{w:'queens-gambit',b2:'nimzo-indian'},larsen:{w:'english'},timman:{w:'ruy-lopez',b2:'queens-indian'},polugaevsky:{b:'sicilian-najdorf'},
+  geller:{b2:'kings-indian'},andersson:{w:'english',b2:'queens-indian'},nunn:{b:'sicilian-najdorf',b2:'kings-indian'},short:{w:'ruy-lopez',b:'french'},
+  shirov:{w:'ruy-lopez',b:'sicilian-najdorf',b2:'slav'},topalov:{b:'sicilian-najdorf',b2:'slav'},leko:{w:'ruy-lopez',b:'sicilian-sveshnikov',b2:'nimzo-indian'},
+  svidler:{b2:'grunfeld'},jpolgar:{w:'ruy-lopez',b:'sicilian-najdorf',b2:'kings-indian'},gelfand:{b:'sicilian-najdorf',b2:'grunfeld'}
 };
 // what is played from 2500 up
 const REP_ELITE={w:['ruy-lopez','italian','queens-gambit','catalan','english'],
@@ -17513,7 +17848,8 @@ const REP_ELITE={w:['ruy-lopez','italian','queens-gambit','catalan','english'],
   b2:['nimzo-indian','queens-indian','slav','grunfeld','kings-indian']};
 let _repNames=null;
 function repIdOf(name){
-  if(!_repNames){_repNames={};WORLD_REAL.forEach(function(p){_repNames[p.name]=p.id;});LEGENDS.forEach(function(l){if(!_repNames[l.name])_repNames[l.name]=l.id;});}
+  if(!_repNames){_repNames={};WORLD_REAL.forEach(function(p){_repNames[p.name]=p.id;});
+    Object.keys(ERA_REAL).forEach(function(k){ERA_REAL[k].concat(ERA_WOMEN[k]).forEach(function(p){if(!_repNames[p.name])_repNames[p.name]=p.id;});});LEGENDS.forEach(function(l){if(!_repNames[l.name])_repNames[l.name]=l.id;});}
   return _repNames[name]||null;
 }
 /* The first move of an opening's book. Read from its first line while the
@@ -17885,13 +18221,17 @@ const EVENT_WEEK={hastings:0,tatasteel:2,gibraltar:4,aeroflot:8,continental:11,c
 const EVENT_YEARS={candidates:'even',olympiad:'even',wcc:'even',worldcup:'odd',grandswiss:'odd',
   wcandidates:'even',wolympiad:'even',wwcc:'odd',wworldcup:'odd',wgrandswiss:'odd'};
 const FIRST_YEAR=2026;            // season one
-function seasonYear(c){return FIRST_YEAR-1+((c&&c.season)||1);}
+function seasonYear(c){return careerY0(c)-1+((c&&c.season)||1);}
 function weekOfSeason(c){return ((c&&c.weeks)||0)%52;}
 function heldThisSeason(id,c){
-  const p=EVENT_YEARS[id];if(!p)return true;
-  const y=seasonYear(c);return p==='even'?y%2===0:y%2===1;
+  if(id==='own'){const cc=(c&&c.wx)?c:store.career;return ownHeld(cc,(c&&c.season)||(cc&&cc.season)||1);}
+  const y=seasonYear(c);
+  if(!eventExistsIn(id,y))return false;                 // not yet, or not any more, in that year
+  let p=EVENT_YEARS[id];if(!p)return true;
+  if(ERA_FLIP[id]&&eraFlips(c))p=p==='even'?'odd':'even';
+  return p==='even'?y%2===0:y%2===1;
 }
-function nextSeasonHeld(id,c){let s=((c&&c.season)||1)+1;while(!heldThisSeason(id,{season:s}))s++;return s;}
+function nextSeasonHeld(id,c){let s=((c&&c.season)||1)+1,g=0;while(!heldThisSeason(id,{season:s})&&g++<60)s++;return s;}
 /* Not this week, or not this year: why, or null. */
 function calendarLock(t,c){
   const wk=EVENT_WEEK[t.id];
@@ -18655,6 +18995,7 @@ function careerTabContent(c,tab){
     h+=careerBackerPanel(c);
     h+=careerFedPanel(c);
     h+=careerAcademyPanel(c);
+    h+=careerOwnPanel(c);
     h+=careerProtegePanel(c);
     h+=careerProPanel(c);
     h+=careerClubPanel(c);
@@ -18699,6 +19040,7 @@ function careerSetupView(){
     '<p class="muted" style="text-align:center;margin-top:6px">Register your profile and begin as an <b>unrated</b> player — exactly like real life. Score well in your first tournaments to earn a published rating, then chase <b>norms</b> and <b>FIDE titles</b> all the way from CM to Grandmaster and the World Championship.</p>'+
     '<div style="margin:14px 0">'+
       rowSet('Player name','How you’ll appear on every crosstable.','<input id="cr-name" type="text" maxlength="24" placeholder="'+(NG&&NG.kind==='child'?'A first name, then '+esc(NG.sur):'Your name')+'"'+(NG&&NG.kind==='child'?' value="'+esc(NG.sur)+'"':'')+' '+inp+'>')+
+      eraSetupRow(inp)+
       rowSet('Federation','Your national chess federation.','<select id="cr-fed" '+inp+'>'+feds+'</select>')+
       rowSet('Title track','The women’s WCM–WGM titles sit 100–200 Elo lower (a FIDE rule). Open titles are available to everyone either way.','<select id="cr-gender" '+inp+'><option value="open">Open</option><option value="women">Women</option></select>')+
       rowSet('Titles count from','Real FIDE titles are classical-only. Choose “Any format” to also earn them with your Rapid or Blitz rating &amp; norms (a house rule for a faster route).','<select id="cr-titlefmt" '+inp+'><option value="classical">Classical only (realistic)</option><option value="any">Any format (classical / rapid / blitz)</option></select>')+
@@ -19090,7 +19432,7 @@ function nextTitleInfo(c){
 const INVITE_EVENTS={supergm:{rank:18,fee:1500},tatasteel:{rank:14,fee:2200},superbet:{rank:14,fee:1800},norway:{rank:10,fee:2600},
   // the Freestyle tour invites the top of the list, and a big name or two besides
   fsweiss:{rank:12,fee:5000,fame:70,wild:80},fsparis:{rank:12,fee:5000,fame:70,wild:80},fsvegas:{rank:12,fee:8000,fame:70,wild:80},fscapetown:{rank:12,fee:5000,fame:70,wild:80}};
-function appearanceFee(t,c){var inv=INVITE_EVENTS[t&&t.id];if(!inv)return 0;return Math.round(inv.fee*(1+(c.fame||0)/120));}
+function appearanceFee(t,c){var inv=INVITE_EVENTS[t&&t.id];if(!inv)return 0;return Math.round(inv.fee*(1+(c.fame||0)/120)*eraPrize(c));}
 /* A championship is held once a year, the local club's included: entered every
    week, a teenager on K 40 could win it 52 times a season and ride FIDE's
    400-point rule most of the way to 2600 against 1350s. The City Open and the
@@ -19105,6 +19447,7 @@ function tourLocked(t,c,noCal){
 }
 function tourLockedBy(t,c){
   if(t.women&&!isWomen(c))return 'the women’s track';
+  if(t.own){const w=ownLock(c);if(w)return w;}
   if(t.youth){const y=youthLock(t,c);if(y)return y;}
   if(t.wcycle&&(t.id==='wworldcup'||t.id==='wcandidates'||t.id==='wwcc')){
     if(c.provisional||c.rating==null)return 'needs a rating';
@@ -19890,7 +20233,7 @@ function normTracker(tr,c){
    above them and, for anybody who has never made one, what a norm is. */
 const NORM_COUNTS={GM:['GM','IM'],IM:['IM'],WGM:['WGM','WIM'],WIM:['WIM']};
 function normWhen(n){
-  if(n.s!=null&&n.w!=null)return WIRE_MONTHS[Math.min(11,Math.floor(n.w*12/52))]+' '+(FIRST_YEAR-1+n.s)+' · season '+n.s;
+  if(n.s!=null&&n.w!=null)return WIRE_MONTHS[Math.min(11,Math.floor(n.w*12/52))]+' '+(careerY0()-1+n.s)+' · season '+n.s;
   return n.date?new Date(n.date).toLocaleDateString():'';
 }
 function normExplainer(c){
@@ -21646,7 +21989,7 @@ function makeField(t){
   // the event's level, not seven invented names. The Candidates is the eight
   // best players in the world who are not the champion.
   // the Champions Chess Tour's Finals are its standings' top eight, not the top of the list
-  let players=(t.id==='cctfinals'&&tourFinalField(t,store.career,count,fmt))||((t.rr&&t.avg>=ELITE_AVG)?(eliteField(t,count)||gen()):gen());
+  let players=(t.own&&t.rr&&ownField(store.career,count))||(t.id==='cctfinals'&&tourFinalField(t,store.career,count,fmt))||((t.rr&&t.avg>=ELITE_AVG)?(eliteField(t,count)||gen()):gen());
   // A norm round-robin is invited, not drawn: the organiser picks the field so
   // the norm is on offer, the way real ones are. Left to chance, one IM-norm
   // event in five could not give an IM norm whatever you scored.
@@ -21964,6 +22307,7 @@ function worldPick(targets,opt){
 /* A hall of players around the event's average, drawn from the world list. */
 function swissHall(t,size){
   if(t.creator)return swissHallInvented(t,size);
+  if(t.own)return ownHall(t,size);                          // the stars on the poster, then whoever came
   const targets=[];for(let i=0;i<size-1;i++)targets.push(fieldRating(t));
   if(t.youth)return youthField(t,store.career,size-1).map(function(o,i){o.pid='p'+i;return o;});   // a hall of children your age
   const picked=worldPick(targets,{fmt:eventFormat(t),rule:fieldFedRule(t,store.career),women:!!t.women});
@@ -22582,7 +22926,7 @@ function worldChampion(c){
   const R=worldRanking(c,'classical');
   const at=function(name){return R.filter(function(p){return p.name===name;})[0];};
   if(C.reigning){const now=at(C.reigning.name);return Object.assign({},C.reigning,now?{rating:now.rating,id:now.id}:{});}
-  const d=R.filter(function(p){return p.id===DEFAULT_CHAMPION;})[0]||R.filter(function(p){return !p.you;})[0];
+  const d=R.filter(function(p){return p.id===(ERAS[eraKey(c)].champ||DEFAULT_CHAMPION);})[0]||R.filter(function(p){return !p.you;})[0];
   return d?{id:d.id,name:d.name,fed:d.fed,flag:d.flag,rating:d.rating}:null;
 }
 /* This season's challenger when you are not it: whoever won the Candidates,
@@ -22717,7 +23061,7 @@ function wChampion(c){
   if(C.champ)return {you:true,name:c.name,fed:c.fed,flag:c.flag};
   const R=womenRanking(c);
   if(C.reigning){const now=R.filter(function(p){return p.name===C.reigning.name;})[0];return Object.assign({},C.reigning,now?{rating:now.rating,id:now.id}:{});}
-  const d=R.filter(function(p){return p.id===W_DEFAULT_CHAMP;})[0]||R.filter(function(p){return !p.you;})[0];
+  const d=R.filter(function(p){return p.id===(ERAS[eraKey(c)].wchamp||W_DEFAULT_CHAMP);})[0]||R.filter(function(p){return !p.you;})[0];
   return d?{id:d.id,name:d.name,fed:d.fed,flag:d.flag,rating:d.rating}:null;
 }
 function wChallenger(c){
@@ -22830,9 +23174,11 @@ function koC(K){
    Some titles are not earned by rating and norms but handed out for a
    result: a medal at an age-group championship, reaching the last sixteen of
    the World Cup, 65% at an Olympiad. This is FIDE's table of them (the one
-   in force from 1 January 2024) — "gold" is first after tiebreaks, "first
+   in force from 1 January 2026, which made a World U18 gold a GM title and a
+   World U14 gold an IM title) — "gold" is first after tiebreaks, "first
    equal" the best three on the winning score, "silver and bronze" second and
-   third. A title needs a minimum rating at some point (GM 2300, IM 2200, FM
+   third. The winner is first equal too, and takes what that row gives
+   unless gold already gives more of the same title. A title needs a minimum rating at some point (GM 2300, IM 2200, FM
    2100, CM 2000; WGM 2100, WIM 2000, WFM 1900, WCM 1800): won before that,
    it is awarded when the rating gets there. An Olympiad's CM and WCM need no
    rating at all.
@@ -22840,19 +23186,23 @@ function koC(K){
 const DT_MIN={GM:2300,IM:2200,FM:2100,CM:2000,WGM:2100,WIM:2000,WFM:1900,WCM:1800};
 // [where you finished] → [kind, title]: t = the title, n = a norm for it
 const DT_AGE={
-  world:{20:{gold:[['t','GM']],eq:[['n','GM']],sb:[['t','IM']]},18:{gold:[['n','GM']],eq:[['t','IM']],sb:[['n','IM'],['t','FM']]},
-    16:{gold:[['t','IM']],eq:[['n','IM']],sb:[['t','FM']]},14:{gold:[['n','IM']],eq:[['t','FM']],sb:[['t','CM']]},
+  world:{20:{gold:[['t','GM']],eq:[['n','GM']],sb:[['t','IM']]},18:{gold:[['t','GM']],eq:[['n','GM']],sb:[['t','IM']]},
+    16:{gold:[['t','IM']],eq:[['n','IM']],sb:[['t','FM']]},14:{gold:[['t','IM']],eq:[['n','IM']],sb:[['t','FM']]},
     12:{eq:[['t','FM']],sb:[['t','CM']]},10:{gold:[['t','CM']],sb:[['t','CM']]},8:{gold:[['t','CM']],sb:[['t','CM']]}},
   cont:{20:{gold:[['n','GM']],eq:[['t','IM']],sb:[['n','IM'],['t','FM']]},18:{gold:[['t','IM']],eq:[['n','IM']],sb:[['t','FM']]},
-    16:{gold:[['n','IM']],eq:[['t','FM']],sb:[['t','CM']]},14:{gold:[['t','FM']],sb:[['t','CM']]},12:{gold:[['t','FM']],sb:[['t','CM']]},
+    16:{gold:[['n','IM']],eq:[['t','FM']],sb:[['t','CM']]},14:{eq:[['t','FM']],sb:[['t','CM']]},12:{eq:[['t','FM']],sb:[['t','CM']]},
     10:{gold:[['t','CM']],sb:[['t','CM']]},8:{gold:[['t','CM']],sb:[['t','CM']]}}
 };
+const DT_TABLE='1 January 2026';
+// what a winner also takes from the "first equal" row: not a norm for a title gold already gives
+function dtEqForGold(row){const G=(row.gold||[]).map(function(x){return x[1];});return (row.eq||[]).filter(function(x){return G.indexOf(x[1])<0;});}
 const DT_W={GM:'WGM',IM:'WIM',FM:'WFM',CM:'WCM'};       // the girls' sections mirror the open ones, a women's title a row
 const TITLE_FAMILY={GM:['open',4],IM:['open',3],FM:['open',2],CM:['open',1],WGM:['women',4],WIM:['women',3],WFM:['women',2],WCM:['women',1]};
 function titleName(t){return (TITLE_DEFS.find(function(d){return d.t===t;})||{name:t}).name;}
 /* A title for a result: now, or when the rating gets there. */
 function directTitle(c,t,why,noMin){
   c.titles=c.titles||[];
+  if(!titleExists(t,c))return null;
   if(c.titles.indexOf(t)>=0)return null;
   const F=TITLE_FAMILY[t];
   if(F&&c.titles.some(function(x){const G=TITLE_FAMILY[x];return G&&G[0]===F[0]&&G[1]>F[1];}))return null;   // a higher one of the same kind is held
@@ -22886,7 +23236,7 @@ function directTitlesFor(c,tr,def,place,won1st,score,games){
   if(def.youth&&tr.age&&(def.youth==='world'||def.youth==='cont')){
     const row=DT_AGE[def.youth][tr.age]||{},what=(tr.name||'the championship');
     if(gold)add(row.gold,'gold at the '+what);
-    if(eq)add(row.eq,(gold?'':'a share of first at ')+(gold?'winning the '+what:what));
+    if(eq)add(gold?dtEqForGold(row):row.eq,(gold?'':'a share of first at ')+(gold?'winning the '+what:what));
     if(sb)add(row.sb,(place===2?'silver':'bronze')+' at the '+what);
   }
   // the continental championships
@@ -23014,6 +23364,8 @@ function youthField(t,c,size){
 /* Whether a junior event, a women's event, is on your calendar at all. */
 function tourVisible(t,c){
   if(!t)return false;
+  if(t.own){const o=ownOf(c);return !!o&&((c&&c.season)||1)>=o.from&&o.off!==((c&&c.season)||1);}
+  if(!eventExistsIn(t.id,seasonYear(c)))return false;          // an event of another time
   if(t.women&&!isWomen(c))return false;
   if(t.youth){if(!c)return false;if(t.youth==='junior'||t.youth==='contjr')return juniorAge(c);return youthGroup(c)!=null;}
   return true;
@@ -23198,7 +23550,7 @@ function genEnsure(c){
 /* A season's growth on top of the list's own: the young of a generation that plays the youth events. */
 function genBoost(p){const a=wpAge(p),t=wpTalent(p);return a<GEN_MAX_AGE?20+(t>0?t*t*70:t*40):0;}
 function genAge(p){return Math.floor(wpAge(p));}
-function genBorn(c){return c.gen&&c.gen.age!=null?FIRST_YEAR-1+(c.gen.s||1)-c.gen.age:bioBorn(c);}
+function genBorn(c){return c.gen&&c.gen.age!=null?careerY0(c)-1+(c.gen.s||1)-c.gen.age:bioBorn(c);}
 /* Who got there first: a rating, a title. Checked every week. */
 function genWeek(c){
   const G=genEnsure(c);if(!G||G.none)return;
@@ -23310,7 +23662,7 @@ function careerGenPanel(c){
   if(R.length>8)h+='<button class="btn ghost sm" data-act="genall" style="margin-top:6px">'+(all?'▴ The top eight':'▾ All '+R.length)+'</button>';
   if(firsts.length)h+='<div class="dim small" style="margin-top:8px">🏁 First to get there</div><div>'+firsts.join('')+'</div>';
   const hon=(G.hon||[]).slice(0,4);
-  if(hon.length)h+='<div class="dim small" style="margin-top:8px">🏅 Their medals</div>'+hon.map(function(x){return '<div class="small" style="padding:2px 0">'+['🥇','🥈','🥉'][(x.pl||1)-1]+' '+esc(x.n)+' — '+esc(x.t)+' <span class="dim">'+(FIRST_YEAR-1+x.s)+'</span></div>';}).join('');
+  if(hon.length)h+='<div class="dim small" style="margin-top:8px">🏅 Their medals</div>'+hon.map(function(x){return '<div class="small" style="padding:2px 0">'+['🥇','🥈','🥉'][(x.pl||1)-1]+' '+esc(x.n)+' — '+esc(x.t)+' <span class="dim">'+(careerY0()-1+x.s)+'</span></div>';}).join('');
   if(quit.length)h+='<div class="dim small" style="margin-top:8px">🚪 Stopped playing: '+quit.map(function(p){return esc(p.name);}).join(', ')+'</div>';
   return h+'</div>';
 }
@@ -23335,7 +23687,7 @@ function bioGen(c,sur){
     if(me>=0&&R.length>1)t+=' Of the '+R.length+' still playing, '+sur+' is '+(me===0?'the highest rated':'rated '+ordinal(me+1))+'.';
     const f=GEN_MILESTONES.concat(['IM','GM']).filter(function(k){const x=G.first[k];return x&&x.you;});
     if(f.length)t+=' '+sur+' was the first of them to '+bioList(f.slice(-3).map(function(k){return typeof k==='number'?'reach '+k:(k==='GM'?'become a grandmaster':'become an international master');}))+'.';
-    const hon=(G.hon||[]).filter(function(x){return (x.pl||1)===1;}).slice(0,2);if(hon.length)t+=' '+bioList(hon.map(function(x){return esc(x.n)+' won the '+esc(x.t)+' in '+(FIRST_YEAR-1+x.s);}))+'.';
+    const hon=(G.hon||[]).filter(function(x){return (x.pl||1)===1;}).slice(0,2);if(hon.length)t+=' '+bioList(hon.map(function(x){return esc(x.n)+' won the '+esc(x.t)+' in '+(careerY0()-1+x.s);}))+'.';
     out.push('<p>'+t+'</p>');
   }
   if(fam.length)out.push('<p>'+sur+' was born the same year as '+bioList(fam.map(function(p){return esc(p.name);}))+'.</p>');
@@ -23407,7 +23759,7 @@ function youthDirectTitles(c,rows,level,age,girls){
   const top=rows[0]?rows[0].s:null,got=[];
   rows.slice(0,3).forEach(function(x,i){
     if(!x.e.p)return;
-    const eq=Math.abs(x.s-top)<1e-9,list=[].concat(i===0?(row.gold||[]):[],eq?(row.eq||[]):[],i>0?(row.sb||[]):[]);
+    const eq=Math.abs(x.s-top)<1e-9,list=[].concat(i===0?(row.gold||[]):[],eq?(i===0?dtEqForGold(row):(row.eq||[])):[],i>0?(row.sb||[]):[]);
     list.forEach(function(k){if(k[0]!=='t')return;const T=girls?DT_W[k[1]]:k[1];if(worldDirectTitle(c,x.e.p,T))got.push({p:x.e.p,t:T});});
   });
   return got;
@@ -23815,6 +24167,7 @@ async function nextGenStart(kind){
     nc.cycle={cand:null,chall:null,champ:false,defended:null,defences:0,reigning:oc.champ?null:ngClone(oc.reigning||null),lost:null,candPlayed:null,wc:null};
     nc.wcyc={cand:null,chall:null,champ:false,defended:null,defences:0,reigning:ow.champ?null:ngClone(ow.reigning||null),lost:null,candPlayed:null,wc:null,wcHow:null};
     nc.season=old.season||1;nc.weeks=old.weeks||0;nc.day=0;nc.s0=nc.season;
+    if(old.era)nc.era=old.era;                       // the same world, in the same years
     const chain=((old.lineage&&old.lineage.chain)||[]).concat([{cid:prev.cid,name:prev.name,best:prev.best,peak:prev.peak,s0:prev.s0,s1:prev.s1,rel:(old.lineage&&old.lineage.kind)||null}]);
     nc.lineage={world:wid,kind:kind,prev:prev,chain:chain.slice(-8)};
     nc.nextGen={kind:kind,fed:prev.fed,sur:prev.sur};
@@ -23915,12 +24268,12 @@ function ngSetupBanner(c){
 function careerLineagePanel(c){
   const L=c.lineage,P=L&&L.prev;if(!P)return '';
   const child=L.kind==='child',G=ngOldGen(c),e=hallList().find(function(x){return x.cid&&x.cid===P.cid;});
-  const years=(FIRST_YEAR-1+(P.s0||1))+'–'+(FIRST_YEAR-1+(P.s1||1));
+  const years=(careerY0()-1+(P.s0||1))+'–'+(careerY0()-1+(P.s1||1));
   let h='<div class="card" id="lineagecard" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
     '<div style="font-weight:700">🏛️ Before you</div>'+(e&&!c.tour?'<button class="btn sec sm" data-act="halllegend" data-val="'+esc(String(e.at))+'">🎭 Play '+esc(child?'your parent':P.name)+'</button>':'')+'</div>'+
     '<div class="small" style="margin-top:5px;line-height:1.6">'+(child?'Your parent, ':'')+(P.best?'<b>'+esc(P.best)+'</b> ':'')+'<b>'+esc(P.name)+'</b> '+esc(P.flag||'')+(child?',':'')+' played in this world from '+years+
       (P.peak?', peak '+P.peak:'')+(P.champ?', a World Champion':P.wchamp?', a Women’s World Champion':'')+'.'+
-      ((L.chain||[]).length>1?' Before them: '+L.chain.slice(0,-1).reverse().map(function(x){return esc(x.name)+' ('+(FIRST_YEAR-1+(x.s0||1))+'–'+(FIRST_YEAR-1+(x.s1||1))+')';}).join(', ')+'.':'')+'</div>';
+      ((L.chain||[]).length>1?' Before them: '+L.chain.slice(0,-1).reverse().map(function(x){return esc(x.name)+' ('+(careerY0()-1+(x.s0||1))+'–'+(careerY0()-1+(x.s1||1))+')';}).join(', ')+'.':'')+'</div>';
   if(G.length){
     h+='<div class="dim small" style="margin:9px 0 2px">🌱 '+esc(child?'Your parent’s':P.name+'’s')+' generation, born around '+(P.gen.born||P.born)+', now</div>';
     h+=G.slice(0,app.ngAll?40:8).map(function(x){
@@ -23966,7 +24319,7 @@ function careerRollPanel(c){
   const cols=[['wch','👑'],['wwch','👸'],['worldcup','🗺️'],['candidates','♛'],['olympiad','🤝'],['ewc','🎮']];
   const line=function(s,E,sub){
     const bits=cols.filter(function(k){return E[k[0]];}).map(function(k){return '<span style="white-space:nowrap">'+k[1]+' '+rollName(c,E[k[0]])+'</span>';});
-    return '<div class="small" style="display:flex;gap:8px;padding:4px 0;border-top:1px solid var(--border);line-height:1.6"><span class="dim" style="width:38px;flex:0 0 auto">'+(FIRST_YEAR-1+s)+(sub?'<br><span style="font-size:10px">'+sub+'</span>':'')+'</span>'+
+    return '<div class="small" style="display:flex;gap:8px;padding:4px 0;border-top:1px solid var(--border);line-height:1.6"><span class="dim" style="width:38px;flex:0 0 auto">'+(careerY0()-1+s)+(sub?'<br><span style="font-size:10px">'+sub+'</span>':'')+'</span>'+
       '<span style="flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:3px 12px">'+bits.join('')+'</span></div>';
   };
   const now=Object.assign({},R[S]||{});
@@ -24175,6 +24528,7 @@ function tourFinalField(t,c,count,fmt){
 }
 /* The World tab: both tours as they stand. */
 function careerToursPanel(c){
+  if(!['fsweiss','cctspring','ewc'].some(function(id){return eventExistsIn(id,seasonYear(c));}))return '';   // not yet, in that year
   if((youRating(c,'classical')||0)<2200&&!tourState(c,'cct').you&&!tourState(c,'freestyle').you)return '';
   const one=function(k){
     const D=TOURS[k],T=tourState(c,k),L=tourTable(c,k),me=L.findIndex(function(x){return x.you;});
@@ -24331,14 +24685,14 @@ function careerPassportPanel(c){
   if(pin){
     h+='<div style="margin-top:8px;padding:8px 10px;border:1px solid var(--border);border-radius:10px"><div style="font-weight:700">'+pin.g[4]+' '+esc(pin.city)+
       ' <span class="dim small" style="font-weight:400">'+esc(pin.g[3])+(pin.nights?' · '+pin.nights+' night'+(pin.nights===1?'':'s'):'')+'</span></div>'+
-      pin.events.slice(0,8).map(function(e){return '<div class="small" style="padding:2px 0">'+(e.emoji||'♟')+' '+esc(e.name)+' <span class="dim">'+(FIRST_YEAR-1+(e.s||1))+' · '+
+      pin.events.slice(0,8).map(function(e){return '<div class="small" style="padding:2px 0">'+(e.emoji||'♟')+' '+esc(e.name)+' <span class="dim">'+(careerY0()-1+(e.s||1))+' · '+
         (e.place?ppPlace(e.place)+' · ':'')+fmtScore(e.score||0)+'/'+(e.rounds||0)+'</span></div>';}).join('')+
       (pin.events.length>8?'<div class="dim small">and '+(pin.events.length-8)+' more</div>':'')+'</div>';
   }
   if(K.length)h+='<div class="ppgrid">'+K.map(function(x){
     return '<div class="ppstamp" style="--rot:'+((wpHash(x.cc)%9)-4)+'deg;--col:'+PP_COLS[wpHash(x.cc+'c')%PP_COLS.length]+'">'+
       '<div class="pps-flag">'+x.flag+'</div><div class="pps-name">'+esc(x.name.replace(/^the /,'').toUpperCase())+'</div>'+
-      '<div class="pps-date">'+(FIRST_YEAR-1+x.first.s)+'</div>'+
+      '<div class="pps-date">'+(careerY0()-1+x.first.s)+'</div>'+
       '<div class="pps-meta">'+x.events+' event'+(x.events===1?'':'s')+(x.best?' · '+ppPlace(x.best):'')+'</div></div>';}).join('')+'</div>';
   return h+'</div>';
 }
@@ -24582,6 +24936,7 @@ function worldWeek(c){
   wrInit(c);
   pubTick(c);                       // the first of the month: a new list
   const w=weekOfSeason(c),busy=worldBusy(c),done=c.calDone||[];
+  ownTick(c);                       // your own tournament: four weeks out, the invitations
   calendarEvents(c).forEach(function(t){
     if(EVENT_WEEK[t.id]!==w)return;
     const youIn=(c.tour&&c.tour.id===t.id)||done.indexOf(t.id)>=0;
@@ -24600,6 +24955,7 @@ function worldWeek(c){
     else if(t.id==='wworldcup')worldWomenKnockout(c,busy);
     else if(t.id==='ewc')worldEwc(c,busy);
     else if(t.id==='cctfinals')worldTourFinal(c,t,busy);
+    else if(t.own)worldOwnEvent(c,t,busy);
     else if(t.rr)worldRoundRobinEvent(c,t,busy);
     else worldSwissEvent(c,t,busy);
     wireShock(c);
@@ -25096,7 +25452,7 @@ function oppPrepFor(c,opp,side,key){
   if(!c||!opp||!opp.name)return null;
   const rival=!!(c.rival&&c.rival.name===opp.name)||!!(c.nemesis&&c.nemesis.name===opp.name);
   const r=opp.rating||0;
-  const will=rival?1:r>=2600?0.8:r>=2400?0.55:r>=2200?0.25:0;
+  const will=(rival?1:r>=2600?0.8:r>=2400?0.55:r>=2200?0.25:0)*eraPrepK(c);
   if(!will)return null;
   const L=myLines(c);
   let k='w';
@@ -25120,7 +25476,7 @@ function prepEloNow(){
   const P=app.careerOppPrep;if(!P)return 0;
   const ply=(app.playMoves||[]).length;if(ply>=PREP_PLIES)return 0;
   const d=prepDepth();
-  if(d>=ply||d>=PREP_DEPTH)return PREP_ELO;     // still in it, or deep enough that they know what follows
+  if(d>=ply||d>=PREP_DEPTH)return Math.round(PREP_ELO*eraPrepK(store.career));     // still in it, or deep enough that they know what follows (with less to prepare with, once)
   return -PREP_DODGE;                           // you left it early: their work is wasted
 }
 /* A round's game: their preparation takes over their opening book. */
@@ -25218,6 +25574,7 @@ function eventPlace(t,c){
 function hallLine(t,tr,place){
   const tier=t.tier||0,fmt=eventFormat(t);
   if(tr.trip==='online'||(place&&place.trip==='online'))return 'your desk at home, a camera on you for fair play and the clock in the corner of the screen';
+  if(t.own)return 'the hall you hired, your banner over the stage and your arbiters at the door';
   if(t.id==='wcc')return 'a hall built for two, a glass box on the stage, cameras on every side and the world watching';
   if(t.id==='candidates'||t.cycle)return 'the biggest stage in chess — cameras, arbiters in blazers, a live audience behind glass';
   if(place&&place.hall)return place.hall;
@@ -25417,7 +25774,7 @@ const Hall={on:false,nodes:[],timers:[],
    of in bed; and the first night home. */
 const HOTELS={budget:{e:'🛏️',n:'Budget hostel',mul:0.55,rec:0,mood:-1},hotel:{e:'🏨',n:'Hotel',mul:1,rec:3,mood:0},players:{e:'⭐',n:'Players’ hotel',mul:1.7,rec:6,mood:1}};
 const JET_ELO=20,JET_ROUNDS=2;
-function tripCovered(tr){return !!(tr&&(tr.sched||tr.ko||tr.oly||tr.kind==='match'||tr.sel||INVITE_EVENTS[tr.id]||tr.id==='candidates'||tr.id==='grandswiss'||tr.id==='natch'||tr.id==='natwch'||tr.id==='wgrandswiss'||tr.id==='cctfinals'));}
+function tripCovered(tr){return !!(tr&&(tr.id==='own'||tr.sched||tr.ko||tr.oly||tr.kind==='match'||tr.sel||INVITE_EVENTS[tr.id]||tr.id==='candidates'||tr.id==='grandswiss'||tr.id==='natch'||tr.id==='natwch'||tr.id==='wgrandswiss'||tr.id==='cctfinals'));}
 function travelAway(tr){const P=tr&&tr.place;return !!(P&&(P.trip==='abroad'||P.trip==='national'));}
 function travelArrive(c,tr,t){
   const P=tr.place;if(!P)return;
@@ -25635,7 +25992,7 @@ const FED_NAME={ROU:'Romania',USA:'United States',ENG:'England',GER:'Germany',FR
   PHI:'Philippines',VIE:'Vietnam',BRA:'Brazil',ARG:'Argentina',IRI:'Iran',TUR:'Turkey',SRB:'Serbia',CRO:'Croatia',UZB:'Uzbekistan',FIDE:'FIDE flag'};
 const TITLE_WORD={GM:'grandmaster',IM:'international master',FM:'FIDE master',CM:'candidate master',WGM:'woman grandmaster',WIM:'woman international master',WFM:'woman FIDE master',WCM:'woman candidate master'};
 function gameMonth(w){const wk=((w||0)%52+52)%52;return WIRE_MONTHS[Math.min(11,Math.floor(wk*12/52))];}
-function gameDate(c,s,w){return gameMonth(w!=null?w:weekOfSeason(c))+' '+(FIRST_YEAR-1+(s||(c&&c.season)||1));}
+function gameDate(c,s,w){return gameMonth(w!=null?w:weekOfSeason(c))+' '+(careerY0()-1+(s||(c&&c.season)||1));}
 function plainName(t){return String(t||'').replace(/^[^A-Za-z0-9À-ž(]+/,'').trim();}
 /* As the game ends, before the event moves on to the next round: what the card needs. */
 function cardCtxSave(score){
@@ -25843,7 +26200,7 @@ function bioLead(c){
     const rk=worldRank(c,'classical');if(rk)s+=' On the current list '+esc(sur)+' is rated '+Math.round(c.rating)+', number '+rk+' in the world.';}
   else s+=' '+esc(sur)+' does not have a published classical rating yet.';
   const best=H.filter(function(h){return h.place===1;}).sort(function(a,b){return bioEventTier(b)-bioEventTier(a);}).slice(0,3);
-  if(best.length)s+=' '+esc(sur)+'’s best results include winning '+bioList(best.map(function(h){return esc(bioThe(h.name))+(h.s?' ('+(FIRST_YEAR-1+h.s)+')':'');}))+'.';
+  if(best.length)s+=' '+esc(sur)+'’s best results include winning '+bioList(best.map(function(h){return esc(bioThe(h.name))+(h.s?' ('+(careerY0()-1+h.s)+')':'');}))+'.';
   return s;
 }
 function bioSeasons(c){
@@ -25866,7 +26223,7 @@ function bioSeasons(c){
   };
   let out='';
   if(early.length)out+=para('In the seasons before these records were kept',early,null);
-  Object.keys(by).map(Number).sort(function(a,b){return a-b;}).forEach(function(s){out+=para('In '+(FIRST_YEAR-1+s),by[s],s);});
+  Object.keys(by).map(Number).sort(function(a,b){return a-b;}).forEach(function(s){out+=para('In '+(careerY0()-1+s),by[s],s);});
   return out||'<p class="dim">'+sur+' has not finished an event yet.</p>';
 }
 const BIO_STYLE={solid:'hard to beat, built on structure and safety, grinding down the impatient',attacker:'hunting the king with checks, sacrifices and mating attacks',
@@ -25883,11 +26240,11 @@ function viewBio(){
   const pp=(c.people||[]),par=pp.find(function(p){return p.k==='parent';}),pa=pp.find(function(p){return p.k==='partner';}),co=pp.find(function(p){return p.k==='coach';});
   const named=Object.keys(c.theory||{}).filter(function(k){return c.theory[k].named;}).map(function(k){const o=byId.get(k);return o?o.name:null;}).filter(Boolean);
   const box=[['Country',(c.flag||'')+' '+esc(FED_NAME[c.fed]||c.fed||'')],['Born',bioBorn(c)+(FED_CITY[c.fed]?', '+esc(FED_CITY[c.fed]):'')],
-    ['Title',t?esc(t)+(c.titleAt&&c.titleAt[t]?' ('+(FIRST_YEAR-1+c.titleAt[t].s)+')':''):'—'],
+    ['Title',t?esc(t)+(c.titleAt&&c.titleAt[t]?' ('+(careerY0()-1+c.titleAt[t].s)+')':''):'—'],
     ['Rating',c.provisional?'unrated':Math.round(c.rating)+(c.ratingRapid?' · rapid '+Math.round(c.ratingRapid):'')+(c.ratingBlitz?' · blitz '+Math.round(c.ratingBlitz):'')],
     ['Peak rating',c.peak&&!c.provisional?c.peak+(c.peakAt?' ('+gameDate(c,c.peakAt.s,c.peakAt.w)+')':''):'—'],
     ['World ranking',(!c.provisional&&worldRank(c,'classical'))?'No. '+worldRank(c,'classical'):'—'],
-    ['Career',(FIRST_YEAR)+' – present · '+(c.played||0)+' games']];
+    ['Career',(careerY0(c)-1+(c.s0||1))+' – present · '+(c.played||0)+' games']];
   let h='<div class="bio" style="max-width:820px;margin:0 auto">'+
     '<div class="row" style="align-items:center;gap:6px;margin-bottom:6px"><button class="btn ghost sm" data-act="back">←</button><span class="dim small">Biography</span></div>'+
     '<h1 class="bio-h1">'+esc(c.name||'You')+'</h1><div class="dim small" style="margin-bottom:10px">Written from your career, as it stands in '+gameDate(c)+'.</div>'+
@@ -25898,7 +26255,7 @@ function viewBio(){
   h+=bioSection('Career',bioSeasons(c));
   if(cyc.length||(c.honors||[]).some(function(x){return /Candidates|World Champion/.test(x);})){
     const C=cycleInit(c);
-    h+=bioSection('World Championship','<p>'+(cyc.length?sur+' '+bioList(cyc.slice().reverse().map(function(x){return (x.place===1?'won ':'played ')+esc(bioThe(x.name))+(x.s?' in '+(FIRST_YEAR-1+x.s):'')+(x.place&&x.place!==1?' ('+ordinal(x.place)+')':'');}))+'.':'')+
+    h+=bioSection('World Championship','<p>'+(cyc.length?sur+' '+bioList(cyc.slice().reverse().map(function(x){return (x.place===1?'won ':'played ')+esc(bioThe(x.name))+(x.s?' in '+(careerY0()-1+x.s):'')+(x.place&&x.place!==1?' ('+ordinal(x.place)+')':'');}))+'.':'')+
       (C.champ?' '+sur+' is the reigning World Champion'+(C.defences?', with '+C.defences+' successful defence'+(C.defences>1?'s':''):'')+'.':'')+'</p>');
   }
   if(oly.length||olyH.length)h+=bioSection('Olympiad','<p>'+sur+' has played '+oly.length+' Olympiad'+(oly.length===1?'':'s')+' for '+esc(FED_NAME[c.fed]||c.fed)+(olyH.length?', winning '+bioList(olyH.map(function(x){const m=/^Olympiad (Team|Board) (\w+)/.exec(x);return m?(m[1]==='Team'?'team '+m[2].toLowerCase():'a board '+m[2].toLowerCase()+' medal'):esc(x);})):'')+'.</p>');
@@ -25916,7 +26273,7 @@ function viewBio(){
   const big=(c.moments||[]).filter(function(m){return m.big;}).slice(0,6);
   // the shelf speaks to you; an article speaks about you
   const third=function(t){return String(t||'').replace(/^Your /,bioSur(c)+'’s ').replace(/^You /,bioSur(c)+' ').replace(/\byour\b/g,bioSur(c)+'’s').replace(/\byou\b/g,bioSur(c));};
-  if(big.length)h+=bioSection('Notable moments','<ul>'+big.map(function(m){return '<li>'+(FIRST_YEAR-1+(m.s||1))+' — '+esc(third(m.t))+'</li>';}).join('')+'</ul>');
+  if(big.length)h+=bioSection('Notable moments','<ul>'+big.map(function(m){return '<li>'+(careerY0()-1+(m.s||1))+' — '+esc(third(m.t))+'</li>';}).join('')+'</ul>');
   let life='';
   if(par||co)life+='<p>'+sur+' grew up '+(FED_CITY[c.fed]?'in '+esc(FED_CITY[c.fed]):'at home')+(co?', and learnt the game from '+esc(co.name.replace(/^Coach /,''))+' at the local club':'')+'.'+(par?' '+esc(par.name==='Mum'?'Their mother':par.name==='Dad'?'Their father':par.name)+' has followed every event since.':'')+'</p>';
   if(pa)life+='<p>'+sur+'’s partner is '+esc(pa.name)+'.</p>';
@@ -26294,16 +26651,423 @@ const OPEN_PAID=0.2;                                         // the hall stands 
                                                              // so it pays its top fifth — the top places of the real thing
 const RR_DECAY=0.75;                                         // each place in a round-robin pays this much of the one above
 const OLY_PAY={stipend:2000,team:{Gold:15000,Silver:10000,Bronze:6000},board:{Gold:5000,Silver:3000,Bronze:2000}};
+/* =========================================================================
+   YOUR OWN TOURNAMENT
+
+   Every event on the calendar belonged to somebody else. Now one can be yours:
+   a city, a week of the year, a format, a prize fund, the players you invite
+   and a sponsor, and a budget you guarantee. Four weeks before it, the
+   invitations go out and the money is committed — a player busy that week at
+   a bigger event says no, and somebody else comes. In its week it is played:
+   by you, if you enter it (you have the organiser's seat), or without you by
+   the players on the list. Then the accounts: entry fees, tickets and the
+   broadcast against the hall, the arbiters, the prizes and the appearance
+   fees. A good field and a good fund build its name — its prestige — and
+   next year more players come and bigger sponsors call. It returns every
+   year, with its own roll of winners. It lives in the world, not in the
+   career: when you retire a committee runs it in your name, and a career
+   that comes after you in the same world can play in it, or take it over.
+   ========================================================================= */
+const OWN_FORMATS={
+  open:{l:'Classical open',rounds:9,fmt:'classical',rr:0,e:'🎪',base:4000,perHead:22,fee:60,stars:4},
+  rr:{l:'Closed round-robin, ten players',rounds:9,fmt:'classical',rr:1,e:'🏰',base:3500,perHead:0,fee:0,stars:9},
+  rapid:{l:'Rapid open',rounds:9,fmt:'rapid',rr:0,e:'⚡',base:2500,perHead:12,fee:35,stars:4},
+  blitz:{l:'Blitz open',rounds:11,fmt:'blitz',rr:0,e:'🔥',base:1500,perHead:8,fee:25,stars:4}
+};
+const OWN_FUNDS=[2000,5000,10000,25000,50000,100000,250000];
+const OWN_LEVELS=[[2300,'club masters'],[2400,'IM-norm strength'],[2500,'GM-norm strength'],[2600,'strong grandmasters'],[2700,'the elite'],[2780,'the very top']];
+const OWN_NOTICE=4;             // the invitations go out, and the money is committed, this many weeks before
+const OWN_MIN_AGE=18;
+function ownOf(c){return (c&&c.wx&&c.wx.own)||null;}
+function ownCur(){return ownOf(typeof store!=='undefined'&&store?store.career:null);}
+function ownMine(c){const o=ownOf(c);return !!(o&&c&&o.org===careerCid(c));}
+function ownHomeCity(c){return FED_CITY[c&&c.fed]||'Budapest';}
+function ownCities(c){const L=[ownHomeCity(c)];Object.keys(FED_CITY).forEach(function(f){const x=FED_CITY[f];if(L.indexOf(x)<0)L.push(x);});return L;}
+function ownCityFed(city){const f=Object.keys(FED_CITY).filter(function(k){return FED_CITY[k]===city;})[0];return f||null;}
+function ownCityFlag(city){const g=CITY_GEO[city];return g?g[4]:'';}
+/* This season's settings: what the invitations said, once they are out. */
+function ownCfgNow(c){const o=ownOf(c);if(!o)return null;const S=(c&&c.season)||1;return (o.conf&&o.conf.s===S)?o.conf.cfg:o.cfg;}
+function ownFmt(cfg){return OWN_FORMATS[cfg&&cfg.fmt]||OWN_FORMATS.open;}
+function ownDefaultName(city,fmt){return city+' '+({open:'Chess Festival',rr:'Masters',rapid:'Rapid',blitz:'Blitz'}[fmt]||'Open');}
+/* Held this season: founded by now, and not called off. */
+function ownHeld(c,S){
+  const o=ownOf(c||store.career);if(!o)return false;
+  S=S||((c&&c.season)||1);
+  return S>=o.from&&o.off!==S;
+}
+/* An appearance fee: nothing for a club player, a lot for the top. */
+function ownFee(p){
+  const r=(p&&p.rating)||0;if(r<2300)return 0;
+  let f=Math.pow((r-2300)/100,3)*125;
+  if(p.real&&r>=2740)f*=1.5;                     // a name people buy tickets to see
+  return Math.round(f/50)*50;
+}
+/* The players invited, as they stand on the list now, each with a fee. */
+function ownInvitees(c,cfg){
+  const R=worldRanking(c,ownFmt(cfg).fmt),by={};R.forEach(function(p){by[p.id]=p;});
+  return (cfg.invites||[]).map(function(id){const p=by[id];return p&&!p.you?{id:p.id,name:p.name,rating:p.rating,title:p.title||'',fed:p.fed,flag:p.flag,real:!!p.real,fee:ownFee(p)}:null;}).filter(Boolean);
+}
+/* Who is free and near the level the organiser asked for. */
+function ownSuggest(c,cfg,n,skip){
+  const F=ownFmt(cfg),lvl=cfg.level||2500,have={};(cfg.invites||[]).forEach(function(id){have[id]=1;});
+  return worldRanking(c,F.fmt).filter(function(p){return !p.you&&!have[p.id]&&!p.ghost;})
+    .map(function(p){return {p:p,k:Math.abs(p.rating-lvl)};}).sort(function(a,b){return a.k-b.k||b.p.rating-a.p.rating;})
+    .slice(skip||0,(skip||0)+(n||6)).map(function(x){return {id:x.p.id,name:x.p.name,rating:x.p.rating,title:x.p.title||'',fed:x.p.fed,flag:x.p.flag,real:!!x.p.real,fee:ownFee(x.p)};});
+}
+/* How many come to an open: the fund, the name it has, and the stars on the poster. */
+function ownEntrants(cfg,prestige,stars){
+  const F=ownFmt(cfg);if(F.rr)return 10;
+  const n=40+cfg.fund/120+prestige*3+stars*15;
+  return Math.round(Math.max(30,Math.min(450,n*(F.fmt==='classical'?1:1.25))));
+}
+/* The level of an open's field. */
+function ownOpenAvg(cfg,prestige,stars){
+  const F=ownFmt(cfg);
+  const a=1750+150*Math.log2(1+cfg.fund/2000)+prestige*1.5+stars*10-(F.fmt==='classical'?0:50);
+  return Math.round(Math.min(2450,a));
+}
+/* A sponsor for the edition: who would, and for how much. No brands — a kind of backer. */
+function ownOffers(c,o){
+  const P=(o&&o.prestige)||10,fame=(c&&c.fame)||0;
+  const L=[{k:'none',n:'No sponsor',amt:0},
+    {k:'local',n:'A local business',amt:Math.round((500+P*50+fame*25)/50)*50},
+    {k:'city',n:'The city council',amt:Math.round((1500+P*150)/50)*50}];
+  if(P>=25||fame>=40)L.push({k:'bank',n:'A regional bank',amt:Math.round((4000+P*400+fame*100)/100)*100});
+  if(P>=50||fame>=60)L.push({k:'tech',n:'A software company',amt:Math.round((15000+P*1200+fame*300)/100)*100});
+  return L;
+}
+function ownOffer(c,o,k){const L=ownOffers(c,o);return L.filter(function(x){return x.k===k;})[0]||L[0];}
+/* The budget of one edition. */
+function ownBudget(c,cfg,o){
+  const F=ownFmt(cfg),P=(o&&o.prestige)||10,fame=(c&&c.fame)||0;
+  const inv=ownInvitees(c,cfg);
+  const fees=inv.reduce(function(a,p){return a+p.fee;},0);
+  const abroad=cfg.city!==ownHomeCity(c);
+  const entrants=ownEntrants(cfg,P,inv.length);
+  const venue=Math.round((F.base+F.perHead*entrants)*(abroad?1.4:1)/100)*100;
+  const arbiters=800+F.rounds*150+(F.rr?0:Math.round(entrants/50)*300);
+  const cost=venue+arbiters+cfg.fund+fees;
+  const sponsor=ownOffer(c,o,cfg.sponsor).amt;
+  // an open's entry fees (titled players play for free); at a closed event the norm-seekers pay for their places
+  const entries=F.rr?inv.filter(function(p){return p.rating<2450;}).length*400:Math.round(entrants*F.fee*0.85/10)*10;
+  const top=inv.reduce(function(a,p){return a+Math.max(0,p.rating-2500);},0);
+  const audience=Math.round(((F.rr?12:4)*top+(F.rr?0:10*entrants)+(F.rr?80:50)*P+fame*(F.rr?40:30))/10)*10;
+  const avg=F.rr?(inv.length?Math.round(inv.reduce(function(a,p){return a+p.rating;},0)/inv.length):(cfg.level||2500)):ownOpenAvg(cfg,P,inv.length);
+  return {inv:inv,fees:fees,entrants:entrants,venue:venue,arbiters:arbiters,prizes:cfg.fund,cost:cost,sponsor:sponsor,entries:entries,audience:audience,
+    net:entries+audience+sponsor-cost,guarantee:Math.max(0,cost-sponsor),avg:avg,abroad:abroad};
+}
+/* The tournament's entry in the calendar: one event whose details are yours. */
+const OWN_DEF={id:'own',own:true,minRating:0,spread:330};
+Object.defineProperties(OWN_DEF,{
+  name:{enumerable:true,get:function(){const o=ownCur();return o?o.name:'Your own tournament';}},
+  emoji:{enumerable:true,get:function(){const c=store.career,cfg=ownCfgNow(c);return cfg?ownFmt(cfg).e:'🎪';}},
+  rounds:{enumerable:true,get:function(){const cfg=ownCfgNow(store.career);return cfg?ownFmt(cfg).rounds:9;}},
+  rr:{enumerable:true,get:function(){const cfg=ownCfgNow(store.career);return cfg&&ownFmt(cfg).rr?1:0;}},
+  format:{enumerable:true,get:function(){const cfg=ownCfgNow(store.career);return cfg?ownFmt(cfg).fmt:'classical';}},
+  norm:{enumerable:true,get:function(){const cfg=ownCfgNow(store.career);return !!cfg&&ownFmt(cfg).fmt==='classical';}},
+  avg:{enumerable:true,get:function(){const c=store.career,o=ownOf(c),S=(c&&c.season)||1;if(!o)return 2000;
+    if(o.conf&&o.conf.s===S)return o.conf.avg;return ownBudget(c,o.cfg,o).avg;}},
+  tier:{enumerable:true,get:function(){const a=OWN_DEF.avg;return Math.max(1,Math.min(8,Math.round((a-1500)/150)));}},
+  country:{enumerable:true,get:function(){const cfg=ownCfgNow(store.career);return cfg?cfg.city:'Open';}},
+  blurb:{enumerable:true,get:function(){const c=store.career,o=ownOf(c);if(!o)return '';
+    return (ownMine(c)?'Your own tournament':'The tournament '+o.founder.n+' founded')+' — '+ownFmt(ownCfgNow(c)).l.toLowerCase()+' in '+ownCfgNow(c).city+', a prize fund of '+money(ownCfgNow(c).fund)+'. You have the organiser’s seat.';}}
+});
+TOURNAMENTS.push(OWN_DEF);
+ANNUAL_EVENTS.add('own');
+Object.defineProperty(EVENT_WEEK,'own',{configurable:true,get:function(){const cfg=ownCfgNow(store.career);return cfg?cfg.week:undefined;}});
+Object.defineProperty(PRIZE_FIRST,'own',{configurable:true,get:function(){const cfg=ownCfgNow(store.career);if(!cfg)return 0;return Math.round(cfg.fund*(ownFmt(cfg).rr?0.27:0.32));}});
+Object.defineProperty(TRIP_OF,'own',{configurable:true,get:function(){const c=store.career,cfg=ownCfgNow(c);return !cfg||cfg.city===ownHomeCity(c)?'local':'abroad';}});
+Object.defineProperty(EVENT_PLACE,'own',{configurable:true,get:function(){const c=store.career,cfg=ownCfgNow(c);if(!cfg)return undefined;
+  return {city:cfg.city,reg:fedRegion(ownCityFed(cfg.city)||c.fed),hall:'the hall you hired, your banner over the stage and your arbiters at the door',sight:'the old town, with people who came for your event'};}});
+/* Why it cannot be entered, beyond its week. */
+function ownLock(c){
+  const o=ownOf(c),S=c.season||1;if(!o)return 'no such event';
+  if(S<o.from)return 'first edition in '+seasonYearOf(c,o.from);
+  if(o.off===S)return 'not held this year';
+  if(!(o.conf&&o.conf.s===S))return 'invitations go out in week '+Math.max(0,ownCfgNow(c).week-OWN_NOTICE);
+  return null;
+}
+function seasonYearOf(c,S){return seasonYear({season:S,era:c&&c.era});}
+/* The field, when you play: the invited players, who have come. */
+function ownField(c,count){
+  const o=ownOf(c),I=worldIndex().id,R=worldRanking(c,ownFmt(ownCfgNow(c)).fmt),by={};R.forEach(function(p){by[p.id]=p;});
+  const ids=((o&&o.conf&&o.conf.inv)||[]).filter(function(id){return by[id]&&I[id];}).slice(0,count);
+  const out=ids.map(function(id){const p=by[id];return {name:p.name,rating:p.rating,title:p.title||'',fed:p.fed,flag:p.flag,style:pickStyle(),wid:p.id,real:!!p.real};});
+  if(out.length<count){
+    const cfg=ownCfgNow(c),have={};ids.forEach(function(id){have[id]=1;});
+    R.filter(function(p){return !p.you&&!have[p.id]&&!p.ghost;}).map(function(p){return {p:p,k:Math.abs(p.rating-(cfg.level||2500))+Math.random()*40};})
+      .sort(function(a,b){return a.k-b.k;}).slice(0,count-out.length)
+      .forEach(function(x){const p=x.p;out.push({name:p.name,rating:p.rating,title:p.title||'',fed:p.fed,flag:p.flag,style:pickStyle(),wid:p.id,real:!!p.real});});
+  }
+  return out;
+}
+/* An open's hall: the stars on the poster, and whoever the fund brought. */
+function ownHall(t,size){
+  const c=store.career,stars=[];
+  const o=ownOf(c),I=worldIndex().id,R=worldRanking(c,t.format),by={};R.forEach(function(p){by[p.id]=p;});
+  ((o&&o.conf&&o.conf.inv)||[]).forEach(function(id){const p=by[id];if(p&&I[id])stars.push({name:p.name,rating:p.rating,title:p.title||'',fed:p.fed,flag:p.flag,style:pickStyle(),wid:p.id,real:!!p.real});});
+  const ex={};stars.forEach(function(s){ex[s.wid]=1;});
+  const targets=[];for(let i=stars.length;i<size-1;i++)targets.push(fieldRating(t));
+  const rest=worldPick(targets,{fmt:t.format,rule:fieldFedRule(t,c),exclude:ex})||swissHallInvented(t,size-stars.length);
+  return stars.concat(rest).slice(0,size-1).map(function(x,i){x.pid='p'+i;return x;});
+}
+/* Four weeks out: the invitations, and the money. */
+function ownConfirm(c,o){
+  const S=c.season||1,cfg=JSON.parse(JSON.stringify(o.cfg)),mine=ownMine(c);
+  const F=ownFmt(cfg),busyWeek=calendarEvents(c).filter(function(t){return !t.own&&EVENT_WEEK[t.id]===cfg.week&&(t.tier||0)>=7;});
+  // a player at a bigger event that week sends regrets, and the next on the list is asked
+  const R=worldRanking(c,F.fmt),rank={};R.filter(function(p){return !p.you;}).forEach(function(p,i){rank[p.id]=i+1;});
+  const regrets=[];
+  cfg.invites=(cfg.invites||[]).filter(function(id){
+    if(!rank[id])return false;
+    if(busyWeek.length&&rank[id]<=60&&Math.random()<0.7){regrets.push(id);return false;}
+    return true;
+  });
+  if(F.rr){const want=9;if(cfg.invites.length<want)ownSuggest(c,cfg,want-cfg.invites.length,0).forEach(function(p){cfg.invites.push(p.id);});}
+  const B=ownBudget(c,cfg,o);
+  if(mine){
+    if((c.money||0)<B.guarantee){
+      o.off=S;o.prestige=Math.max(0,(o.prestige||0)-8);
+      pushNews(c,'🎪','You could not guarantee the budget of the '+esc(o.name)+' ('+money(B.guarantee)+') — this year’s edition is off.');
+      return false;
+    }
+    c.money=(c.money||0)-B.guarantee;
+  }
+  const names=regrets.map(function(id){const p=R.filter(function(q){return q.id===id;})[0];return p?p.name:null;}).filter(Boolean);
+  o.conf={s:S,cfg:cfg,inv:cfg.invites.slice(),avg:B.avg,entrants:B.entrants,paid:mine?B.guarantee:0,org:mine?careerCid(c):null,
+    budget:{cost:B.cost,sponsor:B.sponsor,entries:B.entries,audience:B.audience,fees:B.fees,venue:B.venue,arbiters:B.arbiters,prizes:B.prizes},
+    sp:ownOffer(c,o,cfg.sponsor).n,regrets:names};
+  if(mine)pushNews(c,'🎪','The invitations for the '+esc(o.name)+' are out, and '+money(B.guarantee)+' of the budget is committed'+
+    (names.length?'. '+esc(names.slice(0,2).join(' and '))+(names.length>2?' and '+(names.length-2)+' more':'')+' sent regrets — they are busy at '+esc(busyWeek[0].name)+' that week.':'.'));
+  return true;
+}
+/* The weekly look at it: the notice window, and the fund's rent on the prestige. */
+function ownTick(c){
+  const o=ownOf(c);if(!o)return;
+  const S=c.season||1,w=weekOfSeason(c),cfg=o.cfg;
+  if(S<o.from||o.off===S||(o.conf&&o.conf.s===S))return;
+  if(w>=cfg.week-OWN_NOTICE&&w<cfg.week)ownConfirm(c,o);
+  else if(w>=cfg.week){o.off=S;}                        // the week went by without it
+}
+/* An edition is over: its winner on the roll, and the accounts. */
+function ownRecord(c,o,rows,of,opt){
+  opt=opt||{};
+  const S=c.season||1,conf=o.conf||{},B=conf.budget||{};
+  const F=ownFmt(conf.cfg||o.cfg);
+  const turnout=F.rr?1:0.85+Math.random()*0.3;
+  const entrants=F.rr?10:Math.round((conf.entrants||40)*turnout);
+  const entries=Math.round((B.entries||0)*turnout/10)*10;
+  const audience=Math.round((B.audience||0)*(opt.youWon?1.15:1)/10)*10;
+  const profit=entries+audience+(B.sponsor||0)-(B.cost||0);
+  const w=rows[0];
+  const E={s:S,n:(o.editions||[]).length+1,w:w?{n:w.n,fed:w.fed||'',flag:w.flag||'',you:!!w.you,cid:w.you?careerCid(c):null}:null,score:w?w.s:0,of:of,
+    entrants:entrants,avg:conf.avg||0,fund:(conf.cfg||o.cfg).fund,fmt:(conf.cfg||o.cfg).fmt,city:(conf.cfg||o.cfg).city,profit:profit,you:opt.place||null,
+    org:conf.org||null,inc:{entries:entries,audience:audience,sponsor:B.sponsor||0,cost:B.cost||0}};
+  o.editions=o.editions||[];o.editions.unshift(E);if(o.editions.length>80)o.editions.length=80;
+  // prestige: the field, the fund and the stars, and a little for every year it has run
+  const target=Math.max(0,Math.min(100,5+((conf.avg||1800)-1800)/25+Math.log2(Math.max(1,E.fund/1000))*4+((conf.inv||[]).length)*(F.rr?0.5:3)));
+  o.prestige=Math.max(0,Math.min(100,Math.round((o.prestige||10)*0.6+target*0.4)+1));
+  const mine=conf.org&&conf.org===careerCid(c);
+  if(mine){
+    c.money=(c.money||0)+entries+audience;
+    c.fame=Math.min(100,(c.fame||0)+(o.prestige>=60?3:o.prestige>=30?2:1));
+    c.reputation=Math.min(100,(c.reputation==null?50:c.reputation)+1);
+    o.total=(o.total||0)+profit;
+  }
+  const ed=ordinal(E.n)+' '+o.name;
+  const line=(w?(w.you?esc(c.name||'You')+' wins':esc(w.n)+(w.fed?' ('+esc(w.fed)+')':'')+' wins'):'Nobody wins')+' the '+esc(ed)+(of?' with '+fmtScore(E.score)+'/'+of:'')+'.';
+  pushFeed(c,ownFmt(conf.cfg||o.cfg).e,line,mine?'you':'world',true);
+  if(mine)pushNews(c,'🎪','The '+esc(ed)+': '+entrants+' players, '+(profit>=0?'a profit of '+money(profit):'a loss of '+money(-profit))+'. Prestige '+o.prestige+'.');
+  else pushNews(c,'🎪',line);
+  return E;
+}
+/* Its week, and you did not enter it: the players on the list play it. */
+function worldOwnEvent(c,t,busy){
+  const o=ownOf(c),S=c.season||1;if(!o||!(o.conf&&o.conf.s===S))return null;
+  const cfg=o.conf.cfg,F=ownFmt(cfg),I=worldIndex().id;
+  const inv=(o.conf.inv||[]).map(function(id){return busy[id]?null:I[id];}).filter(Boolean);
+  inv.forEach(function(p){busy[p.id]=1;});
+  let rows,of;
+  if(F.rr){
+    // the organiser's seat goes to a wildcard: the best player of the host country who is free
+    const hostFed=ownCityFed(cfg.city)||c.fed,pool=worldRanking(c,'classical').filter(function(p){return !p.you&&!busy[p.id]&&I[p.id];});
+    const wc=pool.filter(function(p){return p.fed===hostFed;})[0]||pool[0];
+    const players=inv.slice(0,9);if(wc){players.push(I[wc.id]);busy[wc.id]=1;}
+    while(players.length<10){const p=pool.filter(function(q){return !busy[q.id];})[0];if(!p)break;busy[p.id]=1;players.push(I[p.id]);}
+    if(players.length<4)return null;
+    rows=simRoundRobin(c,players,1,F.fmt);of=players.length-1;
+  } else {
+    const n=Math.max(12,Math.min(60,o.conf.entrants||40));
+    const players=inv.concat(worldField(c,t,n-inv.length,busy,F.fmt));
+    if(players.length<8)return null;
+    rows=simSwiss(c,players,F.rounds,F.fmt);of=F.rounds;
+  }
+  const w=rows[0].p;
+  return ownRecord(c,o,[{n:w.name,fed:w.fed,flag:w.flag,s:rows[0].s}],of,{});
+}
+/* You played it. */
+function ownAfterYourEvent(c,tr,place,won1st){
+  const o=ownOf(c);if(!o||!(o.conf&&o.conf.s===(c.season||1)))return;
+  let w;
+  if(won1st)w={n:c.name||'You',fed:c.fed,flag:c.flag,you:true,s:(tr.results||[]).reduce(function(a,r){return a+r.score;},0)};
+  else{const S=standingsSorted(tr),top=S&&S[0];w=top?{n:top.name,fed:top.fed||'',flag:top.flag||'',s:top.score}:null;}
+  ownRecord(c,o,w?[w]:[],tr.rounds,{place:place,youWon:won1st});
+}
+/* ---- the organiser's desk ---- */
+function ownDraftNew(c){
+  const city=ownHomeCity(c),w=weekOfSeason(c);
+  // a week that is free, far enough off for this season if there is one
+  const taken={};calendarEvents(c).forEach(function(t){if((t.tier||0)>=7)taken[EVENT_WEEK[t.id]]=1;});
+  let wk=Math.min(50,w+OWN_NOTICE+3);while(taken[wk]&&wk<50)wk++;
+  const cfg={city:city,week:wk,fmt:'open',fund:5000,level:2500,sponsor:'local',invites:[]};
+  return {name:ownDefaultName(city,'open'),cfg:cfg,skip:0};
+}
+function ownPlanOpen(c){
+  const o=ownOf(c);
+  app.ownDraft=o?{name:o.name,cfg:JSON.parse(JSON.stringify(o.cfg)),skip:0}:ownDraftNew(c);
+  render();
+}
+function ownInput(el){
+  const D=app.ownDraft;if(!D)return;
+  const k=el.dataset.own,v=el.value,c=store.career;
+  if(k==='name'){D.name=String(v).slice(0,40);return false;}
+  const nameWasDefault=D.name===ownDefaultName(D.cfg.city,D.cfg.fmt);
+  if(k==='city')D.cfg.city=v;
+  else if(k==='week')D.cfg.week=Math.max(3,Math.min(50,+v||20));
+  else if(k==='fmt'){D.cfg.fmt=OWN_FORMATS[v]?v:'open';const F=ownFmt(D.cfg);if(D.cfg.invites.length>F.stars)D.cfg.invites.length=F.stars;}
+  else if(k==='fund')D.cfg.fund=OWN_FUNDS.indexOf(+v)>=0?+v:5000;
+  else if(k==='level'){D.cfg.level=+v||2500;D.skip=0;}
+  else if(k==='sponsor')D.cfg.sponsor=v;
+  if(nameWasDefault&&(k==='city'||k==='fmt'))D.name=ownDefaultName(D.cfg.city,D.cfg.fmt);
+  return true;
+}
+function ownAct(act,val){
+  const c=store.career,D=app.ownDraft,o=ownOf(c);
+  if(act==='ownplan'){ownPlanOpen(c);return;}
+  if(act==='owncancel'){app.ownDraft=null;render();return;}
+  if(act==='owninv'&&D){const F=ownFmt(D.cfg);if(D.cfg.invites.indexOf(val)<0&&D.cfg.invites.length<F.stars)D.cfg.invites.push(val);render();return;}
+  if(act==='ownuninv'&&D){D.cfg.invites=D.cfg.invites.filter(function(x){return x!==val;});render();return;}
+  if(act==='ownmore'&&D){D.skip=(D.skip||0)+6;render();return;}
+  if(act==='ownrollall'){app.ownRollAll=!app.ownRollAll;render();return;}
+  if(act==='owntake'&&o&&!ownMine(c)&&(c.age||0)>=OWN_MIN_AGE){
+    o.org=careerCid(c);o.orgName=c.name;pushNews(c,'🎪','You have taken over the '+esc(o.name)+' from its committee.');save();render();return;}
+  if(act==='ownsave'&&D){
+    const err=ownSaveErr(c,D);if(err){app.careerToast='🎪 '+err;render();return;}
+    const S=c.season||1,w=weekOfSeason(c);
+    if(!o){
+      const from=D.cfg.week-OWN_NOTICE>w?S:S+1;
+      c.wx.own={name:D.name.trim()||ownDefaultName(D.cfg.city,D.cfg.fmt),cfg:D.cfg,from:from,prestige:10,editions:[],
+        org:careerCid(c),orgName:c.name,founder:{n:c.name||'You',cid:careerCid(c),s:S,fed:c.fed,flag:c.flag}};
+      pushNews(c,'🎪','You have founded the '+esc(c.wx.own.name)+' — '+ownFmt(D.cfg).l.toLowerCase()+' in '+esc(D.cfg.city)+', week '+D.cfg.week+(from>S?' from next season':'')+'.');
+      pushFeed(c,'🎪',esc(c.name||'You')+' founds a new tournament: the '+esc(c.wx.own.name)+' in '+esc(D.cfg.city)+'.','you');
+    } else {
+      o.name=D.name.trim()||o.name;o.cfg=D.cfg;
+      // the week moved to one already gone this season: next year's edition
+      if(o.conf&&o.conf.s===S)app.careerToast='🎪 Saved — this year’s invitations are already out, so the changes are for next year.';
+    }
+    app.ownDraft=null;save();render();return;
+  }
+}
+function ownSaveErr(c,D){
+  if((c.age||0)<OWN_MIN_AGE)return 'You can organise a tournament from eighteen.';
+  if(!ownOf(c)){const B=ownBudget(c,D.cfg,null);if((c.money||0)<B.guarantee)return 'You need '+money(B.guarantee)+' to guarantee the budget.';}
+  return null;
+}
+function ownBudgetHtml(B){
+  const row=function(l,v,neg){return '<div class="row" style="justify-content:space-between;gap:8px"><span class="dim">'+l+'</span><span>'+(neg?'−':'+')+money(Math.abs(v)).replace('💰','💰')+'</span></div>';};
+  return '<div class="small" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:4px 16px;margin-top:6px">'+
+    '<div>'+row('Hall &amp; organisation',B.venue,1)+row('Arbiters',B.arbiters,1)+row('Prize fund',B.prizes,1)+row('Appearance fees',B.fees,1)+'</div>'+
+    '<div>'+row('Sponsor',B.sponsor)+row('Entry fees ('+B.entrants+' players)',B.entries)+row('Tickets &amp; broadcast',B.audience)+
+      '<div class="row" style="justify-content:space-between;gap:8px;font-weight:800;border-top:1px solid var(--border);margin-top:3px;padding-top:3px"><span>Expected</span><span style="color:'+(B.net>=0?'var(--green)':'var(--red,#ef4444)')+'">'+(B.net>=0?'+':'−')+money(Math.abs(B.net))+'</span></div></div>'+
+  '</div>';
+}
+function ownPlanner(c){
+  const D=app.ownDraft,cfg=D.cfg,o=ownOf(c),F=ownFmt(cfg),B=ownBudget(c,cfg,o);
+  const sel=function(k,opts){return '<select data-own="'+k+'" style="width:100%;margin-top:3px">'+opts.map(function(x){return '<option value="'+esc(String(x[0]))+'"'+(String(cfg[k])===String(x[0])?' selected':'')+'>'+esc(x[1])+'</option>';}).join('')+'</select>';};
+  const evByWeek={};calendarEvents(c).forEach(function(t){if(!t.own&&(t.tier||0)>=5)(evByWeek[EVENT_WEEK[t.id]]=evByWeek[EVENT_WEEK[t.id]]||[]).push(t.name);});
+  const weeks=[];for(let w=3;w<=50;w++)weeks.push([w,'Week '+w+(evByWeek[w]?' — '+evByWeek[w][0]:'')]);
+  const lbl=function(t,inner){return '<label class="small" style="display:block">'+t+inner+'</label>';};
+  let h='<div class="card" id="owncard" style="margin-bottom:12px;border-color:#f59e0b66"><div style="font-weight:800">🎪 '+(o?'Change the plan':'Plan your tournament')+'</div>'+
+    '<div class="dim small" style="margin:3px 0 8px">'+(o?'Changes apply from the next edition whose invitations are not out yet.':'Pick the city, the week, the format and the money. The invitations go out, and the budget is committed, four weeks before.')+'</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px">'+
+      lbl('Name','<input type="text" maxlength="40" data-own="name" value="'+esc(D.name)+'" style="width:100%;margin-top:3px">')+
+      lbl('City',sel('city',ownCities(c).map(function(x){return [x,ownCityFlag(x)+' '+x+(x===ownHomeCity(c)?' (home)':'')];})))+
+      lbl('Week',sel('week',weeks))+
+      lbl('Format',sel('fmt',Object.keys(OWN_FORMATS).map(function(k){return [k,OWN_FORMATS[k].e+' '+OWN_FORMATS[k].l];})))+
+      lbl('Prize fund',sel('fund',OWN_FUNDS.map(function(x){return [x,money(x)];})))+
+      lbl('Sponsor',sel('sponsor',ownOffers(c,o).map(function(x){return [x.k,x.n+(x.amt?' · '+money(x.amt):'')];})))+
+    '</div>';
+  // the invitations
+  const inv=B.inv;
+  h+='<div style="margin-top:10px;font-weight:700">'+(F.rr?'The field — nine invited players and you (or a local wildcard)':'Stars on the poster — up to '+F.stars+', paid to come')+'</div>';
+  h+=inv.length?inv.map(function(p){return '<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:3px 0;border-top:1px solid var(--border)"><span class="small">'+(p.flag||'')+' <b>'+esc(p.name)+'</b> '+(p.title?esc(p.title)+' ':'')+p.rating+'</span>'+
+      '<span class="small dim">'+(p.fee?money(p.fee):'no fee')+' <button class="btn ghost sm" data-act="ownuninv" data-val="'+esc(p.id)+'" aria-label="Uninvite '+esc(p.name)+'">✕</button></span></div>';}).join('')
+    :'<div class="dim small" style="padding:3px 0">'+(F.rr?'Nobody yet — whoever you leave out, the organising committee fills from the list near your level.':'Nobody yet.')+'</div>';
+  if(inv.length<F.stars){
+    h+='<div class="row" style="gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap"><span class="small dim">Invite from</span><span style="min-width:170px;flex:1">'+sel('level',OWN_LEVELS.map(function(x){return [x[0],x[0]+' — '+x[1]];}))+'</span></div>';
+    ownSuggest(c,cfg,6,D.skip||0).forEach(function(p){
+      h+='<div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:3px 0"><span class="small">'+(p.flag||'')+' '+esc(p.name)+' '+(p.title?esc(p.title)+' ':'')+p.rating+'</span>'+
+        '<span class="small dim">'+(p.fee?money(p.fee):'no fee')+' <button class="btn sec sm" data-act="owninv" data-val="'+esc(p.id)+'">+ Invite</button></span></div>';});
+    h+='<button class="btn ghost sm" data-act="ownmore" style="margin-top:4px">More players ▸</button>';
+  }
+  h+='<div style="margin-top:10px;font-weight:700">The budget</div>'+ownBudgetHtml(B)+
+    '<div class="small" style="margin-top:6px">Field average about <b>'+B.avg+'</b>'+(F.fmt==='classical'?' · norms possible if the field allows':'')+' · you guarantee <b>'+money(B.guarantee)+'</b> when the invitations go out'+(B.abroad?' · abroad: the hall costs more':'')+'.</div>';
+  const err=ownSaveErr(c,D);
+  h+='<div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn primary sm" data-act="ownsave"'+(err?' disabled title="'+esc(err)+'"':'')+'>'+(o?'Save the plan':'Found it')+'</button><button class="btn ghost sm" data-act="owncancel">Cancel</button>'+(err?'<span class="small dim">'+esc(err)+'</span>':'')+'</div>';
+  return h+'</div>';
+}
+function ownRollHtml(c,o){
+  const L=o.editions||[];if(!L.length)return '<div class="dim small" style="margin-top:6px">No edition played yet.</div>';
+  const shown=app.ownRollAll?L:L.slice(0,5);
+  return '<div style="margin-top:8px;font-weight:700;font-size:13px">Roll of winners</div>'+shown.map(function(E){
+    const who=E.w?(E.w.flag?E.w.flag+' ':'')+(E.w.you?'<b style="color:var(--brand2)">'+esc(E.w.n)+'</b>'+(E.w.cid===careerCid(c)?' <span class="chip brand" style="font-size:9px">YOU</span>':' 🏛️'):esc(E.w.n)):'—';
+    return '<div class="small" style="display:flex;gap:8px;padding:4px 0;border-top:1px solid var(--border)"><span class="dim" style="width:64px;flex:0 0 auto">'+seasonYearOf(c,E.s)+' · '+ordinal(E.n)+'</span>'+
+      '<span style="flex:1;min-width:0">'+who+' '+fmtScore(E.score)+'/'+E.of+'<span class="dim"> · '+E.entrants+' players, avg '+E.avg+(E.org?' · '+(E.profit>=0?'+':'−')+money(Math.abs(E.profit)):'')+(E.you?' · you '+ordinal(E.you):'')+'</span></span></div>';
+  }).join('')+(L.length>5?'<button class="btn ghost sm" data-act="ownrollall" style="margin-top:6px">'+(app.ownRollAll?'▴ The last five':'▾ All '+L.length+' editions')+'</button>':'');
+}
+function careerOwnPanel(c){
+  const o=ownOf(c);
+  if(app.ownDraft)return ownPlanner(c);
+  if(!o){
+    if((c.age||0)<OWN_MIN_AGE)return '';
+    return '<div class="card" id="owncard" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:3px">🎪 Your own tournament</div>'+
+      '<div class="dim small" style="margin-bottom:8px">Organise an event of your own: the city, the week, an open or a closed round-robin, the prize fund, who you invite and who sponsors it. You guarantee the budget; the entry fees, the tickets and the sponsor pay it back — or do not. It comes back every year with its own roll of winners, and it stays in this world after you.</div>'+
+      '<button class="btn primary sm" data-act="ownplan">Plan one</button></div>';
+  }
+  const S=c.season||1,cfg=ownCfgNow(c),F=ownFmt(cfg),mine=ownMine(c),conf=o.conf&&o.conf.s===S?o.conf:null;
+  const next=(o.editions||[]).length+1,wk=cfg.week,w=weekOfSeason(c);
+  let status;
+  if(S<o.from)status='First edition in '+seasonYearOf(c,o.from)+', week '+wk+'.';
+  else if(o.off===S)status='Not held this year.';
+  else if((c.calDone||[]).indexOf('own')>=0||(o.editions[0]&&o.editions[0].s===S))status='This year’s edition is over.';
+  else if(conf)status='The '+ordinal(next)+' edition: invitations out, week '+wk+(w<wk?' — in '+(wk-w)+' week'+(wk-w===1?'':'s'):'')+'. '+(mine?'Committed: '+money(conf.paid)+'. ':'')+'Sponsor: '+esc(conf.sp)+'.';
+  else status='The '+ordinal(next)+' edition: week '+wk+'. The invitations go out in week '+Math.max(0,wk-OWN_NOTICE)+'.';
+  let h='<div class="card" id="owncard" style="margin-bottom:12px;border-color:#f59e0b44"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+    '<div style="font-weight:800">'+F.e+' '+esc(o.name)+'</div><span class="chip" style="font-size:10px">prestige '+(o.prestige||0)+'</span></div>'+
+    '<div class="dim small" style="margin-top:3px">'+ownCityFlag(cfg.city)+' '+esc(cfg.city)+' · '+esc(F.l)+' · prize fund '+money(cfg.fund)+
+      ' · founded '+seasonYearOf(c,o.founder.s)+' by '+(o.founder.cid===careerCid(c)?'you':esc(o.founder.n))+(mine?'':' · run by '+(o.org&&o.orgName?'the committee in '+esc(o.orgName)+'’s name':'a committee'))+
+      (o.total&&mine?' · all-time '+(o.total>=0?'+':'−')+money(Math.abs(o.total)):'')+'</div>'+
+    '<div class="small" style="margin-top:6px">'+status+'</div>';
+  if(conf&&conf.inv&&conf.inv.length){
+    const R=worldRanking(c,F.fmt),by={};R.forEach(function(p){by[p.id]=p;});
+    const names=conf.inv.map(function(id){return by[id];}).filter(Boolean).slice(0,9).map(function(p){return (p.flag||'')+' '+esc(p.name)+' '+p.rating;});
+    if(names.length)h+='<div class="small dim" style="margin-top:4px">'+(F.rr?'The field: ':'On the poster: ')+names.join(' · ')+'</div>';
+  }
+  h+=ownRollHtml(c,o);
+  h+='<div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">'+
+    (mine?'<button class="btn sec sm" data-act="ownplan">Change the plan</button>':((c.age||0)>=OWN_MIN_AGE?'<button class="btn sec sm" data-act="owntake">Take it over</button>':''))+'</div>';
+  return h+'</div>';
+}
 function tourDef(tr){return TOURNAMENTS.find(function(t){return t.id===(tr&&tr.id);})||{};}
 function prizeFirst(t){
-  if(t&&PRIZE_FIRST[t.id]!=null)return PRIZE_FIRST[t.id];
+  if(t&&PRIZE_FIRST[t.id]!=null)return Math.round(PRIZE_FIRST[t.id]*eraPrize(store.career));     // chess paid less, once
   return ((t&&t.tier)||0)*400+400;                            // an event this list does not know
 }
 /* What each place pays, first to last, for an event with `n` players. */
 function prizeTable(t,n){
   const first=prizeFirst(t);
   if(!first)return [];
-  if(t.kind==='match')return [first,t.id==='wwcc'?WWCC_LOSER:WCC_LOSER];
+  if(t.kind==='match')return [first,Math.round((t.id==='wwcc'?WWCC_LOSER:WCC_LOSER)*eraPrize(store.career))];
   if(t.rr){const out=[];for(let i=0;i<n;i++)out.push(Math.round(first*Math.pow(RR_DECAY,i)));return out;}
   const paid=Math.max(1,Math.min(OPEN_SHAPE.length,Math.ceil(n*OPEN_PAID)));
   return OPEN_SHAPE.slice(0,paid).map(function(f){return Math.round(first*f);});
@@ -26319,9 +27083,9 @@ function prizeFor(tr,place){
     if(place===1)return {amount:prizeFirst(t),shared:1};
     const last=tr.ko.mine[tr.ko.mine.length-1];
     const KP=koC(tr.ko).prize;
-    return {amount:last?KP[Math.min(KP.length-1,last.round)]:KP[0],shared:1};
+    return {amount:Math.round((last?KP[Math.min(KP.length-1,last.round)]:KP[0])*eraPrize(store.career)),shared:1};
   }
-  if(tr.kind==='match')return {amount:place===1?prizeFirst(t):(t.id==='wwcc'?WWCC_LOSER:WCC_LOSER),shared:1};
+  if(tr.kind==='match')return {amount:place===1?prizeFirst(t):Math.round((t.id==='wwcc'?WWCC_LOSER:WCC_LOSER)*eraPrize(store.career)),shared:1};
   const S=tr.standings?standingsSorted(tr):null;
   const table=prizeTable(t,S?S.length:(tr.rounds||0)+1);
   if(!S||!place)return {amount:table[(place||99)-1]||0,shared:1};
@@ -26679,6 +27443,7 @@ function finalizeTournament(c){
     xt:xtSnapshot(tr)});
   xtPrune(c);
   tourAwardYou(c,tr,won1st);rollFromYourEvent(c,tr,def,won1st);     // the tours' points, and the roll
+  if(def.own)ownAfterYourEvent(c,tr,place,won1st);                 // your own tournament's roll, and its accounts
   if(!tr.oly)pushFeed(c,won1st?'🏆':'📋',esc(c.name||'You')+(won1st?' WINS ':' finishes '+ordinal(place)+' at ')+esc(tr.name)+' with '+fmtScore(scoreTot)+'/'+games+' (TPR '+tpr+').','you',true);
   gainedNorms.forEach(function(k){pushFeed(c,'📜',esc(c.name||'You')+' scores a '+k+' norm at '+esc(tr.name)+'.','you',true);});
   if(!tr.oly&&!tr.simul)wireYourEvent(c,tr,{place:won1st?1:place,games:games,score:scoreTot,avg:avgOpp,tpr:tpr,norms:gainedNorms,titles:newTitles,
@@ -27304,6 +28069,7 @@ function viewPlay(){
   let status;
   if(!live)status='<div style="font-weight:800;color:var(--amber)">⏪ Reviewing — move '+app.playView+' of '+lastIdx+'</div>';
   else if(app.playStatus==='over'){var rk=app.pass?(app.passWinner==='w'||app.passWinner==='b'?'win':'draw'):resultKind(app.playResult);var rc=rk==='win'?'var(--green)':rk==='loss'?'#f87171':'var(--muted)';var re=app.pass&&rk==='win'?'🏆':rk==='win'?'🎉':rk==='loss'?'😞':'🤝';status='<div class="card" style="border-color:'+rc+';text-align:center;padding:14px 12px"><div style="font-size:30px;line-height:1">'+re+'</div><div style="font-weight:800;font-size:16px;color:'+rc+';margin-top:4px">'+esc(app.playResult||'Game over')+'</div>'+(app.careerOpp&&app.careerStory?'<div class="dim small" style="margin-top:6px">'+app.careerStory.e+' '+esc(app.careerStory.t)+'</div>':'')+'<div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap;margin-top:11px">'+((app.playMoves&&app.playMoves.length)?'<button class="btn sec sm" data-act="revplay">🔬 Review game</button>':'')+((app.careerOpp&&app.cardCtx&&app.careerScored)?'<button class="btn sec sm" data-act="cardopen" data-val="game">📸 Result card</button>':'')+(!app.careerOpp?'<button class="btn primary sm" data-act="prematch">↻ Rematch</button><button class="btn sec sm" data-act="nav" data-val="play">New game</button>':'')+'</div>'+'</div>'+((app.oppSaid)?'<div class="note" style="margin-top:8px;border-color:#f59e0b3d;background:#f59e0b14;color:#fde68a">🤝 <b>'+esc((app.careerRoundOpp&&app.careerRoundOpp.name)||'Your opponent')+':</b> “'+esc(app.oppSaid)+'”</div>':'')+((app.careerOpp&&app.careerReaction)?'<div class="note" style="margin-top:8px;border-color:#a855f73d;background:#a855f714;color:#e9d5ff">💬 <b>'+esc(app.careerReaction.who)+':</b> “'+esc(app.careerReaction.line)+'”</div>':'')+(app.careerOpp?careerPlayFooter():'')+(app.endgame?endgameVerdict():'');}
+  else if(app.playStatus==='adjourned')status='<div style="font-weight:800;color:#93c5fd">✉️ Adjourned — the game goes on tomorrow</div>';
   else if(app.playStatus==='engine'){var pq=(app.playPremoves||[]).length;status='<div class="muted">Stockfish is thinking… '+(pq?'<span style="color:var(--brand2)">'+pq+' premove'+(pq>1?'s':'')+' queued</span> <span class="dim">· tap an empty square to cancel</span>':'<span class="dim">tap or drag to queue premoves</span>')+'</div>';}
   else{var _chk='';try{var _cc=new Chess(app.playFen);if(_cc.inCheck&&_cc.inCheck())_chk=' <span style="color:#f87171">— check!</span>';}catch(e){}status='<div style="font-weight:800;color:var(--brand2)">'+(app.pass?esc(passName(app.playSide))+' to move':'Your move')+' ('+(app.playSide==='w'?'White':'Black')+').'+_chk+'</div>';}
   const interactive=live&&app.playStatus==='play'&&turnOf(app.playFen)===app.playSide;
@@ -27332,6 +28098,7 @@ function viewPlay(){
   let rail='';
   if(app.blunderNote&&app.playStatus!=='over')rail+=coachCard(app.blunderNote,'🚫 Careful');
   rail+=oppDrawPanel();
+  rail+=adjournRail();
   if(app.careerBanter&&app.careerOpp&&app.playStatus!=='over')rail+='<div class="note" style="border-color:#a855f73d;background:#a855f714;color:#e9d5ff">💬 <b>'+esc(app.careerBanter.who)+':</b> “'+esc(app.careerBanter.line)+'”</div>';
   if(app.engineErr)rail+='<div class="note" style="border-color:#7f1d1d66;background:#7f1d1d22;color:#fecaca">Couldn’t load Stockfish (it needs internet on first use). Opening training still works without it.</div>';
   const noticeRail='<div class="noticerail">'+rail+'</div>';
@@ -27948,9 +28715,11 @@ const SRCH_SCREENS=[
   ['masters','👑','Master games','A database of master games','database'],
   ['magazine','📰','Sixty-Four, the magazine','Your season, written up','news'],
   ['hall','🏛️','The hall','Finished careers',''],
+  ['editor','✏️','Board editor','Set up a position piece by piece, or from a FEN','editor setup set up position fen board pieces place analyse play from position diagram'],
   ['calc','🧮','Rating & norm calculator','Your FIDE rating change and norms, for a real tournament','elo fide calculator norm gm im wgm wim performance tpr rating change k factor first rating'],
   ['settings','⚙️','Settings','Board, pieces, sounds, engine','options preferences'],
   ['settings#remindcard','🔔','Reminders','A notification when reviews are due','notifications notify alert'],
+  ['settings#widgetcard','📱','Home-screen widget','Your next event and what is due, on the Android home screen','widget home screen android launcher'],
   ['settings','🎵','Music','A soundtrack for your career, and its volume','soundtrack sound audio volume songs'],
   ['settings#xfercard','⇄','Move progress to another device','Send it from here, open it there','backup export import sync transfer phone pc'],
   ['settings#motionrow','🌀','Motion','Reduce motion: piece sliding, confetti','animation accessibility reduced motion'],
@@ -28110,7 +28879,7 @@ function anaMove(from,to,promo){
   app.sel=null;sfxSan(m.san);render();return true;}
 function anaSeek(d){var a=app.ana;if(!a)return;a.pos=Math.max(0,Math.min(a.fens.length-1,a.pos+d));app.sel=null;render();}
 function anaJump(i){var a=app.ana;if(!a)return;a.pos=Math.max(0,Math.min(a.fens.length-1,+i||0));app.sel=null;render();}
-function anaEngineOn(){return store.settings.anaEngine!==false;}
+function anaEngineOn(){return store.settings.anaEngine!==false&&!(app.ana&&app.ana.noEngine);}
 function anaAnalyse(){
   var a=app.ana;if(!a||!anaEngineOn()||a.input||app.view!=='analysis')return;var fen=a.fens[a.pos];
   if(a.key===fen)return;a.key=fen;a.eval=null;a.lines=[];a.best=null;
@@ -28138,6 +28907,186 @@ function anaMoveList(){
     if(ply%2===0)h+='<span class="dim">'+num+'.</span>';else if(i===0)h+='<span class="dim">'+num+'…</span>';
     h+='<button data-act="anajump" data-val="'+(i+1)+'"'+(a.pos===i+1?' style="background:var(--brand);color:#fff;border-radius:4px"':'')+'>'+esc(a.sans[i])+'</button> ';}
   return h;}
+/* =========================================================================
+   THE BOARD EDITOR
+
+   The analysis board took a position as a FEN or a PGN, which is fine when
+   you have one and no use when the position is in a book, on a screen or in
+   your head. So you can set one up: pick a piece and tap the squares, or drag
+   it on from the tray; drag a piece to move it, drag it off the board to take
+   it away. Then the side to move, which castling is still possible, and an en
+   passant square if a pawn has just gone two. The editor says what is wrong
+   with a position before you try it — two kings, no king, a pawn on the back
+   rank, the side not to move in check — and when it is right, the engine
+   looks at it with you or you play it out against the engine. The FEN goes
+   both ways: paste one in to start from it, copy one out.
+   ========================================================================= */
+const ED_PIECES=['wK','wQ','wR','wB','wN','wP','bK','bQ','bR','bB','bN','bP'];
+const ED_NAMES={K:'king',Q:'queen',R:'rook',B:'bishop',N:'knight',P:'pawn'};
+function edInit(fen,keep){
+  const f=String(fen||ANA_START).trim().split(/\s+/),pm={};
+  (f[0]||'').split('/').forEach(function(row,ri){let fi=0;
+    for(const ch of row){if(/\d/.test(ch)){fi+=+ch;continue;}if(fi<8&&ri<8)pm['abcdefgh'[fi]+(8-ri)]={color:ch===ch.toUpperCase()?'w':'b',type:ch.toLowerCase()};fi++;}});
+  const K=f[2]||'-',old=app.ed;
+  app.ed={pm:pm,turn:f[1]==='b'?'b':'w',castle:{K:K.indexOf('K')>=0,Q:K.indexOf('Q')>=0,k:K.indexOf('k')>=0,q:K.indexOf('q')>=0},ep:(f[3]&&f[3]!=='-')?f[3]:'-',
+    tool:keep&&old?old.tool:null,sel:null,flip:keep&&old?old.flip:false,err:null,text:'',copied:false};
+  return app.ed;
+}
+function edPlacement(pm){
+  let s='';
+  for(let r=8;r>=1;r--){let e=0;
+    for(let i=0;i<8;i++){const p=pm['abcdefgh'[i]+r];if(!p){e++;continue;}if(e){s+=e;e=0;}s+=p.color==='w'?p.type.toUpperCase():p.type;}
+    if(e)s+=e;if(r>1)s+='/';}
+  return s;
+}
+/* Castling that way is still possible: the king and that rook are at home. */
+function edCastleOk(pm,k){
+  const P=function(sq,c,t){const p=pm[sq];return !!p&&p.color===c&&p.type===t;};
+  if(k==='K')return P('e1','w','k')&&P('h1','w','r');
+  if(k==='Q')return P('e1','w','k')&&P('a1','w','r');
+  if(k==='k')return P('e8','b','k')&&P('h8','b','r');
+  return P('e8','b','k')&&P('a8','b','r');
+}
+/* The squares a pawn could just have skipped over. */
+function edEpOptions(E){
+  const moved=E.turn==='w'?'b':'w',rank=moved==='b'?5:4,skip=moved==='b'?6:3,from=moved==='b'?7:2,out=[];
+  'abcdefgh'.split('').forEach(function(f){const p=E.pm[f+rank];if(p&&p.color===moved&&p.type==='p'&&!E.pm[f+skip]&&!E.pm[f+from])out.push(f+skip);});
+  return out;
+}
+function edFen(E){
+  E=E||app.ed;
+  const cs=['K','Q','k','q'].filter(function(k){return E.castle[k]&&edCastleOk(E.pm,k);}).join('')||'-';
+  const ep=edEpOptions(E).indexOf(E.ep)>=0?E.ep:'-';
+  return edPlacement(E.pm)+' '+E.turn+' '+cs+' '+ep+' 0 1';
+}
+/* What is wrong with the position, or null. */
+function edCheck(E){
+  E=E||app.ed;
+  const pcs=Object.keys(E.pm).map(function(s){return [s,E.pm[s]];});
+  const n=function(c,t){return pcs.filter(function(x){return x[1].color===c&&(!t||x[1].type===t);}).length;};
+  if(n('w','k')!==1)return n('w','k')?'White has more than one king.':'White needs a king.';
+  if(n('b','k')!==1)return n('b','k')?'Black has more than one king.':'Black needs a king.';
+  if(pcs.some(function(x){return x[1].type==='p'&&(x[0][1]==='1'||x[0][1]==='8');}))return 'A pawn cannot stand on the first or the last rank.';
+  if(n('w','p')>8||n('b','p')>8)return 'One side has more than eight pawns.';
+  if(n('w')>16||n('b')>16)return 'One side has more than sixteen pieces.';
+  let g;try{g=new Chess(edFen(E));}catch(e){return 'Not a legal position: '+String((e&&e.message)||'').replace(/^Invalid FEN: /,'')+'.';}
+  const other=E.turn==='w'?'b':'w',ks=pcs.filter(function(x){return x[1].color===other&&x[1].type==='k';})[0][0];
+  if(g.isAttacked(ks,E.turn))return (other==='w'?'White':'Black')+' is in check, but it is '+(E.turn==='w'?'White':'Black')+' to move — that cannot happen.';
+  return null;
+}
+/* A piece goes on a square. One king each: a second one moves the first. */
+function edPlace(sq,k){
+  const E=app.ed,c=k[0],t=k[1].toLowerCase();
+  if(t==='k')Object.keys(E.pm).forEach(function(s){const q=E.pm[s];if(q.type==='k'&&q.color===c&&s!==sq)delete E.pm[s];});
+  E.pm[sq]={color:c,type:t};
+}
+function edClick(sq){
+  const E=app.ed;if(!E)return;
+  const p=E.pm[sq];
+  if(E.tool==='x')delete E.pm[sq];
+  else if(E.tool){const c=E.tool[0],t=E.tool[1].toLowerCase();
+    if(p&&p.color===c&&p.type===t)delete E.pm[sq];          // the same piece again: it comes off
+    else edPlace(sq,E.tool);}
+  else if(E.sel&&E.sel!==sq){E.pm[sq]=E.pm[E.sel];delete E.pm[E.sel];E.sel=null;}
+  else E.sel=(p&&E.sel!==sq)?sq:null;
+  E.copied=false;render();
+}
+/* A drag ends: on a square, or off the board. */
+function edDrop(from,to){
+  const E=app.ed;if(!E)return;
+  if(from.charAt(0)==='@'){if(to)edPlace(to,from.slice(1));}
+  else if(!to)delete E.pm[from];                            // dragged off the board: taken away
+  else if(to!==from){E.pm[to]=E.pm[from];delete E.pm[from];}
+  E.sel=null;E.copied=false;render();
+}
+function edOpen(fen){
+  edInit(fen||(app.ana?anaFen():ANA_START),true);
+  if(app.view!=='editor'){app.navHist=app.navHist||[];if(app.view)app.navHist.push(app.view);}
+  app.view='editor';render();
+}
+function edAct(act,val){
+  const E=app.ed||edInit(ANA_START);
+  if(act==='edtool'){E.tool=E.tool===val?null:val;E.sel=null;}
+  else if(act==='edhand'){E.tool=null;}
+  else if(act==='ederase'){E.tool=E.tool==='x'?null:'x';E.sel=null;}
+  else if(act==='edturn'){E.turn=val==='b'?'b':'w';}
+  else if(act==='edstart'){edInit(ANA_START,true);}
+  else if(act==='edclear'){E.pm={};E.sel=null;E.ep='-';}
+  else if(act==='edflip'){E.flip=!E.flip;}
+  else if(act==='edload'){
+    const el=document.getElementById('ed-fen'),raw=E.text||(el?el.value:''),f=anaFenOf(raw);
+    if(!f){E.err='That is not a FEN — it starts like “rnbqkbnr/pppppppp/8/…”.';}
+    else if(typeof f==='object')edInit(String(raw).trim(),true);     // loaded as it is: the card says what is wrong with it
+    else edInit(f,true);
+  }
+  else if(act==='edcopy'){const t=edFen(E),done=function(){E.copied=true;render();};
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,function(){fallbackCopy(t,done);});else fallbackCopy(t,done);return;}
+  else if(act==='edana'){if(edCheck(E))return;anaOpen(edFen(E),[],0,'Position from the editor');return;}
+  else if(act==='edplay'){if(edCheck(E))return;const f=edFen(E);startPlay(f,val==='b'?'b':'w',null,'From the board editor',{tc:tcById('unlimited')});return;}
+  render();
+}
+function edInput(el){
+  const E=app.ed;if(!E)return false;
+  if(el.dataset.edc){E.castle[el.dataset.edc]=!!el.checked;return true;}
+  if(el.dataset.edep!==undefined){E.ep=el.value||'-';return true;}
+  if(el.id==='ed-fen'){E.text=el.value;return false;}
+  return false;
+}
+/* A drag from the tray, or of a piece on the board: no move is being made, so nothing is selected. */
+function edDragStart(e){
+  const D=_dragC;_dragC=null;
+  const b=document.querySelector('.board');if(!b||!D)return;
+  const pe=D.from.charAt(0)==='@'?(D.pal&&D.pal.querySelector('.pc,.piece')):b.querySelector('[data-sq="'+D.from+'"] .pc, [data-sq="'+D.from+'"] .piece');
+  if(!pe)return;
+  const size=b.getBoundingClientRect().width/8,wrap=document.createElement('div');
+  wrap.className='dragpiece';wrap.style.width=size+'px';wrap.style.height=size+'px';
+  const cl=pe.cloneNode(true);if(cl.tagName!=='IMG')cl.style.fontSize=(size*0.8)+'px';
+  wrap.appendChild(cl);document.body.appendChild(wrap);
+  if(D.from.charAt(0)!=='@')pe.style.opacity='0.25';
+  _dragA={from:D.from,el:wrap,size:size};
+  wrap.style.transform='translate('+(e.clientX-size/2)+'px,'+(e.clientY-size/2)+'px)';
+}
+function viewEditor(){
+  const E=app.ed||edInit(app.ana?anaFen():ANA_START);
+  const fen=edFen(E),err=edCheck(E),orient=E.flip?'black':'white';
+  const tray=function(c){return '<div class="edpal" role="toolbar" aria-label="'+(c==='w'?'White':'Black')+' pieces">'+ED_PIECES.filter(function(k){return k[0]===c;}).map(function(k){
+    return '<button class="edpc'+(E.tool===k?' on':'')+'" data-act="edtool" data-val="'+k+'" data-edpc="'+k+'" aria-pressed="'+(E.tool===k)+'" aria-label="'+(c==='w'?'White':'Black')+' '+ED_NAMES[k[1]]+'">'+pieceImg(c,k[1].toLowerCase())+'</button>';}).join('')+'</div>';};
+  const help=E.tool==='x'?'Tap a piece to take it off.':E.tool?'Tap squares to put '+(E.tool[0]==='w'?'white':'black')+' '+ED_NAMES[E.tool[1]]+'s on them; tap one again to take it off.':
+    E.sel?'Now tap where it goes.':'Tap a piece in the tray, then the squares. Drag a piece to move it; drag it off the board to take it away.';
+  let h='<div class="row" style="align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap"><h1 style="font-size:20px">✏️ Board editor</h1>'+
+    (app.ana?'<button class="btn ghost sm" data-act="nav" data-val="analysis">← The analysis board</button>':'')+'</div>';
+  h+='<div class="layout"><div class="boardwrap">'+tray('b')+renderBoard(fen,orient,{interactive:false,sel:E.sel})+tray('w')+
+    '<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap">'+
+      '<button class="btn '+(!E.tool?'primary':'ghost')+' sm" data-act="edhand" aria-pressed="'+(!E.tool)+'">✋ Move</button>'+
+      '<button class="btn '+(E.tool==='x'?'primary':'ghost')+' sm" data-act="ederase" aria-pressed="'+(E.tool==='x')+'">🧽 Erase</button>'+
+      '<button class="btn ghost sm" data-act="edflip">⇅ Flip</button>'+
+      '<button class="btn ghost sm" data-act="edstart">Starting position</button>'+
+      '<button class="btn ghost sm" data-act="edclear">Clear</button></div>'+
+    '<div class="dim small" style="margin-top:6px" id="edhelp">'+help+'</div></div>';
+  const cb=function(k,l){const okc=edCastleOk(E.pm,k);return '<label class="small" style="display:flex;gap:5px;align-items:center'+(okc?'':';opacity:.45')+'"><input type="checkbox" data-edc="'+k+'"'+(E.castle[k]&&okc?' checked':'')+(okc?'':' disabled')+'> '+l+'</label>';};
+  const eps=edEpOptions(E);
+  h+='<div><div class="card"><div style="font-weight:700;margin-bottom:6px">To move</div>'+
+      '<div class="row" style="gap:6px"><button class="btn '+(E.turn==='w'?'primary':'ghost')+' sm" data-act="edturn" data-val="w" aria-pressed="'+(E.turn==='w')+'">White</button>'+
+      '<button class="btn '+(E.turn==='b'?'primary':'ghost')+' sm" data-act="edturn" data-val="b" aria-pressed="'+(E.turn==='b')+'">Black</button></div>'+
+      '<div style="font-weight:700;margin:10px 0 4px">Castling still possible</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">'+cb('K','White O-O')+cb('Q','White O-O-O')+cb('k','Black O-O')+cb('q','Black O-O-O')+'</div>'+
+      (eps.length?'<label class="small" style="display:block;margin-top:10px"><b>En passant</b> — a pawn just moved two<br><select data-edep style="margin-top:3px"><option value="-">no</option>'+
+        eps.map(function(s){return '<option value="'+s+'"'+(E.ep===s?' selected':'')+'>'+s+'</option>';}).join('')+'</select></label>':'')+
+    '</div>';
+  h+='<div class="card" style="margin-top:12px'+(err?';border-color:#7f1d1d':'')+'" id="edstate">'+(err?'<div class="small" style="color:#fca5a5">⚠️ '+esc(err)+'</div>':'<div class="small" style="color:var(--green)">✓ A legal position.</div>')+
+      '<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap">'+
+        '<button class="btn primary sm" data-act="edana"'+(err?' disabled':'')+'>🔬 Analyse it</button>'+
+        '<button class="btn sec sm" data-act="edplay" data-val="w"'+(err?' disabled':'')+'>▶ Play it as White</button>'+
+        '<button class="btn sec sm" data-act="edplay" data-val="b"'+(err?' disabled':'')+'>▶ Play it as Black</button></div></div>';
+  h+='<div class="card" style="margin-top:12px"><div style="font-weight:700;margin-bottom:4px">FEN</div>'+
+      '<div class="small" style="font-family:ui-monospace,monospace;word-break:break-all;margin-bottom:6px" id="edfenout">'+esc(fen)+'</div>'+
+      '<button class="btn sec sm" data-act="edcopy">'+(E.copied?'✓ Copied':'📋 Copy FEN')+'</button>'+
+      '<div class="row" style="gap:6px;margin-top:10px;align-items:center"><input id="ed-fen" type="text" spellcheck="false" autocapitalize="off" placeholder="Paste a FEN to start from it" value="'+esc(E.text||'')+'" style="flex:1;min-width:0">'+
+      '<button class="btn ghost sm" data-act="edload">Load</button></div>'+
+      (E.err?'<div class="note small" style="margin-top:8px;border-color:#7f1d1d;color:#fca5a5">'+esc(E.err)+'</div>':'')+
+    '</div></div></div>';
+  return '<div style="max-width:980px;margin:0 auto">'+h+'</div>';
+}
 function viewAnalysis(){
   var a=app.ana;
   var input='<div class="card" id="anainput"><div style="font-weight:700;margin-bottom:4px">Paste a position or a game</div>'+
@@ -28145,14 +29094,15 @@ function viewAnalysis(){
     '<textarea id="ana-in" rows="3" spellcheck="false" autocapitalize="off" placeholder="rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1" style="width:100%">'+esc(app.anaText||'')+'</textarea>'+
     (app.anaErr?'<div class="note small" style="margin-top:8px;border-color:#7f1d1d;color:#fca5a5">'+esc(app.anaErr)+'</div>':'')+
     '<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap"><button class="btn primary sm" data-act="anaload">Analyse it</button>'+
-    '<button class="btn ghost sm" data-act="anastart">Starting position</button>'+(a?'<button class="btn ghost sm" data-act="anainputclose">Cancel</button>':'')+'</div></div>';
+    '<button class="btn ghost sm" data-act="anastart">Starting position</button><button class="btn ghost sm" data-act="edopen">✏️ Set up a position</button>'+(a?'<button class="btn ghost sm" data-act="anainputclose">Cancel</button>':'')+'</div></div>';
   if(!a)return '<div style="max-width:660px;margin:0 auto"><h1>🔬 Analysis board</h1><div class="muted small" style="margin-bottom:12px">Any position — from a book, a friend’s game, a stream. The engine, the tablebase and the opening database look at it with you.</div>'+input+'</div>';
   var fen=a.fens[a.pos],orient=a.flip?'black':'white',stm=turnOf(fen)==='w'?'White':'Black';
   // while the paste box is open the engine waits, so its redraws do not interrupt your typing
   if(anaEngineOn()&&!a.input)setTimeout(anaAnalyse,20);
   var over=posOver(fen);
   var engine;
-  if(!anaEngineOn())engine='<div class="card" style="margin-top:12px"><button class="btn sec sm" data-act="anaengine">🔍 Turn the engine on</button></div>';
+  if(a.noEngine)engine='<div class="card" style="margin-top:12px"><div class="small">🕯️ <b>No engine.</b> It is '+seasonYear(store.career)+': there is no computer to ask. Move the pieces, find the plan, write it down — the way it was done.</div></div>';
+  else if(!anaEngineOn())engine='<div class="card" style="margin-top:12px"><button class="btn sec sm" data-act="anaengine">🔍 Turn the engine on</button></div>';
   else{var ev=a.eval;
     engine='<div class="card" style="margin-top:12px">'+(ev?'<div class="row" style="justify-content:space-between;margin-bottom:5px"><span class="dim small">'+esc(evalHead(ev))+'</span><span class="small" style="font-weight:800">'+esc(evalLabel(ev))+'</span></div><div class="evalbar"><i style="width:'+evalPct(ev.t,ev.v,ev.stm)+'%"></i></div>'+
       (a.lines&&a.lines.length?a.lines.map(function(L,i){return '<div class="small" style="margin-top:5px;display:flex;gap:6px;align-items:baseline;min-width:0"><b style="min-width:46px">'+esc(evalStr(L.t,L.v,L.stm))+'</b>'+
@@ -28161,7 +29111,7 @@ function viewAnalysis(){
       :(over?'<span class="dim small">The game is over in this position.</span>':'<span class="dim small">Analysing… (the engine downloads once, the first time)</span>'))+
       '<div class="row" style="margin-top:8px;gap:6px"><button class="btn ghost sm" data-act="anaengine">Hide engine</button></div></div>';}
   var h='<div class="row" style="align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap"><div class="row" style="align-items:center;min-width:0"><h1 style="font-size:20px">🔬 '+esc(a.title)+'</h1></div>'+
-    '<button class="btn sec sm" data-act="anainput">📋 Paste another</button></div>';
+    (a.adj?'<div class="row" style="gap:6px"><button class="btn ghost sm" data-act="adjback">↩ Back to the game</button><button class="btn primary sm" data-act="adjresume">▶ Resume</button></div>':'<button class="btn sec sm" data-act="anainput">📋 Paste another</button>')+'</div>';
   h+='<div class="layout"><div class="boardwrap">'+renderBoard(fen,orient,{sel:app.sel,last:a.lasts[a.pos]})+
     '<div class="row" style="justify-content:space-between;margin-top:10px;gap:6px;flex-wrap:wrap"><div class="row" style="gap:4px">'+
     '<button class="btn sec sm" data-act="anafirst" aria-label="First move"'+(a.pos?'':' disabled')+'>⏮</button>'+
@@ -28173,13 +29123,14 @@ function viewAnalysis(){
     '<div class="card"'+(a.input?' style="margin-top:12px"':'')+'><div class="row" style="justify-content:space-between;align-items:center"><span class="small"><b>'+stm+' to move</b>'+(over?' — '+(over.over==='mate'?'checkmate':'drawn'):'')+'</span><span class="dim small">'+(a.pos?'after '+esc(a.sans[a.pos-1]):'start')+'</span></div>'+
     '<div class="moves" style="margin-top:8px;line-height:2">'+anaMoveList()+'</div></div>'+
     engine;
-  expRequest(fen);h+=expPanel(fen);
-  h+=tbPanel(fen,{slot:'tbAna',max:7});if(Tablebase.covers(fen))tbRequest(fen,'tbAna');
-  h+='<div class="card" style="margin-top:12px"><div class="row" style="gap:6px;flex-wrap:wrap">'+
+  if(!a.noEngine){expRequest(fen);h+=expPanel(fen);
+    h+=tbPanel(fen,{slot:'tbAna',max:7});if(Tablebase.covers(fen))tbRequest(fen,'tbAna');}
+  if(!a.adj)h+='<div class="card" style="margin-top:12px"><div class="row" style="gap:6px;flex-wrap:wrap">'+
     '<button class="btn sec sm" data-act="anacopy" data-val="fen">'+(app.anaCopied==='fen'?'✓ Copied':'📋 Copy FEN')+'</button>'+
     '<button class="btn sec sm" data-act="anacopy" data-val="pgn"'+(a.sans.length?'':' disabled')+'>'+(app.anaCopied==='pgn'?'✓ Copied':'📋 Copy PGN')+'</button>'+
     '<button class="btn sec sm" data-act="anareview"'+(a.sans.length?'':' disabled')+'>🔍 Game Review</button>'+
-    '<button class="btn sec sm" data-act="anaplayout"'+(over?' disabled':'')+'>▶ Play it out vs the engine</button></div>'+
+    '<button class="btn sec sm" data-act="anaplayout"'+(over?' disabled':'')+'>▶ Play it out vs the engine</button>'+
+    '<button class="btn sec sm" data-act="edopen">✏️ Edit the position</button></div>'+
     '<div class="dim small" style="margin-top:8px">Play a move for either side to try it; playing from an earlier move replaces what came after. ◀ ▶ step, F flips.</div></div>';
   h+='</div></div>';
   return h;}

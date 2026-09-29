@@ -1003,7 +1003,7 @@ started at sixteen is not a junior one, and works as it always did.)
 
 *FIDE's direct titles.* Some titles are handed out for a result, not earned
 by rating and norms, and the career now uses FIDE's table for them (the one in
-force from 1 January 2024): a medal at a World or continental age-group
+force from 1 January 2026 — see section 30): a medal at a World or continental age-group
 championship (a World U10 medal is a CM, a World U16 gold an IM, a World
 Junior gold a grandmaster, a share of first a norm), the girls' sections the
 same with the women's titles, reaching the last sixteen of the World Cup (GM),
@@ -1181,6 +1181,83 @@ hundredth, rather than the smooth curve it approximates; and since 1 October
 2025 the rule that a gap of more than 400 counts as 400 is for players rated
 below 2650 only (FIDE Rating Regulations in force from 1 March 2024, 8.3.1 as
 amended). A first rating is at most 2200, as 8.2 says.
+
+**30. Your own tournament, a board editor, a widget, another era — and
+FIDE's newer direct-titles table.**
+
+*Your own tournament.* The Life tab has **🎪 Your own tournament**, from
+eighteen: pick the city (your own, or another federation's capital — abroad
+the hall costs more), the week, the format (a classical open, a closed
+ten-player round-robin, a rapid or a blitz open), the prize fund and a
+sponsor, and invite players off the list near the level you choose — nine for
+a round-robin, up to four stars on an open's poster — each at an appearance
+fee that climbs steeply with the rating. The budget is worked out as you go:
+the hall and the arbiters, the prizes and the fees against the sponsor, the
+entry fees (at a closed event, the norm-seekers pay for their places) and the
+tickets and the broadcast. Four weeks before, the invitations go out and you
+guarantee the budget; a player busy at a bigger event that week sends
+regrets, and somebody else is asked. In its week you can play it from the
+organiser's seat, or leave it to the players on the list. Then the accounts
+— a profit or a loss — and its prestige: a strong field and a good fund build
+its name, and a name brings more players and bigger sponsors. It comes back
+every year with its own roll of winners. It belongs to the world, not the
+career: after you a committee runs it in your name, and a career that comes
+after you in the same world can play in it, and from eighteen take it over.
+
+*A board editor.* **Learn → ✏️ Board editor** (or **Edit the position** on
+the analysis board): pick a piece and tap squares, drag pieces on from the
+trays, drag them about, drag one off the board to take it away. Set the side
+to move, the castling rights (offered only while king and rook are at home)
+and an en passant square if a pawn has just gone two. It says what is wrong
+with a position before you use it — a missing or second king, a pawn on the
+back rank, the side not to move in check — and when it is right, analyse it
+or play it out against the engine as either side. The FEN goes both ways.
+
+*A home-screen widget (Android).* Long-press the home screen, choose Widgets
+and find Chess Career: the year and week of your career, who you are on the
+list, the event you are in (round and score) or the next one you can enter,
+what is due and your streak, with **Open** and **What's due**. The page hands
+the career over each time it saves; the due counts are worked out on the
+phone from the reminders' due times, so they are right when the widget is
+drawn — every half hour, when a reminder's alarm goes, and when the app
+saves. Settings shows a preview of it.
+
+*Another era.* A new career can begin in **1972**, **1985** or **2000**
+instead of today. The world is that year's: its best players by name, rated
+about where the lists of the time had them, the rest of the list pulled down
+to the lower ratings of the day, and its champions — Spassky with Fischer the
+challenger, Karpov with Kasparov, Kasparov with Kramnik — the title match of
+the first season the one history had. The calendar is the calendar of the
+time and changes as the years pass: no rapid chess before 1987 and no World
+Rapid before 1988, no online arenas before 2014, no Freestyle tour, Esports
+World Cup or Champions Chess Tour, and no Norway Chess, Superbet, Gibraltar,
+Dubai, Aeroflot or Qatar before they began; an Interzonal until 1993 where
+the Grand Swiss is now, Zonals before continental championships, FIDE's
+knockout championships from 1997 and the World Cup from 2005, the Hoogovens
+before 1999 and Corus until 2010; the professional club leagues from the
+years they were founded. In an era that starts in an odd year the cycle
+moves to odd years (the Olympiad stays in even ones). The rules too: the
+WGM title from 1976, the FIDE Master from 1978, the Candidate Master from
+2002; a first rating only at the floor of the list at the time (2200 until
+1993, then lower, step by step); no 2200 cap on a first rating before 2024.
+Prizes are smaller (about a third of today's before 1980, half until 1995,
+three-quarters until 2010), there is no streaming before 2008, no engine
+analyst to hire before 1990 — and opponents, with no computers either,
+prepare against you less. Until 1996 a classical career game that reaches
+move 40 is **adjourned**: the player to move seals the next move, the game
+goes on the next day, and in between you can go over the position on the
+analysis board — without an engine before 1990, with one after, as players
+did. The night's work counts in the rest of the game; skip it and your
+opponent's seconds did it for them. The next generation carries on in the
+same era, and a career in one era does not meet your careers in another.
+Players are listed under today's federations.
+
+*FIDE's direct titles, the 2026 table.* The direct titles now follow FIDE's
+table in force from 1 January 2026: a World U18 gold is a GM title (it was a
+norm), a World U14 gold an IM title (it was a norm), silver and bronze at a
+World U18 an IM title, and a share of first at a continental U14 or U12 an FM
+title. A winner who is also "first equal" no longer collects a norm for a
+title gold has already given.
 
 ## The Olympiad is a team event
 
@@ -2194,7 +2271,7 @@ mid-drag, double-click, that a resize never moves a piece, and phones.
 
 ## Tests
 
-Seventy-four suites, about 6,260 checks, plus twenty-three browser suites that drive the real app with the real engine.
+Seventy-eight suites, about 6,380 checks, plus twenty-four browser suites that drive the real app with the real engine.
 
 `validate-smoke.mjs` is the gate: it parses the app, renders every career tab,
 checks the puzzle set, and guards against **duplicate top-level declarations** —
@@ -2296,6 +2373,28 @@ games, the 2200 cap, a zero score, the 1400 floor), every norm requirement,
 the score a norm needs with rounds to play, and the screen. `visual-worlds.mjs`
 drives all four in a browser — the calculator's typing, the map and a pin, the
 tours, a champion retiring into the next generation.
+
+`validate-own.mjs` covers your own tournament: hidden until there is one,
+the planner and its budget, founding it, the invitations and the guarantee
+four weeks out, playing it from the organiser's seat, the accounts and the
+prestige, the world playing it without you, sponsors, an edition called off
+for want of money, regrets from players at a clashing event, and a later
+career finding it run by a committee and taking it over.
+`validate-editor.mjs` covers the board editor: FEN in and out, placing and
+removing pieces, one king each, what makes a position illegal, the hand and
+the drags, castling rights and en passant, the screen, loading a FEN, and
+analysing the position. `validate-widget.mjs` checks the widget's four lines,
+the snapshot the page hands the Android app, and — compiling
+WidgetLogic.java with javac — that the widget writes exactly what the page
+does in 270 cases, and that the manifest, layout and bridge are in place.
+`validate-era.mjs` covers careers in 1972, 1985 and 2000: the lists, the
+champions and the first title match, the events of the time and their names
+as the years go by, the parity of the cycle, titles, rating floors and first
+ratings, prizes, streaming, engines and preparation, club leagues, and an
+adjourned game sealed, kept, analysed without an engine and resumed.
+`validate-junior.mjs` now checks the 2026 direct-titles table.
+`visual-organiser.mjs` drives the editor (taps and drags from the tray), a
+career begun in 1972, founding a tournament, and the widget's preview.
 
 Career mode's newer systems have their own: `validate-booth.mjs` (what the
 commentators can and cannot know, the grammar guard that fills every line with

@@ -1,0 +1,83 @@
+/* The board editor: pieces on and off, the side to move, castling, en
+   passant, what is wrong with a position, and the FEN both ways. */
+import { readFileSync } from 'fs';
+import { JSDOM } from 'jsdom';
+import { Chess } from 'chess.js';
+const html = readFileSync('work/openingtrainer.html', 'utf8');
+const s = html.indexOf('<script type="module">') + '<script type="module">'.length, e = html.indexOf('</script>', s);
+let script = html.slice(s, e); if (/^\s*import\s/m.test(script)) script = script.replace(/^\s*import\s[^\n]*\n/gm, '');
+const dom = new JSDOM('<!doctype html><body><div id="app"></div></body>', { url: 'http://localhost/' });
+globalThis.window=dom.window; globalThis.document=dom.window.document; globalThis.localStorage=dom.window.localStorage;
+globalThis.Chess=Chess; globalThis.confirm=()=>true; globalThis.alert=()=>{}; globalThis.requestAnimationFrame=(f)=>setTimeout(f,0);
+globalThis.performance=globalThis.performance||{now:()=>Date.now()};
+globalThis.AudioContext=globalThis.webkitAudioContext=function(){return{createOscillator:()=>({connect(){},start(){},stop(){},frequency:{}}),createGain:()=>({connect(){},gain:{setValueAtTime(){},exponentialRampToValueAtTime(){}}}),destination:{},currentTime:0};};
+globalThis.ResizeObserver=class{observe(){}unobserve(){}disconnect(){}}; globalThis.Worker=class{postMessage(){}terminate(){}addEventListener(){}};
+if(!dom.window.matchMedia)dom.window.matchMedia=()=>({matches:false,addEventListener(){},removeEventListener(){},addListener(){},removeListener(){}});
+dom.window.__PUZZLES=[];dom.window.scrollTo=()=>{};
+let pass=0; const ok=(c,m)=>{if(!c)throw new Error('FAIL: '+m);pass++;console.log('  ✓ '+m);};
+const X=new Function(script+'\nreturn {store,app,ANA_START,edInit,edFen,edCheck,edClick,edDrop,edAct,edInput,edEpOptions,edCastleOk,edOpen,viewEditor,boardClick,render};')();
+X.store.onboarded=true;
+
+console.log('\n— from a FEN and back —');
+let E=X.edInit(X.ANA_START);
+ok(X.edFen()===X.ANA_START&&X.edCheck()===null,'the starting position goes in and comes out the same, and is legal');
+const sic='rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2';
+X.edInit(sic);
+ok(X.edFen()==='rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 1','a Sicilian with its en passant square (the move counters start again)');
+
+console.log('\n— placing pieces —');
+X.edAct('edclear');E=X.app.ed;
+ok(Object.keys(E.pm).length===0&&X.edCheck()==='White needs a king.','cleared: an empty board, and it says what is missing');
+X.edAct('edtool','wK');X.edClick('e1');X.edAct('edtool','bK');X.edClick('e8');
+ok(X.edCheck()===null&&X.edFen().startsWith('4k3/8/8/8/8/8/8/4K3 w'),'two kings: a legal position');
+X.edAct('edtool','wK');X.edClick('g1');
+ok(!E.pm.e1&&E.pm.g1&&E.pm.g1.type==='k','a second white king moves the first — one king each');
+X.edAct('edtool','wP');X.edClick('a8');
+ok(/first or the last rank/.test(X.edCheck()),'a pawn on the eighth rank: “'+X.edCheck()+'”');
+X.edClick('a8');
+ok(!E.pm.a8&&X.edCheck()===null,'tapping the same piece again takes it off');
+X.edAct('edtool','wQ');X.edClick('e7');
+ok(/Black is in check, but it is White to move/.test(X.edCheck()),'the side not to move in check: “'+X.edCheck()+'”');
+X.edAct('edturn','b');
+ok(X.edCheck()===null&&X.edFen().split(' ')[1]==='b','Black to move: now it is legal');
+X.edAct('ederase');X.edClick('e7');
+ok(!E.pm.e7,'the eraser takes a piece off');
+X.edAct('edhand');X.edClick('g1');X.edClick('h2');
+ok(!E.pm.g1&&E.pm.h2&&E.pm.h2.type==='k','the hand: tap a piece, tap a square, it moves');
+X.edDrop('h2','g2');
+ok(E.pm.g2&&!E.pm.h2,'dragged across the board');
+X.edDrop('@bR','a1');
+ok(E.pm.a1&&E.pm.a1.color==='b'&&E.pm.a1.type==='r','dragged in from the tray: a black rook on a1');
+X.edDrop('a1',null);
+ok(!E.pm.a1,'dragged off the board: gone');
+
+console.log('\n— castling and en passant —');
+X.edInit(X.ANA_START);E=X.app.ed;
+X.edAct('edhand');X.edClick('h1');X.edClick('h3');
+ok(!X.edCastleOk(E.pm,'K')&&X.edFen().split(' ')[2]==='Qkq','the h1 rook has gone: White can only castle long ('+X.edFen().split(' ')[2]+')');
+X.edInput({dataset:{edc:'q'},checked:false});
+ok(X.edFen().split(' ')[2]==='Qk','and you can say Black has lost the right to castle long');
+X.edInit('rnbqkbnr/pppp1ppp/8/8/3Pp3/8/PPP1PPPP/RNBQKBNR b KQkq - 0 1');
+ok(X.edEpOptions(X.app.ed).join()==='d3','Black to move after d4: the en passant square can be d3');
+X.edInput({dataset:{edep:''},value:'d3'});
+ok(X.edFen().split(' ')[3]==='d3'&&X.edCheck()===null,'set, and the position is still legal');
+
+console.log('\n— the screen —');
+X.edInit(X.ANA_START);X.app.view='editor';X.render();
+const H=document.getElementById('app').innerHTML;
+ok((H.match(/data-edpc="/g)||[]).length===12&&/data-edc="K"/.test(H)&&/id="ed-fen"/.test(H)&&/A legal position/.test(H),'the editor: twelve pieces in the trays, castling, the FEN box, and the verdict');
+ok(/data-act="edana"(?![^>]*disabled)/.test(H)&&/data-act="edplay" data-val="b"/.test(H),'analyse it, or play it as either side');
+X.edAct('edclear');X.render();
+ok(/data-act="edana" disabled/.test(document.getElementById('app').innerHTML),'an illegal position cannot be analysed yet');
+X.app.ed.text='8/8/8/4k3/8/8/4K3/7R w - - 0 1';X.edAct('edload');
+ok(X.edFen()==='8/8/8/4k3/8/8/4K3/7R w - - 0 1','a FEN pasted in loads');
+X.app.ed.text='not a fen';X.edAct('edload');
+ok(/not a FEN/.test(X.app.ed.err),'and nonsense is refused');
+X.edAct('edana');
+ok(X.app.view==='analysis'&&X.app.ana&&X.app.ana.start==='8/8/8/4k3/8/8/4K3/7R w - - 0 1','“Analyse it” opens the analysis board on the position');
+X.edOpen();
+ok(X.app.view==='editor'&&X.edFen()==='8/8/8/4k3/8/8/4K3/7R w - - 0 1','and “Edit the position” brings it back to the editor');
+X.boardClick('e2');
+ok(X.app.ed.sel==='e2','a tap on the board goes to the editor');
+
+console.log('\n✅ the board editor: '+pass+' checks passed');

@@ -34,6 +34,7 @@ public class ReminderReceiver extends BroadcastReceiver {
         String action = intent == null ? null : intent.getAction();
         if (ACTION_CHECK.equals(action)) check(ctx, System.currentTimeMillis());
         schedule(ctx);   // boot, or after a check: set the next one
+        CareerWidget.refresh(ctx);   // what is due has changed since the widget was drawn
     }
 
     static SharedPreferences prefs(Context ctx) {
